@@ -7,11 +7,11 @@
 <title>R Gram 主頁改版 B 方案</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
-    第 9 版（2026-11-24）。用戶意見：♥ 前面要有刻度線；轉碟時下一張碟要蓋過唱片機中心；歌書用 C（沿碟弧線），
-    唔要右下資訊；曲詞編監唔好疊住 CD 同轉盤；想睇播放模式掣嘅三個 icon。
+    第 10 版（2026-11-24）。用戶意見：專輯資料、App 名、非官方聲明都唔使喺主頁 / 歌書顯示，可以放 preload 畫面；
+    重覆一首 icon 睇唔清（著燈後更甚）；播放模式掣播緊先著燈、冇播唔著。
     靜態設計稿，唔係 app code。所有位置數字喺 script 入面嘅常數（1080 × 1920 基準）。
     Source：src/template.html + src/fonts.css + src/logo-full.png（python3 src/prep_logo.py 由用戶提供嘅 logo 切出） → python3 src/build.py → index.html（唔好直接改 index.html）。
-    舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤、第 8 版歌書三款 A / B / C）。
+    舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤、第 8 版歌書三款 A / B / C、第 9 版歌書 C + 播放模式 icon）。
 -->
 <style>
 /*__FONTS__*/
@@ -59,7 +59,7 @@ svg.stage {
     user-select: none; -webkit-user-select: none;
 }
 svg.stage.square { aspect-ratio: 1; }
-svg.modes { display: block; width: 100%; max-width: 760px; height: auto; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+svg.modes { display: block; width: 100%; max-width: 820px; height: auto; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
 svg.stage [data-act] { cursor: pointer; }
 /* 互動格：狀態改變時只改各組嘅 transform / opacity，由 transition 做動畫（時長沿用 v16：Wheel 0.5s、唱臂 0.65s） */
 svg.live [data-anim] { transition: transform .5s cubic-bezier(.4, 0, .2, 1), opacity .32s ease; }
@@ -86,7 +86,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 主頁改版 · B 方案</h1>
-    <p class="lede">第 9 版。♥ 嗰格補返一條刻度線，♥ 喺線嘅外面；轉碟時之後嘅碟會蓋過唱片機中心；歌書定咗用 C（沿碟弧線），右下資訊刪走，曲詞編監改做左邊一欄，唔再疊住 CD 同轉盤；下面加咗一節睇播放模式掣四個狀態嘅 icon。</p>
+    <p class="lede">第 10 版。播放模式掣嘅光圈改為代表「播緊」：播緊就著燈，冇播就唔著，邊個模式只靠 icon 分；icon 重畫過，著燈時保持深色。專輯資料唔再顯示；App 名同「非官方」聲明搬去 preload 畫面（「各個畫面」最尾一格）。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -107,7 +107,7 @@ tr:last-child td { border-bottom: 0; }
                         <tr><td>碟芯</td><td>播／停：唱臂落針／返回泊位</td></tr>
                         <tr><td><b>i</b></td><td>歌書：曲詞編監 + 沿碟弧線嘅歌詞。要播緊歌先有</td></tr>
                         <tr><td>歌名後面嘅心形</td><td>收藏／取消收藏呢首歌</td></tr>
-                        <tr><td>播放模式掣</td><td>順序 → 重覆全部 → 重覆一首 → 隨機</td></tr>
+                        <tr><td>播放模式掣</td><td>順序 → 重覆全部 → 重覆一首 → 隨機（播緊時外圈著燈）</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -120,7 +120,7 @@ tr:last-child td { border-bottom: 0; }
     <div class="grid" id="grid"></div>
 
     <h2>播放模式掣：四個狀態</h2>
-    <p class="lede">同一粒掣，每㩒一下轉一個。順序以外，外圈著燈、icon 轉專輯色。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
+    <p class="lede">同一粒掣，每㩒一下轉一個模式，模式靠 icon 分。外圈光圈代表有冇播緊：播緊著燈，冇播唔著。icon 永遠係深色，著咗燈都睇得清。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
     <div id="modes"></div>
 
     <h2>掣點分類</h2>
@@ -221,6 +221,8 @@ tr:last-child td { border-bottom: 0; }
     const CONTROL_GAP = 40; // 細掣（連光圈）同旋鈕刻度之間最少留幾多
     const SCREW_ZONE = 120; // 左下螺絲周圍幾多之內唔放控件
     const BTN = { r: 44, ringGap: 9, ringWidth: 3.5 };
+    const ICON_SIZE = 52; // 細掣上面 icon 嘅大細
+    const ICON_COLOR = '#262626';
     const BTN_OUTER = BTN.r + BTN.ringGap + BTN.ringWidth;
     const HUB = { clear: 0.16, clamp: 0.118, rim: 0.972 }; // v16：透明膠圈外徑、碟孔（= 唱片夾）、銀邊內徑
     const SCREWS = [[62, 62], [62, H - 62], [W - 62, 62]]; // 右下角喺碟底下，見唔到
@@ -229,11 +231,9 @@ tr:last-child td { border-bottom: 0; }
     const ALBUMS = {
         komorebi: {
             title: 'KOMOREBI', sub: '2026', cover: 'komorebi', accent: '#2f8f57', glow: 'hsl(146 95% 52%)',
-            meta: ['2026-11-27', '錄音室專輯', 'R Flat', '12 首'],
         },
         favourites: {
             title: 'FAVOURITES', sub: '12 TRACKS', cover: 'favourites', accent: '#d7263d', glow: 'hsl(352 96% 60%)',
-            meta: ['你收藏嘅歌', '12 首'],
         },
     };
     const SONG = {
@@ -276,8 +276,8 @@ tr:last-child td { border-bottom: 0; }
 
     /** 畫面狀態：album 邊隻碟、song 有冇歌播緊、booklet 歌書開咗、wheel 0（閂）至 1（開） */
     const VIEWS = [
-        ['未揀歌', '唱臂泊位；唱片夾冇 icon；MV 掣變灰；左下三粒細掣 + 大旋鈕，刻度最後一格對出係 ♥', { album: 'komorebi', song: false, booklet: false, wheel: 0 }],
-        ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
+        ['未揀歌', '唱臂泊位；唱片夾冇 icon；MV 掣變灰；播放模式掣冇著燈；刻度最後一格對出係 ♥', { album: 'komorebi', song: false, booklet: false, wheel: 0 }],
+        ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形；播放模式掣著燈', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
         ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
@@ -344,7 +344,7 @@ tr:last-child td { border-bottom: 0; }
 
     const screws = () => SCREWS.map((point) => screw(point)).join('');
 
-    const STROKE = `fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"`;
+    const STROKE = `fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"`;
     const HEART = 'M24 38.5S10.5 30 10.5 20.6c0-5 3.7-8.1 7.5-8.1 2.6 0 4.8 1.4 6 3.5 1.2-2.1 3.4-3.5 6-3.5 3.8 0 7.5 3.1 7.5 8.1C37.5 30 24 38.5 24 38.5z';
     const ICONS = {
         info: () => `<circle cx="24" cy="12.5" r="3.9"/><path d="M17.5 20.5h10v13.5h3.5v3.2h-14v-3.2h3.6v-10.3h-3.1z"/>`,
@@ -354,13 +354,14 @@ tr:last-child td { border-bottom: 0; }
             `<path fill-rule="evenodd" d="M10 16.5h28a4 4 0 0 1 4 4v15a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4v-15a4 4 0 0 1 4-4zM12.5 20.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h17a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3zM37.5 22.3a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8zM37.5 27.6a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8zM37.5 32.9a1.9 1.9 0 1 0 0 3.8 1.9 1.9 0 0 0 0-3.8z"/>` +
             `<path d="M24 16.5L17.5 8M24 16.5L30.5 8" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>` +
             `<circle cx="17.2" cy="7.6" r="2.3"/><circle cx="30.8" cy="7.6" r="2.3"/><path d="M11 39.5h5v2.5h-5zM32 39.5h5v2.5h-5z"/>`,
-        order: () => `<path d="M10 17.5h25M30.6 13l4.6 4.5-4.6 4.5M10 30.5h25M30.6 26l4.6 4.5-4.6 4.5" ${STROKE}/>`,
+        order: () => `<path d="M9 17h26.5M30.5 12l5 5-5 5M9 31h26.5M30.5 26l5 5-5 5" ${STROKE}/>`,
         shuffle: () =>
-            `<path d="M9 16.5h6.2c7.2 0 9.6 15 16.8 15h6M33.6 27l4.6 4.5-4.6 4.5M9 31.5h6.2c2.6 0 4.6-2 6.3-4.6M26.3 21.1c1.6-2.6 3.4-4.6 5.9-4.6h5.8M33.6 12l4.6 4.5-4.6 4.5" ${STROKE}/>`,
+            `<path d="M8 15.5h6.5c7.6 0 9.9 17 17.5 17h7M34 27.5l5 5-5 5M8 32.5h6.5c2.8 0 4.8-2.3 6.6-5.3M26.4 20.8c1.7-3 3.7-5.3 6.6-5.3h6M34 10.5l5 5-5 5" ${STROKE}/>`,
+        // 重覆：個圈畫大啲，入面留位畀「1」
         all: () =>
-            `<path d="M12.5 22.5v-1.8a5.2 5.2 0 0 1 5.2-5.2h17.8M31.5 11l4.6 4.5-4.6 4.5M35.5 25.5v1.8a5.2 5.2 0 0 1-5.2 5.2H12.5M16.5 37l-4.6-4.5 4.6-4.5" ${STROKE}/>`,
-        // 重覆一首：同一個圈，中間加粗身「1」
-        one: () => `${ICONS.all()}<path d="M22.2 21.4l2.6-1.5v8.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`,
+            `<path d="M9 23.5v-4a6.5 6.5 0 0 1 6.5-6.5H37M32 8l5 5-5 5M39 24.5v4a6.5 6.5 0 0 1-6.5 6.5H11M16 30l-5 5 5 5" ${STROKE}/>`,
+        // 重覆一首：同一個圈，中間一個粗身「1」（高度約 icon 嘅三成）
+        one: () => `${ICONS.all()}<path d="M21 20.6l4.6-2.9v13.6" fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>`,
     };
 
     /** icon 畫喺 48 × 48 格，置中喺 (cx, cy) */
@@ -371,7 +372,7 @@ tr:last-child td { border-bottom: 0; }
 
     const buttonState = (name, st) => {
         if (name === 'mv') return { lit: false, disabled: !st.song, glyph: 'mv' };
-        if (name === 'mode') return { lit: ui.mode !== 'order', disabled: false, glyph: ui.mode };
+        if (name === 'mode') return { lit: st.song, disabled: false, glyph: ui.mode }; // 光圈 = 播緊；模式靠 icon 分
         return { lit: st.booklet, disabled: false, glyph: 'info' };
     };
 
@@ -386,7 +387,7 @@ tr:last-child td { border-bottom: 0; }
             out += `<circle cx="${x}" cy="${y}" r="${ring}" fill="none" stroke="${glow}" stroke-width="${BTN.ringWidth}"/>`;
         }
         out += metal(x, y, BTN.r);
-        out += icon(glyph, x, y, 46, lit ? glow : '#2e2e2e');
+        out += icon(glyph, x, y, ICON_SIZE, ICON_COLOR); // 著咗燈 icon 都保持深色，先睇得清
         if (disabled) out += `<circle cx="${x}" cy="${y}" r="${BTN.r + 1}" fill="#f1f1ee" opacity=".62"/>`;
         return `${out}</g>`;
     };
@@ -718,29 +719,53 @@ tr:last-child td { border-bottom: 0; }
         return out;
     };
 
-    /* ---------- 播放模式掣四個狀態（放大） ---------- */
+    /* ---------- 播放模式掣（放大）：四個模式 × 播緊 / 冇播 ---------- */
     const modeShowcase = () => {
         const SCALE_UP = 1.9;
-        const PITCH = 250;
-        const WIDTH = PITCH * MODES.length;
+        const LABEL_W = 150;
+        const PITCH = 245;
+        const ROWS = [['播緊', '外圈著燈', true, 190], ['冇播', '冇著燈', false, 440]];
+        const WIDTH = LABEL_W + PITCH * MODES.length;
+        const HEIGHT = 580;
         const { glow } = ALBUMS.komorebi;
         const ring = BTN.r + BTN.ringGap + BTN.ringWidth / 2;
-        const cells = MODES.map((mode, i) => {
-            const lit = mode !== 'order';
-            let out = '';
-            if (lit) {
-                out += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="9" opacity=".7" filter="url(#fGlow)"/>`;
-                out += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="${BTN.ringWidth}"/>`;
-            }
-            out += metal(0, 0, BTN.r) + icon(mode, 0, 0, 46, lit ? glow : '#2e2e2e');
-            const x = PITCH * (i + 0.5);
-            return (
-                `<g transform="translate(${x} 150) scale(${SCALE_UP})">${out}</g>` +
-                `<text x="${x}" y="318" text-anchor="middle" font-family="${CJK}" font-weight="700" font-size="30" fill="${INK}">${MODE_LABEL[mode]}</text>` +
-                `<text x="${x}" y="358" text-anchor="middle" font-family="${CJK}" font-size="22" fill="#777">${lit ? '外圈著燈' : '冇著燈（預設）'}</text>`
-            );
-        }).join('');
-        return `<svg class="modes" viewBox="0 0 ${WIDTH} 400" role="img" aria-label="播放模式掣四個狀態：${MODES.map((m) => MODE_LABEL[m]).join('、')}"><rect width="${WIDTH}" height="400" fill="url(#gStage)"/>${cells}</svg>`;
+        const columnX = (i) => LABEL_W + PITCH * (i + 0.5);
+        let out = `<rect width="${WIDTH}" height="${HEIGHT}" fill="url(#gStage)"/>`;
+        MODES.forEach((mode, i) => {
+            out += `<text x="${columnX(i)}" y="52" text-anchor="middle" font-family="${CJK}" font-weight="700" font-size="30" fill="${INK}">${MODE_LABEL[mode]}</text>`;
+        });
+        ROWS.forEach(([name, note, lit, y]) => {
+            out += `<text x="26" y="${y - 6}" font-family="${CJK}" font-weight="700" font-size="28" fill="${INK}">${name}</text>`;
+            out += `<text x="26" y="${y + 28}" font-family="${CJK}" font-size="21" fill="#777">${note}</text>`;
+            MODES.forEach((mode, i) => {
+                let cell = '';
+                if (lit) {
+                    cell += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="9" opacity=".7" filter="url(#fGlow)"/>`;
+                    cell += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="${BTN.ringWidth}"/>`;
+                }
+                cell += metal(0, 0, BTN.r) + icon(mode, 0, 0, ICON_SIZE, ICON_COLOR);
+                out += `<g transform="translate(${columnX(i)} ${y}) scale(${SCALE_UP})">${cell}</g>`;
+            });
+        });
+        return `<svg class="modes" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="播放模式掣：${MODES.map((m) => MODE_LABEL[m]).join('、')}；播緊著燈，冇播唔著">${out}</svg>`;
+    };
+
+    /* ---------- Preload 畫面（靜態示意）：App 名同非官方聲明放喺度 ---------- */
+    const preloadCard = () => {
+        const logoW = 560;
+        const logoH = logoW * LOGO.aspect;
+        const BAR = { x: 340, y: 1640, w: 400, progress: 0.64 };
+        return (
+            `<article class="card"><h3>Preload</h3><p class="tag">靜態示意（旗幟飄揚照 v16）。底部加 App 名同「非官方」聲明；專輯資料唔再顯示</p>` +
+            `<svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="Preload 畫面"><rect width="${W}" height="${H}" fill="#0a0a0a"/>` +
+            `<image href="${LOGO.href}" x="${(W - logoW) / 2}" y="${n(860 - logoH / 2)}" width="${logoW}" height="${n(logoH)}"/>` +
+            `<path d="M${BAR.x} ${BAR.y}h${BAR.w}" stroke="#fff" stroke-opacity=".25" stroke-width="4" stroke-linecap="round"/>` +
+            `<path d="M${BAR.x} ${BAR.y}h${n(BAR.w * BAR.progress)}" stroke="#fff" stroke-width="4" stroke-linecap="round"/>` +
+            `<text x="${W / 2}" y="${BAR.y + 56}" text-anchor="middle" font-family="${SLAB_LIGHT}" font-size="30" fill="${PAPER}" letter-spacing="6">064</text>` +
+            `<text x="${W / 2}" y="1802" text-anchor="middle" font-family="${SLAB}" font-size="34" fill="${PAPER}" letter-spacing="2">R Gram</text>` +
+            `<text x="${W / 2}" y="1844" text-anchor="middle" font-family="${SLAB_LIGHT}" font-size="21" fill="#8f8c85" letter-spacing="3">Fan-made, unofficial  ·  v0.1.0</text>` +
+            `</svg></article>`
+        );
     };
 
     /* ---------- 量度 ---------- */
@@ -898,7 +923,7 @@ tr:last-child td { border-bottom: 0; }
     };
 
     const renderStatic = () => {
-        document.getElementById('grid').innerHTML = VIEWS.map(staticCard).join('') + wholeDisc();
+        document.getElementById('grid').innerHTML = VIEWS.map(staticCard).join('') + wholeDisc() + preloadCard();
         document.getElementById('modes').innerHTML = modeShowcase();
         document.getElementById('measure').innerHTML = measurements();
     };
