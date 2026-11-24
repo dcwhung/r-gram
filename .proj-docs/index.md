@@ -13,7 +13,7 @@
 
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
-| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶已揀 B（大碟出界）+ 歌書 C（沿碟弧線）。第 10 版（2026-11-24）：播放模式掣光圈 = 播緊（模式靠 icon 分），icon 重畫、著燈時保持深色；專輯資料唔再顯示；App 名 + 非官方聲明搬去 preload（加咗示意格）。**等用戶確認主頁**。確認後出 CR-002 同其餘場景 preview | 播放端核心（M2） |
+| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶已揀 B（大碟出界）+ 歌書 C（沿碟弧線）。第 10–11 版（2026-11-24）：（第 11 版）播放模式掣播緊先著燈，外圈同 icon 一齊轉專輯色，模式靠 icon 分；「重覆一首」用數字 badge；專輯資料唔再顯示；App 名 + 非官方聲明搬去 preload（加咗示意格）。**等用戶確認主頁**。確認後出 CR-002 同其餘場景 preview | 播放端核心（M2） |
 | 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |

@@ -7,11 +7,11 @@
 <title>R Gram 主頁改版 B 方案</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
-    第 10 版（2026-11-24）。用戶意見：專輯資料、App 名、非官方聲明都唔使喺主頁 / 歌書顯示，可以放 preload 畫面；
-    重覆一首 icon 睇唔清（著燈後更甚）；播放模式掣播緊先著燈、冇播唔著。
+    第 11 版（2026-11-24）。用戶意見：著燈時 icon 都要著（好似第 9 版）；重覆一首 icon 參考附圖改用數字 badge。
+    沿用第 10 版：播放模式掣播緊先著燈；專輯資料唔顯示；App 名同非官方聲明喺 preload。
     靜態設計稿，唔係 app code。所有位置數字喺 script 入面嘅常數（1080 × 1920 基準）。
     Source：src/template.html + src/fonts.css + src/logo-full.png（python3 src/prep_logo.py 由用戶提供嘅 logo 切出） → python3 src/build.py → index.html（唔好直接改 index.html）。
-    舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤、第 8 版歌書三款 A / B / C、第 9 版歌書 C + 播放模式 icon）。
+    舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤、第 8 版歌書三款 A / B / C、第 9 版歌書 C + 播放模式 icon、第 10 版 icon 保持深色）。
 -->
 <style>
 /*__FONTS__*/
@@ -86,7 +86,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 主頁改版 · B 方案</h1>
-    <p class="lede">第 10 版。播放模式掣嘅光圈改為代表「播緊」：播緊就著燈，冇播就唔著，邊個模式只靠 icon 分；icon 重畫過，著燈時保持深色。專輯資料唔再顯示；App 名同「非官方」聲明搬去 preload 畫面（「各個畫面」最尾一格）。</p>
+    <p class="lede">第 11 版。著燈時 icon 同外圈一齊轉專輯色（返返第 9 版嘅做法）；「重覆一首」改用數字 badge：循環箭咀右下角一個實心圓，入面係「1」。其餘同第 10 版一樣：播放模式掣播緊先著燈；App 名同「非官方」聲明喺 preload 畫面。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -120,7 +120,7 @@ tr:last-child td { border-bottom: 0; }
     <div class="grid" id="grid"></div>
 
     <h2>播放模式掣：四個狀態</h2>
-    <p class="lede">同一粒掣，每㩒一下轉一個模式，模式靠 icon 分。外圈光圈代表有冇播緊：播緊著燈，冇播唔著。icon 永遠係深色，著咗燈都睇得清。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
+    <p class="lede">同一粒掣，每㩒一下轉一個模式，模式靠 icon 分。播緊時外圈同 icon 一齊著燈（專輯色），冇播就唔著。「重覆一首」用數字 badge。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
     <div id="modes"></div>
 
     <h2>掣點分類</h2>
@@ -360,8 +360,10 @@ tr:last-child td { border-bottom: 0; }
         // 重覆：個圈畫大啲，入面留位畀「1」
         all: () =>
             `<path d="M9 23.5v-4a6.5 6.5 0 0 1 6.5-6.5H37M32 8l5 5-5 5M39 24.5v4a6.5 6.5 0 0 1-6.5 6.5H11M16 30l-5 5 5 5" ${STROKE}/>`,
-        // 重覆一首：同一個圈，中間一個粗身「1」（高度約 icon 嘅三成）
-        one: () => `${ICONS.all()}<path d="M21 20.6l4.6-2.9v13.6" fill="none" stroke="currentColor" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>`,
+        // 重覆一首：循環箭咀 + 右下角數字 badge（實心圓，入面挖空一個「1」，見到掣面）
+        one: () =>
+            `<path d="M9 23.5v-4a6.5 6.5 0 0 1 6.5-6.5H37M32 8l5 5-5 5M21 35H11M16 30l-5 5 5 5" ${STROKE}/>` +
+            `<path fill-rule="evenodd" d="M34.5 23.5a10 10 0 1 0 0 20a10 10 0 0 0 0-20zM32 30.4l3.4-2.2h1.9v11.2h-2.9v-7.6l-2.4 1.3z"/>`,
     };
 
     /** icon 畫喺 48 × 48 格，置中喺 (cx, cy) */
@@ -387,7 +389,7 @@ tr:last-child td { border-bottom: 0; }
             out += `<circle cx="${x}" cy="${y}" r="${ring}" fill="none" stroke="${glow}" stroke-width="${BTN.ringWidth}"/>`;
         }
         out += metal(x, y, BTN.r);
-        out += icon(glyph, x, y, ICON_SIZE, ICON_COLOR); // 著咗燈 icon 都保持深色，先睇得清
+        out += icon(glyph, x, y, ICON_SIZE, lit ? glow : ICON_COLOR); // 著燈時 icon 同外圈一齊轉專輯色
         if (disabled) out += `<circle cx="${x}" cy="${y}" r="${BTN.r + 1}" fill="#f1f1ee" opacity=".62"/>`;
         return `${out}</g>`;
     };
@@ -722,9 +724,9 @@ tr:last-child td { border-bottom: 0; }
     /* ---------- 播放模式掣（放大）：四個模式 × 播緊 / 冇播 ---------- */
     const modeShowcase = () => {
         const SCALE_UP = 1.9;
-        const LABEL_W = 150;
+        const LABEL_W = 200;
         const PITCH = 245;
-        const ROWS = [['播緊', '外圈著燈', true, 190], ['冇播', '冇著燈', false, 440]];
+        const ROWS = [['播緊', '外圈 + icon 著燈', true, 190], ['冇播', '冇著燈', false, 440]];
         const WIDTH = LABEL_W + PITCH * MODES.length;
         const HEIGHT = 580;
         const { glow } = ALBUMS.komorebi;
@@ -743,7 +745,7 @@ tr:last-child td { border-bottom: 0; }
                     cell += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="9" opacity=".7" filter="url(#fGlow)"/>`;
                     cell += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="${BTN.ringWidth}"/>`;
                 }
-                cell += metal(0, 0, BTN.r) + icon(mode, 0, 0, ICON_SIZE, ICON_COLOR);
+                cell += metal(0, 0, BTN.r) + icon(mode, 0, 0, ICON_SIZE, lit ? glow : ICON_COLOR);
                 out += `<g transform="translate(${columnX(i)} ${y}) scale(${SCALE_UP})">${cell}</g>`;
             });
         });
