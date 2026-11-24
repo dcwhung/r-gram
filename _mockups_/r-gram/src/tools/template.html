@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>R Gram — 20 秒動態預視</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+HK:wght@700;900&display=swap">
+<style>
+/* Type: ITC Lubalin Graph Std Book, taken from this computer's installed fonts (it is not embedded in this file).
+   Both aliases cover every weight, so the Book cut is used as drawn, never artificially emboldened.
+   Where the font is not installed, the embedded Rokkitt cuts stand in. */
+@font-face { font-family: "RB Slab"; font-weight: 100 900; src: local("ITC Lubalin Graph Std Book"), local("LubalinGraphStd-Book"), local("ITC Lubalin Graph Std"), url(data:font/woff2;base64,/*__SLAB_HEAVY__*/) format("woff2"); }
+@font-face { font-family: "RB Slab Light"; font-weight: 100 900; src: local("ITC Lubalin Graph Std Book"), local("LubalinGraphStd-Book"), local("ITC Lubalin Graph Std"), url(data:font/woff2;base64,/*__SLAB_LIGHT__*/) format("woff2"); }
+:root { --bar-h: 64px; --ink: #f5f3ee; --muted: #8a877f; --accent: #f5f3ee; --warn: #e0a030; color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #050506; color: var(--ink); overflow: hidden; }
+body { display: grid; grid-template-rows: 1fr auto; height: 100dvh; font: 300 15px "RB Slab Light", Rockwell, "Noto Sans HK", "PingFang HK", sans-serif; }
+.stage { min-height: 0; overflow: hidden; display: grid; place-items: center; padding: 12px; }
+canvas { display: block; aspect-ratio: 9 / 16; width: auto; height: min(calc(100dvh - var(--bar-h) - 24px), calc((100vw - 24px) * 16 / 9)); border-radius: 28px; background: #000; box-shadow: 0 0 0 1px #26262a, 0 30px 80px rgba(0, 0, 0, .7); cursor: pointer; }
+.bar { height: var(--bar-h); display: flex; align-items: center; gap: 12px; padding: 0 max(16px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px, env(safe-area-inset-left)); border-top: 1px solid #1c1c20; max-width: 760px; width: 100%; margin: 0 auto; }
+button { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 1px solid #2c2c31; background: #121215; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+button:hover { border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #0b0b0d; }
+button svg { width: 16px; height: 16px; fill: currentColor; }
+input[type="range"] { flex: 1; min-width: 0; accent-color: var(--accent); }
+.time, .covers { color: var(--muted); letter-spacing: .06em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.time { min-width: 8ch; text-align: right; }
+.covers[data-state="blocked"] { color: var(--warn); }
+</style>
+</head>
+<body>
+<div class="stage"><canvas id="screen" width="1080" height="1920" aria-label="R Gram 動態預視"></canvas></div>
+<div class="bar">
+  <button id="toggle" type="button" aria-label="播放 / 暫停"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="toggle-icon" d="M3 1h4v14H3zM9 1h4v14H9z"/></svg></button>
+  <input id="scrub" type="range" min="0" max="20" step="0.01" value="0" aria-label="時間軸">
+  <span class="time" id="time">00.0 / 20</span>
+  <span class="covers" id="cover-status" data-state="loading" aria-live="polite">封面 0/0</span>
+  <button id="covers" type="button" aria-label="真封面 / 示意碟面" aria-pressed="true" title="真封面 / 示意碟面"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm0 9.2A2.2 2.2 0 1 1 8 5.8a2.2 2.2 0 0 1 0 4.4z"/></svg></button>
+</div>
+<script>
+/*__ANIM__*/
+</script>
+<script>
+(function () {
+    'use strict';
+    const LOGO_SRC = 'data:image/png;base64,/*__LOGO__*/';
+    // Official cover URLs taken from the discography page; loaded at runtime, never embedded.
+    const COVER_URLS = /*__COVERS__*/;
+    const ICON_PAUSE = 'M3 1h4v14H3zM9 1h4v14H9z';
+    const ICON_PLAY = 'M3 1l11 7-11 7z';
+    const REDUCED_MOTION_FRAME = 4.6;
+    const CJK_SAMPLE = RBPreview.TRACKS.join('') + '電';
+    // colour picking from a cover: sample size, hue buckets, and limits that keep the accent readable
+    const SWATCH = 24;
+    const HUE_BUCKETS = 12;
+    const MIN_COLOURFUL_SHARE = 0.05;
+    const ACCENT_LIGHTNESS = [0.34, 0.5];
+    const ACCENT_MIN_SATURATION = 0.45;
+    const NEUTRAL_ACCENT = [110, 110, 110];
+
+    const canvas = document.getElementById('screen');
+    const ctx = canvas.getContext('2d');
+    const scrub = document.getElementById('scrub');
+    const timeLabel = document.getElementById('time');
+    const toggle = document.getElementById('toggle');
+    const coversButton = document.getElementById('covers');
+    const coverStatus = document.getElementById('cover-status');
+    scrub.max = String(RBPreview.DURATION);
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const coverTotal = Object.keys(COVER_URLS).length;
+
+    let anim = null;
+    let time = reducedMotion ? REDUCED_MOTION_FRAME : 0;
+    let playing = !reducedMotion;
+    let last = 0;
+    let useCovers = true;
+    let coverFailures = 0;
+    const coverImages = {};
+    const coverAccents = {};
+
+    function setPlaying(next) {
+        playing = next;
+        document.getElementById('toggle-icon').setAttribute('d', playing ? ICON_PAUSE : ICON_PLAY);
+    }
+    function showCoverStatus() {
+        const loaded = Object.keys(coverImages).length;
+        const blocked = coverFailures === coverTotal;
+        coverStatus.dataset.state = blocked ? 'blocked' : loaded === coverTotal ? 'ready' : 'loading';
+        coverStatus.textContent = blocked ? '封面載入唔到' : '封面 ' + loaded + '/' + coverTotal;
+        coverStatus.title = blocked ? '呢個環境擋咗外部圖片：請下載後用瀏覽器直接開呢個檔' : '';
+    }
+    function hslToRgb(h, s, l) {
+        const f = (n) => {
+            const k = (n + h * 12) % 12;
+            return Math.round(255 * (l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1))));
+        };
+        return [f(0), f(8), f(4)];
+    }
+    // The colour a cover lends to the interface: its most colourful hue, kept dark enough to read on white.
+    // Returns null when the pixels cannot be read (image served without CORS headers).
+    function dominantColor(image) {
+        const swatch = document.createElement('canvas');
+        swatch.width = swatch.height = SWATCH;
+        const sctx = swatch.getContext('2d', { willReadFrequently: true });
+        let pixels;
+        try {
+            sctx.drawImage(image, 0, 0, SWATCH, SWATCH);
+            pixels = sctx.getImageData(0, 0, SWATCH, SWATCH).data;
+        } catch (error) {
+            return null;
+        }
+        const buckets = Array.from({ length: HUE_BUCKETS }, () => ({ weight: 0, x: 0, y: 0, s: 0, l: 0 }));
+        let total = 0;
+        for (let p = 0; p < pixels.length; p += 4) {
+            const r = pixels[p] / 255;
+            const g = pixels[p + 1] / 255;
+            const b = pixels[p + 2] / 255;
+            const max = Math.max(r, g, b);
+            const min = Math.min(r, g, b);
+            const l = (max + min) / 2;
+            const chroma = max - min;
+            const s = chroma === 0 ? 0 : chroma / (1 - Math.abs(2 * l - 1));
+            let h = 0;
+            if (chroma > 0) {
+                if (max === r) h = ((g - b) / chroma + 6) % 6;
+                else if (max === g) h = (b - r) / chroma + 2;
+                else h = (r - g) / chroma + 4;
+                h /= 6;
+            }
+            const weight = chroma * chroma;
+            const bucket = buckets[Math.min(HUE_BUCKETS - 1, Math.floor(h * HUE_BUCKETS))];
+            bucket.weight += weight;
+            bucket.x += Math.cos(h * 2 * Math.PI) * weight;
+            bucket.y += Math.sin(h * 2 * Math.PI) * weight;
+            bucket.s += s * weight;
+            bucket.l += l * weight;
+            total += chroma;
+        }
+        if (total / (pixels.length / 4) < MIN_COLOURFUL_SHARE) return NEUTRAL_ACCENT;
+        const best = buckets.reduce((a, b) => (b.weight > a.weight ? b : a));
+        const hue = (Math.atan2(best.y, best.x) / (2 * Math.PI) + 1) % 1;
+        const saturation = Math.max(ACCENT_MIN_SATURATION, best.s / best.weight);
+        const lightness = Math.max(ACCENT_LIGHTNESS[0], Math.min(ACCENT_LIGHTNESS[1], best.l / best.weight));
+        return hslToRgb(hue, Math.min(1, saturation), lightness);
+    }
+    function applyCovers() {
+        if (!anim) return;
+        const keep = {};
+        RBPreview.ALBUMS.forEach((album, i) => {
+            const image = coverImages[album.key];
+            const real = useCovers && image;
+            if (real) {
+                anim.setCover(i, image);
+                keep[i] = true;
+            }
+            anim.setAccent(i, real ? coverAccents[album.key] : null);
+        });
+        anim.refreshArt(keep);
+    }
+    function useCoverImage(key, image) {
+        coverImages[key] = image;
+        coverAccents[key] = dominantColor(image);
+        showCoverStatus();
+        applyCovers();
+    }
+    function loadCover(key, readable) {
+        // first try asks for readable pixels (needed to pick the accent); if the host refuses, load for display only
+        const image = new Image();
+        if (readable) image.crossOrigin = 'anonymous';
+        image.onload = () => useCoverImage(key, image);
+        image.onerror = () => {
+            if (readable) {
+                loadCover(key, false);
+                return;
+            }
+            coverFailures += 1;
+            showCoverStatus();
+        };
+        image.src = COVER_URLS[key];
+    }
+    function loadCovers() {
+        showCoverStatus();
+        Object.keys(COVER_URLS).forEach((key) => loadCover(key, true));
+    }
+    function frame(now) {
+        if (playing) time = (time + Math.min(0.1, (now - last) / 1000)) % RBPreview.DURATION;
+        last = now;
+        anim.draw(ctx, time);
+        if (document.activeElement !== scrub || playing) scrub.value = time.toFixed(2);
+        timeLabel.textContent = time.toFixed(1).padStart(4, '0') + ' / ' + RBPreview.DURATION;
+        requestAnimationFrame(frame);
+    }
+    function start(logo) {
+        anim = RBPreview.create({
+            logo,
+            createCanvas(width, height) {
+                const offscreen = document.createElement('canvas');
+                offscreen.width = width;
+                offscreen.height = height;
+                return offscreen;
+            },
+        });
+        window.rbPreview = { anim, useCoverImage }; // handy for poking at frames from the console
+        setPlaying(playing);
+        loadCovers();
+        // the web CJK face may arrive late; type is re-measured once it does
+        document.fonts.load('700 64px "Noto Sans HK"', CJK_SAMPLE).then(applyCovers, () => {});
+        last = performance.now();
+        requestAnimationFrame(frame);
+    }
+
+    toggle.addEventListener('click', () => setPlaying(!playing));
+    canvas.addEventListener('click', () => setPlaying(!playing));
+    scrub.addEventListener('input', () => {
+        time = parseFloat(scrub.value);
+        setPlaying(false);
+    });
+    coversButton.addEventListener('click', () => {
+        useCovers = !useCovers;
+        coversButton.setAttribute('aria-pressed', String(useCovers));
+        applyCovers();
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space' && event.target === document.body) {
+            event.preventDefault();
+            setPlaying(!playing);
+        }
+    });
+
+    const logo = new Image();
+    logo.onload = () => {
+        Promise.all([document.fonts.load('800 100px "RB Slab"'), document.fonts.load('300 20px "RB Slab Light"')]).then(
+            () => start(logo),
+            () => start(logo)
+        );
+    };
+    logo.src = LOGO_SRC;
+})();
+</script>
+</body>
+</html>
