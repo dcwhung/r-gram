@@ -1,10 +1,10 @@
 # Technical Spec：R Gram（播放端 PWA + 內容管理 Backend）
 
-**版本**：v1.0
-**日期**：2026-11-24 16:50
+**版本**：v1.1
+**日期**：2026-11-24 23:18（v1.0：2026-11-24 16:50）
 **作者**：Architect Agent
-**關聯 Functional Spec**：v1.2（2026-11-24 17:05，包括 CR-001 歌曲 credit）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：Approved（用戶 2026-11-24 確認；T1–T6 全部照建議）
+**關聯 Functional Spec**：v1.3（包括 CR-001 歌曲 credit、CR-002 播放端介面定稿）`2026-11-24_16-13_functional-spec_r-gram.md`
+**狀態**：v1.0 Approved；v1.1 = 跟 CR-002 更新（見文末「CR-002 對技術設計嘅影響」），等用戶確認
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -722,8 +722,42 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 ---
 
+## CR-002 對技術設計嘅影響
+
+Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `apps/player`。本節取代上文同佢有出入嘅地方。
+
+| 範疇 | v1.0 | v1.1 |
+| --- | --- | --- |
+| 場景狀態機 | `scene`：`preload → home ⇄ wheel → list → home`；`overlay`：`mv`｜`lyrics`｜`info` | `scene`：`preload → home ⇄ discChange`、`home ⇄ list`；`overlay`：`mv`｜`booklet`。冇 `lyrics`、`info` |
+| 播放狀態 | `idle`｜`loading`｜`playing`｜`paused`｜`error` | 不變。新增衍生值：唱片夾顯示（冇 icon／play／pause + 進度圈／play + 進度圈）由 `scene` + 播放狀態計出嚟 |
+| 幾何資料表 | 初版數值由 v16 `anim.js` 抄入 | 初版數值由 `_mockups_/home-turntable/src/template.html` 嘅常數抄入（`DISC`、`PLATTER`、`ARM`、`BUTTONS`、`KNOB`、`SCALE`、`DIAL`、`ORBIT`、`LIST`、`ARC`、`CREDITS`、`TV`）。唱臂、旗幟、金屬質感、電視外觀仍然參考 v16 |
+| 旋鈕位置 | — | 唔寫死：`KNOB.x = round(platterLeftAt(KNOB.y) / 2)`，其他裝置版面轉盤位置唔同都啱 |
+| 刻度同字母盤 | Wheel 錶盤（SVG） | `positions = 已上架專輯數 + 1`；角度 = `from + pos × step`；刻度同字母共用同一個函數 |
+| 元件 | `wheel/`、`lyrics/`、`info-panel/` | 刪走；改為 `knob/`（旋鈕 + 刻度 + ♥）、`dial-ring/`（字母盤）、`booklet/`（曲詞編監 + 弧線歌詞）、`spindle/`（固定唱片夾）、`platter/` |
+| 碟 | 碟芯連唱片夾係碟嘅一部分 | 碟係空心環（封面用 evenodd clip 挖走碟孔）；唱片夾係獨立元件，DOM 次序緊接喺而家隻碟後面（之後嘅碟蓋過佢） |
+| 弧線排列 | `drawList()` 邏輯重用 | 歌單同歌書共用一個純函數 `arcRows(centre, radius, stepDeg, focusIndex)`，輸出每行位置同淡出值 |
+| 文字長度 | — | `fitText()`：量度文字闊度（canvas `measureText`），按 D22／D23 縮字、「…」或者跑馬燈；純函數部分（決定用邊個策略）有 unit test |
+| Favourites 碟面 | — | App 內建靜態圖（唔經管理端）：由用戶提供嘅 logo 生成嘅透明 PNG／SVG；正式用要高清檔 |
+| Catalog | 專輯有 `type`、`label`、`releaseDate` | 播放端唔再用 `type`、`label`、`releaseDate`（只用 `year`）；欄位照留喺 catalog，方便之後用，唔影響 API |
+| 淨空規則 | — | `stage/layouts/*.test.ts`：對每份幾何表驗 Functional Spec CR-002 嘅淨空規則（掣同 CD ≥ 16、控件同轉盤 ≥ 40、細掣同旋鈕 ≥ 40、螺絲周圍 120、旋鈕左右空白相差 ≤ 2、感應範圍 ≥ 44pt 唔重疊）。加裝置版面時同一組測試照跑 |
+| 動畫 | scene token | 新增：轉碟 0.5s（字母盤、其他碟滑入、唱臂同細掣淡出）、指針轉動 0.5s；全部用現有 `--motion-scene-*`；preview 嘅做法（只改 `transform`／`opacity`，靠 CSS transition）可以照用 |
+| MV 音量旋鈕 | Web Audio gain | 不變 |
+
+### Functional Spec 對照（CR-002 新增／改動）
+
+| Functional 需求 | 技術落點 |
+| --- | --- |
+| FR-031 固定唱片夾 + 空心碟 | `components/spindle`、`components/disc`（空心環）、`stage` 層次規則 |
+| FR-032 淨空同感應範圍規則 | `stage/layouts/*.test.ts` |
+| FR-033 歌書 | `components/booklet`、`lyrics/activeLine.ts`、`stage/arcRows.ts`、catalog `tracks[].credits` |
+| FR-034 Preload 文字 | `components/flag`（版本號用 build 注入嘅值） |
+| FR-035 刻度同字母盤自動生成 | `components/knob`、`components/dial-ring`、catalog `albums[].wheelKey` |
+| FR-036 超長文字 | `utils/fitText.ts` |
+| FR-017 Info | 刪 |
+
 ## 修訂記錄
 
 | 版本 | 日期 | 改動 |
 | --- | --- | --- |
 | v1.0 | 2026-11-24 16:50 | 初稿 |
+| v1.1 | 2026-11-24 23:18 | 跟 Functional Spec v1.3（CR-002）更新：加「CR-002 對技術設計嘅影響」一節。只影響 `apps/player`；Backend、API、資料庫、部署不變 |

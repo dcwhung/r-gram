@@ -1,19 +1,19 @@
 # R Gram 項目文件索引
 
-**最後更新**：2026-11-24 17:05
+**最後更新**：2026-11-24 23:18
 
 ## Specs
 
 | 日期 | 文件 | 狀態 | 摘要 |
 | --- | --- | --- | --- |
-| 2026-11-24 | [specs/2026-11-24_16-13_functional-spec_r-gram.md](specs/2026-11-24_16-13_functional-spec_r-gram.md) | Approved（v1.2，2026-11-24） | Functional Spec：播放端 PWA（唱片機介面、R2 音檔 / MV、LRC 同步歌詞、收藏歌曲 + Favourites 碟、Shuffle / Repeat、手機 → iPhone Duo → HomeView → 電腦）+ 管理端（Google login、專輯 / 封面 / 歌單 / credit / 歌詞、R2 掃描、發佈）。v1.2 加歌曲 credit |
-| 2026-11-24 | [specs/2026-11-24_16-50_technical-spec_r-gram.md](specs/2026-11-24_16-50_technical-spec_r-gram.md) | Approved（2026-11-24；T1–T6 照建議） | Technical Spec v1.0：npm workspaces monorepo（`apps/player`、`apps/admin`、`apps/api`、`packages/catalog`）；Cloudflare Worker + Hono + D1 + R2；31 個 API；6 張表；待確認技術決定 T1–T6 |
+| 2026-11-24 | [specs/2026-11-24_16-13_functional-spec_r-gram.md](specs/2026-11-24_16-13_functional-spec_r-gram.md) | v1.2 Approved；**v1.3（CR-002）等確認** | Functional Spec：播放端 PWA + 管理端。v1.2 加歌曲 credit（CR-001）。v1.3 = CR-002 播放端介面定稿：新版面（大碟出界 + 轉盤）、左下角控件（三粒細掣 + 轉碟旋鈕 + ♥）、唱片夾固定 + 空心碟、歌書（合併歌詞同 Info）、播放模式一粒掣、Favourites 碟面、Preload 文字；D22–D28 待確認 |
+| 2026-11-24 | [specs/2026-11-24_16-50_technical-spec_r-gram.md](specs/2026-11-24_16-50_technical-spec_r-gram.md) | v1.0 Approved；**v1.1（跟 CR-002）等確認** | Technical Spec：npm workspaces monorepo；Cloudflare Worker + Hono + D1 + R2；31 個 API；6 張表。v1.1 只改 `apps/player`（場景狀態機、幾何資料表、元件、淨空規則測試） |
 
 ## 待辦（阻住開發嘅 mockup）
 
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
-| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶已揀 B（大碟出界）+ 歌書 C（沿碟弧線）。第 10–11 版（2026-11-24）：（第 11 版）播放模式掣播緊先著燈，外圈同 icon 一齊轉專輯色，模式靠 icon 分；「重覆一首」用數字 badge；專輯資料唔再顯示；App 名 + 非官方聲明搬去 preload（加咗示意格）。**等用戶確認主頁**。確認後出 CR-002 同其餘場景 preview | 播放端核心（M2） |
+| 1 | 播放端場景 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。**主頁、轉碟、歌書、播放模式、Favourites 碟：用戶 2026-11-24 已確認（第 12 版）**，已寫入 Functional Spec CR-002。第 13 版加咗歌單、Favourites 歌單、MV 電視，**等用戶確認** | 播放端核心（M2） |
 | 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |
