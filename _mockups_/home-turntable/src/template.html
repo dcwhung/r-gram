@@ -7,11 +7,11 @@
 <title>R Gram 主頁改版 B 方案</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
-    第 8 版（2026-11-24）。用戶意見：大旋鈕左移到左右空白一致；三粒細掣上移，左下螺絲周圍留空；♥ 緊接最後一條刻度線；
-    字母盤半透明，刻度弧同字母盤首尾字對齊；歌書連而家嗰款再出多兩款揀。
+    第 9 版（2026-11-24）。用戶意見：♥ 前面要有刻度線；轉碟時下一張碟要蓋過唱片機中心；歌書用 C（沿碟弧線），
+    唔要右下資訊；曲詞編監唔好疊住 CD 同轉盤；想睇播放模式掣嘅三個 icon。
     靜態設計稿，唔係 app code。所有位置數字喺 script 入面嘅常數（1080 × 1920 基準）。
     Source：src/template.html + src/fonts.css + src/logo-full.png（python3 src/prep_logo.py 由用戶提供嘅 logo 切出） → python3 src/build.py → index.html（唔好直接改 index.html）。
-    舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤）。
+    舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤、第 8 版歌書三款 A / B / C）。
 -->
 <style>
 /*__FONTS__*/
@@ -45,12 +45,6 @@ p { margin: 0 0 10px; color: var(--muted); }
     backdrop-filter: blur(10px);
     border-block: 1px solid var(--line);
 }
-.seg { display: inline-flex; flex-wrap: wrap; padding: 3px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); }
-.seg button {
-    appearance: none; border: 0; background: transparent; color: var(--ink);
-    font: inherit; font-weight: 500; padding: 6px 13px; border-radius: 999px; cursor: pointer; min-height: 36px;
-}
-.seg button[aria-pressed="true"] { background: var(--ink); color: #111; font-weight: 700; }
 label.chk { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; min-height: 36px; }
 label.chk input { width: 18px; height: 18px; accent-color: var(--accent); }
 .hero { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 26px; align-items: start; }
@@ -65,6 +59,7 @@ svg.stage {
     user-select: none; -webkit-user-select: none;
 }
 svg.stage.square { aspect-ratio: 1; }
+svg.modes { display: block; width: 100%; max-width: 760px; height: auto; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
 svg.stage [data-act] { cursor: pointer; }
 /* 互動格：狀態改變時只改各組嘅 transform / opacity，由 transition 做動畫（時長沿用 v16：Wheel 0.5s、唱臂 0.65s） */
 svg.live [data-anim] { transition: transform .5s cubic-bezier(.4, 0, .2, 1), opacity .32s ease; }
@@ -91,17 +86,12 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 主頁改版 · B 方案</h1>
-    <p class="lede">第 8 版。大旋鈕移到畫面左邊同轉盤邊嘅正中間；三粒細掣成排上移，左下螺絲周圍留空；♥ 變成刻度嘅最後一格，緊接最後一條刻度線；字母盤改半透明，首字 A 同尾字 ♥ 對正刻度嘅頭尾。另外歌書出咗三款畀你揀（下面「歌書三款」）。</p>
+    <p class="lede">第 9 版。♥ 嗰格補返一條刻度線，♥ 喺線嘅外面；轉碟時之後嘅碟會蓋過唱片機中心；歌書定咗用 C（沿碟弧線），右下資訊刪走，曲詞編監改做左邊一欄，唔再疊住 CD 同轉盤；下面加咗一節睇播放模式掣四個狀態嘅 icon。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
         <label class="chk"><input type="checkbox" id="showHit"> 感應範圍（44pt）</label>
         <label class="chk"><input type="checkbox" id="showGap"> 淨空（CD 16、轉盤 40、螺絲 120）</label>
-        <div class="seg" role="group" aria-label="歌書款式">
-            <button type="button" data-variant="A" aria-pressed="true">歌書 A</button>
-            <button type="button" data-variant="B" aria-pressed="false">歌書 B</button>
-            <button type="button" data-variant="C" aria-pressed="false">歌書 C</button>
-        </div>
     </div>
 
     <h2 style="margin-top:0">可以㩒嘅主頁</h2>
@@ -115,7 +105,7 @@ tr:last-child td { border-bottom: 0; }
                         <tr><td>大旋鈕</td><td>入轉碟模式：字母盤環繞旋鈕打開（全部碟嘅字母沿弧線排，最尾係 ♥）；唱臂同三粒細掣淡出；其他碟沿弧線滑入，疊喺而家隻碟上面。再㩒收返</td></tr>
                         <tr><td>刻度最尾嘅 ♥</td><td>旋鈕指針轉去指住 ♥，隻碟換做 Favourites 碟；再㩒換返</td></tr>
                         <tr><td>碟芯</td><td>播／停：唱臂落針／返回泊位</td></tr>
-                        <tr><td><b>i</b></td><td>歌書：出頂部揀咗嗰款（A／B／C）。要播緊歌先有歌詞</td></tr>
+                        <tr><td><b>i</b></td><td>歌書：曲詞編監 + 沿碟弧線嘅歌詞。要播緊歌先有</td></tr>
                         <tr><td>歌名後面嘅心形</td><td>收藏／取消收藏呢首歌</td></tr>
                         <tr><td>播放模式掣</td><td>順序 → 重覆全部 → 重覆一首 → 隨機</td></tr>
                     </tbody>
@@ -126,22 +116,12 @@ tr:last-child td { border-bottom: 0; }
         </div>
     </div>
 
-    <h2>歌書三款</h2>
-    <p class="lede">三款內容一樣（曲詞編監、同步歌詞、專輯資料、App 名同非官方聲明），分別喺排法同唱片機見唔見到。歌詞係佔位字。</p>
-    <div class="grid" id="bookletGrid"></div>
-    <div class="table-wrap" style="margin-top:22px">
-        <table>
-            <thead><tr><th>款</th><th>排法</th><th>唱片機</th><th>而家嗰行可以放幾多字</th><th>特點</th></tr></thead>
-            <tbody>
-                <tr><td>A 暗場</td><td>歌詞直排喺左，曲詞編監喺上</td><td>模糊 + 壓暗，睇唔清</td><td>約 19 個</td><td>最專注睇歌詞</td></tr>
-                <tr><td>B 紙本歌書</td><td>一頁淺色紙由左邊蓋住約七成畫面，黑字</td><td>右邊照見到隻碟轉同唱片夾，播／停照㩒得</td><td>約 13 個</td><td>同主頁白底黑字一致；似由 CD 盒抽出本歌書</td></tr>
-                <tr><td>C 沿碟弧線</td><td>歌詞沿住同碟同心嘅弧線排，而家嗰行有白色框線接住唱片夾</td><td>壓暗但唔模糊，仲見到隻碟轉</td><td>約 10 個</td><td>同 v16 歌單同一個語言，最有唱片機特色</td></tr>
-            </tbody>
-        </table>
-    </div>
-
     <h2>各個畫面</h2>
     <div class="grid" id="grid"></div>
+
+    <h2>播放模式掣：四個狀態</h2>
+    <p class="lede">同一粒掣，每㩒一下轉一個。順序以外，外圈著燈、icon 轉專輯色。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
+    <div id="modes"></div>
 
     <h2>掣點分類</h2>
     <div class="table-wrap">
@@ -149,7 +129,7 @@ tr:last-child td { border-bottom: 0; }
             <thead><tr><th>用途</th><th>控制</th><th>款式</th><th>位置</th></tr></thead>
             <tbody>
                 <tr><td>而家聽緊乜</td><td>碟名、年份、歌名、時間；<b>♥ 收藏呢首歌</b></td><td>文字 + 歌名後面嘅心形</td><td>左上</td></tr>
-                <tr><td>而家播緊嘅嘢</td><td><b>歌書</b>（歌詞、曲詞編監、專輯資料）、<b>MV</b>、<b>播放模式</b></td><td>圓形拉絲鋁細掣，三粒</td><td>左邊垂直一排，喺旋鈕上面</td></tr>
+                <tr><td>而家播緊嘅嘢</td><td><b>歌書</b>（歌詞、曲詞編監）、<b>MV</b>、<b>播放模式</b></td><td>圓形拉絲鋁細掣，三粒</td><td>左邊垂直一排，喺旋鈕上面</td></tr>
                 <tr><td>播放／暫停</td><td>唱片夾（播緊先有 pause icon 同進度圈）</td><td>v16 嘅唱片夾；屬於唱片機，固定唔郁</td><td>轉盤正中</td></tr>
                 <tr><td>換碟</td><td><b>大旋鈕</b>（轉碟；刻度每格一隻碟，指針指住而家嗰隻；扭嘅時候字母盤環繞旋鈕打開）、刻度最尾一格 <b>♥</b>（一㩒去 Favourites 碟）</td><td>大粒滾花邊旋鈕 + 刻度弧，♥ 係刻度最後一格</td><td>左下，畫面左邊同轉盤邊正中間</td></tr>
             </tbody>
@@ -164,7 +144,7 @@ tr:last-child td { border-bottom: 0; }
                 <tr><td>揀歌播</td><td>㩒碟面 → 捲動 → play</td><td class="ok">3</td></tr>
                 <tr><td>換碟再播</td><td>㩒住大旋鈕轉 → 㩒碟面 → 捲動 → play</td><td class="warn">4（唔捲 = 3）</td></tr>
                 <tr><td>去 Favourites 碟</td><td>㩒刻度最尾嘅 ♥</td><td class="ok">1</td></tr>
-                <tr><td>睇歌詞／曲詞編監／專輯資料</td><td>㩒 i</td><td class="ok">1</td></tr>
+                <tr><td>睇歌詞／曲詞編監</td><td>㩒 i</td><td class="ok">1</td></tr>
                 <tr><td>收藏而家首歌</td><td>㩒歌名後面嘅心形</td><td class="ok">1</td></tr>
                 <tr><td>睇 MV</td><td>㩒 MV 掣</td><td class="ok">1</td></tr>
                 <tr><td>轉播放模式</td><td>㩒模式掣（每㩒一下轉一個）</td><td class="ok">1–3</td></tr>
@@ -223,7 +203,6 @@ tr:last-child td { border-bottom: 0; }
         <filter id="fShadowL" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="26"/></filter>
         <filter id="fGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
         <filter id="fBokeh" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="12"/></filter>
-        <filter id="fBackdrop" x="0" y="0" width="100%" height="100%"><feGaussianBlur stdDeviation="20"/></filter>
     </defs>
 </svg>
 
@@ -276,7 +255,7 @@ tr:last-child td { border-bottom: 0; }
     const platterLeftAt = (y) => DISC.x - Math.sqrt(PLATTER.r ** 2 - (y - DISC.y) ** 2);
     const KNOB = { x: Math.round(platterLeftAt(KNOB_Y) / 2), y: KNOB_Y, r: 76 };
     // 刻度弧：18 格等距（17 張專輯 + 最尾 ♥），由 185°（左）經頂部去到 376.25°（右下）
-    const SCALE = { from: 185, step: 11.25, positions: 18, inner: 92, outer: 104, long: 112, heart: 26 };
+    const SCALE = { from: 185, step: 11.25, positions: 18, inner: 92, outer: 104, long: 112, heart: 26, heartGap: 18 }; // ♥ 喺最後一條刻度線外面
     const HEART_POS = SCALE.positions - 1;
     // 轉碟時環繞旋鈕嘅字母盤：字母喺刻度對出，同一個角度
     const DIAL = { inner: 186, outer: 288, letters: 237, current: 46, other: 28 };
@@ -297,18 +276,14 @@ tr:last-child td { border-bottom: 0; }
 
     /** 畫面狀態：album 邊隻碟、song 有冇歌播緊、booklet 歌書開咗、wheel 0（閂）至 1（開） */
     const VIEWS = [
-        ['未揀歌', '唱臂泊位；唱片夾冇 icon；MV 掣變灰；左下三粒細掣 + 大旋鈕，♥ 係刻度最後一格', { album: 'komorebi', song: false, booklet: false, wheel: 0 }],
+        ['未揀歌', '唱臂泊位；唱片夾冇 icon；MV 掣變灰；左下三粒細掣 + 大旋鈕，刻度最後一格對出係 ♥', { album: 'komorebi', song: false, booklet: false, wheel: 0 }],
         ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
+        ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
-        ['轉碟中', '半透明字母盤環繞旋鈕，A 對正第一條刻度、♥ 對正最後一格；空心碟互相疊住；唱片夾留喺正中', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
+        ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
     ];
-    const BOOKLETS = [
-        ['A', '暗場（而家）', '唱片機模糊壓暗；歌詞直排'],
-        ['B', '紙本歌書', '一頁紙由左邊蓋住七成；右邊照見到隻碟同唱片夾'],
-        ['C', '沿碟弧線', '歌詞沿碟弧線排，白色框線接住唱片夾'],
-    ];
-    const ui = { fav: true, mode: 'order', showHit: false, showGap: false, variant: 'A' };
+    const ui = { fav: true, mode: 'order', showHit: false, showGap: false };
     const live = { album: 'komorebi', song: false, booklet: false, wheel: 0 };
 
     /* ---------- 工具 ---------- */
@@ -384,7 +359,8 @@ tr:last-child td { border-bottom: 0; }
             `<path d="M9 16.5h6.2c7.2 0 9.6 15 16.8 15h6M33.6 27l4.6 4.5-4.6 4.5M9 31.5h6.2c2.6 0 4.6-2 6.3-4.6M26.3 21.1c1.6-2.6 3.4-4.6 5.9-4.6h5.8M33.6 12l4.6 4.5-4.6 4.5" ${STROKE}/>`,
         all: () =>
             `<path d="M12.5 22.5v-1.8a5.2 5.2 0 0 1 5.2-5.2h17.8M31.5 11l4.6 4.5-4.6 4.5M35.5 25.5v1.8a5.2 5.2 0 0 1-5.2 5.2H12.5M16.5 37l-4.6-4.5 4.6-4.5" ${STROKE}/>`,
-        one: () => `${ICONS.all()}<text x="24" y="28.8" text-anchor="middle" font-family="${SLAB}" font-size="13.5" stroke="none">1</text>`,
+        // 重覆一首：同一個圈，中間加粗身「1」
+        one: () => `${ICONS.all()}<path d="M22.2 21.4l2.6-1.5v8.6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`,
     };
 
     /** icon 畫喺 48 × 48 格，置中喺 (cx, cy) */
@@ -524,7 +500,10 @@ tr:last-child td { border-bottom: 0; }
         return { x, y, r: DISC.r * ORBIT.scale, opacity: shown ? clamp01(w * 2.5) : 0, veil: ORBIT.veil };
     };
 
-    /** 所有碟（右邊嗰張永遠疊喺最頂 = 按次序畫） */
+    /**
+     * 所有碟（右邊嗰張永遠疊喺最頂 = 按次序畫）。唱片夾緊接喺而家隻碟後面畫：
+     * 喺而家隻碟上面，但之後嘅碟滑入時會蓋過佢（data-follow：互動格換碟時跟住搬位）
+     */
     const discs = (st, fid) => {
         const sel = selectedIndex(st);
         return WHEEL_ROW.map((entry, i) => {
@@ -536,7 +515,7 @@ tr:last-child td { border-bottom: 0; }
                 `<g data-swap="disc-${i}">${art}</g>` +
                 `<path data-anim="veil-${i}" fill-rule="evenodd" d="${ringPath(ART, ART * HUB.clamp)}" fill="#fff" style="opacity: ${pose.veil}"/></g>`
             );
-        }).join('');
+        }).map((disc, i) => (i === sel ? `${disc}<g data-follow="disc-${sel}">${spindle(st)}</g>` : disc)).join('');
     };
 
     /** 轉盤：一塊淺色車床鋁面 + 中軸；碟放上去只見到外面一圈 */
@@ -584,12 +563,10 @@ tr:last-child td { border-bottom: 0; }
     /** 粗略估文字闊度（中文字 = 一個字級，其他 = 0.56） */
     const textWidth = (text, size, spacing = 0) => [...text].reduce((sum, ch) => sum + (ch.charCodeAt(0) > 0x2e7f ? size : size * 0.56) + spacing, 0);
 
-    const variantOf = (st) => st.variant || ui.variant;
-
-    /** 左上資訊；歌書 A / C 開咗就黑底白字 */
+    /** 左上資訊；歌書開咗就黑底白字 */
     const info = (st) => {
         const { title, sub, accent, glow } = ALBUMS[st.album];
-        const dark = st.booklet && variantOf(st) !== 'B'; // B 款係紙，照用黑字
+        const dark = st.booklet;
         const ink = dark ? PAPER : INK;
         const soft = dark ? '#b5b2aa' : '#555';
         const faint = dark ? '#8f8c85' : '#777';
@@ -627,8 +604,8 @@ tr:last-child td { border-bottom: 0; }
     /* ---------- 大旋鈕（轉碟）+ 刻度弧 + ♥ + 環繞旋鈕嘅字母盤 ---------- */
 
     const scaleAngle = (pos) => SCALE.from + pos * SCALE.step;
-    /** ♥ = 刻度最後一格：平時同刻度線同一個半徑；轉碟時沿同一個角度滑出去字母盤 */
-    const heartPoint = (w = 0) => polar(KNOB.x, KNOB.y, lerp((SCALE.inner + SCALE.outer) / 2 + 3, DIAL.letters, w), scaleAngle(HEART_POS));
+    /** ♥ = 刻度最後一格：平時喺嗰格刻度線嘅外面；轉碟時沿同一個角度滑出去字母盤 */
+    const heartPoint = (w = 0) => polar(KNOB.x, KNOB.y, lerp(SCALE.long + SCALE.heartGap, DIAL.letters, w), scaleAngle(HEART_POS));
     /** ♥ 細，所以感應方格由旋鈕邊向外伸（唔同旋鈕重疊）；轉碟時跟住心形 */
     const heartHitPoint = (w = 0) => polar(KNOB.x, KNOB.y, lerp(KNOB.r + 10 + HIT / 2, DIAL.letters, w), scaleAngle(HEART_POS));
     const currentPos = (st) => WHEEL_ROW[selectedIndex(st)].pos;
@@ -637,7 +614,7 @@ tr:last-child td { border-bottom: 0; }
     const knobScale = (st) => {
         const { accent } = ALBUMS[st.album];
         let out = '';
-        for (let pos = 0; pos < HEART_POS; pos += 1) {
+        for (let pos = 0; pos < SCALE.positions; pos += 1) { // 連 ♥ 嗰格都有刻度線
             const long = pos % 4 === 0;
             const on = pos === currentPos(st);
             const [x1, y1] = polar(KNOB.x, KNOB.y, SCALE.inner, scaleAngle(pos));
@@ -703,71 +680,30 @@ tr:last-child td { border-bottom: 0; }
         return `<g data-anim="dial" style="${style}" pointer-events="none"><g data-swap="dial">${out}</g></g>`;
     };
 
-    /* ---------- 歌書（㩒 i）：曲詞編監 + 同步歌詞 + 專輯資料。三款。歌詞係佔位，唔係真歌詞 ---------- */
+    /* ---------- 歌書（㩒 i）：曲詞編監 + 沿碟弧線嘅同步歌詞。歌詞係佔位，唔係真歌詞 ---------- */
     const LYRICS = ['歌詞第一行（佔位）', '歌詞第二行（佔位）', '歌詞第三行（佔位）', '而家唱緊嗰一行', '歌詞第五行（佔位）', '歌詞第六行（佔位）', '歌詞第七行（佔位）'];
     const LYRIC_NOW = 3;
-    const APP_LINE = 'R Gram v0.1.0  ·  Fan-made, unofficial';
-
-    /** 曲詞編監：一行兩項 */
-    const creditGrid = (columnGap, labelColor, valueColor) =>
-        SONG.credits.map(([label, value], i) => {
-            const cx = 74 + (i % 2) * columnGap;
-            const cy = 446 + Math.floor(i / 2) * 50;
-            return (
-                `<text x="${cx}" y="${cy}" font-family="${CJK}" font-weight="700" font-size="24" fill="${labelColor}">${label}</text>` +
-                `<text x="${cx + 44}" y="${cy}" font-family="${CJK}" font-size="26" fill="${valueColor}">${value}</text>`
-            );
-        }).join('');
-
-    /** 直排歌詞（A、B 共用）：而家嗰行放大，左邊一格專輯色；越遠越淡 */
-    const lyricColumn = (color, accent, nearOpacity) => {
-        const lineY = (i) => 960 + (i - LYRIC_NOW) * 96;
-        let out = `<path d="M74 ${lineY(LYRIC_NOW) - 16}H108" stroke="${accent}" stroke-width="6" stroke-linecap="round"/>`;
-        LYRICS.forEach((text, i) => {
-            const far = Math.abs(i - LYRIC_NOW);
-            const now = far === 0;
-            out += `<text x="${now ? 128 : 96}" y="${lineY(i)}" font-family="${CJK}" font-weight="${now ? 700 : 500}" font-size="${now ? 46 : 34}" fill="${color}" opacity="${now ? 1 : n(Math.max(0.16, nearOpacity - (far - 1) * 0.17))}">${text}</text>`;
-        });
-        return out;
-    };
-
-    /** A 暗場：成部唱片機模糊（scene() 做）再壓暗 */
-    const bookletDark = (st) => {
-        const { accent, glow, meta } = ALBUMS[st.album];
-        return (
-            `<rect width="${W}" height="${H}" fill="#000" opacity=".8"/>` +
-            creditGrid(470, glow, '#d9d6ce') +
-            `<path d="M74 536H1006" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>` +
-            lyricColumn(PAPER, accent, 0.45) +
-            `<text x="1006" y="1640" text-anchor="end" font-family="${CJK}" font-size="24" fill="#b5b2aa">${meta.join('  ·  ')}</text>` +
-            `<text x="1006" y="1686" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="22" fill="#8f8c85" letter-spacing="2.5">${APP_LINE}</text>`
-        );
-    };
-
-    /** B 紙本歌書：一頁淺色紙由左邊蓋住約七成；右邊照見到隻碟同唱片夾 */
-    const PAGE = { w: 770, color: '#fbfaf6' };
-    const bookletPaper = (st) => {
-        const { accent, meta } = ALBUMS[st.album];
-        return (
-            `<rect x="${PAGE.w - 30}" y="-40" width="70" height="${H + 80}" fill="#000" opacity=".34" filter="url(#fShadowL)"/>` +
-            `<rect x="-20" y="0" width="${PAGE.w + 20}" height="${H}" fill="${PAGE.color}"/>` +
-            `<path d="M${PAGE.w} 0V${H}" stroke="#fff" stroke-width="3"/><path d="M${PAGE.w - 14} 0V${H}" stroke="#000" stroke-opacity=".05" stroke-width="10"/>` +
-            creditGrid(340, accent, '#2c2c2c') +
-            `<path d="M74 536H${PAGE.w - 70}" stroke="#000" stroke-opacity=".14" stroke-width="2"/>` +
-            lyricColumn(INK, accent, 0.5) +
-            `<text x="74" y="1806" font-family="${CJK}" font-size="24" fill="#555">${meta.join('  ·  ')}</text>` +
-            `<text x="74" y="1852" font-family="${SLAB_LIGHT}" font-size="22" fill="#8a8a8a" letter-spacing="2.5">${APP_LINE}</text>`
-        );
-    };
-
-    /** C 沿碟弧線：唱片機壓暗但唔模糊；歌詞沿住同碟同心嘅弧線排，而家嗰行有白色框線接住唱片夾（v16 歌單嘅做法） */
+    const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
     const ARC = { r: 600, step: 8.5, now: 44, other: 32, frame: 92 };
-    const bookletArc = (st) => {
-        const { glow, meta } = ALBUMS[st.album];
+
+    /** 曲詞編監最右邊同轉盤邊嘅最近距離（每行當最長嗰個值咁闊） */
+    const creditsGap = () =>
+        Math.min(...SONG.credits.map(([, value], i) => {
+            const right = CREDITS.x + 44 + textWidth(value, CREDITS.value);
+            return Math.hypot(right - DISC.x, CREDITS.y + i * CREDITS.pitch - DISC.y) - PLATTER.r;
+        }));
+
+    /** 唱片機壓暗但唔模糊；歌詞沿住同碟同心嘅弧線排，而家嗰行有白色框線接住唱片夾（v16 歌單嘅做法） */
+    const booklet = (st) => {
+        const { glow } = ALBUMS[st.album];
         const clear = DISC.r * HUB.clear;
         // 暗層中間留返唱片夾個窿，播／停照睇得清
         let out = `<path fill-rule="evenodd" d="M0 0H${W}V${H}H0zM${DISC.x - clear} ${DISC.y}a${clear} ${clear} 0 1 0 ${clear * 2} 0a${clear} ${clear} 0 1 0 ${-clear * 2} 0z" fill="#000" opacity=".8"/>`;
-        out += creditGrid(470, glow, '#d9d6ce');
+        SONG.credits.forEach(([label, value], i) => {
+            const y = CREDITS.y + i * CREDITS.pitch;
+            out += `<text x="${CREDITS.x}" y="${y}" font-family="${CJK}" font-weight="700" font-size="${CREDITS.label}" fill="${glow}">${label}</text>`;
+            out += `<text x="${CREDITS.x + 44}" y="${y}" font-family="${CJK}" font-size="${CREDITS.value}" fill="#d9d6ce">${value}</text>`;
+        });
         const [nowX] = polar(DISC.x, DISC.y, ARC.r, 180);
         const right = DISC.x - clear;
         const half = ARC.frame / 2;
@@ -779,12 +715,33 @@ tr:last-child td { border-bottom: 0; }
             const [x, y] = polar(DISC.x, DISC.y, ARC.r, 180 - k * ARC.step);
             out += `<text x="${n(x)}" y="${n(y)}" dominant-baseline="central" font-family="${CJK}" font-weight="${now ? 700 : 500}" font-size="${now ? ARC.now : ARC.other}" fill="${PAPER}" opacity="${now ? 1 : n(Math.max(0.18, 0.7 - (Math.abs(k) - 1) * 0.2))}">${text}</text>`;
         });
-        out += `<text x="1006" y="1806" text-anchor="end" font-family="${CJK}" font-size="24" fill="#b5b2aa">${meta.join('  ·  ')}</text>`;
-        out += `<text x="1006" y="1852" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="22" fill="#8f8c85" letter-spacing="2.5">${APP_LINE}</text>`;
         return out;
     };
 
-    const BOOKLET_RENDER = { A: bookletDark, B: bookletPaper, C: bookletArc };
+    /* ---------- 播放模式掣四個狀態（放大） ---------- */
+    const modeShowcase = () => {
+        const SCALE_UP = 1.9;
+        const PITCH = 250;
+        const WIDTH = PITCH * MODES.length;
+        const { glow } = ALBUMS.komorebi;
+        const ring = BTN.r + BTN.ringGap + BTN.ringWidth / 2;
+        const cells = MODES.map((mode, i) => {
+            const lit = mode !== 'order';
+            let out = '';
+            if (lit) {
+                out += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="9" opacity=".7" filter="url(#fGlow)"/>`;
+                out += `<circle r="${ring}" fill="none" stroke="${glow}" stroke-width="${BTN.ringWidth}"/>`;
+            }
+            out += metal(0, 0, BTN.r) + icon(mode, 0, 0, 46, lit ? glow : '#2e2e2e');
+            const x = PITCH * (i + 0.5);
+            return (
+                `<g transform="translate(${x} 150) scale(${SCALE_UP})">${out}</g>` +
+                `<text x="${x}" y="318" text-anchor="middle" font-family="${CJK}" font-weight="700" font-size="30" fill="${INK}">${MODE_LABEL[mode]}</text>` +
+                `<text x="${x}" y="358" text-anchor="middle" font-family="${CJK}" font-size="22" fill="#777">${lit ? '外圈著燈' : '冇著燈（預設）'}</text>`
+            );
+        }).join('');
+        return `<svg class="modes" viewBox="0 0 ${WIDTH} 400" role="img" aria-label="播放模式掣四個狀態：${MODES.map((m) => MODE_LABEL[m]).join('、')}"><rect width="${WIDTH}" height="400" fill="url(#gStage)"/>${cells}</svg>`;
+    };
 
     /* ---------- 量度 ---------- */
     const gapTo = (radius) => Math.min(...BUTTONS.map(([x, y]) => Math.hypot(x - DISC.x, y - DISC.y) - radius - BTN_OUTER));
@@ -858,16 +815,14 @@ tr:last-child td { border-bottom: 0; }
             screws(),
             platter(),
             discs(st, fid),
-            spindle(st),
             dialRing(st),
             knob(st),
             favHeart(st),
             `<g data-anim="armfade" style="opacity: ${fade}"${fade === 0 ? ' pointer-events="none"' : ''}>${tonearm(st)}</g>`,
         ].join('');
         return [
-            // 歌書：A 模糊 + 暗層；B、C 唔模糊，分別蓋一頁紙 / 一層暗 + 弧線歌詞
-            st.booklet && variantOf(st) === 'A' ? `<g filter="url(#fBackdrop)">${turntable}</g>` : turntable,
-            st.booklet ? BOOKLET_RENDER[variantOf(st)](st) : '',
+            turntable,
+            st.booklet ? booklet(st) : '',
             `<g data-anim="buttons" style="opacity: ${fade}"${fade === 0 ? ' pointer-events="none"' : ''}><g data-swap="buttons">${BUTTONS.map((b) => button(b, st)).join('')}</g></g>`,
             `<g data-swap="info">${info(st)}</g>`,
             `<g data-swap="overlays">${overlays(st)}</g>`,
@@ -896,6 +851,7 @@ tr:last-child td { border-bottom: 0; }
             ['旋鈕左右空白', `左 ${Math.round(left)}、右 ${Math.round(right)} ${Math.abs(left - right) <= 2 ? '<b class="ok">一致</b>' : '<b class="warn">唔一致</b>'}`],
             ['螺絲周圍', `最近控件 ${Math.round(screwGap())}（要求 ≥ ${SCREW_ZONE}）${check(screwGap(), SCREW_ZONE)}`],
             ['細掣同旋鈕', `${Math.round(buttonKnobGap())}（要求 ≥ ${CONTROL_GAP}）${check(buttonKnobGap(), CONTROL_GAP)}`],
+            ['曲詞編監同轉盤邊', `${Math.round(creditsGap())}（要求 ≥ ${PLATTER_CLEARANCE}）${check(creditsGap(), PLATTER_CLEARANCE)}`],
             ['旋鈕同轉盤邊', `${Math.round(knobGap())}（要求 ≥ ${PLATTER_CLEARANCE}）${check(knobGap(), PLATTER_CLEARANCE)}`],
             ['細掣同轉盤邊', `${Math.round(gapTo(PLATTER.r))}（要求 ≥ ${PLATTER_CLEARANCE}）${check(gapTo(PLATTER.r), PLATTER_CLEARANCE)}`],
             ['細掣同 CD', `${Math.round(gapTo(DISC.r))}（要求 ≥ ${CD_CLEARANCE}）${check(gapTo(DISC.r), CD_CLEARANCE)}`],
@@ -925,11 +881,17 @@ tr:last-child td { border-bottom: 0; }
             if (source.hasAttribute('pointer-events')) target.setAttribute('pointer-events', source.getAttribute('pointer-events'));
             else target.removeAttribute('pointer-events');
         });
+        // 唱片夾要緊接喺而家隻碟後面：換碟之後搬去新位置
+        const follower = liveSvg.querySelector('[data-follow]');
+        const wanted = next.querySelector('[data-follow]').dataset.follow;
+        const anchor = liveSvg.querySelector(`[data-anim="${wanted}"]`);
+        follower.dataset.follow = wanted;
+        if (anchor.nextElementSibling !== follower) anchor.after(follower);
     };
 
     const renderLive = () => {
         const html = scene(live, 'live');
-        const signature = `${live.booklet}|${ui.variant}`; // 歌書開關 / 換款要成格重畫，其他都做動畫
+        const signature = `${live.booklet}`; // 歌書開關要成格重畫，其他都做動畫
         if (signature === liveSignature) morph(html);
         else liveSvg.innerHTML = html;
         liveSignature = signature;
@@ -937,9 +899,7 @@ tr:last-child td { border-bottom: 0; }
 
     const renderStatic = () => {
         document.getElementById('grid').innerHTML = VIEWS.map(staticCard).join('') + wholeDisc();
-        document.getElementById('bookletGrid').innerHTML = BOOKLETS.map(([variant, name, caption], i) =>
-            staticCard([`${variant} ${name}`, caption, { album: 'komorebi', song: true, booklet: true, wheel: 0, variant }], `b${i}`)).join('');
-        document.querySelectorAll('[data-variant]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.variant === ui.variant)));
+        document.getElementById('modes').innerHTML = modeShowcase();
         document.getElementById('measure').innerHTML = measurements();
     };
 
@@ -960,12 +920,6 @@ tr:last-child td { border-bottom: 0; }
     const LIVE_ONLY = new Set(['wheel', 'favourites', 'playpause', 'info']);
 
     document.addEventListener('click', (event) => {
-        const variantButton = event.target.closest('[data-variant]');
-        if (variantButton) {
-            ui.variant = variantButton.dataset.variant;
-            render();
-            return;
-        }
         const target = event.target.closest('[data-act]');
         const name = target && target.dataset.act;
         if (!name || !ACTIONS[name]) return;
