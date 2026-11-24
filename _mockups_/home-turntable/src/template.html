@@ -7,7 +7,8 @@
 <title>R Gram 主頁改版 B 方案</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
-    第 11 版（2026-11-24）。用戶意見：著燈時 icon 都要著（好似第 9 版）；重覆一首 icon 參考附圖改用數字 badge。
+    第 12 版（2026-11-24）。用戶意見：歌書嘅歌詞連 highlight 框縮入一個字位。
+    第 11 版：著燈時 icon 都要著（好似第 9 版）；重覆一首 icon 參考附圖改用數字 badge。
     沿用第 10 版：播放模式掣播緊先著燈；專輯資料唔顯示；App 名同非官方聲明喺 preload。
     靜態設計稿，唔係 app code。所有位置數字喺 script 入面嘅常數（1080 × 1920 基準）。
     Source：src/template.html + src/fonts.css + src/logo-full.png（python3 src/prep_logo.py 由用戶提供嘅 logo 切出） → python3 src/build.py → index.html（唔好直接改 index.html）。
@@ -86,7 +87,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 主頁改版 · B 方案</h1>
-    <p class="lede">第 11 版。著燈時 icon 同外圈一齊轉專輯色（返返第 9 版嘅做法）；「重覆一首」改用數字 badge：循環箭咀右下角一個實心圓，入面係「1」。其餘同第 10 版一樣：播放模式掣播緊先著燈；App 名同「非官方」聲明喺 preload 畫面。</p>
+    <p class="lede">第 12 版。歌書嘅歌詞連白色框線向右縮入一個字位。第 11 版：著燈時 icon 同外圈一齊轉專輯色（返返第 9 版嘅做法）；「重覆一首」改用數字 badge：循環箭咀右下角一個實心圓，入面係「1」。其餘同第 10 版一樣：播放模式掣播緊先著燈；App 名同「非官方」聲明喺 preload 畫面。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -687,7 +688,7 @@ tr:last-child td { border-bottom: 0; }
     const LYRICS = ['歌詞第一行（佔位）', '歌詞第二行（佔位）', '歌詞第三行（佔位）', '而家唱緊嗰一行', '歌詞第五行（佔位）', '歌詞第六行（佔位）', '歌詞第七行（佔位）'];
     const LYRIC_NOW = 3;
     const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
-    const ARC = { r: 600, step: 8.5, now: 44, other: 32, frame: 92 };
+    const ARC = { r: 556, step: 9.2, now: 44, other: 32, frame: 92 }; // 弧線半徑比之前（600）縮入一個字位；行距不變（step 同 v16 歌單一樣 9.2°）
 
     /** 曲詞編監最右邊同轉盤邊嘅最近距離（每行當最長嗰個值咁闊） */
     const creditsGap = () =>
