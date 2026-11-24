@@ -13,7 +13,7 @@
 
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
-| 1 | P-4 主頁改版（掣唔疊住 CD、似唱片機）→ [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)：三個方案已出（2026-11-24），**等用戶揀** | 播放端核心（M2） |
+| 1 | P-4 主頁改版（掣唔疊住 CD、似唱片機）→ [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)：用戶揀咗 B（大碟出界）；第 2 版（機邊線只留三邊、掣合併做 4 個功能，B1 沿碟邊 4 粒／B2 橫排 3 粒）已出，**等用戶揀 B1 / B2 同確認合併方案（CR-002）** | 播放端核心（M2） |
 | 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |
