@@ -13,7 +13,7 @@
 
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
-| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶揀咗 B（大碟出界）；第 3 版（2026-11-24）：冇機邊線只留螺絲、圓形掣三粒（歌書／MV／播放模式）、Favourites 改做另一款掣（F1 備用碟／F2 Wheel 心形鍵）、加 Wheel 開咗同 Favourites 碟畫面。**等用戶揀 F1 / F2**；確認後要出 CR-002（歌詞 + Info 合併做歌書、播放模式一粒四個狀態、Favourite 掣改款） | 播放端核心（M2） |
+| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶已揀：B（大碟出界）+ F2（三粒圓形掣沿碟邊：歌書／MV／播放模式）。第 4 版（2026-11-24）：冇機邊線只留螺絲；Wheel 窗同 ♥ 鍵做成機身控制板；Favourites 碟 = 黑色碟 + RubberBand 標誌正中。**等用戶確認主頁**；確認後出 CR-002（歌詞 + Info 合併做歌書、播放模式一粒四個狀態、Favourite 改做控制板 ♥ 鍵、Favourites 碟面）同其餘場景 preview | 播放端核心（M2） |
 | 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |

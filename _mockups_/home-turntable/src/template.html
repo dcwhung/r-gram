@@ -7,12 +7,13 @@
 <title>R Gram 主頁改版 B 方案</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
-    第 3 版（2026-11-24）。用戶意見：唔要機邊線但要螺絲；要睇點同揀碟 Wheel 夾；掣按用途重新分，三粒最理想；
-    Favourite 同單一首歌無關，改做另一款掣。
+    第 4 版（2026-11-24）。用戶揀咗 F2：三粒圓形掣沿碟邊，底部係揀碟區。今次改動：Wheel 把手同 Favourites 鍵
+    做成機身上面一塊控制板（唱片機嘅一部份）；Favourites 碟面改做黑色碟、RubberBand logo 喺正中。
     靜態設計稿，唔係 app code。所有位置數字喺 script 入面嘅常數（1080 × 1920 基準）。
     字體同 _mockups_/r-gram/index.html 一樣：先用裝置已安裝嘅 Lubalin Graph，冇就用內嵌嘅 Rokkitt。
-    Source：src/template.html + src/fonts.css → python3 src/build.py → index.html（唔好直接改 index.html）。
-    舊版喺 git 記錄：第 1 版（A / B / C）commit 241fe3b；第 2 版（B1 / B2）commit b 之後一個。
+    Source：src/template.html + src/fonts.css + src/logo-emblem.png（python3 src/prep_logo.py 由用戶提供嘅 logo 切出）
+    → python3 src/build.py → index.html（唔好直接改 index.html）。
+    舊版喺 git 記錄：第 1 版（A / B / C）241fe3b；第 2 版（B1 / B2）、第 3 版（F1 / F2）喺之後兩個 commit。
 -->
 <style>
 /*__FONTS__*/
@@ -54,8 +55,9 @@ p { margin: 0 0 10px; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--ink); color: #111; font-weight: 700; }
 label.chk { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; min-height: 36px; }
 label.chk input { width: 18px; height: 18px; accent-color: var(--accent); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 28px 26px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 30px 22px; }
 .card { min-width: 0; max-width: 460px; }
+.facts.wide { max-width: 720px; margin-top: 26px; }
 .card h3 { font: 400 22px/1.2 "RB Slab", Rockwell, serif; margin: 0 0 2px; }
 .card h3 b { font-weight: 400; color: var(--accent); margin-right: 8px; }
 .card .tag { color: var(--muted); margin: 0 0 12px; }
@@ -64,6 +66,7 @@ svg.stage {
     background: #fff; box-shadow: 0 0 0 1px var(--line), 0 24px 60px rgba(0, 0, 0, .6);
     user-select: none; -webkit-user-select: none;
 }
+svg.stage.square { aspect-ratio: 1; }
 svg.stage [data-act] { cursor: pointer; }
 .facts { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
 .facts li { display: grid; grid-template-columns: 7.5em 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
@@ -85,22 +88,16 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 主頁改版 · B 方案</h1>
-    <p class="lede">第 3 版。機邊線刪走，只留螺絲。掣按用途分返三類：圓形金屬掣只得三粒（歌書、MV、播放模式），全部同「而家播緊嘅嘢」有關；Favourite 係「去另一隻碟」，同揀碟 Wheel 係同一類，所以改做另一款掣。</p>
-    <p class="lede">封面同歌詞係佔位。頂部可以轉畫面；畫面入面嘅掣、心形、Wheel 把手、Favourites 掣都㩒得。</p>
+    <p class="lede">第 4 版。你揀咗 F2。今次改咗兩樣：Wheel 同 Favourites 鍵做成機身左下一塊拉絲鋁控制板（有螺絲、有一粒帶指示燈嘅心形鍵、有一個見到 Wheel 刻度嘅小窗），唔再係浮喺上面嘅膠囊；Favourites 碟面改做黑色碟，RubberBand logo 喺正中。</p>
+    <p class="lede">下面一次過排晒五個畫面。封面同歌詞係佔位。㩒歌名後面嘅心形、播放模式掣可以睇開關樣。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
-        <div class="seg" role="group" aria-label="畫面">
-            <button type="button" data-state="idle" aria-pressed="false">未揀歌</button>
-            <button type="button" data-state="playing" aria-pressed="true">播緊</button>
-            <button type="button" data-state="booklet" aria-pressed="false">歌書</button>
-            <button type="button" data-state="wheel" aria-pressed="false">Wheel 開咗</button>
-            <button type="button" data-state="favourites" aria-pressed="false">Favourites 碟</button>
-        </div>
         <label class="chk"><input type="checkbox" id="showHit"> 感應範圍（44pt）</label>
         <label class="chk"><input type="checkbox" id="showGap"> CD 淨空（16）</label>
     </div>
 
     <div class="grid" id="grid"></div>
+    <div id="measure"></div>
 
     <h2>掣點分類</h2>
     <div class="table-wrap">
@@ -110,35 +107,27 @@ tr:last-child td { border-bottom: 0; }
                 <tr><td>而家聽緊乜</td><td>碟名、年份、歌名、時間；<b>♥ 收藏呢首歌</b></td><td>文字 + 歌名後面嘅心形</td><td>左上</td></tr>
                 <tr><td>而家播緊嘅嘢</td><td><b>歌書</b>（歌詞、曲詞編監、專輯資料）、<b>MV</b>、<b>播放模式</b>（順序 → 重覆全部 → 重覆一首 → 隨機）</td><td>圓形拉絲鋁掣，三粒</td><td>左下</td></tr>
                 <tr><td>播放／暫停</td><td>碟芯掣 + 進度圈</td><td>碟芯黑色實心夾</td><td>碟中心</td></tr>
-                <tr><td>換碟</td><td><b>Wheel</b>（所有碟，最後一格係 ♥）、<b>Favourites 捷徑</b>（一㩒去 ♥ 嗰隻碟）</td><td>唔係圓形金屬掣：F1 係一隻細碟；F2 係 Wheel 把手上面嘅心形鍵</td><td>F1 碟左邊；F2 底部</td></tr>
+                <tr><td>換碟</td><td><b>Wheel 窗</b>（見到而家係邊格；㩒或者掃就升起成個 Wheel，最後一格係 ♥）、<b>♥ 鍵</b>（一㩒去 Favourites 碟，身處嗰隻碟時指示燈著）</td><td>機身上一塊拉絲鋁控制板：方形鍵 + 刻度窗</td><td>底部</td></tr>
             </tbody>
-        </table>
-    </div>
-
-    <h2>比較</h2>
-    <div class="table-wrap">
-        <table>
-            <thead><tr><th>項目</th><th>F1 備用碟</th><th>F2 Wheel 心形鍵</th></tr></thead>
-            <tbody id="compare"></tbody>
         </table>
     </div>
 
     <h2>操作步數（每個主動互動 = 1 步）</h2>
     <div class="table-wrap">
         <table>
-            <thead><tr><th>流程</th><th>F1</th><th>F2</th></tr></thead>
+            <thead><tr><th>流程</th><th>步驟</th><th>步數</th></tr></thead>
             <tbody>
-                <tr><td>揀歌播（㩒碟面 → 捲動 → play）</td><td class="ok">3</td><td class="ok">3</td></tr>
-                <tr><td>換碟再播（開 Wheel → 轉 → 㩒碟面 → 捲動 → play）</td><td class="warn">5（唔捲 = 4）</td><td class="warn">5（唔捲 = 4）</td></tr>
-                <tr><td>去 Favourites 碟</td><td class="ok">1（㩒細碟）</td><td class="ok">1（㩒心形鍵）</td></tr>
-                <tr><td>睇歌詞／曲詞編監／專輯資料</td><td class="ok">1</td><td class="ok">1</td></tr>
-                <tr><td>收藏而家首歌</td><td class="ok">1</td><td class="ok">1</td></tr>
-                <tr><td>睇 MV</td><td class="ok">1</td><td class="ok">1</td></tr>
-                <tr><td>轉播放模式</td><td class="ok">1–3（每㩒一下轉一個）</td><td class="ok">1–3</td></tr>
+                <tr><td>揀歌播</td><td>㩒碟面 → 捲動 → play</td><td class="ok">3</td></tr>
+                <tr><td>換碟再播</td><td>㩒 Wheel 窗 → 轉 → 㩒碟面 → 捲動 → play</td><td class="warn">5（唔捲 = 4）</td></tr>
+                <tr><td>去 Favourites 碟</td><td>㩒 ♥ 鍵</td><td class="ok">1</td></tr>
+                <tr><td>睇歌詞／曲詞編監／專輯資料</td><td>㩒 i</td><td class="ok">1</td></tr>
+                <tr><td>收藏而家首歌</td><td>㩒歌名後面嘅心形</td><td class="ok">1</td></tr>
+                <tr><td>睇 MV</td><td>㩒 MV 掣</td><td class="ok">1</td></tr>
+                <tr><td>轉播放模式</td><td>㩒模式掣（每㩒一下轉一個）</td><td class="ok">1–3</td></tr>
             </tbody>
         </table>
     </div>
-    <p class="note" style="margin-top:14px">揀定之後，會按嗰個版面出完整場景 preview（Wheel 轉動、歌單、播放、MV 電視、歌書、Favourites 歌單），確認後先寫播放端 code。</p>
+    <p class="note" style="margin-top:14px">主頁確認之後，會按呢個版面出其餘場景 preview（歌單、MV 電視、Favourites 歌單、Wheel 轉動），確認後先寫播放端 code。</p>
 </div>
 
 <!-- 共用 defs：金屬質感、陰影、漸層 -->
@@ -162,6 +151,18 @@ tr:last-child td { border-bottom: 0; }
             <stop offset="0" stop-color="#7c7c7c"/><stop offset=".22" stop-color="#f7f7f7"/>
             <stop offset=".55" stop-color="#b3b3b3"/><stop offset=".85" stop-color="#8a8a8a"/>
             <stop offset="1" stop-color="#5e5e5e"/>
+        </linearGradient>
+        <linearGradient id="gBrush" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#cfcfcc"/><stop offset=".14" stop-color="#efefed"/>
+            <stop offset=".32" stop-color="#d6d6d3"/><stop offset=".52" stop-color="#f4f4f2"/>
+            <stop offset=".74" stop-color="#d2d2cf"/><stop offset=".9" stop-color="#ececea"/>
+            <stop offset="1" stop-color="#c9c9c6"/>
+        </linearGradient>
+        <linearGradient id="gKey" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fbfbfa"/><stop offset=".5" stop-color="#dededb"/><stop offset="1" stop-color="#bcbcb8"/>
+        </linearGradient>
+        <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/>
         </linearGradient>
         <radialGradient id="gClamp" cx="38%" cy="32%" r="75%">
             <stop offset="0" stop-color="#4a4a4a"/><stop offset=".55" stop-color="#151515"/><stop offset="1" stop-color="#000"/>
@@ -208,10 +209,12 @@ tr:last-child td { border-bottom: 0; }
     const ALBUMS = {
         komorebi: {
             title: 'KOMOREBI', sub: '2026', cover: 'komorebi', accent: '#2f8f57', glow: 'hsl(146 95% 52%)',
+            key: 'K', before: 'J', after: '單',
             meta: ['2026-11-27', '錄音室專輯', 'R Flat', '12 首'],
         },
         favourites: {
             title: 'FAVOURITES', sub: '12 TRACKS', cover: 'favourites', accent: '#d7263d', glow: 'hsl(352 96% 60%)',
+            key: '♥', before: '單', after: '',
             meta: ['你收藏嘅歌', '12 首'],
         },
     };
@@ -237,7 +240,12 @@ tr:last-child td { border-bottom: 0; }
         { key: '♥', cover: 'favourites' },
     ];
     const WHEEL_SELECTED = 2;
-    const HANDLE = { x: 540, y: 1866 }; // Wheel 把手（㩒底部打開 Wheel）
+    // 機身控制板（揀碟）：拉絲鋁板 + ♥ 鍵 + Wheel 刻度窗。窗對正 Wheel 圓心（x = 540），打開時錶盤由呢度升起
+    const PLATE = { x: 280, y: 1852, w: 362, h: 58, r: 22 };
+    const FAV_KEY = { x: 380, y: 1881, w: 124, h: 40, r: 9 };
+    const WINDOW = { x: 540, y: 1881, w: 144, h: 42, r: 10 };
+    // Favourites 碟面：用戶提供嘅 RubberBand logo 入面個圓形標誌（src/prep_logo.py 切出），圓環同碟同心
+    const LOGO = { href: '__LOGO_EMBLEM__', ringFraction: 0.8818, ringOnDisc: 0.82 };
 
     /** 沿住同 CD 同心嘅弧線排掣（0° 向右、90° 向下） */
     const arcPoints = (names, { r, from, step }) =>
@@ -246,32 +254,18 @@ tr:last-child td { border-bottom: 0; }
             return [Math.round(DISC.x + r * Math.cos(deg)), Math.round(DISC.y + r * Math.sin(deg)), name];
         });
 
-    const OPTIONS = [
-        {
-            id: 'F1',
-            name: '備用碟',
-            tag: 'Favourites 係一隻放喺機面嘅細碟，㩒落去就換上轉盤；三粒掣同 v16 一樣橫排',
-            buttons: [[110, 1768, 'info'], [240, 1768, 'mv'], [370, 1768, 'mode']],
-            fav: { kind: 'mini', x: 118, y: 1196, r: 58 },
-            facts: [
-                ['點解', '佢本身就係一隻碟，一眼睇得出同圓形功能掣唔同類；打開 Wheel，最後一隻就係佢'],
-                ['代價', '機面多咗一件嘢（碟左邊中間）'],
-            ],
-        },
-        {
-            id: 'F2',
-            name: 'Wheel 心形鍵',
-            tag: 'Favourites 係 Wheel 把手上面嘅心形鍵；三粒掣沿碟邊排，底部留畀揀碟',
-            buttons: arcPoints(['info', 'mv', 'mode'], { r: 836, from: 137.5, step: 9.5 }),
-            fav: { kind: 'key', x: 414, y: HANDLE.y },
-            facts: [
-                ['點解', '底部成個區都係「揀碟」：把手開 Wheel，心形鍵直接去 Wheel 最後一格'],
-                ['代價', '心形鍵喺畫面最底，位置細；三粒掣由橫排變沿碟邊'],
-            ],
-        },
+    const LAYOUT = {
+        buttons: arcPoints(['info', 'mv', 'mode'], { r: 836, from: 139.5, step: 9.5 }),
+    };
+    const VIEWS = [
+        ['idle', '未揀歌', '唱臂泊位；MV 掣變灰（未有歌）；Wheel 窗顯示 K'],
+        ['playing', '播緊', '落針、碟轉；歌名後面有心形；碟芯係 pause + 進度圈'],
+        ['booklet', '歌書（㩒 i）', '唱片機變模糊壓暗；曲詞編監 + 同步歌詞 + 專輯資料'],
+        ['wheel', 'Wheel 開咗', '錶盤由控制板個窗升起；唱臂同三粒掣淡出；最後一格係 ♥'],
+        ['favourites', 'Favourites 碟', '黑色碟、logo 正中；♥ 鍵指示燈著；Wheel 窗顯示 ♥'],
     ];
 
-    const state = { view: 'playing', fav: true, mode: 'order', showHit: false, showGap: false };
+    const state = { view: 'playing', fav: true, mode: 'order', showHit: false, showGap: false }; // view 喺砌每格畫面時設定
     const isSong = () => state.view === 'playing' || state.view === 'booklet'; // 有歌播緊
     const isBooklet = () => state.view === 'booklet';
     const isWheel = () => state.view === 'wheel';
@@ -400,12 +394,13 @@ tr:last-child td { border-bottom: 0; }
         plain: (cx, cy, r) =>
             `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#e9e8e3"/>` +
             [0.82, 0.6, 0.4].map((k, i) => `<circle cx="${cx}" cy="${cy}" r="${n(r * k)}" fill="none" stroke="#4a4a4a" stroke-width="${n(r * 0.045)}" stroke-linecap="round" stroke-dasharray="${n(r * k * (3.2 + i))} ${n(r * k * 2.2)}" transform="rotate(${40 + i * 70} ${cx} ${cy})"/>`).join(''),
-        // Favourites 碟：黑膠坑紋 + 白色心形（黑白主色）
+        // Favourites 碟：黑色碟，RubberBand 標誌喺正中（圓環同碟同心）
         favourites: (cx, cy, r) => {
-            let grooves = '';
-            for (let k = 0.3; k < 0.95; k += 0.05) grooves += `<circle cx="${cx}" cy="${cy}" r="${n(r * k)}" fill="none" stroke="#fff" stroke-opacity=".07" stroke-width="${n(Math.max(1, r * 0.004))}"/>`;
-            const [hx, hy] = polar(cx, cy, r * 0.58, 222);
-            return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#gVinyl)"/>${grooves}${icon('heart', hx, hy, r * 0.36, PAPER, -18)}`;
+            const half = (r * LOGO.ringOnDisc) / LOGO.ringFraction;
+            return (
+                `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#gVinyl)"/>` +
+                `<image href="${LOGO.href}" x="${n(cx - half)}" y="${n(cy - half)}" width="${n(half * 2)}" height="${n(half * 2)}"/>`
+            );
         },
     };
 
@@ -539,54 +534,67 @@ tr:last-child td { border-bottom: 0; }
 
     /* ---------- 揀碟：Wheel 把手、Favourites 捷徑、打開咗嘅 Wheel ---------- */
 
-    /** v16 嘅把手：底部一條細橫桿 + 隱約見到錶盤邊 */
-    const wheelHandle = () =>
-        `<circle cx="540" cy="2412" r="507" fill="#f4f4f1" stroke="#fff" stroke-width="6"/>` +
-        `<circle cx="540" cy="2412" r="510" fill="none" stroke="#bdbdb9" stroke-width="1.5"/>` +
-        `<g data-act="wheel" role="button" aria-label="打開揀碟 Wheel"><rect x="${n(HANDLE.x - HIT / 2)}" y="${n(HANDLE.y - 30)}" width="${n(HIT)}" height="60" fill="transparent"/>` +
-        `<rect x="${HANDLE.x - 32}" y="${HANDLE.y - 3.5}" width="64" height="7" rx="3.5" fill="#5a5a5a"/></g>`;
+    const hitRect = (x, y, w = HIT, h = HIT) => `<rect x="${n(x - w / 2)}" y="${n(y - h / 2)}" width="${n(w)}" height="${n(h)}" fill="transparent"/>`;
 
-    /** F1：放喺機面嘅 Favourites 細碟；已經喺轉盤上面就剩返一個空位 */
-    const miniDisc = ({ x, y, r }) => {
-        const label = 'aria-label="去 Favourites 碟"';
-        if (onFavourites()) {
-            return (
-                `<g data-act="favourites" role="button" aria-pressed="true" ${label}>` +
-                `<circle cx="${x}" cy="${y}" r="${r}" fill="#000" fill-opacity=".03" stroke="#b9b9b4" stroke-width="2.5" stroke-dasharray="9 8"/>` +
-                `<g transform="translate(${x - 17} ${y - 17}) scale(${n(34 / 48)})" fill="none" stroke="#b9b9b4" stroke-width="3"><path d="${HEART}"/></g></g>`
-            );
+    /** Wheel 刻度窗：凹入機身嘅小窗，見到錶盤一小段（而家嗰格喺正中，專輯色指針） */
+    const wheelWindow = () => {
+        const { x, y, w, h, r } = WINDOW;
+        const { key, before, after, accent } = album();
+        const left = x - w / 2;
+        const top = y - h / 2;
+        const TICK_STEP = 12;
+        const mark = (text, cx, current) => {
+            if (!text) return '';
+            if (text === '♥') return icon('heart', cx, y + 7, current ? 28 : 18, current ? ALBUMS.favourites.accent : '#8a8a86');
+            const latin = isLatin(text);
+            return `<text x="${cx}" y="${y + 8}" text-anchor="middle" dominant-baseline="central" font-family="${latin ? (current ? SLAB : SLAB_LIGHT) : CJK}" font-weight="${latin ? 400 : 900}" font-size="${(current ? 28 : 17) * (latin ? 1 : 0.82)}" fill="${current ? INK : '#8a8a86'}">${text}</text>`;
+        };
+        let out = `<clipPath id="clip-window-${state.view}"><rect x="${left}" y="${top}" width="${w}" height="${h}" rx="${r}"/></clipPath>`;
+        out += `<rect x="${left}" y="${top}" width="${w}" height="${h}" rx="${r}" fill="#f6f6f3"/>`;
+        out += `<g clip-path="url(#clip-window-${state.view})">`;
+        for (let i = -6; i <= 6; i += 1) {
+            const long = i % 4 === 0;
+            out += `<path d="M${x + i * TICK_STEP} ${top}v${i === 0 ? 13 : long ? 10 : 6}" stroke="${i === 0 ? accent : '#6a6a66'}" stroke-width="${i === 0 ? 5 : long ? 2.4 : 1.4}"/>`;
         }
+        out += mark(before, x - 50, false) + mark(key, x, true) + mark(after, x + 50, false);
+        out += `<rect x="${left}" y="${top}" width="${w}" height="${h}" fill="url(#gGlass)"/></g>`;
+        // 凹入嘅窗框：左上暗、右下光
+        out += `<rect x="${left}" y="${top}" width="${w}" height="${h}" rx="${r}" fill="none" stroke="url(#gBevelIn)" stroke-width="4"/>`;
+        return `<g data-act="wheel" role="button" aria-label="打開揀碟 Wheel">${hitRect(x, y)}${out}</g>`;
+    };
+
+    /** ♥ 鍵：方形鍵帽 + 指示燈（身處 Favourites 碟時著） */
+    const favouriteKey = () => {
+        const { x, y, w, h, r } = FAV_KEY;
+        const lit = onFavourites();
+        const { glow } = ALBUMS.favourites;
+        const left = x - w / 2;
+        const top = y - h / 2;
+        const ledX = x + w / 2 - 24;
+        let out = `<rect x="${left + 2}" y="${top + 4}" width="${w}" height="${h}" rx="${r}" fill="#000" opacity=".28" filter="url(#fShadow)"/>`;
+        out += `<rect x="${left}" y="${top}" width="${w}" height="${h}" rx="${r}" fill="url(#gKey)" stroke="#77777a" stroke-width="1.5"/>`;
+        out += `<path d="M${left + r} ${top + 2.5}H${left + w - r}" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`;
+        out += icon('heart', x - 18, y + 1, 30, lit ? glow : '#2e2e2e');
+        if (lit) out += `<circle cx="${ledX}" cy="${y}" r="12" fill="${glow}" opacity=".6" filter="url(#fGlow)"/>`;
+        out += `<circle cx="${ledX}" cy="${y}" r="5.5" fill="${lit ? glow : '#7b7b7b'}" stroke="#4d4d4d" stroke-width="1.2"/>`;
+        return `<g data-act="favourites" role="button" aria-pressed="${lit}" aria-label="去 Favourites 碟">${hitRect(x, y)}${out}</g>`;
+    };
+
+    /** 機身控制板：拉絲鋁板用兩粒螺絲鎖喺機面，上面有 ♥ 鍵同 Wheel 刻度窗 */
+    const controlPlate = () => {
+        const { x, y, w, h, r } = PLATE;
+        const cy = y + h / 2;
         return (
-            `<g data-act="favourites" role="button" aria-pressed="false" ${label}>` +
-            shadow(x, y, r, { dx: 3, dy: 7, opacity: 0.34 }) +
-            `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#gVinyl)"/>` +
-            [0.86, 0.72].map((k) => `<circle cx="${x}" cy="${y}" r="${n(r * k)}" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="1.2"/>`).join('') +
-            `<circle cx="${x}" cy="${y}" r="${n(r - 2)}" fill="none" stroke="url(#gBevel)" stroke-width="4"/>` +
-            icon('heart', x, y + 1, r * 0.92, PAPER) +
-            '</g>'
+            `<rect x="${x + 2}" y="${y + 6}" width="${w}" height="${h}" rx="${r}" fill="#000" opacity=".26" filter="url(#fShadow)"/>` +
+            `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="url(#gBrush)"/>` +
+            `<rect x="${x + 1.5}" y="${y + 1.5}" width="${w - 3}" height="${h - 3}" rx="${r - 1.5}" fill="none" stroke="url(#gBevel)" stroke-width="3"/>` +
+            `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="none" stroke="#6f6f6f" stroke-opacity=".55" stroke-width="1.2"/>` +
+            screw([x + 17, cy], 6.5) +
+            screw([x + w - 14, cy], 6.5) +
+            favouriteKey() +
+            wheelWindow()
         );
     };
-
-    /** F2：Wheel 把手做成一塊錶盤面嘅細板，左邊加一粒心形鍵 */
-    const wheelKey = ({ x, y }) => {
-        const lit = onFavourites();
-        const { glow } = album();
-        const left = x - 48;
-        const right = HANDLE.x + 70;
-        const top = y - 29;
-        let out = `<rect x="${left}" y="${top + 6}" width="${right - left}" height="58" rx="29" fill="#000" opacity=".2" filter="url(#fShadow)"/>`;
-        out += `<rect x="${left}" y="${top}" width="${right - left}" height="58" rx="29" fill="#f6f6f3" stroke="#fff" stroke-width="5"/>`;
-        out += `<rect x="${left - 3}" y="${top - 3}" width="${right - left + 6}" height="64" rx="32" fill="none" stroke="#b3b3af" stroke-width="1.5"/>`;
-        out += `<path d="M${n((x + HANDLE.x) / 2 - 8)} ${y - 15}V${y + 15}" stroke="#a5a5a1" stroke-width="2.5" stroke-linecap="round"/>`;
-        out += `<g data-act="favourites" role="button" aria-pressed="${lit}" aria-label="去 Favourites 碟"><rect x="${n(x - HIT / 2)}" y="${n(y - 30)}" width="${n(HIT)}" height="60" fill="transparent"/>`;
-        if (lit) out += `<g opacity=".6" filter="url(#fGlow)">${icon('heart', x, y + 1, 40, glow)}</g>`;
-        out += `${icon('heart', x, y + 1, 40, lit ? glow : '#3c3c3c')}</g>`;
-        out += `<g data-act="wheel" role="button" aria-label="打開揀碟 Wheel"><rect x="${n(HANDLE.x - HIT / 2)}" y="${n(y - 30)}" width="${n(HIT)}" height="60" fill="transparent"/>`;
-        out += `<rect x="${HANDLE.x - 32}" y="${y - 3.5}" width="64" height="7" rx="3.5" fill="#5a5a5a"/></g>`;
-        return out;
-    };
-
-    const favouriteControl = (opt) => (opt.fav.kind === 'mini' ? wheelHandle() + miniDisc(opt.fav) : wheelKey(opt.fav));
 
     /** Wheel 開咗：碟沿弧線排（右邊嗰張永遠疊喺最頂），底部錶盤最後一格係 ♥ */
     const wheelScene = () => {
@@ -607,9 +615,12 @@ tr:last-child td { border-bottom: 0; }
         // 錶盤
         const { x: cx, y: cy, r, step } = DIAL;
         const { accent } = ALBUMS.komorebi;
-        out += shadow(cx, cy, r, { dx: 0, dy: -8, opacity: 0.24, big: true });
-        out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#f6f6f3" stroke="#fff" stroke-width="7"/>`;
-        out += `<circle cx="${cx}" cy="${cy}" r="${r + 4}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>`;
+        out += shadow(cx, cy, r + 16, { dx: 0, dy: -8, opacity: 0.24, big: true });
+        // 鋁圈：錶盤係由機身升起嘅零件
+        out += `<circle cx="${cx}" cy="${cy}" r="${r + 9}" fill="none" stroke="url(#gBrush)" stroke-width="18"/>`;
+        out += `<circle cx="${cx}" cy="${cy}" r="${r + 18}" fill="none" stroke="#77777a" stroke-opacity=".7" stroke-width="1.5"/>`;
+        out += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#f6f6f3" stroke="#fff" stroke-width="5"/>`;
+        out += `<circle cx="${cx}" cy="${cy}" r="${r + 2}" fill="none" stroke="#8d8d89" stroke-width="1.2"/>`;
         for (let i = -14; i <= 14; i += 1) {
             const deg = -90 + i * (step / 4);
             const long = i % 4 === 0;
@@ -662,110 +673,112 @@ tr:last-child td { border-bottom: 0; }
     };
 
     /* ---------- 量度 ---------- */
-    const gapTo = (opt, radius) => Math.min(...opt.buttons.map(([x, y]) => Math.hypot(x - DISC.x, y - DISC.y) - radius - BTN_OUTER));
-    const minButtonPitch = (opt) => Math.min(...opt.buttons.slice(1).map(([x, y], i) => Math.hypot(x - opt.buttons[i][0], y - opt.buttons[i][1])));
-    const favGap = (opt) => {
-        const { kind, x, y, r } = opt.fav;
-        const reach = kind === 'mini' ? r : 48;
-        return Math.hypot(x - DISC.x, y - DISC.y) - DISC.r - reach;
+    const BUTTONS = LAYOUT.buttons;
+    const gapTo = (radius) => Math.min(...BUTTONS.map(([x, y]) => Math.hypot(x - DISC.x, y - DISC.y) - radius - BTN_OUTER));
+    const minButtonPitch = () => Math.min(...BUTTONS.slice(1).map(([x, y], i) => Math.hypot(x - BUTTONS[i][0], y - BUTTONS[i][1])));
+    /** 控制板四隻角同轉盤邊嘅最近距離 */
+    const plateGap = () => {
+        const { x, y, w, h, r } = PLATE;
+        const corners = [[x + r, y + r], [x + w - r, y + r], [x + r, y + h - r], [x + w - r, y + h - r]];
+        return Math.min(...corners.map(([cx, cy]) => Math.hypot(cx - DISC.x, cy - DISC.y) - r)) - PLATTER.r;
     };
-    const hitPoints = (opt) => [...opt.buttons.map(([x, y]) => [x, y]), [DISC.x, DISC.y], [opt.fav.x, opt.fav.y], [HANDLE.x, HANDLE.y]];
+    /** 感應範圍：圓形掣用圓形（直徑 44pt），控制板上面嘅鍵同窗用方形（44 × 44pt） */
+    const hitPoints = () => [
+        ...BUTTONS.map(([x, y]) => [x, y, 'round']),
+        [DISC.x, DISC.y, 'round'],
+        [FAV_KEY.x, FAV_KEY.y, 'square'],
+        [WINDOW.x, WINDOW.y, 'square'],
+    ];
+    /** 兩個感應範圍之間嘅空隙（負數 = 重疊）；有方形嗰對用保守計法（當兩個都係方形） */
+    const hitGap = ([x1, y1, s1], [x2, y2, s2]) =>
+        (s1 === 'round' && s2 === 'round' ? Math.hypot(x1 - x2, y1 - y2) : Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2))) - HIT;
+    const minHitGap = () => {
+        const pts = hitPoints();
+        return Math.min(...pts.flatMap((a, i) => pts.slice(i + 1).map((b) => hitGap(a, b))));
+    };
 
     /* ---------- 輔助顯示 ---------- */
-    const overlays = (opt) => {
+    const overlays = () => {
         let out = '';
         if (state.showGap) {
             out += `<circle cx="${DISC.x}" cy="${DISC.y}" r="${DISC.r + CD_CLEARANCE}" fill="none" stroke="#e5007d" stroke-width="3" stroke-dasharray="14 10"/>`;
-            opt.buttons.forEach(([x, y]) => {
+            BUTTONS.forEach(([x, y]) => {
                 out += `<circle cx="${x}" cy="${y}" r="${BTN_OUTER}" fill="none" stroke="#e5007d" stroke-width="2.5"/>`;
             });
         }
         if (state.showHit) {
-            hitPoints(opt).forEach(([x, y]) => {
-                out += `<rect x="${n(x - HIT / 2)}" y="${n(y - HIT / 2)}" width="${n(HIT)}" height="${n(HIT)}" rx="10" fill="#0a84ff" fill-opacity=".14" stroke="#0a84ff" stroke-width="2.5" stroke-dasharray="10 7"/>`;
+            hitPoints().forEach(([x, y, shape]) => {
+                out += `<rect x="${n(x - HIT / 2)}" y="${n(y - HIT / 2)}" width="${n(HIT)}" height="${n(HIT)}" rx="${shape === 'round' ? n(HIT / 2) : 10}" fill="#0a84ff" fill-opacity=".14" stroke="#0a84ff" stroke-width="2.5" stroke-dasharray="10 7"/>`;
             });
         }
         return out;
     };
 
     /* ---------- 砌一格畫面 ---------- */
-    const VIEW_LABEL = { idle: '未揀歌', playing: '播緊', booklet: '歌書', wheel: 'Wheel 開咗', favourites: 'Favourites 碟' };
-
-    const homeFrame = (opt) => {
+    const homeFrame = () => {
         const dark = isBooklet();
         const { cover, accent } = album();
         const turntable = [
             `<rect width="${W}" height="${H}" fill="url(#gStage)"/>`,
             screws(),
             platter(),
-            disc(DISC, cover, `clip-${opt.id}`, { hub: isSong() ? 'pause' : 'play', progress: SONG.progress, spin: isSong(), accent, act: 'playpause' }),
-            favouriteControl(opt),
+            disc(DISC, cover, `clip-${state.view}`, { hub: isSong() ? 'pause' : 'play', progress: SONG.progress, spin: isSong(), accent }),
+            controlPlate(),
             tonearm(),
         ].join('');
         return [
             dark ? `<g filter="url(#fBackdrop)">${turntable}</g>` : turntable,
             dark ? booklet() : '',
-            opt.buttons.map(button).join(''),
+            BUTTONS.map(button).join(''),
             info(dark),
             version(dark),
-            overlays(opt),
+            overlays(),
         ].join('');
     };
 
-    /** Wheel 開咗：唱臂、三粒掣、Favourites 捷徑一齊淡出（v16 規則），剩返碟同錶盤 */
+    /** Wheel 開咗：唱臂、三粒掣、控制板淡出（v16 規則），錶盤由控制板個窗嘅位置升起 */
     const wheelFrame = () => [`<rect width="${W}" height="${H}" fill="url(#gStage)"/>`, screws(), wheelScene(), info(false), version(false)].join('');
 
-    const frame = (opt) =>
-        `<svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="方案 ${opt.id}：${opt.name}（${VIEW_LABEL[state.view]}）">${isWheel() ? wheelFrame() : homeFrame(opt)}</svg>`;
+    const frame = ([view, label, caption]) => {
+        state.view = view;
+        const svg = `<svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="${label}">${isWheel() ? wheelFrame() : homeFrame()}</svg>`;
+        return `<article class="card"><h3>${label}</h3><p class="tag">${caption}</p>${svg}</article>`;
+    };
 
-    const card = (opt) => {
-        const pitch = minButtonPitch(opt);
+    const measurements = () => {
+        const pitch = minButtonPitch();
         const facts = [
-            ...opt.facts,
-            ['圓形掣', `3 粒：歌書、MV、播放模式（而家：${MODE_LABEL[state.mode]}）`],
-            ['掣同 CD 最近', `${Math.round(gapTo(opt, DISC.r))}（要求 ≥ ${CD_CLEARANCE}）；同轉盤邊 ${Math.round(gapTo(opt, PLATTER.r))}`],
-            ['Favourites 掣同 CD', `${Math.round(favGap(opt))}（要求 ≥ ${CD_CLEARANCE}）`],
-            ['掣中心距', `${Math.round(pitch)}（約 ${pt(pitch)}pt，感應範圍 ${HIT_PT}pt ${pitch >= HIT ? '唔重疊' : '有重疊'}）`],
+            ['圓形掣', `3 粒：歌書、MV、播放模式（而家：${MODE_LABEL[state.mode]}），沿住同 CD 同心嘅弧線排`],
+            ['掣同 CD 最近', `${Math.round(gapTo(DISC.r))}（要求 ≥ ${CD_CLEARANCE}）；同轉盤邊 ${Math.round(gapTo(PLATTER.r))}`],
+            ['掣中心距', `${Math.round(pitch)}（約 ${pt(pitch)}pt）`],
+            ['控制板同轉盤邊', `${Math.round(plateGap())}（${plateGap() >= 0 ? '唔重疊' : '有重疊'}）`],
+            ['感應範圍', `全部 ${HIT_PT}pt；最近兩個之間嘅空隙 ${Math.round(minHitGap())}（${minHitGap() >= 0 ? '唔重疊' : '有重疊'}）`],
         ];
+        return `<ul class="facts wide">${facts.map(([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`).join('')}</ul>`;
+    };
+
+    /** 成隻 Favourites 碟（主頁只見到左邊大半隻，呢度睇全貌） */
+    const wholeDisc = () => {
+        const SIZE = 1500;
+        const whole = { x: SIZE / 2, y: SIZE / 2, r: 700 };
         return (
-            `<article class="card"><h3><b>${opt.id}</b>${opt.name}</h3><p class="tag">${opt.tag}</p>${frame(opt)}` +
-            `<ul class="facts">${facts.map(([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`).join('')}</ul></article>`
+            `<article class="card"><h3>Favourites 碟全貌</h3><p class="tag">主頁只見到左邊大半隻；呢度係成隻碟：標誌圓環同碟同心，碟芯落喺 R 字中間</p>` +
+            `<svg class="stage square" viewBox="0 0 ${SIZE} ${SIZE}" role="img" aria-label="Favourites 碟全貌"><rect width="${SIZE}" height="${SIZE}" fill="url(#gStage)"/>` +
+            `${disc(whole, 'favourites', 'clip-whole', { hub: 'play' })}</svg></article>`
         );
     };
 
-    const COMPARE_ROWS = [
-        ['Favourites 捷徑', '機面上一隻黑色細碟（白色心形）', 'Wheel 把手旁邊嘅心形鍵（同錶盤同一款淺色面）'],
-        ['身處 Favourites 碟時', '細碟上咗轉盤，原位剩返一個虛線空位', '心形鍵著燈'],
-        ['三粒圓形掣', '左下橫排（同 v16 一樣）', '沿碟邊排（底部留畀揀碟）'],
-        ['同 Wheel 嘅關係', '打開 Wheel，最後一隻碟就係同一隻黑色心形碟', '打開 Wheel，心形鍵變成錶盤最後一格 ♥'],
-        ['Wheel 開咗', '兩個版面一樣：唱臂、三粒掣、Favourites 捷徑淡出；碟沿弧線排；底部錶盤 I J K 單 ♥', '同左'],
-        ['同 v16 嘅分別', '細：多一隻細碟，掣數目同位置一樣', '中：掣改排法，把手改款'],
-    ];
-
     const render = () => {
-        document.getElementById('grid').innerHTML = OPTIONS.map(card).join('');
-        document.getElementById('compare').innerHTML = COMPARE_ROWS.map(
-            ([label, ...cells]) => `<tr><td>${label}</td>${cells.map((c) => `<td>${c}</td>`).join('')}</tr>`,
-        ).join('');
-        document.querySelectorAll('[data-state]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.state === state.view)));
+        document.getElementById('grid').innerHTML = VIEWS.map(frame).join('') + wholeDisc();
+        document.getElementById('measure').innerHTML = measurements();
     };
 
     const ACTIONS = {
         heart: () => { state.fav = !state.fav; },
         mode: () => { state.mode = MODES[(MODES.indexOf(state.mode) + 1) % MODES.length]; },
-        info: () => { state.view = isBooklet() ? 'playing' : 'booklet'; },
-        playpause: () => { state.view = isSong() ? 'idle' : 'playing'; },
-        wheel: () => { state.view = 'wheel'; },
-        favourites: () => { state.view = onFavourites() ? 'idle' : 'favourites'; },
     };
 
     document.addEventListener('click', (event) => {
-        const stateButton = event.target.closest('[data-state]');
-        if (stateButton) {
-            state.view = stateButton.dataset.state;
-            render();
-            return;
-        }
         const target = event.target.closest('[data-act]');
         const action = target && ACTIONS[target.dataset.act];
         if (!action) return;
