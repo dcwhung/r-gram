@@ -7,8 +7,9 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
-    第 13 版（2026-11-24）。主頁（第 12 版）用戶已確認。今次加三個場景：歌單、Favourites 歌單、MV 電視，
-    全部按已確認嘅主頁版面（大碟出界、唱片夾固定、左下角控件）重定位置。
+    第 14 版（2026-11-24）。用戶意見：MV 電視欠立體感、電視腳光暗唔啱（參考附圖）；電視出現要有向上升起嘅過場；
+    所有介面文字用中文書面語、支援 i18n、預設繁體中文。
+    第 13 版：加歌單、Favourites 歌單、MV 電視（主頁第 12 版已確認）。
     靜態設計稿，唔係 app code。所有位置數字喺 script 入面嘅常數（1080 × 1920 基準）。
     Source：src/template.html + src/fonts.css + src/logo-full.png（python3 src/prep_logo.py 由用戶提供嘅 logo 切出） → python3 src/build.py → index.html（唔好直接改 index.html）。
     舊版喺 git 記錄（第 1 版 A / B / C、第 2 版 B1 / B2、第 3 版 F1 / F2、第 4 版控制板、第 5 版底部撥輪、第 6 版左邊直排 + 底部字母、第 7 版左下角控件 + 環繞旋鈕字母盤、第 8 版歌書三款 A / B / C、第 9 版歌書 C + 播放模式 icon、第 10 版 icon 保持深色、第 11–12 版主頁定稿）。
@@ -79,14 +80,36 @@ tr:last-child td { border-bottom: 0; }
 .note { font-size: 13px; }
 @media (prefers-reduced-motion: no-preference) {
     .spin { animation: spin 5.4s linear infinite; }
+    /* MV 電視過場（只喺互動格）：升起 0.8s 有回彈 → 開機 0.45s；熄機 0.28s → 向下收埋（時長沿用 v16） */
+    /* 字母盤：字母逐個彈出（延遲寫喺每個字母自己嘅 style） */
+    svg.live [data-anim^="dialkey"] { transition: transform .26s cubic-bezier(.25, 1.4, .5, 1), opacity .18s ease; }
+    svg.live [data-anim="dialplate"] { transition: transform .5s, opacity .22s ease; }
+    svg.live .tv-rise { animation: tvRise .8s cubic-bezier(.3, 1.45, .55, 1) both; }
+    svg.live .tv-rise .tv-antenna { animation: antennaOut .35s cubic-bezier(.3, 1.6, .5, 1) .5s both; }
+    svg.live .tv-drop .tv-antenna { animation: antennaIn .26s ease-in both; }
+    svg.live .tv-drop { animation: tvDrop .45s cubic-bezier(.55, 0, .9, .4) .3s both; }
+    svg.live .tv-veil-in { animation: veilIn .5s ease both; }
+    svg.live .tv-veil-out { animation: veilOut .45s ease .3s both; }
+    svg.live .crt-on { animation: crtOn .45s ease-out .8s both; }
+    svg.live .crt-on .crt-white { animation: veilOut .4s ease-out .85s both; }
+    svg.live .crt-off { animation: crtOff .28s ease-in both; }
+    svg.live .crt-off .crt-white { animation: veilIn .1s linear both; }
 }
+@keyframes tvRise { from { transform: translateY(1090px); } to { transform: translateY(0); } }
+@keyframes tvDrop { from { transform: translateY(0); } to { transform: translateY(1090px); } }
+@keyframes antennaOut { from { transform: scale(0); } to { transform: scale(1); } }
+@keyframes antennaIn { from { transform: scale(1); } to { transform: scale(0); } }
+@keyframes veilIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes veilOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes crtOn { 0% { transform: scale(1, .012); opacity: 0; } 6% { opacity: 1; } 30% { transform: scale(1, .012); } 100% { transform: scale(1, 1); } }
+@keyframes crtOff { 0% { transform: scale(1, 1); } 45% { transform: scale(1, .012); } 82% { transform: scale(.012, .012); opacity: 1; } 100% { transform: scale(.012, .012); opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede">第 13 版。主頁已經定稿。今次加咗三個場景：<b>歌單</b>（㩒碟面）、<b>Favourites 歌單</b>、<b>MV 電視</b>，喺「各個畫面」入面；頂部互動格亦都行得通成個流程。</p>
+    <p class="lede">第 14 版。MV 電視照 v16 重畫層次同光暗（倒角機殼、凹入面板、斜邊框、玻璃反光），電視腳改做向外斜嘅錐形腳連黑色膠腳；互動格入面電視會由底部升起、開機，㩒 ■ 會熄機再向下收埋。畫面入面所有介面文字改咗做中文書面語（例如「我的收藏」「第 07 首」「尚未收藏歌曲」）。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -106,7 +129,7 @@ tr:last-child td { border-bottom: 0; }
                         <tr><td>刻度最尾嘅 ♥</td><td>旋鈕指針轉去指住 ♥，隻碟換做 Favourites 碟；再㩒換返</td></tr>
                         <tr><td>碟面</td><td>打開歌單（唱片機壓暗，歌名沿碟弧線排）。㩒暗位收返</td></tr>
                         <tr><td>唱片夾</td><td>未揀歌：打開歌單。歌單入面：播揀中嗰首（落針）。播緊：暫停／繼續</td></tr>
-                        <tr><td>MV 掣</td><td>有歌先㩒得：電視升起，唱片機停低兼變模糊。電視上面 ■ 收返，唱片唔會自動續播</td></tr>
+                        <tr><td>MV 掣</td><td>有歌先㩒得：電視由底部升起（0.8 秒，有回彈）再開機，唱片機停低兼變模糊。㩒 ■：熄機（0.28 秒）再向下收埋，唱片唔會自動續播</td></tr>
                         <tr><td><b>i</b></td><td>歌書：曲詞編監 + 沿碟弧線嘅歌詞。有歌先㩒得</td></tr>
                         <tr><td>歌名後面嘅心形</td><td>收藏／取消收藏呢首歌</td></tr>
                         <tr><td>播放模式掣</td><td>順序 → 重覆全部 → 重覆一首 → 隨機（播緊時外圈著燈）</td></tr>
@@ -132,6 +155,8 @@ tr:last-child td { border-bottom: 0; }
                 <tr><td>Favourites 歌單</td><td>歌號 = 收藏次序；左上角歌名下面顯示原本嗰隻碟；下架咗嘅歌變灰</td><td>Functional Spec D19</td></tr>
                 <tr><td>MV 電視</td><td>▶ ❚❚ ■ 三粒掣由右邊窄板搬去機身下面嗰條，放大咗</td><td>v16 三粒掣中心只隔 17pt，感應範圍一定重疊；而家每粒 44pt 唔重疊</td></tr>
                 <tr><td>MV 電視</td><td>右邊兩粒大旋鈕（音量、跳段）可以操作</td><td>你之前決定（C9）</td></tr>
+                <tr><td>字母盤</td><td>有過場（0.5 秒）：底盤由旋鈕邊向外擴開，字母由 A 開始順時針逐個彈出，♥ 由刻度滑出去；收返就倒轉</td><td>你今次嘅要求</td></tr>
+                <tr><td>全部畫面</td><td>介面文字用中文書面語：`FAVOURITES` → 我的收藏、`N TRACKS` → N 首、`TRACK 07` → 第 07 首、`Fan-made, unofficial` → 歌迷自製　非官方</td><td>你今次嘅要求。正式 app 用 i18n，預設繁體中文；英文留畀之後加語言檔</td></tr>
             </tbody>
         </table>
     </div>
@@ -220,17 +245,35 @@ tr:last-child td { border-bottom: 0; }
         <filter id="fShadowL" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="26"/></filter>
         <filter id="fGlow" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7"/></filter>
         <filter id="fBackdrop" x="0" y="0" width="100%" height="100%"><feGaussianBlur stdDeviation="20"/></filter>
-        <!-- MV 電視 -->
-        <linearGradient id="gTvBody" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="#f6f6f4"/><stop offset="1" stop-color="#d4d4d1"/>
+        <!-- MV 電視（光暗照 v16 drawTV；光源統一喺左上） -->
+        <linearGradient id="gShellOuter" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#989ba2"/></linearGradient>
+        <linearGradient id="gShellIn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b8e95"/><stop offset="1" stop-color="#f7f8f9"/></linearGradient>
+        <linearGradient id="gShellFace" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f5f6"/><stop offset="1" stop-color="#d3d5d9"/></linearGradient>
+        <linearGradient id="gFront" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a2b2f"/><stop offset="1" stop-color="#141416"/></linearGradient>
+        <linearGradient id="gMask0" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbfaf6"/><stop offset="1" stop-color="#c4c1b8"/></linearGradient>
+        <linearGradient id="gMask1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d8d5cc"/><stop offset="1" stop-color="#f6f4ee"/></linearGradient>
+        <linearGradient id="gMask2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9c6bd"/><stop offset="1" stop-color="#ebe8e1"/></linearGradient>
+        <radialGradient id="gTube" cx="45%" cy="40%" r="75%"><stop offset="0" stop-color="#222b2e"/><stop offset="1" stop-color="#080b0c"/></radialGradient>
+        <linearGradient id="gGlare" x1="0" y1="0" x2=".55" y2=".75"><stop offset="0" stop-color="#fff" stop-opacity=".24"/><stop offset=".4" stop-color="#fff" stop-opacity=".04"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <radialGradient id="gVignette" cx="50%" cy="50%" r="72%"><stop offset=".42" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".62"/></radialGradient>
+        <linearGradient id="gPanel" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34363b"/><stop offset="1" stop-color="#1b1c1f"/></linearGradient>
+        <linearGradient id="gPanelEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity=".12"/></linearGradient>
+        <!-- 圓柱（橫向明暗）：電視腳、旋鈕把手；膠腳用深色版 -->
+        <linearGradient id="gCylH" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#7c7c7c"/><stop offset=".24" stop-color="#f7f7f7"/><stop offset=".56" stop-color="#b3b3b3"/><stop offset=".86" stop-color="#868686"/><stop offset="1" stop-color="#565656"/>
         </linearGradient>
-        <linearGradient id="gTvMask" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stop-color="#f7f4ea"/><stop offset="1" stop-color="#d6d2c4"/>
+        <linearGradient id="gLegTip" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#0b0b0c"/><stop offset=".26" stop-color="#4a4b50"/><stop offset=".6" stop-color="#1b1c1f"/><stop offset="1" stop-color="#050505"/>
         </linearGradient>
-        <radialGradient id="gVignette" cx="50%" cy="50%" r="62%">
-            <stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".55"/>
-        </radialGradient>
-        <pattern id="scan" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="2.4" fill="#000" opacity=".24"/></pattern>
+        <linearGradient id="gLegShade" gradientUnits="userSpaceOnUse" x1="0" y1="14" x2="0" y2="64"><stop offset="0" stop-color="#000" stop-opacity=".55"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+        <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1.5" fill="#000" opacity=".16"/></pattern>
+        <!-- 內陰影：令形狀睇落係凹入去（v16 innerShadow） -->
+        <filter id="fInner" x="-10%" y="-10%" width="120%" height="120%">
+            <feComponentTransfer in="SourceAlpha"><feFuncA type="table" tableValues="1 0"/></feComponentTransfer>
+            <feGaussianBlur stdDeviation="11"/><feOffset dx="5" dy="9" result="shade"/>
+            <feFlood flood-color="#000" flood-opacity=".85"/><feComposite in2="shade" operator="in"/><feComposite in2="SourceAlpha" operator="in"/>
+        </filter>
+        <filter id="fShadowXL" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="40"/></filter>
         <filter id="fBokeh" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="12"/></filter>
     </defs>
 </svg>
@@ -257,12 +300,36 @@ tr:last-child td { border-bottom: 0; }
     const SCREWS = [[62, 62], [62, H - 62], [W - 62, 62]]; // 右下角喺碟底下，見唔到
     const INK = '#111';
     const PAPER = '#f5f3ee';
+    /*
+     * 介面文字：正式 app 全部經 i18n，預設繁體中文、用書面語（唔用廣東話口語）。呢度係 zh-Hant 嗰份。
+     * 頁面上面嘅說明、表格係畀設計討論用，唔係介面文字。
+     */
+    const T = {
+        favouritesTitle: '我的收藏',
+        trackCount: (count) => `${count} 首`,
+        trackNumber: (no) => `第 ${String(no).padStart(2, '0')} 首`,
+        emptyFavourites: '尚未收藏歌曲',
+        emptyFavouritesHint: '播放時點按歌名後的 ♥',
+        unofficial: '歌迷自製　非官方',
+        openList: '開啟歌單',
+        play: '播放',
+        pause: '暫停',
+        favouriteSong: '收藏這首歌',
+        goFavourites: '前往「我的收藏」',
+        changeDisc: '選擇唱片',
+        changeDiscDone: '完成選擇',
+        tvPlay: '播放 MV',
+        tvPause: '暫停 MV',
+        tvStop: '關閉電視',
+        tvVolume: 'MV 音量',
+        tvSeek: '快轉或倒轉',
+    };
     const ALBUMS = {
         komorebi: {
             title: 'KOMOREBI', sub: '2026', cover: 'komorebi', accent: '#2f8f57', glow: 'hsl(146 95% 52%)',
         },
         favourites: {
-            title: 'FAVOURITES', sub: '8 TRACKS', cover: 'favourites', accent: '#d7263d', glow: 'hsl(352 96% 60%)',
+            title: T.favouritesTitle, sub: T.trackCount(8), cover: 'favourites', accent: '#d7263d', glow: 'hsl(352 96% 60%)',
         },
     };
     const SONG = {
@@ -287,7 +354,7 @@ tr:last-child td { border-bottom: 0; }
     const LIST = { r: 556, step: 9.2, focus: 42, rest: 32, number: 0.72, frame: 88, visible: 4.3 };
     // MV 電視（尺寸沿用 v16 anim.js 嘅 TV）；play / pause / stop 由右邊窄板搬去機身下面嗰條，每粒 44pt 感應範圍唔重疊
     const TV = {
-        x: 36, y: 962, w: 1008, h: 900, corner: 50, legs: 58,
+        x: 36, y: 928, w: 1008, h: 900, corner: 50, legs: 92, // 腳加長咗（v16 係 58），等錐形同膠腳睇得清
         front: { x: 26, y: 26, w: 956, h: 680 },
         mask: { x: 44, y: 44, w: 746, h: 644 },
         glass: { x: 88, y: 86, w: 658, h: 560, bulgeX: 7, bulgeY: 20, corner: 60 },
@@ -297,9 +364,9 @@ tr:last-child td { border-bottom: 0; }
         antenna: [[-210, -300], [200, -340]],
     };
     const MV = { time: '0:07', progress: 0.14 };
-    const BUTTON_LABEL = { info: '歌書：歌詞、曲詞編監、專輯資料', mv: '睇 MV', mode: '播放模式' };
+    const BUTTON_LABEL = { info: '歌書：歌詞及創作人員', mv: '觀看 MV', mode: '播放模式' };
     const MODES = ['order', 'all', 'one', 'shuffle'];
-    const MODE_LABEL = { order: '順序', all: '重覆全部', one: '重覆一首', shuffle: '隨機' };
+    const MODE_LABEL = { order: '順序播放', all: '全部重複', one: '單曲重複', shuffle: '隨機播放' };
     const DISC = { x: 940, y: 1196, r: 700 }; // 主頁嘅碟
     const PLATTER = { r: 716 }; // 淺色車床鋁面；碟放上去只見到外面一圈
     const ARM = { x: 900, y: 330, len: 640, base: 92, park: 176, play: 99, bend: -1 };
@@ -337,16 +404,16 @@ tr:last-child td { border-bottom: 0; }
         ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形；播放模式掣著燈', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
         ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
         ['歌單（㩒碟面）', '唱片機壓暗；歌名沿碟弧線排；唱片夾係 play 掣；灰色嗰行 = 未有音檔（示意）', { album: 'komorebi', song: false, list: true, wheel: 0 }],
-        ['MV 電視', '電視由底部升起；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同跳段', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
+        ['MV 電視', '互動格入面會由底部升起再開機；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同跳段', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
         ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播', { album: 'komorebi', song: true, paused: true, wheel: 0 }],
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 已下架（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
-        ['Favourites 歌單（未有收藏）', '框線入面一句提示', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
+        ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」，下面一句提示', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
     ];
     const ui = { fav: true, mode: 'order', showHit: false, showGap: false };
-    const live = { album: 'komorebi', song: false, paused: false, booklet: false, list: false, mv: false, mvPaused: false, wheel: 0 };
+    const live = { album: 'komorebi', song: false, paused: false, booklet: false, list: false, mv: false, mvPaused: false, mvFresh: false, mvClosing: false, wheel: 0 };
 
     /* ---------- 工具 ---------- */
     const n = (v) => Math.round(v * 10) / 10;
@@ -536,7 +603,7 @@ tr:last-child td { border-bottom: 0; }
             }
         }
         return (
-            `<g data-swap="spindle"><g data-act="playpause" role="button" aria-label="${isPlaying(st) ? '暫停' : '播放'}">${hitRect(x, y)}` +
+            `<g data-swap="spindle"><g data-act="playpause" role="button" aria-label="${isPlaying(st) ? T.pause : T.play}">${hitRect(x, y)}` +
             `${shadow(x, y, r, { dx: 0, dy: 5, opacity: 0.4 })}<g transform="translate(${x} ${y})">${out}</g></g></g>`
         );
     };
@@ -591,7 +658,7 @@ tr:last-child td { border-bottom: 0; }
             const style = `transform: translate(${n(pose.x)}px, ${n(pose.y)}px) scale(${(pose.r / ART).toFixed(4)}); opacity: ${n(pose.opacity)}`;
             return (
                 `<g data-anim="disc-${i}" style="${style}"${current ? '' : ' pointer-events="none"'}>` +
-                `<g data-swap="disc-${i}">${current ? `<g data-act="list" role="button" aria-label="打開歌單">${art}</g>` : art}</g>` +
+                `<g data-swap="disc-${i}">${current ? `<g data-act="list" role="button" aria-label="${T.openList}">${art}</g>` : art}</g>` +
                 `<path data-anim="veil-${i}" fill-rule="evenodd" d="${ringPath(ART, ART * HUB.clamp)}" fill="#fff" style="opacity: ${pose.veil}" pointer-events="none"/></g>`
             );
         }).map((disc, i) => (i === sel ? `${disc}<g data-follow="disc-${sel}">${spindle(st)}</g>` : disc)).join('');
@@ -644,7 +711,8 @@ tr:last-child td { border-bottom: 0; }
 
     /** 左上資訊；歌書開咗就黑底白字 */
     const info = (st) => {
-        const { title, sub, accent, glow } = ALBUMS[st.album];
+        const { title, accent, glow } = ALBUMS[st.album];
+        const sub = st.empty ? T.trackCount(0) : ALBUMS[st.album].sub; // 未有收藏：0 首
         const dark = Boolean(st.booklet || st.list);
         const ink = dark ? PAPER : INK;
         const soft = dark ? '#b5b2aa' : '#555';
@@ -652,8 +720,11 @@ tr:last-child td { border-bottom: 0; }
         const SUB_SIZE = 29;
         const SUB_SPACING = 6;
         const lineX = 74 + textWidth(sub, SUB_SIZE, SUB_SPACING) + 22;
-        let out = `<text x="70" y="192" font-family="${SLAB}" font-size="88" fill="${ink}" letter-spacing="1">${title}</text>`;
-        out += `<text x="74" y="244" font-family="${SLAB_LIGHT}" font-size="${SUB_SIZE}" fill="${soft}" letter-spacing="${SUB_SPACING}">${sub}</text>`;
+        // 碟名：英文數字用 slab；中文用 Noto Sans HK 900（HANDOFF §3）
+        let out = isLatin(title)
+            ? `<text x="70" y="192" font-family="${SLAB}" font-size="88" fill="${ink}" letter-spacing="1">${title}</text>`
+            : `<text x="70" y="188" font-family="${CJK}" font-weight="900" font-size="80" fill="${ink}" letter-spacing="4">${title}</text>`;
+        out += `<text x="74" y="244" font-family="${MIXED}" font-size="${SUB_SIZE}" fill="${soft}" letter-spacing="${SUB_SPACING}">${sub}</text>`;
         out += `<path d="M${n(lineX)} 234H${n(lineX + 98)}" stroke="${accent}" stroke-width="3.5" stroke-linecap="round"/>`;
         out += `<text x="1008" y="118" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="22" fill="${dark ? '#8f8c85' : '#8a8a8a'}" letter-spacing="3">v0.1.0</text>`;
         const SONG_SIZE = 44;
@@ -678,7 +749,7 @@ tr:last-child td { border-bottom: 0; }
         // 歌名後面嘅心形掣（收藏而家首歌）
         const heartX = songX + textWidth(SONG.title, SONG_SIZE) + 46;
         const heartY = songY - 16;
-        out += `<g data-act="heart" role="button" aria-pressed="${ui.fav}" aria-label="收藏呢首歌">${hitRect(heartX, heartY)}`;
+        out += `<g data-act="heart" role="button" aria-pressed="${ui.fav}" aria-label="${T.favouriteSong}">${hitRect(heartX, heartY)}`;
         if (ui.fav) {
             out += `<g opacity=".55" filter="url(#fGlow)">${icon('heart', heartX, heartY, 50, glow)}</g>`;
             out += icon('heart', heartX, heartY, 50, glow);
@@ -686,7 +757,7 @@ tr:last-child td { border-bottom: 0; }
             out += `<g transform="translate(${n(heartX - 25)} ${n(heartY - 25)}) scale(${n(50 / 48)})" fill="none" stroke="${faint}" stroke-width="2.6" stroke-linejoin="round"><path d="${HEART}"/></g>`;
         }
         out += '</g>';
-        out += `<text x="74" y="368" font-family="${SLAB_LIGHT}" font-size="21" fill="${faint}" letter-spacing="4.5">TRACK ${String(SONG.no).padStart(2, '0')}  ·  ${SONG.time}</text>`;
+        out += `<text x="74" y="368" font-family="${MIXED}" font-size="22" fill="${faint}" letter-spacing="3">${T.trackNumber(SONG.no)}  ·  ${SONG.time}</text>`;
         return out;
     };
 
@@ -726,7 +797,7 @@ tr:last-child td { border-bottom: 0; }
         return (
             `<g data-act="favourites" data-anim="favhit" style="transform: translate(${n(hx)}px, ${n(hy)}px)">${hitRect(0, 0)}</g>` +
             `<g data-act="favourites" data-anim="favheart" style="transform: translate(${n(x)}px, ${n(y)}px) scale(${scale.toFixed(3)})">` +
-            `<g data-swap="favheart" role="button" aria-pressed="${lit}" aria-label="去 Favourites 碟">${heart}</g></g>`
+            `<g data-swap="favheart" role="button" aria-pressed="${lit}" aria-label="${T.goFavourites}">${heart}</g></g>`
         );
     };
 
@@ -742,35 +813,53 @@ tr:last-child td { border-bottom: 0; }
         body += `<circle cx="${x}" cy="${y}" r="${r - 5}" fill="none" stroke="#6b6b6b" stroke-opacity=".7" stroke-width="9" stroke-dasharray="3 4.2"/>`; // 滾花
         body += metal(x, y, top, { rot: 24, bevel: 0.07, withShadow: false });
         body += `<g data-anim="pointer" style="transform: translate(${x}px, ${y}px) rotate(${n(scaleAngle(currentPos(st)))}deg)"><g data-swap="pointer"><path d="M${n(top * 0.42)} 0H${n(top - 9)}" stroke="${accent}" stroke-width="8" stroke-linecap="round"/></g></g>`;
-        out += `<g data-act="wheel" role="button" aria-label="${st.wheel > 0.5 ? '完成轉碟' : '轉碟'}">${body}</g>`;
+        out += `<g data-act="wheel" role="button" aria-label="${st.wheel > 0.5 ? T.changeDiscDone : T.changeDisc}">${body}</g>`;
         return out;
     };
 
-    /** 轉碟時環繞旋鈕嘅字母盤：每隻碟一個字，同刻度同一個角度；而家嗰格最大。♥ 由 favHeart() 畫 */
+    /*
+     * 轉碟時環繞旋鈕嘅字母盤：每隻碟一個字，同刻度同一個角度；而家嗰格最大。♥ 由 favHeart() 畫。
+     * 過場（0.5s，同 Wheel 一致）：底盤由旋鈕邊向外擴開（有少少回彈），字母由 A 開始順時針逐個彈出；收返就倒轉。
+     */
+    const DIAL_MOTION = {
+        plateFrom: 0.42, // 底盤起點：內圈啱啱貼住旋鈕邊（186 × 0.42 ≈ 旋鈕半徑 76）
+        keyFrom: 0.5, // 字母起點：喺旋鈕邊，細一半
+        stagger: 0.6, // 靜態「開到一半」用：頭尾字母相差幾多進度
+        openStepMs: 14, // 每個字母遲幾耐先出（17 個字 × 14ms + 0.26s ≈ 0.5s）
+        closeStepMs: 8,
+    };
+    const dialKeyProgress = (pos, w) => clamp01((w - (pos / (SCALE.positions - 1)) * DIAL_MOTION.stagger) / (1 - DIAL_MOTION.stagger));
     const dialRing = (st) => {
         const { accent } = ALBUMS[st.album];
         const current = currentPos(st);
-        let out = `<path fill-rule="evenodd" d="${ringPath(DIAL.outer, DIAL.inner)}" fill="#fbfbf9" fill-opacity=".6" stroke="#fff" stroke-opacity=".9" stroke-width="5"/>`; // 半透明：見到下面嘅轉盤同碟
-        out += `<circle r="${DIAL.outer + 3}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/><circle r="${DIAL.inner - 3}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>`;
+        const w = st.wheel;
+        const opening = w > 0.5;
+        // 底盤：半透明，見到下面嘅轉盤同碟
+        let plate = `<path fill-rule="evenodd" d="${ringPath(DIAL.outer, DIAL.inner)}" fill="#fbfbf9" fill-opacity=".6" stroke="#fff" stroke-opacity=".9" stroke-width="5"/>`;
+        plate += `<circle r="${DIAL.outer + 3}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/><circle r="${DIAL.inner - 3}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>`;
+        const [ax1, ay1] = polar(0, 0, DIAL.outer - 12, scaleAngle(current) - 4.5);
+        const [ax2, ay2] = polar(0, 0, DIAL.outer - 12, scaleAngle(current) + 4.5);
+        const mark = DIAL_KEYS[current] === '♥' ? '' : `<path d="M${n(ax1)} ${n(ay1)}A${DIAL.outer - 12} ${DIAL.outer - 12} 0 0 1 ${n(ax2)} ${n(ay2)}" fill="none" stroke="${accent}" stroke-width="7" stroke-linecap="round"/>`;
+        const plateStyle = `transform: scale(${lerp(DIAL_MOTION.plateFrom, 1, w).toFixed(3)}); opacity: ${n(clamp01(w * 2.5))}; transition-timing-function: ${opening ? 'cubic-bezier(.3, 1.3, .5, 1)' : 'cubic-bezier(.5, 0, .8, .4)'}`;
+        let out = `<g data-anim="dialplate" style="${plateStyle}">${plate}<g data-swap="dialmark">${mark}</g></g>`;
         DIAL_KEYS.forEach((key, pos) => {
             if (key === '♥') return;
             const on = pos === current;
-            const [x, y] = polar(0, 0, DIAL.letters, scaleAngle(pos));
+            const k = dialKeyProgress(pos, w);
+            const [x, y] = polar(0, 0, DIAL.letters * lerp(DIAL_MOTION.keyFrom, 1, k), scaleAngle(pos));
             const latin = isLatin(key);
             const size = (on ? DIAL.current : DIAL.other) * (latin ? 1 : 0.82);
-            out += `<text x="${n(x)}" y="${n(y)}" text-anchor="middle" dominant-baseline="central" font-family="${latin ? (on ? SLAB : SLAB_LIGHT) : CJK}" font-weight="${latin ? 400 : 900}" font-size="${n(size)}" fill="${on ? INK : '#3d3d3a'}">${key}</text>`;
-            if (!on) return;
-            const [ax1, ay1] = polar(0, 0, DIAL.outer - 12, scaleAngle(pos) - 4.5);
-            const [ax2, ay2] = polar(0, 0, DIAL.outer - 12, scaleAngle(pos) + 4.5);
-            out += `<path d="M${n(ax1)} ${n(ay1)}A${DIAL.outer - 12} ${DIAL.outer - 12} 0 0 1 ${n(ax2)} ${n(ay2)}" fill="none" stroke="${accent}" stroke-width="7" stroke-linecap="round"/>`;
+            const delay = opening ? pos * DIAL_MOTION.openStepMs : (SCALE.positions - 2 - pos) * DIAL_MOTION.closeStepMs;
+            const style = `transform: translate(${n(x)}px, ${n(y)}px) scale(${lerp(DIAL_MOTION.keyFrom, 1, k).toFixed(3)}); opacity: ${n(k)}; transition-delay: ${delay}ms`;
+            out +=
+                `<g data-anim="dialkey-${pos}" style="${style}"><g data-swap="dialkey-${pos}">` +
+                `<text text-anchor="middle" dominant-baseline="central" font-family="${latin ? (on ? SLAB : SLAB_LIGHT) : CJK}" font-weight="${latin ? 400 : 900}" font-size="${n(size)}" fill="${on ? INK : '#3d3d3a'}">${key}</text></g></g>`;
         });
-        const w = st.wheel;
-        const style = `transform: translate(${KNOB.x}px, ${KNOB.y}px) scale(${lerp(0.7, 1, w).toFixed(3)}); opacity: ${n(clamp01((w - 0.1) * 1.6))}`;
-        return `<g data-anim="dial" style="${style}" pointer-events="none"><g data-swap="dial">${out}</g></g>`;
+        return `<g transform="translate(${KNOB.x} ${KNOB.y})" pointer-events="none">${out}</g>`;
     };
 
     /* ---------- 歌書（㩒 i）：曲詞編監 + 沿碟弧線嘅同步歌詞。歌詞係佔位，唔係真歌詞 ---------- */
-    const LYRICS = ['歌詞第一行（佔位）', '歌詞第二行（佔位）', '歌詞第三行（佔位）', '而家唱緊嗰一行', '歌詞第五行（佔位）', '歌詞第六行（佔位）', '歌詞第七行（佔位）'];
+    const LYRICS = ['歌詞第一行（佔位）', '歌詞第二行（佔位）', '歌詞第三行（佔位）', '正在播放的一行', '歌詞第五行（佔位）', '歌詞第六行（佔位）', '歌詞第七行（佔位）'];
     const LYRIC_NOW = 3;
     const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
     const ARC = { r: 556, step: 9.2, now: 44, other: 32, frame: 92 }; // 弧線半徑比之前（600）縮入一個字位；行距不變（step 同 v16 歌單一樣 9.2°）
@@ -825,8 +914,8 @@ tr:last-child td { border-bottom: 0; }
         let out = dimLayer('closelist') + focusFrame(LIST.r, LIST.frame);
         if (st.empty) {
             const [x] = polar(DISC.x, DISC.y, LIST.r, 180);
-            out += `<text x="${n(x)}" y="${DISC.y}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${LIST.focus}" fill="${PAPER}">未有收藏</text>`;
-            out += `<text x="${n(x)}" y="${DISC.y + 96}" dominant-baseline="central" font-family="${CJK}" font-size="26" fill="#b5b2aa">播歌時㩒歌名後面嘅 ♥</text>`;
+            out += `<text x="${n(x)}" y="${DISC.y}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${LIST.focus}" fill="${PAPER}">${T.emptyFavourites}</text>`;
+            out += `<text x="${n(x)}" y="${DISC.y + 96}" dominant-baseline="central" font-family="${CJK}" font-size="26" fill="#b5b2aa">${T.emptyFavouritesHint}</text>`;
             return `<g data-swap="list">${out}</g>`;
         }
         rows.forEach(([title, flag], i) => {
@@ -846,7 +935,7 @@ tr:last-child td { border-bottom: 0; }
         return `<g data-swap="list">${out}</g>`;
     };
 
-    /* ---------- MV 電視（外觀照 v16：鋁邊機殼 → 深灰面板 → 暖白斜邊框 → 黑膠邊 → 玻璃） ---------- */
+    /* ---------- MV 電視：層次同光暗照 v16 drawTV（倒角鋁殼 → 凹入深灰面板 → 暖白斜邊框 → 黑膠邊 → 玻璃） ---------- */
 
     /** 螢幕形狀：上下邊明顯向外拱（v16 crtPath） */
     const crtPath = ({ x, y, w, h, bulgeX: bx, bulgeY: by, corner }, grow = 0) => {
@@ -855,92 +944,145 @@ tr:last-child td { border-bottom: 0; }
         const my = (t + b) / 2;
         return `M${l + c} ${t}Q${mx} ${t - by} ${r - c} ${t}Q${r} ${t} ${r} ${t + c}Q${r + bx} ${my} ${r} ${b - c}Q${r} ${b} ${r - c} ${b}Q${mx} ${b + by} ${l + c} ${b}Q${l} ${b} ${l} ${b - c}Q${l - bx} ${my} ${l} ${t + c}Q${l} ${t} ${l + c} ${t}z`;
     };
+    const roundBox = ({ x, y, w, h }, r, inset = 0) =>
+        `<rect x="${x + inset}" y="${y + inset}" width="${w - inset * 2}" height="${h - inset * 2}" rx="${r - inset}"/>`;
+    /** 幫一個形狀加屬性（fill / filter…） */
+    const paint = (shape, attrs) => shape.replace('/>', ` ${attrs}/>`);
+    /** 凹入：喺形狀入面沿左上邊加內陰影 */
+    const sunk = (shape) => paint(shape, 'fill="#000" filter="url(#fInner)"');
 
-    const tvDial = (cx, cy, label, turn) => {
-        let out = `<circle cx="${cx}" cy="${cy}" r="${TV.dialR}" fill="#0f1012" stroke="#55565a" stroke-width="2"/>`;
-        for (let i = 0; i < 24; i += 1) {
-            const [x1, y1] = polar(cx, cy, TV.dialR - 5, i * 15);
-            const [x2, y2] = polar(cx, cy, TV.dialR - (i % 3 === 0 ? 15 : 10), i * 15);
-            out += `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="#8a8a8a" stroke-width="${i % 3 === 0 ? 2.2 : 1.2}"/>`;
+    /** 電視腳：向外斜嘅錐形圓腳，上面鋁色、下面黑色膠腳；逐段上色，明暗永遠跟住隻腳自己嘅闊度（v16 做法） */
+    const tvLeg = (x, lean) => {
+        const LEAN_DEG = 11.5;
+        const SLICES = 12;
+        const TIP_FROM = 2 / 3; // 由呢度向下係黑色膠腳（參考用戶提供嘅電視相）
+        const length = (TV.legs + 22) / Math.cos(rad(LEAN_DEG));
+        const half = (k) => lerp(27, 12, k);
+        let out = '';
+        for (let i = 0; i < SLICES; i += 1) {
+            const k0 = i / SLICES;
+            const k1 = (i + 1) / SLICES;
+            const d = `M${n(-half(k0))} ${n(k0 * length - 0.5)}H${n(half(k0))}L${n(half(k1))} ${n(k1 * length + 0.5)}H${n(-half(k1))}z`;
+            out += `<path d="${d}" fill="url(#${k0 >= TIP_FROM ? 'gLegTip' : 'gCylH'})"/>`;
         }
-        out += metal(cx, cy, TV.knobR, { rot: 30, bevel: 0.1 });
-        out += `<path d="M0 ${-TV.knobR + 8}V-10" stroke="#2b2b2b" stroke-width="7" stroke-linecap="round" transform="translate(${cx} ${cy}) rotate(${turn})"/>`;
+        // 機底投落隻腳度嘅陰影：越近機身越暗
+        out += `<path d="M${-half(0)} 0H${half(0)}L${half(1)} ${n(length)}H${-half(1)}z" fill="url(#gLegShade)"/>`;
+        return `<g transform="translate(${x} ${TV.h - 22}) rotate(${lean * LEAN_DEG})">${out}</g>`;
+    };
+
+    /** 大旋鈕（v16 drawTvDial）：黑色底盤 + 刻度 + 金屬旋鈕 + 凸起嘅把手 */
+    const tvDial = (cx, cy, label, turn) => {
+        const r = TV.knobR;
+        let out = `<circle cx="${cx}" cy="${cy}" r="${TV.dialR + 7}" fill="#0b0b0d"/>`;
+        out += `<circle cx="${cx}" cy="${cy}" r="${TV.dialR + 2}" fill="none" stroke="#4a4c52" stroke-width="3.5"/>`;
+        for (let i = 0; i < 24; i += 1) {
+            const long = i % 6 === 0;
+            const [x1, y1] = polar(cx, cy, TV.dialR - 5, i * 15);
+            const [x2, y2] = polar(cx, cy, TV.dialR - 5 - (long ? 12 : 7), i * 15);
+            out += `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="#fff" stroke-opacity="${long ? 0.9 : 0.42}" stroke-width="2.4"/>`;
+        }
+        out += metal(cx, cy, r, { rot: 30, bevel: 0.1 });
+        out += `<g transform="translate(${cx} ${cy}) rotate(${turn})">`;
+        out += `<rect x="-7" y="${-r + 9}" width="18" height="${r * 2 - 8}" rx="8" fill="#000" opacity=".4" filter="url(#fShadow)"/>`;
+        out += `<rect x="-9" y="${-r + 4}" width="18" height="${r * 2 - 8}" rx="8" fill="url(#gCylH)" stroke="#5f5f5f" stroke-width="1"/>`;
+        out += `<rect x="-2" y="${-r + 9}" width="4" height="16" fill="#2e3035"/></g>`;
         return `<g role="slider" aria-label="${label}">${hitRect(cx, cy)}${out}</g>`;
     };
 
     const tvSet = (st) => {
         const { accent, glow } = ALBUMS[st.album];
         const { w, h, front, mask, glass, panel, strip } = TV;
-        const top = [w / 2, -6];
-        const leg = (x1, x2, x3, x4) =>
-            `<path d="M${x1} ${h - 8}H${x2}L${x3} ${h + TV.legs - 10}H${x4}z" fill="url(#gBrush)" stroke="#77777a" stroke-width="1.5"/>` +
-            `<path d="M${x4 - 3} ${h + TV.legs - 12}H${x3 + 3}V${h + TV.legs}H${x4 - 3}z" fill="#1d1d1f"/>`;
+        const shell = { x: 0, y: 0, w, h };
+        const maskShape = (inset) => `<path d="${crtPath({ x: mask.x + inset, y: mask.y + inset, w: mask.w - inset * 2, h: mask.h - inset * 2, bulgeX: 5, bulgeY: 9, corner: 66 - inset * 0.5 })}"/>`;
+        const glassShape = `<path d="${crtPath(glass)}"/>`;
         let out = '';
-        // 天線
+        // 天線：兩支桿 + 球頭，有落影；以底座做原點，升起之後先彈出、收埋之前先縮返
+        let antenna = '';
         TV.antenna.forEach(([dx, dy]) => {
-            out += `<path d="M${top[0]} ${top[1]}l${dx} ${dy}" stroke="#77777a" stroke-width="8" stroke-linecap="round"/>`;
-            out += `<path d="M${top[0]} ${top[1]}l${dx} ${dy}" stroke="#e9e9e7" stroke-width="3" stroke-linecap="round"/>`;
-            out += `<circle cx="${top[0] + dx}" cy="${top[1] + dy}" r="11" fill="#d6d6d4" stroke="#77777a" stroke-width="1.5"/>`;
+            antenna += `<path d="M5 8l${dx} ${dy}" stroke="#000" stroke-opacity=".3" stroke-width="8" stroke-linecap="round" filter="url(#fShadow)"/>`;
+            antenna += `<path d="M0 0l${dx} ${dy}" stroke="#7d8087" stroke-width="8" stroke-linecap="round"/>`;
+            antenna += `<path d="M-1.5 0l${dx} ${dy}" stroke="#f1f2f4" stroke-width="3" stroke-linecap="round"/>`;
+            antenna += metal(dx, dy, 10, { rot: 40, bevel: 0.2, withShadow: false });
         });
-        out += `<rect x="${w / 2 - 34}" y="-18" width="68" height="22" rx="9" fill="url(#gCyl)" stroke="#6b6b6b" stroke-width="1.2"/>`;
-        // 腳（向外斜，有膠腳）
-        out += leg(146, 194, 172, 128) + leg(w - 194, w - 146, w - 128, w - 172);
-        // 機殼
-        out += `<rect x="0" y="14" width="${w}" height="${h}" rx="${TV.corner}" fill="#000" opacity=".3" filter="url(#fShadowL)"/>`;
-        out += `<rect width="${w}" height="${h}" rx="${TV.corner}" fill="url(#gTvBody)" stroke="#8f8f8c" stroke-width="1.5"/>`;
-        out += `<rect x="5" y="5" width="${w - 10}" height="${h - 10}" rx="${TV.corner - 5}" fill="none" stroke="#fff" stroke-width="5"/>`;
-        // 凹入嘅深灰面板
-        out += `<rect x="${front.x}" y="${front.y}" width="${front.w}" height="${front.h}" rx="34" fill="#232427" stroke="#0d0d0e" stroke-width="3"/>`;
-        // 暖白斜邊框 → 黑膠邊 → 玻璃
-        out += `<rect x="${mask.x}" y="${mask.y}" width="${mask.w}" height="${mask.h}" rx="78" fill="url(#gTvMask)" stroke="#fff" stroke-opacity=".7" stroke-width="2"/>`;
-        out += `<path d="${crtPath(glass, 16)}" fill="#0b0b0c"/><path d="${crtPath(glass)}" fill="#111315"/>`;
-        // 16:9 畫面放喺 4:3 螢幕入面，上下黑邊；有掃描線
+        out += `<g transform="translate(${w / 2} 6)"><g class="tv-antenna">${antenna}</g></g>`;
+        out += `<rect x="${w / 2 - 44}" y="-14" width="88" height="30" rx="14" fill="url(#gCyl)" stroke="#6b6b6b" stroke-width="1"/>`;
+        // 腳（喺機殼後面）
+        out += tvLeg(176, 1) + tvLeg(w - 176, -1);
+        // 機殼：倒角鋁殼，三層（外斜邊 → 內斜邊 → 正面），大落影
+        out += paint(roundBox(shell, TV.corner), 'fill="#000" opacity=".45" filter="url(#fShadowXL)" transform="translate(0 10)"');
+        out += paint(roundBox(shell, TV.corner), 'fill="url(#gShellOuter)"');
+        out += paint(roundBox(shell, TV.corner, 8), 'fill="url(#gShellIn)"');
+        out += paint(roundBox(shell, TV.corner, 15), 'fill="url(#gShellFace)"');
+        // 深灰面板：凹入機殼
+        out += paint(roundBox(front, 34), 'fill="url(#gFront)"') + sunk(roundBox(front, 34));
+        out += paint(roundBox(front, 34), 'fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1.5"');
+        // 暖白斜邊框：三層，向玻璃斜入去；有落影
+        out += paint(maskShape(0), 'fill="#000" opacity=".6" filter="url(#fShadow)" transform="translate(4 7)"');
+        out += paint(maskShape(0), 'fill="url(#gMask0)"') + paint(maskShape(12), 'fill="url(#gMask1)"') + paint(maskShape(22), 'fill="url(#gMask2)"');
+        // 黑膠邊 → 玻璃
+        out += `<path d="${crtPath({ ...glass, corner: glass.corner + 8 }, 10)}" fill="#0a0a0b"/>`;
+        out += paint(glassShape, 'fill="url(#gTube)"');
+        // 16:9 畫面放喺 4:3 螢幕入面，上下黑邊；以畫面中心做原點，開機 / 熄機動畫就喺呢度縮放
         const pictureH = (glass.w * 9) / 16;
-        const pictureY = glass.y + (glass.h - pictureH) / 2;
-        out += `<clipPath id="clip-tv-${st.album}"><rect x="${glass.x}" y="${n(pictureY)}" width="${glass.w}" height="${n(pictureH)}"/></clipPath>`;
-        out += `<g clip-path="url(#clip-tv-${st.album})"><g transform="translate(${glass.x + glass.w / 2} ${glass.y + glass.h / 2})">${COVERS.komorebi(400)}</g>`;
-        out += `<rect x="${glass.x}" y="${n(pictureY)}" width="${glass.w}" height="${n(pictureH)}" fill="url(#scan)"/></g>`;
-        out += `<rect x="${glass.x + 24}" y="${n(pictureY + 24)}" width="66" height="36" rx="8" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="2.5"/>`;
-        out += `<text x="${glass.x + 57}" y="${n(pictureY + 50)}" text-anchor="middle" font-family="${SLAB}" font-size="22" fill="#fff" opacity=".9">MV</text>`;
-        out += `<text x="${glass.x + 24}" y="${n(pictureY + pictureH - 30)}" font-family="${CJK}" font-weight="700" font-size="36" fill="#fff" opacity=".92">${SONG.title}</text>`;
-        // 玻璃反光同暗角
-        out += `<path d="${crtPath(glass)}" fill="url(#gVignette)"/>`;
-        out += `<path d="M${glass.x + 70} ${glass.y + 34}Q${glass.x + glass.w / 2} ${glass.y + 12} ${glass.x + glass.w - 70} ${glass.y + 34}" fill="none" stroke="#fff" stroke-opacity=".2" stroke-width="3" stroke-linecap="round"/>`;
+        const cx = glass.x + glass.w / 2;
+        const cy = glass.y + glass.h / 2;
+        const crt = st.mvClosing ? ' class="crt-off"' : st.mvFresh ? ' class="crt-on"' : '';
+        out += `<clipPath id="clip-glass-${st.album}">${glassShape}</clipPath>`;
+        out += `<clipPath id="clip-tv-${st.album}"><rect x="${n(-glass.w / 2 - 10)}" y="${n(-pictureH / 2)}" width="${glass.w + 20}" height="${n(pictureH)}"/></clipPath>`;
+        out += `<g clip-path="url(#clip-glass-${st.album})"><g transform="translate(${cx} ${cy})"><g${crt}>`;
+        out += `<g clip-path="url(#clip-tv-${st.album})">${COVERS.komorebi(400)}</g>`;
+        out += `<rect x="${n(-glass.w / 2 + 24)}" y="${n(-pictureH / 2 + 24)}" width="66" height="36" rx="8" fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="2.5"/>`;
+        out += `<text x="${n(-glass.w / 2 + 57)}" y="${n(-pictureH / 2 + 50)}" text-anchor="middle" font-family="${SLAB}" font-size="22" fill="#fff">MV</text>`;
+        out += `<text x="${n(-glass.w / 2 + 24)}" y="${n(pictureH / 2 - 30)}" font-family="${CJK}" font-weight="700" font-size="36" fill="#fff">${SONG.title}</text>`;
+        out += `<rect class="crt-white" x="${n(-glass.w / 2 - 10)}" y="${n(-pictureH / 2)}" width="${glass.w + 20}" height="${n(pictureH)}" fill="#fff" opacity="0"/>`;
+        out += '</g></g>';
+        // 掃描線、暗角、玻璃反光（左上一片光 + 頂部弧位一條光邊），再加內陰影令玻璃凹入去
+        out += paint(roundBox({ x: glass.x - 30, y: glass.y - 30, w: glass.w + 60, h: glass.h + 60 }, 0), 'fill="url(#scan)"');
+        out += paint(roundBox({ x: glass.x - 30, y: glass.y - 30, w: glass.w + 60, h: glass.h + 60 }, 0), 'fill="url(#gVignette)"');
+        out += paint(roundBox({ x: glass.x - 30, y: glass.y - 30, w: glass.w + 60, h: glass.h + 60 }, 0), 'fill="url(#gGlare)"');
+        const bow = `M${glass.x + 70} ${glass.y + 26}Q${cx} ${glass.y + 26 - glass.bulgeY * 1.3} ${glass.x + glass.w - 70} ${glass.y + 26}`;
+        out += `<path d="${bow}" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="5" stroke-linecap="round" filter="url(#fGlow)"/>`;
+        out += `<path d="${bow}" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="5" stroke-linecap="round"/></g>`;
+        out += sunk(glassShape);
         // 右邊控制板：喇叭坑 + 兩粒大旋鈕（音量、跳段）
-        out += `<rect x="${panel.x}" y="${panel.y}" width="${panel.w}" height="${panel.h}" rx="26" fill="#1b1c1f" stroke="#3a3b3f" stroke-width="2"/>`;
-        for (let i = 0; i < 9; i += 1) out += `<path d="M${panel.x + 28} ${panel.y + 34 + i * 13}H${panel.x + panel.w - 28}" stroke="#050506" stroke-width="6" stroke-linecap="round"/>`;
-        out += tvDial(TV.knobX, TV.knobY[0], 'MV 音量', 40) + tvDial(TV.knobX, TV.knobY[1], '跳段', -30);
-        const glyph = (y, d) => `<path d="${d}" transform="translate(${TV.knobX} ${y})" fill="#cfcfcd" opacity=".75"/>`;
-        out += glyph(TV.knobY[0] + 92, 'M-13 -5h6l8 -7v24l-8 -7h-6zM6 -6a8 8 0 0 1 0 12l-2 -2a5 5 0 0 0 0 -8z');
-        out += glyph(TV.knobY[1] + 92, 'M-14 -8l10 8l-10 8zM-3 -8l10 8l-10 8zM9 -8h4v16h-4z');
+        out += paint(roundBox(panel, 26), 'fill="url(#gPanel)" stroke="url(#gPanelEdge)" stroke-width="2"');
+        for (let y = panel.y + 24; y < panel.y + 136; y += 15) {
+            out += `<rect x="${panel.x + 22}" y="${y}" width="${panel.w - 44}" height="6" rx="3" fill="#050506"/>`;
+            out += `<rect x="${panel.x + 24}" y="${y + 6}" width="${panel.w - 48}" height="1.2" fill="#fff" opacity=".22"/>`;
+        }
+        out += tvDial(TV.knobX, TV.knobY[0], T.tvVolume, 26) + tvDial(TV.knobX, TV.knobY[1], T.tvSeek, -63);
+        const glyph = (y, d) => `<path d="${d}" transform="translate(${TV.knobX} ${y})" fill="#fff" opacity=".78"/>`;
+        out += glyph(TV.knobY[0] + TV.dialR + 26, 'M-15 -4h6l8 -6v20l-8 -6h-6zM4 -6a8 8 0 0 1 0 12l-2 -2a5 5 0 0 0 0 -8zM9 -11a14 14 0 0 1 0 22l-2 -2a11 11 0 0 0 0 -18z');
+        out += glyph(TV.knobY[1] + TV.dialR + 26, 'M-16 -8l11 8l-11 8zM-3 -8l11 8l-11 8zM11 -8h4v16h-4z');
         // 機身下面：進度線、指示燈、MV + 歌名、時間、散熱坑
-        out += `<rect x="${strip.lineX}" y="${strip.lineY}" width="${strip.lineW}" height="6" rx="3" fill="#b5b5b2"/>`;
+        out += `<rect x="${strip.lineX}" y="${strip.lineY}" width="${strip.lineW}" height="6" rx="3" fill="#000" opacity=".14"/>`;
         out += `<rect x="${strip.lineX}" y="${strip.lineY}" width="${n(strip.lineW * MV.progress)}" height="6" rx="3" fill="${accent}"/>`;
         out += `<circle cx="86" cy="${strip.textY - 13}" r="14" fill="${glow}" opacity=".5" filter="url(#fGlow)"/><circle cx="86" cy="${strip.textY - 13}" r="9" fill="${glow}"/>`;
         out += `<text x="114" y="${strip.textY}" font-family="${SLAB}" font-size="34" fill="${INK}">MV</text>`;
         out += `<text x="194" y="${strip.textY + 1}" font-family="${CJK}" font-weight="700" font-size="40" fill="${INK}">${SONG.title}</text>`;
         out += `<text x="${strip.lineX + strip.lineW}" y="${strip.textY}" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="30" fill="#555" letter-spacing="3">${MV.time}</text>`;
-        for (let i = 0; i < 22; i += 1) out += `<rect x="${strip.lineX + i * 24}" y="${strip.textY + 42}" width="13" height="5" rx="2.5" fill="#8f8f8c"/>`;
-        // play / pause / stop：生效嗰粒外圈著燈
+        for (let i = 0; i < 22; i += 1) {
+            out += `<rect x="${strip.lineX + i * 24}" y="${strip.textY + 42}" width="13" height="5" rx="2.5" fill="#000" opacity=".3"/>`;
+            out += `<rect x="${strip.lineX + i * 24}" y="${strip.textY + 47}" width="13" height="1.2" fill="#fff" opacity=".8"/>`;
+        }
+        // play / pause / stop：金屬掣（同其他掣同一種質感），生效嗰粒外圈著燈
         const ICON = {
-            tvplay: '<path d="M-8 -12L13 0L-8 12z" fill="#fff"/>',
-            tvpause: '<rect x="-10" y="-11" width="7" height="22" rx="1.5" fill="#fff"/><rect x="3" y="-11" width="7" height="22" rx="1.5" fill="#fff"/>',
-            tvstop: '<rect x="-10" y="-10" width="20" height="20" rx="2.5" fill="#fff"/>',
+            tvplay: '<path d="M-8 -12L13 0L-8 12z"/>',
+            tvpause: '<rect x="-10" y="-11" width="7" height="22" rx="1.5"/><rect x="3" y="-11" width="7" height="22" rx="1.5"/>',
+            tvstop: '<rect x="-10" y="-10" width="20" height="20" rx="2.5"/>',
         };
-        const LABEL = { tvplay: '播放 MV', tvpause: '暫停 MV', tvstop: '熄電視' };
-        const active = st.mvPaused ? 'tvpause' : 'tvplay';
+        const LABEL = { tvplay: T.tvPlay, tvpause: T.tvPause, tvstop: T.tvStop };
+        const active = st.mvClosing ? 'tvstop' : st.mvPaused ? 'tvpause' : 'tvplay';
         Object.keys(ICON).forEach((name, i) => {
-            const cx = strip.buttonX[i];
-            const cy = strip.buttonY;
-            let button = hitRect(cx, cy);
-            if (name === active) {
-                button += `<circle cx="${cx}" cy="${cy}" r="${strip.buttonR + 8}" fill="none" stroke="${glow}" stroke-width="8" opacity=".7" filter="url(#fGlow)"/>`;
-                button += `<circle cx="${cx}" cy="${cy}" r="${strip.buttonR + 8}" fill="none" stroke="${glow}" stroke-width="3.5"/>`;
-            }
-            button += shadow(cx, cy, strip.buttonR, { dx: 3, dy: 6, opacity: 0.3 });
-            button += `<circle cx="${cx}" cy="${cy}" r="${strip.buttonR}" fill="url(#gClamp)" stroke="url(#gBevel)" stroke-width="4"/>`;
-            button += `<g transform="translate(${cx} ${cy})">${ICON[name]}</g>`;
-            out += `<g data-act="${name}" role="button" aria-label="${LABEL[name]}" aria-pressed="${name === active}">${button}</g>`;
+            const bx = strip.buttonX[i];
+            const by = strip.buttonY;
+            const lit = name === active;
+            let button = hitRect(bx, by);
+            if (lit) button += `<circle cx="${bx}" cy="${by}" r="${strip.buttonR + 8}" fill="none" stroke="${glow}" stroke-width="8" opacity=".7" filter="url(#fGlow)"/>`;
+            button += `<circle cx="${bx}" cy="${by}" r="${strip.buttonR + 8}" fill="none" stroke="${lit ? glow : '#9a9ca2'}" stroke-width="3"/>`;
+            button += metal(bx, by, strip.buttonR, { rot: 24, bevel: 0.12 });
+            button += `<g transform="translate(${bx} ${by})" fill="${lit ? glow : '#2c2e34'}">${ICON[name]}</g>`;
+            out += `<g data-act="${name}" role="button" aria-label="${LABEL[name]}" aria-pressed="${lit}">${button}</g>`;
         });
         return `<g data-swap="tv"><g transform="translate(${TV.x} ${TV.y})">${out}</g></g>`;
     };
@@ -982,14 +1124,14 @@ tr:last-child td { border-bottom: 0; }
         const logoH = logoW * LOGO.aspect;
         const BAR = { x: 340, y: 1640, w: 400, progress: 0.64 };
         return (
-            `<article class="card"><h3>Preload</h3><p class="tag">靜態示意（旗幟飄揚照 v16）。底部加 App 名同「非官方」聲明；專輯資料唔再顯示</p>` +
+            `<article class="card"><h3>Preload</h3><p class="tag">靜態示意（旗幟飄揚照 v16）。底部加 App 名同「歌迷自製　非官方」；專輯資料唔再顯示</p>` +
             `<svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="Preload 畫面"><rect width="${W}" height="${H}" fill="#0a0a0a"/>` +
             `<image href="${LOGO.href}" x="${(W - logoW) / 2}" y="${n(860 - logoH / 2)}" width="${logoW}" height="${n(logoH)}"/>` +
             `<path d="M${BAR.x} ${BAR.y}h${BAR.w}" stroke="#fff" stroke-opacity=".25" stroke-width="4" stroke-linecap="round"/>` +
             `<path d="M${BAR.x} ${BAR.y}h${n(BAR.w * BAR.progress)}" stroke="#fff" stroke-width="4" stroke-linecap="round"/>` +
             `<text x="${W / 2}" y="${BAR.y + 56}" text-anchor="middle" font-family="${SLAB_LIGHT}" font-size="30" fill="${PAPER}" letter-spacing="6">064</text>` +
             `<text x="${W / 2}" y="1802" text-anchor="middle" font-family="${SLAB}" font-size="34" fill="${PAPER}" letter-spacing="2">R Gram</text>` +
-            `<text x="${W / 2}" y="1844" text-anchor="middle" font-family="${SLAB_LIGHT}" font-size="21" fill="#8f8c85" letter-spacing="3">Fan-made, unofficial  ·  v0.1.0</text>` +
+            `<text x="${W / 2}" y="1846" text-anchor="middle" font-family="${MIXED}" font-size="22" fill="#8f8c85" letter-spacing="3">${T.unofficial}  ·  v0.1.0</text>` +
             `</svg></article>`
         );
     };
@@ -1073,8 +1215,17 @@ tr:last-child td { border-bottom: 0; }
         ].join('');
         const buttons = `<g data-anim="buttons" style="opacity: ${fade}"${fade === 0 ? ' pointer-events="none"' : ''}><g data-swap="buttons">${BUTTONS.map((b) => button(b, st)).join('')}</g></g>`;
         const infoLayer = `<g data-swap="info">${info(st)}</g>`;
-        // MV：成部唱片機連標題變模糊，加一層淡白，電視喺上面
-        if (st.mv) return `<g filter="url(#fBackdrop)">${turntable}${buttons}${infoLayer}</g><rect width="${W}" height="${H}" fill="#fff" opacity=".34"/>${tvSet(st)}`;
+        // MV：成部唱片機連標題變模糊，加一層淡白，電視喺上面。模糊層疊喺清晰層上面淡入 / 淡出；電視升起 / 收埋
+        if (st.mv) {
+            const behind = `${turntable}${buttons}${infoLayer}`;
+            const ghost = behind.replace(/ data-(swap|anim|act|follow)=/g, ' data-ghost-$1='); // 模糊嗰份只係畫面，唔參與互動
+            const closing = Boolean(st.mvClosing);
+            return (
+                `${behind}<g class="${closing ? 'tv-veil-out' : 'tv-veil-in'}"><g filter="url(#fBackdrop)">${ghost}</g>` +
+                `<rect width="${W}" height="${H}" fill="#fff" opacity=".2"/></g>` +
+                `<g class="${closing ? 'tv-drop' : 'tv-rise'}">${tvSet(st)}</g>`
+            );
+        }
         // 歌單：三粒細掣一齊壓暗（喺暗層下面）；歌書：三粒細掣留喺暗層上面（i 著燈，㩒返就收起）
         if (st.list) return [turntable, buttons, listLayer(st), infoLayer].join('');
         return [turntable, st.booklet ? booklet(st) : '', buttons, infoLayer, `<g data-swap="overlays">${overlays(st)}</g>`].join('');
@@ -1142,7 +1293,7 @@ tr:last-child td { border-bottom: 0; }
 
     const renderLive = () => {
         const html = scene(live, 'live');
-        const signature = `${live.booklet}|${live.list}|${live.mv}`; // 歌書 / 歌單 / 電視開關要成格重畫，其他都做動畫
+        const signature = `${live.booklet}|${live.list}|${live.mv}|${live.mvClosing}`; // 歌書 / 歌單 / 電視開關要成格重畫，其他都做動畫
         if (signature === liveSignature) morph(html);
         else liveSvg.innerHTML = html;
         liveSignature = signature;
@@ -1159,6 +1310,7 @@ tr:last-child td { border-bottom: 0; }
         renderStatic();
     };
 
+    const TV_CLOSE_MS = 780; // 熄機 0.28s + 停一停 + 收埋 0.45s
     /** 主頁狀態（冇開歌單、電視、轉碟）先可以做主頁嘅動作 */
     const atHome = () => !live.list && !live.mv && live.wheel === 0;
     const ACTIONS = {
@@ -1179,10 +1331,16 @@ tr:last-child td { border-bottom: 0; }
             else Object.assign(live, { paused: !live.paused, booklet: false });
         },
         info: () => { if (atHome() && live.song) live.booklet = !live.booklet; },
-        mv: () => { if (atHome() && live.song) Object.assign(live, { mv: true, mvPaused: false, booklet: false }); },
-        tvplay: () => { live.mvPaused = false; },
-        tvpause: () => { live.mvPaused = true; },
-        tvstop: () => { Object.assign(live, { mv: false, paused: true }); }, // 唱片唔自動續播
+        mv: () => { if (atHome() && live.song) Object.assign(live, { mv: true, mvPaused: false, mvFresh: true, mvClosing: false, booklet: false }); },
+        tvplay: () => { if (!live.mvClosing) Object.assign(live, { mvPaused: false, mvFresh: false }); },
+        tvpause: () => { if (!live.mvClosing) Object.assign(live, { mvPaused: true, mvFresh: false }); },
+        // 熄機（0.28s）→ 電視向下收埋；之後唱片唔自動續播
+        tvstop: () => {
+            if (live.mvClosing) return;
+            live.mvClosing = true;
+            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true }); render(); }, reduced ? 0 : TV_CLOSE_MS);
+        },
     };
     const LIVE_ONLY = new Set(['wheel', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
 
