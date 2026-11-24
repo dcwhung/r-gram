@@ -13,7 +13,7 @@
 
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
-| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶已揀 B（大碟出界）。第 7 版（2026-11-24，按用戶手繪圖）：三粒細掣（歌書／MV／播放模式）貼左下直排；大旋鈕（轉碟）喺右邊貼近轉盤，刻度最尾係 ♥；扭旋鈕時字母盤環繞旋鈕打開；唱片夾固定喺轉盤正中、所有碟空心、揀碟時互相疊住；Favourites 碟 = 黑色碟 + 全 logo 喺碟芯下面；MV 掣用復古電視 icon。**等用戶確認主頁**；確認後出 CR-002 同其餘場景 preview | 播放端核心（M2） |
+| 1 | P-4 主頁改版 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。用戶已揀 B（大碟出界）。第 8 版（2026-11-24）：大旋鈕喺畫面左邊同轉盤邊正中間（左右空白 154／153）；三粒細掣上移，左下螺絲周圍 120 內留空；♥ 係刻度最後一格；字母盤半透明、18 格同刻度同一組角度；唱片夾固定、碟空心；**歌書出咗三款（A 暗場／B 紙本／C 沿碟弧線），等用戶揀**。確認後出 CR-002 同其餘場景 preview | 播放端核心（M2） |
 | 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |
