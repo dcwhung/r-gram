@@ -6,14 +6,14 @@
 
 | 日期 | 文件 | 狀態 | 摘要 |
 | --- | --- | --- | --- |
-| 2026-11-24 | [specs/2026-11-24_16-13_functional-spec_r-gram.md](specs/2026-11-24_16-13_functional-spec_r-gram.md) | v1.1 Approved；v1.2（CR-001）等確認 D21 | Functional Spec：播放端 PWA（唱片機介面、R2 音檔 / MV、LRC 同步歌詞、收藏歌曲 + Favourites 碟、Shuffle / Repeat、手機 → iPhone Duo → HomeView → 電腦）+ 管理端（Google login、專輯 / 封面 / 歌單 / credit / 歌詞、R2 掃描、發佈）。v1.2 加歌曲 credit |
-| 2026-11-24 | [specs/2026-11-24_16-50_technical-spec_r-gram.md](specs/2026-11-24_16-50_technical-spec_r-gram.md) | Draft（等用戶確認） | Technical Spec v1.0：npm workspaces monorepo（`apps/player`、`apps/admin`、`apps/api`、`packages/catalog`）；Cloudflare Worker + Hono + D1 + R2；31 個 API；6 張表；待確認技術決定 T1–T6 |
+| 2026-11-24 | [specs/2026-11-24_16-13_functional-spec_r-gram.md](specs/2026-11-24_16-13_functional-spec_r-gram.md) | Approved（v1.2，2026-11-24） | Functional Spec：播放端 PWA（唱片機介面、R2 音檔 / MV、LRC 同步歌詞、收藏歌曲 + Favourites 碟、Shuffle / Repeat、手機 → iPhone Duo → HomeView → 電腦）+ 管理端（Google login、專輯 / 封面 / 歌單 / credit / 歌詞、R2 掃描、發佈）。v1.2 加歌曲 credit |
+| 2026-11-24 | [specs/2026-11-24_16-50_technical-spec_r-gram.md](specs/2026-11-24_16-50_technical-spec_r-gram.md) | Approved（2026-11-24；T1–T6 照建議） | Technical Spec v1.0：npm workspaces monorepo（`apps/player`、`apps/admin`、`apps/api`、`packages/catalog`）；Cloudflare Worker + Hono + D1 + R2；31 個 API；6 張表；待確認技術決定 T1–T6 |
 
 ## 待辦（阻住開發嘅 mockup）
 
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
-| 1 | P-4 主頁改版（掣唔疊住 CD、似唱片機）→ `_mockups_/r-gram/` v17 | 播放端核心（M2） |
+| 1 | P-4 主頁改版（掣唔疊住 CD、似唱片機）→ [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)：三個方案已出（2026-11-24），**等用戶揀** | 播放端核心（M2） |
 | 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |

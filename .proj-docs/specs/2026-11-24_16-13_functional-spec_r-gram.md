@@ -3,7 +3,7 @@
 **版本**：v1.2
 **日期**：2026-11-24 17:05（v1.0：16:13；v1.1：16:37）
 **作者**：Project Manager Agent
-**狀態**：v1.1 Approved（用戶 2026-11-24 確認）；v1.2 = CR-001（加歌曲 credit），等用戶確認顯示位置（D21）
+**狀態**：Approved（v1.1 同 v1.2 / CR-001 均由用戶 2026-11-24 確認；D21 照建議：credit 放 Info 畫面）
 
 **資料來源**
 
@@ -632,7 +632,7 @@ R Gram 係一個自用嘅 fan-made PWA，介面係一部經典唱片機，專門
 | 播放端：Preload、主頁、Wheel、歌單、播放、MV 電視（FR-001–FR-007、FR-012） | `mockup:_mockups_/r-gram/index.html` | 已確認 preview v16；規格見 `_design_/HANDOFF.md` §3–§4；尺寸、時間、顏色常數喺 `_mockups_/r-gram/src/anim.js` 檔頭。**未有 `tokens.css`**：開發第一步要由 `anim.js` 常數抽出 design token |
 | 播放端：歌詞畫面 + 歌詞掣（FR-013） | `proposal` → 寫 code 前要變成 `mockup:_mockups_/lyrics/index.html` | 見 P-1 |
 | 播放端：Info 畫面（FR-017） | `proposal` → `mockup:_mockups_/info/index.html` | 見 P-2 |
-| 播放端：主頁改版（FR-025） | `proposal` → `mockup:_mockups_/r-gram/index.html` 修訂版（v17） | 見 P-4；**確認前唔可以開發主頁** |
+| 播放端：主頁改版（FR-025） | `proposal` → `mockup:_mockups_/home-turntable/index.html` | 見 P-4；三個方案（A 全機俯視／B 大碟出界／C 全機 + 前面板）2026-11-24 已出，等用戶揀；揀定後喺同一個 folder 出完整場景 preview。**確認前唔可以開發主頁** |
 | 播放端：收藏心形掣 + Favourites 碟（FR-016、FR-023） | `proposal` → `mockup:_mockups_/favourites/index.html` | 見 P-5 |
 | 播放端：Shuffle / Repeat（FR-024） | `proposal` → `mockup:_mockups_/play-modes/index.html` | 見 P-6 |
 | 播放端：電視旋鈕操作（FR-026） | `proposal` → 併入 `_mockups_/r-gram/index.html` 修訂版 | 外觀已有（v16）；只補操作方式 |

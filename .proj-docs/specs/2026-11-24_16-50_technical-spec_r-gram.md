@@ -4,7 +4,7 @@
 **日期**：2026-11-24 16:50
 **作者**：Architect Agent
 **關聯 Functional Spec**：v1.2（2026-11-24 17:05，包括 CR-001 歌曲 credit）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：Draft（等用戶確認）
+**狀態**：Approved（用戶 2026-11-24 確認；T1–T6 全部照建議）
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
