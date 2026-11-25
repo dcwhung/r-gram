@@ -1,4 +1,7 @@
-/* apps/api 嘅 named constants：HTTP status、錯誤碼、回應 header */
+/* apps/api 嘅 named constants：HTTP status、錯誤碼、回應 header、env 規則 */
+
+/** SESSION_SECRET（HMAC-SHA-256 key）最少字數：`openssl rand -base64 32` 出 44 個字 */
+export const SESSION_SECRET_MIN_LENGTH = 32;
 
 export const HTTP_STATUS = {
     ok: 200,

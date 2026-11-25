@@ -9,12 +9,14 @@ import { apiRoutes } from './api/routes';
 import type { AppEnv } from './app';
 import { handleError, handleNotFound } from './lib/http';
 import { noIndex, privateResponse } from './lib/securityHeaders';
+import { requireValidEnv } from './lib/validateEnv';
 
 const app = new Hono<AppEnv>();
 
 app.use('*', noIndex);
 app.use('/api/*', privateResponse);
 app.use('/auth/*', privateResponse);
+app.use('*', requireValidEnv);
 app.route('/api', apiRoutes);
 app.notFound(handleNotFound);
 app.onError(handleError);
