@@ -4,6 +4,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { ERROR_CODE, HTTP_STATUS, type ErrorCode } from '../config';
 import { fillMessage, type MessageParams } from '../i18n/fillMessage';
 import { zhHant } from '../i18n/zh-Hant';
+import { UNKNOWN_FIELDS_MAX } from '../lib/fields';
 import { errorJson } from '../lib/http';
 import type { Reason } from './fieldRules';
 import { ALBUM_ID_MAX_CHARS, type FieldIssue } from './validate';
@@ -27,6 +28,7 @@ export const albumError = (c: Context, situation: Situation, details?: readonly 
 /** 句子入面嘅參數（`{max}` 等）：數字跟常數，唔喺語言檔寫死 */
 const REASON_PARAMS: Partial<Record<Reason, MessageParams>> = {
     INVALID_ID: { max: ALBUM_ID_MAX_CHARS },
+    TOO_MANY_UNKNOWN_FIELDS: { max: UNKNOWN_FIELDS_MAX },
 };
 
 const reasonMessage = (reason: Reason): string =>

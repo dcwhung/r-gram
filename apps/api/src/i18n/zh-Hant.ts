@@ -57,6 +57,8 @@ export const zhHant = {
             REQUIRED: '必須填寫。',
             NOT_AN_OBJECT: '內容必須為 JSON 物件。',
             NOT_EDITABLE: '此欄位不可修改。',
+            /** `{max}` = UNKNOWN_FIELDS_MAX（errors.ts 填入） */
+            TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
             /** `{max}` = ALBUM_ID_MAX_CHARS（errors.ts 填入） */
             INVALID_ID:
                 '只可使用小寫英文字母、數字及單個連字號（首尾不可為連字號），不可為保留字，最多 {max} 個字元。',

@@ -1,6 +1,8 @@
 /* 專輯欄位規則（fieldRules.ts、validate.ts）：資料夾名做 R2 key prefix 嘅安全限制（W-013）、未知欄位名長度（S-053） */
 import { FIELD_RULES } from '../src/albums/fieldRules';
-import { UNKNOWN_KEY_MAX_CHARS, parseFields } from '../src/albums/validate';
+import { parseFields } from '../src/albums/validate';
+import { UNKNOWN_FIELDS_MAX, UNKNOWN_KEY_MAX_CHARS } from '../src/lib/fields';
+import { zhHant } from '../src/i18n/zh-Hant';
 import { api, json } from './albumFixtures';
 
 const reasonOf = (field: keyof typeof FIELD_RULES, value: unknown) => {
@@ -45,6 +47,36 @@ describe('unknown field names in validation details (S-053)', () => {
         expect(issues).toHaveLength(1);
         expect(issues[0]?.reason).toBe('NOT_EDITABLE');
         expect(issues[0]?.path).toBe('鍵'.repeat(UNKNOWN_KEY_MAX_CHARS));
+    });
+
+    // backlog B-046 ①：5,000 個未知欄位唔可以變成 5,000 條 details
+    it('should list at most UNKNOWN_FIELDS_MAX unknown fields, then one summary detail', async () => {
+        const body: Record<string, unknown> = { title: 'X' };
+        for (let index = 0; index < 5_000; index += 1) body[`k${index}`] = index;
+        const response = await api('PATCH', '/api/albums/x', body, { 'if-match': '"t"' });
+        expect(response.status).toBe(400);
+        const { error } = await json<{
+            error: { details: { path: string; reason: string; message: string }[] };
+        }>(response);
+        expect(error.details).toHaveLength(UNKNOWN_FIELDS_MAX + 1);
+        expect(error.details[0]).toMatchObject({ path: 'k0', reason: 'NOT_EDITABLE' });
+        expect(error.details.at(-1)).toEqual({
+            path: '$',
+            reason: 'TOO_MANY_UNKNOWN_FIELDS',
+            message: zhHant.albums.reasons.TOO_MANY_UNKNOWN_FIELDS.replace(
+                '{max}',
+                String(UNKNOWN_FIELDS_MAX),
+            ),
+        });
+    });
+
+    it('should not add the summary at exactly UNKNOWN_FIELDS_MAX unknown fields', () => {
+        const body = Object.fromEntries(
+            Array.from({ length: UNKNOWN_FIELDS_MAX }, (_, index) => [`k${index}`, index]),
+        );
+        const { issues } = parseFields(body);
+        expect(issues).toHaveLength(UNKNOWN_FIELDS_MAX);
+        expect(issues.every((issue) => issue.reason === 'NOT_EDITABLE')).toBe(true);
     });
 
     it('should echo a short unknown key unchanged', () => {

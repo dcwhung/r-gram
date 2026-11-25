@@ -5,12 +5,13 @@
  */
 import { TITLE_MAX_CHARS } from '@r-gram/catalog';
 import type { zhHant } from '../i18n/zh-Hant';
+import type { Rule as FieldRule, RuleResult as FieldRuleResult } from '../lib/fields';
 
 export type Reason = keyof typeof zhHant.albums.reasons;
 
-export type RuleResult = { ok: true; value: unknown } | { ok: false; reason: Reason };
+export type RuleResult = FieldRuleResult<Reason>;
 
-type Rule = (value: unknown) => RuleResult;
+type Rule = FieldRule<Reason>;
 
 /** 碟名、類型、唱片公司、資料夾名：同歌名一樣嘅上限 */
 const TEXT_MAX_CHARS = TITLE_MAX_CHARS;
@@ -111,6 +112,3 @@ export const FIELD_RULES = {
 } satisfies Record<string, Rule>;
 
 export type EditableField = keyof typeof FIELD_RULES;
-
-export const isEditableField = (key: string): key is EditableField =>
-    Object.hasOwn(FIELD_RULES, key);
