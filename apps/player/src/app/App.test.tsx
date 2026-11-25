@@ -22,15 +22,26 @@ describe('App turntable shell', () => {
         expect(mv).toHaveAttribute('aria-disabled', 'false');
     });
 
-    // 播放模式掣嘅光圈代表「播緊」（Functional Spec CR-002「播放模式」）
+    // 播放模式掣嘅光圈代表「播緊」（Functional Spec CR-002「播放模式」）。光圈唔係「已按下」：呢粒唔係開關掣（S-034）
     it('should light the play-mode button only while playing', async () => {
         render(<App />);
         const mode = screen.getByRole('button', { name: '播放模式：順序播放' });
-        expect(mode).toHaveAttribute('aria-pressed', 'false');
+        const ring = () => mode.querySelector('[data-part="glow-ring"]');
+        expect(ring()).toBeNull();
         await userEvent.click(screen.getByRole('button', { name: '開啟歌單' }));
-        expect(mode).toHaveAttribute('aria-pressed', 'true');
+        expect(ring()).not.toBeNull();
+        expect(mode).not.toHaveAttribute('aria-pressed');
         await userEvent.click(screen.getByRole('button', { name: '暫停' }));
-        expect(mode).toHaveAttribute('aria-pressed', 'false');
+        expect(ring()).toBeNull();
+    });
+
+    // 歌書掣係開關（再㩒收返）；MV 掣只係打開電視、播放模式掣係循環切換，兩粒都唔係開關掣
+    it('should mark only the booklet button as a toggle', () => {
+        render(<App />);
+        const button = (name: string) => screen.getByRole('button', { name });
+        expect(button('歌書：歌詞及創作人員')).toHaveAttribute('aria-pressed', 'false');
+        expect(button('觀看 MV')).not.toHaveAttribute('aria-pressed');
+        expect(button('播放模式：順序播放')).not.toHaveAttribute('aria-pressed');
     });
 
     it('should move the turntable down by the extra height and keep the top screws at the top', () => {

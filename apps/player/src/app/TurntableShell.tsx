@@ -24,6 +24,7 @@ const NEXT_MODE: Readonly<Record<SpindleMode, SpindleMode>> = {
 
 const isLowerHalf = ({ y }: { y: number }) => y > DESIGN_HEIGHT / 2;
 
+/** 三粒細掣。只有歌書掣係開關掣（再㩒收返），所以得佢有 `pressed`；歌書喺 T-035 先接，呢度永遠未開 */
 const Buttons = ({ mode, glow }: { mode: SpindleMode; glow: string }) => {
     const hasSong = mode !== 'idle';
     const [booklet, mv, playMode] = LAYOUT.buttons.items;
@@ -42,6 +43,7 @@ const Buttons = ({ mode, glow }: { mode: SpindleMode; glow: string }) => {
                 icon="info"
                 label={t('booklet.open')}
                 disabled={!hasSong}
+                pressed={false}
             />
             <MetalButton {...common} {...mv} icon="mv" label={t('mv.open')} disabled={!hasSong} />
             <MetalButton

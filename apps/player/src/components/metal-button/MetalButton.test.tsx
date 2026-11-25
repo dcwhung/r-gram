@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { MetalButton } from './MetalButton';
@@ -47,17 +47,32 @@ describe('MetalButton', () => {
 
     it('should show the glow ring and tint the icon only when lit', () => {
         const off = renderButton();
-        expect(off.button).toHaveAttribute('aria-pressed', 'false');
         expect(off.container.querySelector('[data-part="glow-ring"]')).toBeNull();
         off.container.remove();
 
         const on = renderButton({ lit: true });
-        expect(on.button).toHaveAttribute('aria-pressed', 'true');
         expect(on.container.querySelector('[data-part="glow-ring"]')).toHaveAttribute(
             'stroke',
             '#24f96f',
         );
         expect(on.container.querySelector('[data-part="icon"]')).toHaveAttribute('fill', '#24f96f');
+    });
+
+    /* S-034：光圈係外觀，「已按下」係開關掣嘅狀態，兩樣分開；唔係開關掣就唔出 aria-pressed */
+    it('should not announce a pressed state just because it is lit', () => {
+        expect(renderButton().button).not.toHaveAttribute('aria-pressed');
+        cleanup();
+        expect(renderButton({ lit: true }).button).not.toHaveAttribute('aria-pressed');
+    });
+
+    it.each([true, false])('should announce pressed = %s on a toggle button', (pressed) => {
+        const { button } = renderButton({ pressed });
+        expect(button).toHaveAttribute('aria-pressed', String(pressed));
+    });
+
+    it('should not light up just because it is pressed', () => {
+        const { container } = renderButton({ pressed: true });
+        expect(container.querySelector('[data-part="glow-ring"]')).toBeNull();
     });
 
     it('should give the touch target the radius it is told (44pt rule)', () => {

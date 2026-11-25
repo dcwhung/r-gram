@@ -14,8 +14,10 @@ interface MetalButtonProps {
     icon: IconName;
     /** 畀讀屏用嘅名（由 i18n 嚟） */
     label: string;
-    /** 著燈：外圈同 icon 轉做著燈色 */
+    /** 著燈：外圈同 icon 轉做著燈色。純外觀，讀屏唔會讀（例如播放模式掣嘅光圈 = 播緊） */
     lit?: boolean;
+    /** 只有開關掣先傳：而家係咪「已按下」（出 `aria-pressed`）。唔傳 = 唔係開關掣，唔出呢個屬性 */
+    pressed?: boolean;
     /** 停用：變灰、㩒唔到，但仍然 focus 得到（讀屏會講「已停用」） */
     disabled?: boolean;
     glow: string;
@@ -70,7 +72,7 @@ export const MetalButton = (props: MetalButtonProps) => {
         <g
             className="metal-button"
             aria-label={label}
-            aria-pressed={lit}
+            aria-pressed={props.pressed}
             aria-disabled={disabled}
             {...pressable(props.onPress, disabled)}
         >
