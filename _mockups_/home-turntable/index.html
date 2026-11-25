@@ -7,6 +7,7 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
+    第 17 版補二（2026-11-25）：用戶揀咗歌詞用高窄欄；字母盤冇出字母嗰格由刻線改做細點（用線太花）。
     第 17 版補（2026-11-25）：純文字歌詞加自動斷行、兩個版面同試排版（貼歌詞即睇）；碟多時字母盤再疏啲（最多約 9 個字母）。
     第 17 版（2026-11-25）。用戶意見：歌詞冇時間標記時成份一次過顯示、冇框；㩒 play 時唱針由上方轉到碟上再放低；碟多時字母盤每幾個先出一個字母、其餘用刻度。
     第 16 版補（2026-11-25）：加「歌書（歌詞冇時間標記）」（D38）同「歌單（專輯未有歌）」（D39）兩格。
@@ -142,7 +143,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede">第 17 版。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇兩個版面。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用刻度；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
+    <p class="lede">第 17 版。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用細點；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
     <p class="lede">第 16 版嘅內容不變：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺碟上面；歌書開住時暫停，歌書留住；冇歌嘅專輯嘅歌單。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
@@ -201,13 +202,13 @@ tr:last-child td { border-bottom: 0; }
     <div id="modes"></div>
 
     <h2>歌詞冇時間標記：試排版</h2>
-    <p class="lede">喺下面貼入冇時間標記嘅歌詞，即刻見到兩個版面點排。歌詞只留喺你呢個瀏覽器，唔會儲存，亦唔會寫入設計稿檔案。留空就用佔位歌詞（行長同分段照一首真歌）。</p>
+    <p class="lede">喺下面貼入冇時間標記嘅歌詞，即刻見到點排（高窄欄：喺三粒細掣右邊，排到旋鈕上面）。歌詞只留喺你呢個瀏覽器，唔會儲存，亦唔會寫入設計稿檔案。留空就用佔位歌詞（行長同分段照一首真歌）。</p>
     <textarea id="plainText" rows="6" style="width: 100%; max-width: 820px; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1px solid #555; background: #1b1b1b; color: #eee; font: 14px/1.6 inherit" placeholder="貼入歌詞（每行一句；段與段之間空一行）" aria-label="試排用嘅歌詞"></textarea>
     <p class="lede"><label>捲動 <input type="range" id="plainScroll" min="0" max="100" value="0" style="width: 260px; vertical-align: middle"></label></p>
     <div class="grid" id="plainlab"></div>
 
     <h2>刻度格數：刻度弧固定</h2>
-    <p class="lede">刻度弧嘅起點同終點固定，♥ 永遠喺弧嘅最尾（位置同之前 18 格時一樣），專輯喺弧上面平均分佈：碟少就疏啲，碟多就密啲。♥ 唔會再因為碟數改變而撞到播放模式掣或者旋鈕。字母盤打開嘅總時間固定 0.5 秒。多過 17 隻碟時，字母盤保持簡約：每幾個先出一個字母，成個盤最多約 9 個（18 隻每 2 個、24 隻每 3 個、30 隻每 4 個），其餘用短刻度；揀中嗰個永遠出粗體字母，佢旁邊同 ♥ 旁邊太近嘅會讓位改出刻度。RubberBand 而家係 17 隻，樣同之前一樣。</p>
+    <p class="lede">刻度弧嘅起點同終點固定，♥ 永遠喺弧嘅最尾（位置同之前 18 格時一樣），專輯喺弧上面平均分佈：碟少就疏啲，碟多就密啲。♥ 唔會再因為碟數改變而撞到播放模式掣或者旋鈕。字母盤打開嘅總時間固定 0.5 秒。多過 17 隻碟時，字母盤保持簡約：每幾個先出一個字母，成個盤最多約 9 個（18 隻每 2 個、24 隻每 3 個、30 隻每 4 個），其餘用細點；揀中嗰個永遠出粗體字母，佢旁邊同 ♥ 旁邊太近嘅會讓位改出細點。RubberBand 而家係 17 隻，樣同之前一樣。</p>
     <div id="scales"></div>
 
     <h2>掣點分類</h2>
@@ -889,8 +890,8 @@ tr:last-child td { border-bottom: 0; }
         closeStaggerMs: 136,
     };
     /*
-     * 字母盤幾時出字母：18 格（17 隻碟 + ♥）或以下，每格都出；再多就保持簡約——每 N 個先出一個，成個盤最多約 9 個字母，其餘用短刻度。
-     * 揀中嗰個永遠出（放大粗體）；佢旁邊同 ♥ 旁邊太近嘅字母讓位改出刻度。
+     * 字母盤幾時出字母：18 格（17 隻碟 + ♥）或以下，每格都出；再多就保持簡約——每 N 個先出一個，成個盤最多約 9 個字母，其餘用細點。
+     * 揀中嗰個永遠出（放大粗體）；佢旁邊同 ♥ 旁邊太近嘅字母讓位改出細點。
      */
     const DIAL_ALL_UP_TO = 18;
     const DIAL_MAX_LETTERS = 9;
@@ -903,11 +904,9 @@ tr:last-child td { border-bottom: 0; }
         const spacing = DIAL.letters * rad((SCALE.to - SCALE.from) / (positions - 1));
         return Math.abs(pos - current) * spacing >= DIAL_CLEARANCE && (positions - 1 - pos) * spacing >= DIAL_CLEARANCE;
     };
-    const dialTick = (angle) => {
-        const [x1, y1] = polar(0, 0, DIAL.letters - 8, angle);
-        const [x2, y2] = polar(0, 0, DIAL.letters + 8, angle);
-        return `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="#8a8a86" stroke-width="2.2" stroke-linecap="round"/>`;
-    };
+    /** 冇出字母嗰格：一粒細點（用線會好花） */
+    const DIAL_DOT = { r: 3.4, fill: '#8f8f8b' };
+    const dialDot = (x = 0, y = 0) => `<circle cx="${n(x)}" cy="${n(y)}" r="${DIAL_DOT.r}" fill="${DIAL_DOT.fill}"/>`;
     const dialKeyProgress = (pos, w) => clamp01((w - (pos / (SCALE.positions - 1)) * DIAL_MOTION.stagger) / (1 - DIAL_MOTION.stagger));
     const dialRing = (st) => {
         const { accent } = ALBUMS[st.album];
@@ -933,7 +932,7 @@ tr:last-child td { border-bottom: 0; }
             const delay = opening ? (pos / lastKey) * DIAL_MOTION.openStaggerMs : ((lastKey - pos) / lastKey) * DIAL_MOTION.closeStaggerMs;
             const style = `transform: translate(${n(x)}px, ${n(y)}px) scale(${lerp(DIAL_MOTION.keyFrom, 1, k).toFixed(3)}); opacity: ${n(k)}; transition-delay: ${Math.round(delay)}ms`;
             if (!dialShowsLetter(pos, current, SCALE.positions)) {
-                out += `<g data-anim="dialkey-${pos}" style="${style}"><g data-swap="dialkey-${pos}" transform="rotate(${n(scaleAngle(pos))})">${dialTick(0).replace(/M[-\d.]+ [-\d.]+L[-\d.]+ [-\d.]+/, 'M-8 0L8 0')}</g></g>`;
+                out += `<g data-anim="dialkey-${pos}" style="${style}"><g data-swap="dialkey-${pos}">${dialDot()}</g></g>`;
                 return;
             }
             out +=
@@ -949,15 +948,12 @@ tr:last-child td { border-bottom: 0; }
     /*
      * 冇時間標記嘅歌詞（D38，第 17 版）：成份歌詞一次過顯示——直身、靠左一欄，冇框線，全部行同一個字款同光暗，唔跟歌行。
      * 太長嘅行自動斷行（優先喺空格位斷，續行縮入一格）；放唔晒就上下捲，頂同底淡出。
-     * 兩個版面等用戶揀：tall = 喺三粒細掣右邊嘅高窄欄，排到旋鈕上面；wide = 同曲詞編監對齊嘅闊欄，排到細掣上面。
+     * 版面（用戶 2026-11-25 揀咗高窄欄）：喺三粒細掣右邊，由曲詞編監下面排到旋鈕上面。
      * 右邊界 = 唱片夾窿嘅左邊再留 20：歌詞永遠唔會行入唱片夾（播放／暫停）。
      */
     const PLAIN_RIGHT = DISC.x - DISC.r * HUB.clear - 20;
-    const PLAIN_LAYOUTS = {
-        tall: { x: 230, right: PLAIN_RIGHT, top: 690, bottom: 1650, size: 30 },
-        wide: { x: 74, right: PLAIN_RIGHT, top: 690, bottom: 1300, size: 28 },
-    };
-    const PLAIN = { pitch: 1.45, fade: 110, indent: 1, layout: 'wide' };
+    const PLAIN_LAYOUT = { x: 230, right: PLAIN_RIGHT, top: 690, bottom: 1650, size: 30 };
+    const PLAIN = { pitch: 1.45, fade: 110, indent: 1 };
     // 佔位歌詞：行長同分段照一首真歌（每行兩至三句，中間用全形空格分開），唔係真歌詞
     const PH = (count) => '歌詞佔位文字'.repeat(4).slice(0, count);
     const PH_VERSE = `${PH(7)}　${PH(6)}　${PH(10)}`;
@@ -983,15 +979,15 @@ tr:last-child td { border-bottom: 0; }
     };
     const plainRows = (layout) => plainSource().flatMap((line) => wrapLine(line, layout.size, layout.right - layout.x));
     /** 列數、一個畫面見到幾多列、要捲幾多個畫面 */
-    const plainStats = (key) => {
-        const layout = PLAIN_LAYOUTS[key];
+    const plainStats = () => {
+        const layout = PLAIN_LAYOUT;
         const rows = plainRows(layout).length;
         const visible = Math.floor((layout.bottom - layout.top) / (layout.size * PLAIN.pitch));
         return { lines: plainSource().filter(Boolean).length, rows, visible, screens: Math.max(1, rows / visible) };
     };
     let plainSeq = 0;
     const plainLyrics = (st) => {
-        const layout = PLAIN_LAYOUTS[st.plainLayout ?? PLAIN.layout];
+        const layout = PLAIN_LAYOUT;
         const rows = plainRows(layout);
         const pitch = layout.size * PLAIN.pitch;
         const room = layout.bottom - layout.top;
@@ -1014,15 +1010,13 @@ tr:last-child td { border-bottom: 0; }
             `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect y="${layout.top}" width="${W}" height="${room}" fill="url(#${id}-g)"/></mask>`;
         return `${mask}<g class="book-plain" mask="url(#${id})">${text}</g>`;
     };
-    /** 試排版：兩個版面並排，用貼入嘅歌詞（冇貼就用佔位） */
-    const plainLab = () =>
-        [['wide', 'B　闊欄（同曲詞編監對齊，排到細掣上面）'], ['tall', 'A　高窄欄（喺細掣右邊，排到旋鈕上面）']].map(([key, name]) => {
-            const { lines, rows, visible, screens } = plainStats(key);
-            const layout = PLAIN_LAYOUTS[key];
-            const caption = `字 ${layout.size}（約 ${n(layout.size * PT_PER_UNIT)}pt）；${lines} 行歌詞排成 ${rows} 列，一個畫面見到 ${visible} 列，${rows > visible ? `要捲約 ${n(screens)} 個畫面` : '唔使捲'}`;
-            const st = { album: 'komorebi', song: true, booklet: true, plain: true, plainLayout: key, plainScroll: ui.plainScroll, wheel: 0 };
-            return `<article class="card"><h3>${name}</h3><p class="tag">${caption}</p><svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="${name}">${scene(st, `plain-${key}`)}</svg></article>`;
-        }).join('');
+    /** 試排版：用貼入嘅歌詞（冇貼就用佔位） */
+    const plainLab = () => {
+        const { lines, rows, visible, screens } = plainStats();
+        const caption = `字 ${PLAIN_LAYOUT.size}（約 ${n(PLAIN_LAYOUT.size * PT_PER_UNIT)}pt）；${lines} 行歌詞排成 ${rows} 列，一個畫面見到 ${visible} 列，${rows > visible ? `要捲約 ${n(screens)} 個畫面` : '唔使捲'}`;
+        const st = { album: 'komorebi', song: true, booklet: true, plain: true, plainScroll: ui.plainScroll, wheel: 0 };
+        return `<article class="card"><h3>歌書（歌詞冇時間標記）</h3><p class="tag">${caption}</p><svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="歌書（歌詞冇時間標記）試排">${scene(st, 'plain-lab')}</svg></article>`;
+    };
     const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
     const ARC = { r: 556, step: 9.2, now: 44, other: 32, frame: 92 }; // 弧線半徑比之前（600）縮入一個字位；行距不變（step 同 v16 歌單一樣 9.2°）
 
@@ -1316,7 +1310,7 @@ tr:last-child td { border-bottom: 0; }
                 const [x1, y1] = polar(0, 0, SCALE.inner, angle(pos));
                 const [x2, y2] = polar(0, 0, on || long ? SCALE.long : SCALE.outer, angle(pos));
                 out += `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="${on ? accent : '#77777a'}" stroke-width="${on ? 5 : long ? 2.6 : 1.6}" stroke-linecap="round"/>`;
-                if (open && pos < albums && !dialShowsLetter(pos, current, positions)) out += dialTick(angle(pos));
+                if (open && pos < albums && !dialShowsLetter(pos, current, positions)) out += dialDot(...polar(0, 0, DIAL.letters, angle(pos)));
                 else if (open && pos < albums) {
                     const [kx, ky] = polar(0, 0, DIAL.letters, angle(pos));
                     out += `<text x="${n(kx)}" y="${n(ky)}" text-anchor="middle" dominant-baseline="central" font-family="${on ? SLAB : SLAB_LIGHT}" font-size="${on ? DIAL.current : DIAL.other}" fill="${on ? INK : '#3d3d3a'}">${KEYS[pos]}</text>`;
