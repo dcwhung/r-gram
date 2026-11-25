@@ -7,6 +7,7 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
+    第 17 版補三（2026-11-25）：字母盤嘅細點再縮細；加「有時間標記而行好長」嘅建議做法（等用戶確認）。
     第 17 版補二（2026-11-25）：用戶揀咗歌詞用高窄欄；字母盤冇出字母嗰格由刻線改做細點（用線太花）。
     第 17 版補（2026-11-25）：純文字歌詞加自動斷行、兩個版面同試排版（貼歌詞即睇）；碟多時字母盤再疏啲（最多約 9 個字母）。
     第 17 版（2026-11-25）。用戶意見：歌詞冇時間標記時成份一次過顯示、冇框；㩒 play 時唱針由上方轉到碟上再放低；碟多時字母盤每幾個先出一個字母、其餘用刻度。
@@ -201,7 +202,7 @@ tr:last-child td { border-bottom: 0; }
     <div id="modes"></div>
 
     <h2>歌詞冇時間標記：試排版</h2>
-    <p class="lede">喺下面貼入冇時間標記嘅歌詞，即刻見到點排（高窄欄：喺三粒細掣右邊，排到旋鈕上面）。歌詞只留喺你呢個瀏覽器，唔會儲存，亦唔會寫入設計稿檔案。留空就用佔位歌詞（行長同分段照一首真歌）。</p>
+    <p class="lede">喺下面貼入冇時間標記嘅歌詞，即刻見到點排（高窄欄：喺三粒細掣右邊，排到旋鈕上面）；右邊嗰格係同一份歌詞有時間標記時嘅樣。歌詞只留喺你呢個瀏覽器，唔會儲存，亦唔會寫入設計稿檔案。留空就用佔位歌詞（行長同分段照一首真歌）。</p>
     <textarea id="plainText" rows="6" style="width: 100%; max-width: 820px; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1px solid #555; background: #1b1b1b; color: #eee; font: 14px/1.6 inherit" placeholder="貼入歌詞（每行一句；段與段之間空一行）" aria-label="試排用嘅歌詞"></textarea>
     <p class="lede"><label>捲動 <input type="range" id="plainScroll" min="0" max="100" value="0" style="width: 260px; vertical-align: middle"></label></p>
     <div class="grid" id="plainlab"></div>
@@ -904,7 +905,7 @@ tr:last-child td { border-bottom: 0; }
         return Math.abs(pos - current) * spacing >= DIAL_CLEARANCE && (positions - 1 - pos) * spacing >= DIAL_CLEARANCE;
     };
     /** 冇出字母嗰格：一粒細點（用線會好花） */
-    const DIAL_DOT = { r: 3.4, fill: '#8f8f8b' };
+    const DIAL_DOT = { r: 2.2, fill: '#8f8f8b' };
     const dialDot = (x = 0, y = 0) => `<circle cx="${n(x)}" cy="${n(y)}" r="${DIAL_DOT.r}" fill="${DIAL_DOT.fill}"/>`;
     const dialKeyProgress = (pos, w) => clamp01((w - (pos / (SCALE.positions - 1)) * DIAL_MOTION.stagger) / (1 - DIAL_MOTION.stagger));
     const dialRing = (st) => {
@@ -1009,12 +1010,48 @@ tr:last-child td { border-bottom: 0; }
             `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect y="${layout.top}" width="${W}" height="${room}" fill="url(#${id}-g)"/></mask>`;
         return `${mask}<g class="book-plain" mask="url(#${id})">${text}</g>`;
     };
+    /*
+     * 有時間標記、而行好長（D22 嘅補充建議，等用戶確認）。D22 原本：而家嗰行先縮字（44 → 32），仲放唔落就喺框入面橫向跑馬燈。
+     * 一行有兩三句嘅歌，幾乎每行都會變跑馬燈，所以建議：一列放得落就照 D22；放唔落就喺框入面斷成幾列（優先喺空格位斷），
+     * 框跟住變高；上下其他行各佔一列，放唔落嘅部分喺右邊淡出（唔用「…」）。唱到下一行時，成組沿弧線移上去。
+     */
+    const LONG = { size: 32, pitch: 44, pad: 34, inset: 24, gap: 14, other: 28, otherPitch: 50, around: 3, fade: 110, edge: W - 40 };
+    const CLAMP_BAND = DISC.r * HUB.clear + 20; // 呢個高度範圍內嘅行，右邊去到唱片夾就要停
+    let longSeq = 0;
+    const longLyrics = (st) => {
+        const lines = plainSource().filter(Boolean);
+        const now = Math.min(lines.length - 1, Math.round((st.longAt ?? 0.3) * (lines.length - 1)));
+        const left = DISC.x - ARC.r;
+        const rows = wrapLine(lines[now], LONG.size, PLAIN_RIGHT - left - LONG.inset).map(([text]) => text);
+        const height = rows.length * LONG.pitch + LONG.pad;
+        let out = focusFrame(ARC.r, height, 'book-frame');
+        rows.forEach((text, i) => {
+            const y = DISC.y + (i - (rows.length - 1) / 2) * LONG.pitch;
+            out += `<text x="${n(left + LONG.inset)}" y="${n(y)}" dominant-baseline="central" font-family="${MIXED}" font-weight="700" font-size="${LONG.size}" fill="${PAPER}">${esc(text)}</text>`;
+        });
+        for (let k = -LONG.around; k <= LONG.around; k += 1) {
+            const text = lines[now + k];
+            if (k === 0 || !text) continue;
+            const dy = Math.sign(k) * (height / 2 + LONG.gap + LONG.otherPitch * (Math.abs(k) - 0.5));
+            const x = DISC.x - Math.sqrt(ARC.r ** 2 - dy ** 2);
+            const limit = Math.abs(dy) < CLAMP_BAND ? PLAIN_RIGHT : LONG.edge;
+            const id = `long-${(longSeq += 1)}`;
+            const cut = x + textWidth(text, LONG.other) > limit;
+            if (cut) out += `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${n(limit - LONG.fade)}" y1="0" x2="${n(limit)}" y2="0"><stop offset="0" stop-color="${PAPER}"/><stop offset="1" stop-color="${PAPER}" stop-opacity="0"/></linearGradient><clipPath id="${id}-c"><rect x="0" y="${n(DISC.y + dy - LONG.otherPitch / 2)}" width="${n(limit)}" height="${LONG.otherPitch}"/></clipPath>`;
+            out += `<text x="${n(x)}" y="${n(DISC.y + dy)}" dominant-baseline="central" font-family="${MIXED}" font-weight="500" font-size="${LONG.other}" fill="${cut ? `url(#${id})` : PAPER}"${cut ? ` clip-path="url(#${id}-c)"` : ''} opacity="${n(0.74 - (Math.abs(k) - 1) * 0.22)}">${esc(text)}</text>`;
+        }
+        return `<g class="book-plain">${out}</g>`;
+    };
     /** 試排版：用貼入嘅歌詞（冇貼就用佔位） */
     const plainLab = () => {
         const { lines, rows, visible, screens } = plainStats();
         const caption = `字 ${PLAIN_LAYOUT.size}（約 ${n(PLAIN_LAYOUT.size * PT_PER_UNIT)}pt）；${lines} 行歌詞排成 ${rows} 列，一個畫面見到 ${visible} 列，${rows > visible ? `要捲約 ${n(screens)} 個畫面` : '唔使捲'}`;
         const st = { album: 'komorebi', song: true, booklet: true, plain: true, plainScroll: ui.plainScroll, wheel: 0 };
-        return `<article class="card"><h3>歌書（歌詞冇時間標記）</h3><p class="tag">${caption}</p><svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="歌書（歌詞冇時間標記）試排">${scene(st, 'plain-lab')}</svg></article>`;
+        const timed = { album: 'komorebi', song: true, booklet: true, long: true, longAt: ui.plainScroll || 0.3, wheel: 0 };
+        return (
+            `<article class="card"><h3>歌詞冇時間標記</h3><p class="tag">${caption}</p><svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="歌書（歌詞冇時間標記）試排">${scene(st, 'plain-lab')}</svg></article>` +
+            `<article class="card"><h3>同一份歌詞，如果有時間標記（建議，等確認）</h3><p class="tag">而家唱緊嗰行喺框入面：一列放唔落就斷成幾列，框跟住變高；上下其他行一列，放唔落嘅部分喺右邊淡出。拉「捲動」桿可以睇唱到唔同行嘅樣</p><svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="歌書（有時間標記、長行）試排">${scene(timed, 'long-lab')}</svg></article>`
+        );
     };
     const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
     const ARC = { r: 556, step: 9.2, now: 44, other: 32, frame: 92 }; // 弧線半徑比之前（600）縮入一個字位；行距不變（step 同 v16 歌單一樣 9.2°）
@@ -1041,6 +1078,7 @@ tr:last-child td { border-bottom: 0; }
             out += `<text x="${CREDITS.x + 44}" y="${y}" font-family="${CJK}" font-size="${CREDITS.value}" fill="#d9d6ce">${value}</text></g>`;
         });
         if (st.plain) return `<g class="${bookMotion(st, 'book')}">${out}${plainLyrics(st)}</g>`;
+        if (st.long) return `<g class="${bookMotion(st, 'book')}">${out}${longLyrics(st)}</g>`;
         out += focusFrame(ARC.r, ARC.frame, 'book-frame');
         // 歌詞：以碟心做原點，過場時每行由而家嗰行嘅位置沿弧線轉去自己嘅位置
         let lines = '';
