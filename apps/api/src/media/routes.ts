@@ -4,6 +4,7 @@
  */
 import { Hono, type Context } from 'hono';
 import type { AppEnv } from '../app';
+import { scanApply } from './scanApply';
 import { scanPreview } from './scanPreview';
 
 export const scanRoutes = new Hono<AppEnv>();
@@ -11,3 +12,4 @@ export const scanRoutes = new Hono<AppEnv>();
 const albumIdOf = (c: Context) => c.req.param('albumId') ?? '';
 
 scanRoutes.get('/', (c) => scanPreview(c, albumIdOf(c)));
+scanRoutes.post('/apply', (c) => scanApply(c, albumIdOf(c)));
