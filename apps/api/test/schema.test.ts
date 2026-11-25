@@ -1,4 +1,4 @@
-/* migrations/0001_init.sql 對 Technical Spec「數據庫設計」：6 張表、欄位、約束、索引 */
+/* migrations/0001_init.sql 對 Technical Spec「數據庫設計」（CR-003 之後）：6 張表、欄位、約束、索引 */
 import { env } from 'cloudflare:test';
 
 const NOW = '2026-11-25T00:00:00.000Z';
@@ -64,15 +64,33 @@ const insertTrack = (id: string, albumId: string, no: number, extra = {}) => {
     );
 };
 
-const insertLyrics = (trackId: string) =>
+const insertLyrics = (trackId: string, synced: unknown = 1) =>
     run(
-        'INSERT INTO lyrics (track_id, lrc, json_name, line_count, updated_at) VALUES (?, ?, ?, ?, ?)',
-        trackId,
-        '[00:01.00]a',
-        '0123456789abcdef.json',
-        1,
-        NOW,
+        `INSERT INTO lyrics (track_id, source, synced, json_name, line_count, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        ...[trackId, '[00:01.00]a', synced, '0123456789abcdef.json', 1, NOW],
     );
+
+/** catalog_state 一行；`extra` 蓋過預設（一次成功嘅生成） */
+const insertCatalogState = (extra: Record<string, unknown> = {}) => {
+    const row = {
+        id: 1,
+        status: 'ok',
+        hash: 'a'.repeat(64),
+        generated_at: NOW,
+        album_count: 17,
+        track_count: 262,
+        updated_at: NOW,
+        updated_by: 'admin@example.com',
+        error: null,
+        ...extra,
+    };
+    const names = Object.keys(row);
+    return run(
+        `INSERT INTO catalog_state (${names.join(', ')}) VALUES (${names.map(() => '?').join(', ')})`,
+        ...Object.values(row),
+    );
+};
 
 describe('D1 schema (0001_init)', () => {
     it('should create exactly the six tables of the Technical Spec', async () => {
@@ -84,8 +102,8 @@ describe('D1 schema (0001_init)', () => {
         expect(rows.results.map((row) => row.name)).toEqual([
             'albums',
             'assets',
+            'catalog_state',
             'lyrics',
-            'publishes',
             'sessions',
             'tracks',
         ]);
@@ -105,7 +123,6 @@ describe('D1 schema (0001_init)', () => {
             'thumb TEXT',
             'folder TEXT',
             'sort_order INTEGER NOT NULL',
-            'enabled INTEGER NOT NULL DEFAULT 0',
             'created_at TEXT NOT NULL',
             'updated_at TEXT NOT NULL',
         ]);
@@ -130,16 +147,16 @@ describe('D1 schema (0001_init)', () => {
             'note TEXT',
             'youtube_id TEXT',
             'video_kind TEXT',
-            'enabled INTEGER NOT NULL DEFAULT 1',
             'created_at TEXT NOT NULL',
             'updated_at TEXT NOT NULL',
         ]);
     });
 
-    it('should define lyrics, assets, publishes and sessions as specified', async () => {
+    it('should define lyrics, assets, catalog_state and sessions as specified', async () => {
         expect(await columnsOf('lyrics')).toEqual([
             'track_id TEXT NOT NULL PK',
-            'lrc TEXT NOT NULL',
+            'source TEXT NOT NULL',
+            'synced INTEGER NOT NULL',
             'json_name TEXT NOT NULL',
             'line_count INTEGER NOT NULL',
             'updated_at TEXT NOT NULL',
@@ -150,17 +167,15 @@ describe('D1 schema (0001_init)', () => {
             'bytes INTEGER NOT NULL',
             'created_at TEXT NOT NULL',
         ]);
-        expect(await columnsOf('publishes')).toEqual([
-            'id INTEGER PK',
-            'created_at TEXT NOT NULL',
-            'created_by TEXT NOT NULL',
+        expect(await columnsOf('catalog_state')).toEqual([
+            'id INTEGER NOT NULL PK',
             'status TEXT NOT NULL',
-            'hash TEXT NOT NULL',
-            'document TEXT NOT NULL',
-            'ids TEXT NOT NULL',
-            'album_count INTEGER NOT NULL',
-            'track_count INTEGER NOT NULL',
-            'summary TEXT NOT NULL',
+            'hash TEXT',
+            'generated_at TEXT',
+            'album_count INTEGER',
+            'track_count INTEGER',
+            'updated_at TEXT NOT NULL',
+            'updated_by TEXT NOT NULL',
             'error TEXT',
         ]);
         expect(await columnsOf('sessions')).toEqual([
@@ -241,16 +256,32 @@ describe('D1 constraints (0001_init)', () => {
         expect(await count('albums')).toBe(1);
     });
 
-    it('should default albums to unpublished and tracks to published, flags 0 or 1 only', async () => {
+    // CR-003：冇上下架，兩張表都冇 enabled 欄
+    it('should have no enabled flag on albums or tracks', async () => {
+        await expect(insertAlbum('apollo-18', { enabled: 1 })).rejects.toThrow(/enabled/);
         await insertAlbum('apollo-18');
-        await insertTrack('apollo-18-01', 'apollo-18', 1);
-        const album = await env.DB.prepare('SELECT enabled FROM albums').first('enabled');
-        const track = await env.DB.prepare('SELECT enabled FROM tracks').first('enabled');
-        expect([album, track]).toEqual([0, 1]);
-        await expect(insertAlbum('easy', { enabled: 2 })).rejects.toThrow();
-        for (const flag of ['enabled', 'audio_manual', 'mv_manual']) {
-            await expect(insertTrack('easy-01', 'apollo-18', 2, { [flag]: 2 })).rejects.toThrow();
+        await expect(insertTrack('apollo-18-01', 'apollo-18', 1, { enabled: 1 })).rejects.toThrow(
+            /enabled/,
+        );
+    });
+
+    it('should only accept 0 or 1 for the manual flags', async () => {
+        await insertAlbum('apollo-18');
+        for (const flag of ['audio_manual', 'mv_manual']) {
+            await expect(
+                insertTrack('apollo-18-01', 'apollo-18', 1, { [flag]: 2 }),
+            ).rejects.toThrow();
         }
+    });
+
+    it('should store whether lyrics are synced as 0 or 1, and require it', async () => {
+        await insertAlbum('apollo-18');
+        for (const no of [1, 2, 3, 4]) await insertTrack(`apollo-18-0${no}`, 'apollo-18', no);
+        await insertLyrics('apollo-18-01', 1);
+        await insertLyrics('apollo-18-02', 0);
+        await expect(insertLyrics('apollo-18-03', 2)).rejects.toThrow();
+        await expect(insertLyrics('apollo-18-04', null)).rejects.toThrow();
+        expect(await count('lyrics')).toBe(2);
     });
 
     it('should only accept https lyrics source links', async () => {
@@ -262,17 +293,31 @@ describe('D1 constraints (0001_init)', () => {
         }
     });
 
-    it('should only accept the publish statuses pending, ok and failed', async () => {
-        const publish = (status: string) =>
-            run(
-                `INSERT INTO publishes
-                 (created_at, created_by, status, hash, document, ids, album_count, track_count, summary)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                ...[NOW, 'admin@example.com', status, 'hash', '{}', '[]', 0, 0, '{}'],
-            );
-        for (const status of ['pending', 'ok', 'failed']) await publish(status);
-        await expect(publish('done')).rejects.toThrow();
-        const ids = await env.DB.prepare('SELECT id FROM publishes ORDER BY id').all();
-        expect(ids.results.map((row) => row.id)).toEqual([1, 2, 3]);
+    it('should keep a single catalog_state row with id 1', async () => {
+        await expect(insertCatalogState({ id: 2 })).rejects.toThrow();
+        await insertCatalogState();
+        await expect(insertCatalogState()).rejects.toThrow();
+        expect(await count('catalog_state')).toBe(1);
+    });
+
+    it('should only accept the catalog statuses ok and failed', async () => {
+        for (const status of ['pending', 'done', '']) {
+            await expect(insertCatalogState({ status }), status).rejects.toThrow();
+        }
+        await insertCatalogState({ status: 'failed' });
+        expect(await count('catalog_state')).toBe(1);
+    });
+
+    // 生成失敗而且之前未成功過：冇 hash、冇生成時間、冇數目，但有原因
+    it('should allow a failed state before any catalog was generated', async () => {
+        const never = { hash: null, generated_at: null, album_count: null, track_count: null };
+        await insertCatalogState({ ...never, status: 'failed', error: 'R2 write failed' });
+        expect(await count('catalog_state')).toBe(1);
+    });
+
+    it('should require the hash, time and counts of an ok catalog', async () => {
+        for (const column of ['hash', 'generated_at', 'album_count', 'track_count']) {
+            await expect(insertCatalogState({ [column]: null }), column).rejects.toThrow();
+        }
     });
 });

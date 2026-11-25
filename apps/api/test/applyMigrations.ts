@@ -4,7 +4,7 @@ import { applyD1Migrations, env } from 'cloudflare:test';
 import { beforeEach } from 'vitest';
 
 /** 刪除次序跟 foreign key：先子後父 */
-const TABLES = ['lyrics', 'tracks', 'albums', 'assets', 'publishes', 'sessions'];
+const TABLES = ['lyrics', 'tracks', 'albums', 'assets', 'catalog_state', 'sessions'];
 
 await applyD1Migrations(env.DB, env.TEST_MIGRATIONS);
 
@@ -14,12 +14,7 @@ const clearBucket = async (bucket: R2Bucket) => {
 };
 
 beforeEach(async () => {
-    // sqlite_sequence：publishes 嘅 AUTOINCREMENT 由 1 重新數
-    const statements = [
-        ...TABLES.map((table) => `DELETE FROM ${table}`),
-        'DELETE FROM sqlite_sequence',
-    ];
-    await env.DB.batch(statements.map((sql) => env.DB.prepare(sql)));
+    await env.DB.batch(TABLES.map((table) => env.DB.prepare(`DELETE FROM ${table}`)));
     await clearBucket(env.CATALOG);
     await clearBucket(env.MEDIA);
 });

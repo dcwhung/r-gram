@@ -15,7 +15,13 @@ describe('session guard', () => {
     });
 
     it('should answer 401 UNAUTHORIZED on every other /api path without a session', async () => {
-        for (const path of ['/api/me', '/api/albums', '/api/publish', '/api/health/x', '/api']) {
+        for (const path of [
+            '/api/me',
+            '/api/albums',
+            '/api/catalog/rebuild',
+            '/api/health/x',
+            '/api',
+        ]) {
             const response = await call(path);
             expect(response.status, path).toBe(401);
             expect(await response.json(), path).toEqual(UNAUTHORIZED);
