@@ -60,3 +60,6 @@ export const ROBOTS_HEADER_VALUE = 'noindex';
 export const FRAME_OPTIONS_VALUE = 'DENY';
 export const FRAME_ANCESTORS_POLICY = "frame-ancestors 'none'";
 export const NO_STORE = 'no-store';
+/** callback 網址有 OAuth code + state：由 /auth 嘅頁出去唔帶 Referer */
+export const NO_REFERRER = 'no-referrer';
+export const NO_SNIFF = 'nosniff';
