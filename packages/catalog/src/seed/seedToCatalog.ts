@@ -42,6 +42,12 @@ const toTrack = (
     };
 };
 
+/** 只認 `accents` 自己嘅 key（專輯 id 撞正 `constructor` 之類嘅名都唔會讀到 prototype） */
+const accentFor = (albumId: string, accents: SeedCatalogOptions['accents']): string =>
+    accents && Object.hasOwn(accents, albumId)
+        ? (accents[albumId] ?? NEUTRAL_ACCENT)
+        : NEUTRAL_ACCENT;
+
 const toAlbum = (
     album: SeedAlbum,
     credits: CreditMatchResult,
@@ -54,7 +60,7 @@ const toAlbum = (
     year: album.year,
     type: album.type,
     label: album.label,
-    accent: options.accents?.[album.id] ?? NEUTRAL_ACCENT,
+    accent: accentFor(album.id, options.accents),
     cover: null,
     thumb: null,
     tracks: album.tracks.map((track) => toTrack(album, track, credits, options)),

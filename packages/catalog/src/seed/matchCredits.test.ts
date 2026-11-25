@@ -170,6 +170,13 @@ describe('seedToCatalog', () => {
         expect(document.albums.map((album) => album.accent)).toEqual(['#6e6e6e', '#d49b00']);
     });
 
+    it('should not read an accent from Object.prototype for an album called constructor', () => {
+        const [first] = DISCOGRAPHY.albums;
+        const discography = { albums: [{ ...first!, id: 'constructor' }] };
+        const document = seedToCatalog(discography, { albums: [] }, { ...options, accents: {} });
+        expect(document.albums[0]?.accent).toBe('#6e6e6e');
+    });
+
     it('should let the caller attach media to a track', () => {
         const document = seedToCatalog(DISCOGRAPHY, CREDITS, {
             ...options,

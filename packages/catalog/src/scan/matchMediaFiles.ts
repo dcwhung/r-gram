@@ -26,12 +26,13 @@ export interface ScanResult {
     tracksWithoutAudio: { trackId: string; no: number; title: string }[];
 }
 
-const KIND_BY_EXTENSION: Readonly<Record<string, MediaKind>> = {
-    m4a: 'audio',
-    mp3: 'audio',
-    mp4: 'mv',
-    m4v: 'mv',
-};
+/** 用 Map：plain object 會查到 `Object.prototype` 嘅 property（`.constructor`、`.__proto__`） */
+const KIND_BY_EXTENSION: ReadonlyMap<string, MediaKind> = new Map([
+    ['m4a', 'audio'],
+    ['mp3', 'audio'],
+    ['mp4', 'mv'],
+    ['m4v', 'mv'],
+]);
 
 /** 開頭 1–3 位數字，後面唔可以再係數字（`2008 remaster` 唔係第 200 首） */
 const LEADING_TRACK_NUMBER = /^(\d{1,3})(?!\d)/;
@@ -48,7 +49,7 @@ type Classified =
 
 const classify = (key: string, trackNumbers: ReadonlySet<number>): Classified => {
     const name = fileName(key);
-    const kind = KIND_BY_EXTENSION[extensionOf(name)];
+    const kind = KIND_BY_EXTENSION.get(extensionOf(name));
     if (!kind) return { key, reason: 'UNKNOWN_EXTENSION' };
     const digits = LEADING_TRACK_NUMBER.exec(name)?.[1];
     if (!digits) return { key, reason: 'NO_TRACK_NUMBER' };

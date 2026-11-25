@@ -79,6 +79,17 @@ describe('matchMediaFiles', () => {
         expect(result.tracksWithoutAudio.map((track) => track.no)).toEqual([1, 2, 3]);
     });
 
+    // W-002：副檔名撞正 Object.prototype 嘅 property 名（constructor、__proto__…）唔可以當係媒體檔
+    it.each(['constructor', '__proto__', 'toString', 'hasOwnProperty'])(
+        'should treat the extension .%s as unknown',
+        (extension) => {
+            const key = `apollo-18/01 x.${extension}`;
+            const result = matchMediaFiles([key], TRACKS);
+            expect(result.matched).toEqual([]);
+            expect(result.unmatchedFiles).toEqual([{ key, reason: 'UNKNOWN_EXTENSION' }]);
+        },
+    );
+
     it('should skip folder marker keys', () => {
         const result = matchMediaFiles(['apollo-18/', 'apollo-18/01 a.m4a'], TRACKS);
         expect(result.unmatchedFiles).toEqual([]);
