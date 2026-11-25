@@ -1,6 +1,6 @@
 import type { CatalogDocument } from '@r-gram/catalog';
 import { act, renderHook } from '@testing-library/react';
-import { sampleDocument } from '../catalog/testing/catalogFixtures';
+import { sampleDocument, withSecondCover } from '../catalog/testing/catalogFixtures';
 import { useHome } from './useHome';
 
 /** `apollo-18` 第 1 首有 MV */
@@ -26,5 +26,26 @@ describe('useHome', () => {
         expect(result.current.stage).toBe(before.stage);
         expect(result.current.playback).toBe(before.playback);
         expect(result.current.view?.mvOpen).toBe(true);
+    });
+});
+
+/* CR-005 D56：主頁用開 app 時揀中嘅封面；catalog 更新都唔變 */
+describe('useHome cover pick', () => {
+    const catalogWithTwoCovers = (): CatalogDocument => {
+        const document = sampleDocument();
+        document.albums = document.albums.map(withSecondCover);
+        return document;
+    };
+
+    it('should show the cover picked when the app started, even after a catalog refresh', () => {
+        let random = () => 0.9;
+        const { result, rerender } = renderHook(({ catalog }) => useHome(catalog, () => random()), {
+            initialProps: { catalog: catalogWithTwoCovers() },
+        });
+        random = () => 0;
+        rerender({ catalog: catalogWithTwoCovers() });
+        expect(result.current.view?.coverUrl).toBe(
+            'https://api.example/catalog/v1/img/apollo-18-cover2.webp',
+        );
     });
 });

@@ -1,5 +1,11 @@
 import { glowColor, NEUTRAL_ACCENT, type CatalogDocument } from '@r-gram/catalog';
-import { makeAlbum, makeDocument, sampleDocument } from '../catalog/testing/catalogFixtures';
+import { COVER_VARIANT } from '../catalog/coverVariants';
+import {
+    makeAlbum,
+    makeDocument,
+    sampleDocument,
+    withSecondCover,
+} from '../catalog/testing/catalogFixtures';
 import { armPose, homeView, listFocusTrackId, spindleMode } from './homeView';
 import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
@@ -110,6 +116,21 @@ describe('homeView', () => {
         expect(view).toMatchObject({ hasSong: true, hasMv: true, playing: true, coverUrl: null });
         expect(view.timeText).toBe('0:41');
         expect(view.progress).toBeCloseTo(0.2);
+    });
+
+    // CR-005 D56：開 app 時揀中嘅封面；專輯色永遠跟第一張
+    it('should show the cover picked for this launch, keeping the accent of the first cover', () => {
+        const document = makeDocument([withSecondCover(makeAlbum('apollo-18', []))]);
+        const covers = new Map([['apollo-18', COVER_VARIANT.SECOND]]);
+        const view = homeView(document, home(), IDLE_PLAYBACK, covers);
+        expect(view.coverUrl).toBe('https://api.example/catalog/v1/img/apollo-18-cover2.webp');
+        expect(view.accent).toBe('#c8442b');
+    });
+
+    it('should show the first cover when no pick was made for the disc', () => {
+        const document = makeDocument([withSecondCover(makeAlbum('apollo-18', []))]);
+        const view = homeView(document, home(), IDLE_PLAYBACK, new Map());
+        expect(view.coverUrl).toBe('https://api.example/catalog/v1/img/apollo-18-cover.webp');
     });
 
     it('should use the neutral colours when no disc is on screen', () => {
