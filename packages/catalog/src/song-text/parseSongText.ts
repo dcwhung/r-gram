@@ -19,7 +19,8 @@ import {
 import { readLyrics } from './lyrics';
 import type { SongTextError, SongTextResult } from './types';
 
-const LINE_BREAK = /\r?\n/;
+/** CRLF、LF、淨係 CR（舊 Mac 格式）都當換行（backlog B-042 ①） */
+const LINE_BREAK = /\r\n?|\n/;
 const BYTE_ORDER_MARK = /^\uFEFF/;
 
 type LabelValues = Partial<Record<LabelField, string | null>>;
@@ -92,7 +93,7 @@ const creditsOf = (values: LabelValues): TrackCredits | null => {
 };
 
 /**
- * 解析成首歌嘅文字。`errors` 按行號排；有錯就唔可以儲存。CRLF 同 LF 一樣；每行尾嘅空白唔計。
+ * 解析成首歌嘅文字。`errors` 按行號排；有錯就唔可以儲存。CRLF、LF 同淨係 CR 一樣；每行尾嘅空白唔計。
  */
 export const parseSongText = (text: string): SongTextResult => {
     const lines = text

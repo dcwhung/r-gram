@@ -229,6 +229,15 @@ describe('parseSongText', () => {
             expect(parseSongText(lf.replaceAll('\n', '\r\n'))).toEqual(parseSongText(lf));
         });
 
+        // backlog B-042 ①：舊 Mac 格式淨係用 CR 換行，直接叫 API 先會遇到
+        it('should split lines on a lone CR and on mixed line breaks', () => {
+            const lf = '歌名\n曲：阿正\n\n[00:01.00]a\n[00:02.00]b';
+            expect(parseSongText(lf.replaceAll('\n', '\r'))).toEqual(parseSongText(lf));
+            expect(parseSongText('歌名\r曲：阿正\r\n\n[00:01.00]a\r[00:02.00]b')).toEqual(
+                parseSongText(lf),
+            );
+        });
+
         it('should drop trailing whitespace from every line', () => {
             const result = parseSongText('歌名 \t\n曲：阿正  \n\n第一句  \n  第二句\t');
             expect(result.credits?.composer).toBe('阿正');
