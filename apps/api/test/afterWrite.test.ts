@@ -43,6 +43,33 @@ describe('afterWrite', () => {
         expect(await (await send(app, 'POST', '/list')).json()).toEqual([1]);
     });
 
+    it('should keep the saved write successful with catalog ok false when the hook throws', async () => {
+        const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const failure = new TypeError('secret detail');
+        const response = await send(
+            appWith(async () => {
+                throw failure;
+            }),
+            'POST',
+            '/ok',
+        );
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ saved: true, catalog: { ok: false } });
+        expect(log).toHaveBeenCalledTimes(1);
+        expect(log.mock.calls[0]).toContain('TypeError');
+        expect(JSON.stringify(log.mock.calls)).not.toContain('secret detail');
+        expect(log.mock.calls.flat()).not.toContain(failure);
+        log.mockRestore();
+    });
+
+    it('should log only the kind of value when the hook throws something that is not an Error', async () => {
+        const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const app = appWith(() => Promise.reject('secret detail'));
+        expect((await send(app, 'POST', '/ok')).status).toBe(200);
+        expect(log).toHaveBeenCalledWith('[api] post-write step failed', 'string');
+        log.mockRestore();
+    });
+
     it('should leave the response alone when the hook has nothing to add', async () => {
         const response = await send(appWith(noPostWrite), 'POST', '/ok');
         expect(await response.json()).toEqual({ saved: true });

@@ -28,11 +28,30 @@ const jsonBodyOf = async (response: Response): Promise<JsonObject | undefined> =
     return isJsonObject(body) ? body : undefined;
 };
 
+/** 生成失敗 = D1 已儲存但 catalog.json 未更新（API-061、D30）：寫入照回成功，`catalog.ok = false` */
+const CATALOG_FAILED: CatalogWriteResult = { ok: false };
+
+/**
+ * hook throw 都唔可以令已儲存嘅寫入變 500。log 只寫錯誤名：message / stack 可能帶 R2 key 或內部細節
+ */
+const runHook = async (
+    hook: PostWriteHook,
+    c: Context<AppEnv>,
+): Promise<CatalogWriteResult | undefined> => {
+    try {
+        return await hook(c);
+    } catch (error) {
+        const name = error instanceof Error ? error.name : typeof error;
+        console.error('[api] post-write step failed', name);
+        return CATALOG_FAILED;
+    }
+};
+
 export const afterWrite = (hook: PostWriteHook) =>
     createMiddleware<AppEnv>(async (c, next) => {
         await next();
         if (!WRITE_METHODS.includes(c.req.method) || !c.res.ok) return;
-        const catalog = await hook(c);
+        const catalog = await runHook(hook, c);
         if (catalog === undefined) return;
         const body = await jsonBodyOf(c.res);
         if (!body) return;
