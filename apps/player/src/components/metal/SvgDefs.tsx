@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { DEF } from './defIds';
 import { latheWedges } from './lathe';
 
@@ -42,14 +43,17 @@ const Gradients = () => (
     </>
 );
 
+/** 車床紋 96 格只砌一次（S-035）：舞台每次 re-render（例如播放進度）都唔使重計 */
+const LATHE = latheWedges();
+
 const BLUR_FILTERS = [
     { id: DEF.shadow, deviation: 9, margin: 40 },
     { id: DEF.shadowLarge, deviation: 26, margin: 40 },
     { id: DEF.glow, deviation: 7, margin: 60 },
 ] as const;
 
-/** 共用嘅 SVG 定義：漸層、模糊濾鏡、車床紋。成個舞台 render 一次 */
-export const SvgDefs = () => (
+/** 共用嘅 SVG 定義：漸層、模糊濾鏡、車床紋。冇 props，包 memo：舞台 re-render 時唔使再 render */
+export const SvgDefs = memo(() => (
     <defs>
         <Gradients />
         {BLUR_FILTERS.map(({ id, deviation, margin }) => (
@@ -65,9 +69,10 @@ export const SvgDefs = () => (
             </filter>
         ))}
         <g id={DEF.lathe}>
-            {latheWedges().map(({ d, fill }) => (
+            {LATHE.map(({ d, fill }) => (
                 <path key={d} d={d} fill={fill} />
             ))}
         </g>
     </defs>
-);
+));
+SvgDefs.displayName = 'SvgDefs';

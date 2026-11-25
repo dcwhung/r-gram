@@ -12,7 +12,7 @@ export const MOTION = {
         toggleMs: 160,
         /** 文字、狀態淡入淡出 */
         fadeMs: 200,
-        /** 唱片夾 icon 切換 */
+        /** 唱片夾 icon 切換；唱針放低之後小燈光暈淡入 */
         swapMs: 120,
     },
     scene: {
@@ -26,8 +26,10 @@ export const MOTION = {
         dialKeyCloseStepMs: 8,
         /** 碟轉一圈 */
         discRotationMs: 5400,
-        /** 唱臂落針 / 返泊位 */
+        /** 唱臂轉入碟上面 / 返泊位（由泊位開始播嘅第一段：升高住轉入） */
         tonearmMs: 650,
+        /** 唱針放低 / 升起（開場第二段、暫停、繼續）；設計稿第 17 版 ARM_IN.dropMs */
+        needleDropMs: 160,
         bookletOpenMs: 400,
         bookletCloseMs: 240,
         /** MV 電視由底部升起（有回彈） */

@@ -13,3 +13,10 @@
     user-select: none;
     -webkit-user-select: none;
 }
+
+/* 舞台嘅 SVG 畫布（StageSvg）：填滿舞台 */
+.stage-svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+}

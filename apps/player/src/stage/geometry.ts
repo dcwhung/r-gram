@@ -26,9 +26,17 @@ export const circleLeftAt = (centre: Point, radius: number, y: number): number =
 export const platterLeftAt = ({ disc, platter }: StageLayout, y: number): number =>
     circleLeftAt(disc, platter.r, y);
 
-/** 第 pos 格刻度（由 0 開始）嘅角度 */
-export const scaleAngle = ({ scale }: StageLayout, pos: number): number =>
-    scale.fromDeg + pos * scale.stepDeg;
+/** 刻度格數：每張專輯一格，最尾加 ♥ 一格（CR-003 決定 2） */
+export const positionsFor = (albumCount: number): number => albumCount + 1;
+
+/**
+ * 第 pos 格刻度（由 0 開始）嘅角度。弧固定由 fromDeg 去到 toDeg，格數幾多都係平均分佈：
+ * 第一格喺弧頭、最尾一格（♥）喺弧尾。得一格（冇專輯）就只有 ♥，喺弧尾。
+ */
+export const scaleAngle = ({ scale }: StageLayout, pos: number, positions: number): number =>
+    positions > 1
+        ? scale.fromDeg + (pos * (scale.toDeg - scale.fromDeg)) / (positions - 1)
+        : scale.toDeg;
 
 /** 細掣連光圈嘅外半徑 */
 export const buttonOuterRadius = ({ buttons }: StageLayout): number =>
@@ -39,19 +47,20 @@ export const hitSizeUnits = ({ clearance }: StageLayout): number =>
     clearance.hitPt / (clearance.viewportPt / DESIGN_WIDTH);
 
 /**
- * ♥ = 刻度最後一格（positions − 1）。平時喺嗰格刻度線外面；轉碟時（open 0 → 1）沿同一個角度滑出去字母盤。
+ * ♥ = 刻度最後一格，永遠喺弧尾（toDeg），同專輯數無關。平時喺嗰格刻度線外面；
+ * 轉碟時（open 0 → 1）沿同一個角度滑出去字母盤。
  */
-export const heartPoint = (layout: StageLayout, positions: number, open = 0): Point => {
+export const heartPoint = (layout: StageLayout, open = 0): Point => {
     const { knob, scale, dial } = layout;
     const radius = lerp(scale.long + scale.heartGap, dial.letters, open);
-    return polar(knob, radius, scaleAngle(layout, positions - 1));
+    return polar(knob, radius, scale.toDeg);
 };
 
 /** ♥ 細，所以感應方格由旋鈕邊向外伸（唔同旋鈕重疊）；轉碟時跟住心形 */
-export const heartHitPoint = (layout: StageLayout, positions: number, open = 0): Point => {
-    const { knob, dial } = layout;
+export const heartHitPoint = (layout: StageLayout, open = 0): Point => {
+    const { knob, dial, scale } = layout;
     const closed = knob.r + knob.heartHitGap + hitSizeUnits(layout) / 2;
-    return polar(knob, lerp(closed, dial.letters, open), scaleAngle(layout, positions - 1));
+    return polar(knob, lerp(closed, dial.letters, open), scale.toDeg);
 };
 
 /* ---------- 量度（淨空規則） ---------- */
@@ -89,13 +98,13 @@ export const buttonKnobGap = (layout: StageLayout): number =>
         ),
     );
 
-/** 左下螺絲同最近控件（旋鈕身、刻度線尖、細掣）嘅距離。♥ 嗰格唔計（佢喺另一邊） */
+/** 左下螺絲同最近控件（旋鈕身、專輯刻度線尖、細掣）嘅距離。♥ 嗰格唔計（佢喺弧尾，另一邊） */
 export const screwGap = (layout: StageLayout, positions: number): number => {
     const { knob, scale, screws, buttons } = layout;
     const screw = screws.points[screws.zoneIndex];
     if (!screw) return Number.POSITIVE_INFINITY;
     const tips = Array.from({ length: positions - 1 }, (_, pos) =>
-        polar(knob, scale.long, scaleAngle(layout, pos)),
+        polar(knob, scale.long, scaleAngle(layout, pos, positions)),
     );
     return Math.min(
         distance(knob, screw) - knob.r,
@@ -110,15 +119,18 @@ export interface HitArea extends Point {
     half: number;
 }
 
-/** 主頁所有可以㩒嘅嘢：三粒細掣、唱片夾、旋鈕（用本身大細）、♥ */
-export const hitAreas = (layout: StageLayout, positions: number): HitArea[] => {
+/**
+ * 主頁所有可以㩒嘅嘢：三粒細掣、唱片夾、旋鈕（用本身大細）、♥。
+ * 刻度線同字母盤唔係感應目標，♥ 又固定喺弧尾，所以同專輯數無關。
+ */
+export const hitAreas = (layout: StageLayout): HitArea[] => {
     const half = hitSizeUnits(layout) / 2;
     const { buttons, disc, knob } = layout;
     return [
         ...buttons.items.map(({ x, y }): HitArea => ({ x, y, shape: 'round', half })),
         { x: disc.x, y: disc.y, shape: 'round', half },
         { x: knob.x, y: knob.y, shape: 'round', half: Math.max(knob.r, half) },
-        { ...heartHitPoint(layout, positions), shape: 'square', half },
+        { ...heartHitPoint(layout), shape: 'square', half },
     ];
 };
 
@@ -132,8 +144,8 @@ const hitGap = (a: HitArea, b: HitArea): number => {
 };
 
 /** 最近兩個感應範圍之間嘅空隙 */
-export const minHitGap = (layout: StageLayout, positions: number): number => {
-    const areas = hitAreas(layout, positions);
+export const minHitGap = (layout: StageLayout): number => {
+    const areas = hitAreas(layout);
     return Math.min(
         ...areas.flatMap((a, index) => areas.slice(index + 1).map((b) => hitGap(a, b))),
     );

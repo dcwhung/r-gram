@@ -16,6 +16,8 @@ export const zhHant = {
     },
     track: {
         number: '第 {no} 首',
+        /** 左上資訊：歌號 · 播放位置（`m:ss`） */
+        position: '第 {no} 首 · {time}',
     },
     list: {
         open: '開啟歌單',
