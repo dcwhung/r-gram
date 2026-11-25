@@ -31,7 +31,7 @@ const REASON_PARAMS: Partial<Record<Reason, MessageParams>> = {
     TOO_MANY_UNKNOWN_FIELDS: { max: UNKNOWN_FIELDS_MAX },
 };
 
-const reasonMessage = (reason: Reason): string =>
+export const reasonMessage = (reason: Reason): string =>
     fillMessage(zhHant.albums.reasons[reason], REASON_PARAMS[reason]);
 
 /** 400 VALIDATION_ERROR：每個欄位錯誤加埋書面語 message */
