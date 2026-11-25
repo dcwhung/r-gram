@@ -24,6 +24,10 @@ DEFAULT_OUTPUT = REPO / 'apps' / 'api' / 'seed' / 'credits.json'
 NO_VALUE = ('—', '-', '')
 
 
+class SourceError(Exception):
+    """The source page does not look the way this script expects."""
+
+
 def strip(fragment):
     return html.unescape(re.sub(r'<[^>]+>', '', fragment)).strip()
 
@@ -31,7 +35,7 @@ def strip(fragment):
 def updated_date(page):
     match = re.search(r'更新\s*(\d{4}-\d{2}-\d{2})', page)
     if not match:
-        sys.exit('parse_credits: no "更新 YYYY-MM-DD" date in the page header')
+        raise SourceError('no "更新 YYYY-MM-DD" date in the page header')
     return match.group(1)
 
 
@@ -119,7 +123,10 @@ def main():
     parser.add_argument('output', nargs='?', type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
     disco = json.loads(args.discography.read_text(encoding='utf-8'))
-    document, people = build(args.source.read_text(encoding='utf-8'), disco)
+    try:
+        document, people = build(args.source.read_text(encoding='utf-8'), disco)
+    except SourceError as error:
+        sys.exit(f'parse_credits: {error}')
     args.output.write_text(json.dumps(document, ensure_ascii=False, indent=1), encoding='utf-8')
     report(document['albums'], disco, people)
 
