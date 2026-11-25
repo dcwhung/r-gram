@@ -7,6 +7,7 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
+    第 16 版補（2026-11-25）：加「歌書（歌詞冇時間標記）」（D38）同「歌單（專輯未有歌）」（D39）兩格。
     第 16 版（2026-11-25）。用戶決定：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺原位（同真唱片機一樣）；歌書開住時暫停，歌書留住。
     第 15 版（2026-11-25）。用戶意見：電視第二粒旋鈕 icon 要表示快轉同倒轉；屏幕開機 / 熄機加快；開關歌書要有過場；「尚未收藏歌曲」下面唔要提示。
     第 14 版（2026-11-24）。用戶意見：MV 電視欠立體感、電視腳光暗唔啱（參考附圖）；電視出現要有向上升起嘅過場；
@@ -128,7 +129,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede">第 16 版。① 刻度弧固定：專輯平均分佈，♥ 永遠喺最尾（見下面「刻度格數」）。② 暫停同真唱片機一樣：唱針略為升起，唱臂留喺碟上面原位，碟停喺原位；再㩒即刻續播。只有未揀歌同 MV 收返之後，唱臂先返回泊位。③ 歌書開住時㩒唱片夾暫停，歌書留住，歌詞停喺當時嗰句；要收歌書就㩒歌書掣。</p>
+    <p class="lede">第 16 版。① 刻度弧固定：專輯平均分佈，♥ 永遠喺最尾（見下面「刻度格數」）。② 暫停同真唱片機一樣：唱針略為升起，唱臂留喺碟上面原位，碟停喺原位；再㩒即刻續播。只有未揀歌同 MV 收返之後，唱臂先返回泊位。③ 歌書開住時㩒唱片夾暫停，歌書留住，歌詞停喺當時嗰句；要收歌書就㩒歌書掣。④ 新增兩格：歌詞冇時間標記時嘅歌書（唔跟歌，自己捲）、冇歌嘅專輯嘅歌單。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -333,6 +334,7 @@ tr:last-child td { border-bottom: 0; }
         trackCount: (count) => `${count} 首`,
         trackNumber: (no) => `第 ${String(no).padStart(2, '0')} 首`,
         emptyFavourites: '尚未收藏歌曲',
+        emptyAlbum: '尚未有歌曲',
         unofficial: '歌迷自製　非官方',
         openList: '開啟歌單',
         play: '播放',
@@ -428,6 +430,7 @@ tr:last-child td { border-bottom: 0; }
         ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形；播放模式掣著燈', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
         ['暫停', '同真唱片機一樣：唱針略為升起，唱臂留喺碟上面原位；碟停喺原位；唱片夾係 play + 停住嘅進度圈；再㩒即刻續播，唔使重新落針', { album: 'komorebi', song: true, paused: true, wheel: 0 }],
         ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
+        ['歌書（歌詞冇時間標記）', '同一個弧線版面；打開時第一行喺框線位置；唔會自動跟歌，用戶自己上下捲；暫停／播放唔影響位置', { album: 'komorebi', song: true, booklet: true, plain: true, wheel: 0 }],
         ['歌單（㩒碟面）', '唱片機壓暗；歌名沿碟弧線排；唱片夾係 play 掣；灰色嗰行 = 未有音檔（示意）', { album: 'komorebi', song: false, list: true, wheel: 0 }],
         ['MV 電視', '互動格入面會由底部升起再開機；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同快轉／倒轉', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
         ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播（再播時重新落針）', { album: 'komorebi', song: true, paused: true, parked: true, wheel: 0 }],
@@ -435,6 +438,7 @@ tr:last-child td { border-bottom: 0; }
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 已下架（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
+        ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
         ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
     ];
     const ui = { fav: true, mode: 'order', showHit: false, showGap: false };
@@ -744,7 +748,7 @@ tr:last-child td { border-bottom: 0; }
     /** 左上資訊；歌書開咗就黑底白字 */
     const info = (st) => {
         const { title, accent, glow } = ALBUMS[st.album];
-        const sub = st.empty ? T.trackCount(0) : ALBUMS[st.album].sub; // 未有收藏：0 首
+        const sub = st.empty && st.album === 'favourites' ? T.trackCount(0) : ALBUMS[st.album].sub; // 未有收藏：0 首；冇歌嘅專輯照顯示年份
         const dark = Boolean(st.booklet || st.list);
         const ink = dark ? PAPER : INK;
         const soft = dark ? '#b5b2aa' : '#555';
@@ -894,6 +898,8 @@ tr:last-child td { border-bottom: 0; }
     /* ---------- 歌書（㩒 i）：曲詞編監 + 沿碟弧線嘅同步歌詞。歌詞係佔位，唔係真歌詞 ---------- */
     const LYRICS = ['歌詞第一行（佔位）', '歌詞第二行（佔位）', '歌詞第三行（佔位）', '正在播放的一行', '歌詞第五行（佔位）', '歌詞第六行（佔位）', '歌詞第七行（佔位）'];
     const LYRIC_NOW = 3;
+    // 冇時間標記嘅歌詞（D38）：唔會跟歌行，用戶自己上下捲
+    const PLAIN_LYRICS = LYRICS.map((_, i) => `歌詞第${'一二三四五六七'[i]}行（佔位）`);
     const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
     const ARC = { r: 556, step: 9.2, now: 44, other: 32, frame: 92 }; // 弧線半徑比之前（600）縮入一個字位；行距不變（step 同 v16 歌單一樣 9.2°）
 
@@ -921,9 +927,11 @@ tr:last-child td { border-bottom: 0; }
         out += focusFrame(ARC.r, ARC.frame, 'book-frame');
         // 歌詞：以碟心做原點，過場時每行由而家嗰行嘅位置沿弧線轉去自己嘅位置
         let lines = '';
-        LYRICS.forEach((text, i) => {
-            const k = i - LYRIC_NOW;
+        LYRICS.forEach((line, i) => {
+            let text = line;
+            const k = i - (st.plain ? 0 : LYRIC_NOW); // 純文字歌詞：打開時第一行喺框線位置
             const now = k === 0;
+            if (st.plain) text = PLAIN_LYRICS[i];
             const [x, y] = polar(0, 0, ARC.r, 180 - k * ARC.step);
             lines +=
                 `<g class="book-line" style="--spread: ${n(k * ARC.step)}deg">` +
@@ -959,7 +967,7 @@ tr:last-child td { border-bottom: 0; }
         let out = dimLayer('closelist') + focusFrame(LIST.r, LIST.frame);
         if (st.empty) {
             const [x] = polar(DISC.x, DISC.y, LIST.r, 180);
-            out += `<text x="${n(x)}" y="${DISC.y}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${LIST.focus}" fill="${PAPER}">${T.emptyFavourites}</text>`;
+            out += `<text x="${n(x)}" y="${DISC.y}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${LIST.focus}" fill="${PAPER}">${st.album === 'favourites' ? T.emptyFavourites : T.emptyAlbum}</text>`;
             return `<g data-swap="list">${out}</g>`;
         }
         rows.forEach(([title, flag], i) => {
