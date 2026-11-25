@@ -2,6 +2,8 @@
  * API-011 POST /api/albums：新增專輯（冇上下架、冇草稿；欄位驗證錯誤用書面語）。
  * CR-004：發行類別必填；冇畀序號 = 嗰個類別最大序號 + 1；同類別序號唔可以重覆；回應帶 expectedFolder
  */
+import { reasonMessage } from '../src/albums/errors';
+import { CATEGORY_NO_MAX } from '../src/albums/fieldRules';
 import { ALBUM_ID_MAX_CHARS } from '../src/albums/validate';
 import { zhHant } from '../src/i18n/zh-Hant';
 import { albumRow, api, insertAlbum, insertAsset, json } from './albumFixtures';
@@ -212,6 +214,36 @@ describe('POST /api/albums', () => {
         expect(ep).toMatchObject({ categoryNo: 2, expectedFolder: 'ep-02-ni-dou' });
         const live = await json(await createBare('concert', 'live'));
         expect(live).toMatchObject({ categoryNo: 1, expectedFolder: 'live-01-concert' });
+    });
+
+    // S-118：自動序號都要守 CATEGORY_NO_MAX（同一句 INSERT 入面判斷，唔先讀後寫）
+    it('should give the automatic ordinal up to CATEGORY_NO_MAX', async () => {
+        await insertAlbum('last-but-one', 1, {
+            category: 'single',
+            category_no: CATEGORY_NO_MAX - 1,
+        });
+        const response = await createBare('last', 'single');
+        expect(response.status).toBe(201);
+        expect(await json(response)).toMatchObject({ categoryNo: CATEGORY_NO_MAX });
+    });
+
+    it('should refuse an automatic ordinal past CATEGORY_NO_MAX with INVALID_ORDINAL', async () => {
+        await insertAlbum('full', 1, { category: 'single', category_no: CATEGORY_NO_MAX });
+        const response = await createBare('one-too-many', 'single');
+        expect(response.status).toBe(400);
+        expect(await json<ErrorBody>(response)).toMatchObject({
+            error: {
+                code: 'VALIDATION_ERROR',
+                details: [
+                    {
+                        path: 'categoryNo',
+                        reason: 'INVALID_ORDINAL',
+                        message: reasonMessage('INVALID_ORDINAL'),
+                    },
+                ],
+            },
+        });
+        expect(await albumRow('one-too-many')).toBeNull();
     });
 
     it('should refuse an ordinal already used in the same category with ORDINAL_TAKEN', async () => {
