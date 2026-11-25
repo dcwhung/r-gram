@@ -79,6 +79,8 @@ export const allAlbumIds = async (db: D1Database): Promise<string[]> => {
 
 /** 一個 batch（transaction）寫晒 1..n：同時兩個排序，最後係其中一個嘅完整次序，唔會溝埋。唔郁 updated_at */
 export const writeOrder = async (db: D1Database, ids: readonly string[]) => {
+    // D1 batch 唔收空陣列（會 throw）；冇專輯 = 冇嘢要寫
+    if (ids.length === 0) return;
     const statement = db.prepare('UPDATE albums SET sort_order = ? WHERE id = ?');
     await db.batch(ids.map((id, index) => statement.bind(index + 1, id)));
 };

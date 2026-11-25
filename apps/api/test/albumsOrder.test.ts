@@ -76,3 +76,11 @@ describe('PUT /api/albums/order', () => {
         expect(response.status).toBe(404);
     });
 });
+
+describe('PUT /api/albums/order with no albums', () => {
+    it('should accept the empty list and answer 200 with it (D1 batch refuses no statements)', async () => {
+        const response = await order({ ids: [] });
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ ids: [] });
+    });
+});
