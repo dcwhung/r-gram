@@ -12,9 +12,9 @@
     - AC-8 後置步驟（backlog B-043 ③；TS API-061）：上載唔行 hook、唔加 `catalog`；其他寫入照行一次
     - AC-9 訊息（CLAUDE.md 介面文字）：全部 `message` / `details[].message` 係中文書面語，冇未填 `{…}`
 - Scope files:
-    - `apps/api/src/assets/**`、`src/catalog/**`
+    - `apps/api/src/assets/**`（`src/catalog/**` 由 T-026 起屬 `api-catalog`）
     - `apps/api/test/{webp,png,jpeg,assetsUpload,catalogImage}.test.ts`、`test/imageFixtures.ts`
-    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/i18n/zh-Hant.ts`、`src/lib/{env,http}.ts`（屬 `api-auth`）；`src/api/{afterWrite,errors}.ts`、`src/lib/fields.ts`、`src/i18n/fillMessage.ts`、`src/albums/validate.ts`（屬 `api-albums`）；`test/messageParams.test.ts`（屬 `api-tracks`）
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/catalog/{routes,serve}.ts`（公開圖 route，屬 `api-catalog`）；`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/i18n/zh-Hant.ts`、`src/lib/{env,http}.ts`（屬 `api-auth`）；`src/api/{afterWrite,errors}.ts`、`src/lib/fields.ts`、`src/i18n/fillMessage.ts`、`src/albums/validate.ts`（屬 `api-albums`）；`test/messageParams.test.ts`（屬 `api-tracks`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`

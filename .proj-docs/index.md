@@ -51,6 +51,7 @@
 | 2026-11-25 | [qa/2026-11-25_09-50_qa_api-albums.md](qa/2026-11-25_09-50_qa_api-albums.md) | S1 pass（AC-1–AC-9；冇阻擋性問題，兩條 Observation 入 backlog B-046） | 新鏈 `api-albums`：T-022；`api-auth`（共用檔）同 `repo-scaffold`（lock file）重驗。Frozen plan：[qa/plans/api-albums.md](qa/plans/api-albums.md) |
 | 2026-11-25 | [qa/2026-11-25_11-32_qa_api-tracks.md](qa/2026-11-25_11-32_qa_api-tracks.md) | S1 pass（AC-1–AC-9；冇阻擋性問題，一條 Observation） | 新鏈 `api-tracks`：T-023；`api-albums`、`api-auth`、`catalog-song-text`、`catalog-core` 重驗。Frozen plan：[qa/plans/api-tracks.md](qa/plans/api-tracks.md) |
 | 2026-11-25 | [qa/2026-11-25_12-02_qa_api-assets.md](qa/2026-11-25_12-02_qa_api-assets.md) | S1 pass（AC-1–AC-9；冇阻擋性問題） | 新鏈 `api-assets`：T-024（封面上載、公開圖片 route）；`api-auth`、`api-albums`、`api-tracks` 重驗。Frozen plan：[qa/plans/api-assets.md](qa/plans/api-assets.md) |
+| 2026-11-25 | [qa/2026-11-25_15-56_qa_api-catalog.md](qa/2026-11-25_15-56_qa_api-catalog.md) | S1 pass（冇阻擋性問題） | 新鏈 `api-catalog`：T-026（每次寫入後生成 catalog、重試 endpoint、對外 catalog 同歌詞 route）；`api-auth`、`api-albums`、`api-tracks`、`api-assets` 重驗。Frozen plan：[qa/plans/api-catalog.md](qa/plans/api-catalog.md) |
 
 Backlog：[backlog.md](backlog.md)
 

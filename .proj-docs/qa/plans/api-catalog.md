@@ -1,0 +1,25 @@
+# Test Plan — api-catalog
+
+- Chain: 儲存即生效（`apps/api`）：每個成功嘅 `/api` 寫入之後 `rebuildCatalog()`（D1 → document → `parseCatalogDocument()` → 內容 hash 冇變唔寫 → 條件寫入 R2 `catalog.json` → `catalog_state`）、重試 `POST /api/catalog/rebuild`、公開 `catalog.json` / `lyrics/:name`（連 T-024 嘅 `img/:name` 共用嘅 serve / routes 檔）。任務 T-026
+- AC（L1 來源：TS = Technical Spec v1.3、FS = Functional Spec v1.5）:
+    - AC-1 儲存即生效（TS「核心原則 1」、API-061、API-070；FS FR-121、D30、D39、D11）：每個成功寫入回應帶 `catalog`（同 `GET /api/albums` 一樣形狀）；`catalog.json` 即刻反映；文件過 `parseCatalogDocument()`、播放端 `loadCatalog()` 收；冇歌嘅專輯、冇音檔嘅歌照列；空字串 → `null`；`mediaUrl()` 每段 encode 一次
+    - AC-2 冇變唔寫（TS API-061「hash 一樣就唔寫」）：ETag、`generatedAt`、R2 object 不變；`unchanged: true`
+    - AC-3 未生成（TS API-070 Error Cases）：404 `NOT_READY`，`no-store`
+    - AC-4 重試 endpoint（TS API-061）：session 401、Origin 403；唔再行寫入後置步驟（一次生成）；200 / 422 `INVALID_DOCUMENT` / 502 `CATALOG_WRITE_FAILED`
+    - AC-5 生成失敗（TS API-061「生成失敗」、`catalog_state`；FS D30）：寫入照成功、`catalog.ok: false`；上一份 `catalog.json` 不變；`catalog_state` 保留上一份嘅值；`details` 只有專輯 / 歌 id、欄名、錯誤碼；回應同 log 冇內容；修好之後重試成功
+    - AC-6 歌詞檔（TS「R2 key layout」、API-041；review W-021、B-048）：改 / 清 / 刪歌 / 強制刪碟之後，舊檔喺 catalog 生成成功、而且冇其他歌用先刪；生成失敗留低；R2 刪除出錯唔影響寫入
+    - AC-7 並發（TS「API 設計」並發；review W-020）：同時多個寫入 → 最後生效嗰份 = D1；A→B→A 自我修正；撞過上限 → 記失敗，重試修返
+    - AC-8 公開路由（TS API-070、API-072、「安全設計」公開路由 / Header）：content type、`Cache-Control`（60 秒 / immutable）、ETag、`If-None-Match`（strong、weak、list、`*`）→ 304 冇 body、`HEAD`；CORS 只回 `PLAYER_ORIGINS`、`Vary: Origin`、expose `ETag`、preflight `GET,HEAD`；`nosniff`、CSP `default-src 'none'; sandbox`、冇 cookie；歌詞名唔合規 / traversal → 404
+    - AC-9 訊息（CLAUDE.md 介面文字）：`catalog` 錯誤訊息係中文書面語，冇未填 `{…}`
+- Scope files:
+    - `apps/api/src/catalog/**`（`buildDocument`、`conditional`、`errors`、`issues`、`rebuild`、`rebuildRoute`、`routes`、`serve`、`snapshot`、`state`）
+    - `apps/api/test/{catalogRebuild,catalogRebuildRoute,catalogPublic,lyricsAfterCatalog}.test.ts`、`test/catalogFixtures.ts`
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/api/afterWrite.ts`、`src/api/errors.ts`（屬 `api-albums`）；`src/tracks/{lyricsCleanup,songText}.ts`（屬 `api-tracks`）；`src/assets/{errors,imageName}.ts`、`test/catalogImage.test.ts`（屬 `api-assets`）；`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/lib/{securityHeaders,env,crypto}.ts`、`src/i18n/zh-Hant.ts`（屬 `api-auth`）；`@r-gram/catalog`（屬 `catalog-core`）；`apps/player/src/catalog/loader.ts`（屬 `player-catalog`，只做 consumer 檢查）
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie；本機 D1 / R2。失敗：直接改 D1 嘅值、R2 / D1 proxy（put reject / 回 null、delete reject、prepare throw）。並發：`Promise.all` 多個寫入；put proxy 喺寫入之前插入另一個請求（A→B→A）或者先改 etag（撞上限）。`loadCatalog()` 嘅 fetch 直接叫 Worker handler。預期由 spec 寫，唔抄 developer 嘅 test
+- HTTP smoke：唔使（冇改 middleware 次序；route 經 workerd 打 `src/index.ts`）。唔好 request `wrangler.toml` 嘅真 `MEDIA_BASE`
+- PWA gate: no。Performance gate: no（每個寫入讀兩句 D1 + head / put 一個 R2 object；291 首歌估計 < 170 KB）。Security / Data gate: yes（AC-4、AC-5、AC-8）
+- Out of scope: 管理端提示同重試掣（T-051 起）；seed 之後生成（T-027、API-070 `NOT_READY` 建議）；CR-004 嘅 `category` / `categoryNo`（T-097 之後）；Worker 中途被中止嘅窄位（`rebuild.ts` 註解已記）；共用歌詞檔同時寫入嘅窄位（`lyricsCleanup.ts` 註解已記）
