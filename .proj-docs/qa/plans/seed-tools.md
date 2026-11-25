@@ -1,11 +1,11 @@
 # Test Plan — seed-tools
 
-- Chain: 內容資料轉檔 script（`_design_/tools/`）：由用戶嘅來源檔 `_design_/rubberband-discography.html`、`rubberband-credits.html` 生成 `apps/api/seed/discography.json`、`credits.json`（project 規則：seed 唔人手改）。任務 T-097（review 修正 W-029、S-120、S-121）
+- Chain: 內容資料轉檔 script（`_design_/tools/`）：由用戶嘅來源檔 `_design_/rubberband-discography.html`、`rubberband-credits.html` 生成 `apps/api/seed/discography.json`、`credits.json`（project 規則：seed 唔人手改）。任務 T-097（review 修正 W-029、S-120、S-121）、T-101（只有年份）
 - AC（L1 來源：TS = Technical Spec v1.3「內容資料重新生成（T-097）」「資料夾名同發行類別」；FS = Functional Spec v1.5 CR-004「內容資料」「資料夾命名」、D43、D44、D46、D47）:
     - AC-1 數量（FS D46）：21 個發行、291 首歌；credit 21 個發行、252 行；每個發行 `trackCount` = 歌數
-    - AC-2 類別同序號（FS「資料夾命名」表、D43、D44）：每個發行有 `category`（六個短名之一）、`categoryNo`（類別內由 1 連續）；`type` = 類別中文名，原文留 `sourceMeta`；同類別同序號重覆 → script 停（`check_unique`）
+    - AC-2 類別同序號（FS「資料夾命名」表、D43、D44）：每個發行有 `category`（六個短名之一）、`categoryNo`（類別內由 1 連續）；CR-006（D44）：冇 `type` 輸出，原文留 `sourceMeta`；同類別同序號重覆 → script 停（`check_unique`）
     - AC-3 id 同次序（TS T-097「已有嘅 16 個 id 不變」、FS D47 建議）：16 個舊 id 不變、`singles` 冇咗、5 個新 id 由明確對照表定；初始 `order` 先類別後序號；21 個預期資料夾名同 FS 例子一致（`album-01-apollo-18` … `single-02-joeng-sai-gaai-dou-dung`）
-    - AC-4 舊歌 id（TS T-097；`packages/catalog/src/seed/testing/previousTrackIds.json`）：`bce4dde` 嘅 262 首歌入面 261 個 id 同歌名不變（`singles-01` Ciao 搬去 `zoi-jat-hei-01`）；保留嘅 16 張碟 `title`、`releaseDate`、`year`、`label`、`wheelKey` 不變
+    - AC-4 舊歌 id（TS T-097；`packages/catalog/src/seed/testing/previousTrackIds.json`）：`bce4dde` 嘅 262 首歌入面 261 個 id 同歌名不變（`singles-01` Ciao 搬去 `zoi-jat-hei-01`）；保留嘅 16 張碟 `title`、`label`、`wheelKey` 不變。CR-006（T-101；FS D63、TS「只有年份」Seed 生成行）：冇 `releaseDate` 輸出；`year` = 來源日期頭四位（`YYYY`、`YYYY-MM`、`YYYY-MM-DD`；開頭唔係四位數字 = `null`），21 張都有年份，「終於好天氣」= 2016，其他年份不變；歌單（291 首 id + 歌名）同 `7ad5390` 一樣
     - AC-5 可重現（CLAUDE.md「內容資料由 script 生成，唔人手改」）：兩個 script 再跑一次 → 同 committed 檔 byte 一樣（唔受 `PYTHONHASHSEED` 影響）；日期由來源檔讀，唔寫死；來源格式唔啱 → `SourceError`，淨 `main()` exit
     - AC-6 離線：只用標準庫；冇網絡 import；喺冇網絡嘅 namespace（`unshare -rn`）照跑得
 - Scope files:

@@ -5,8 +5,8 @@
     - AC-1 守門（TS「API 設計」通則、「安全設計」授權 / CSRF）：全部 `/api/albums*` 冇 session 一律 401；寫入 Origin ≠ `WORKER_ORIGIN` 一律 403，資料不變；讀唔使 Origin
     - AC-2 列表（TS API-010；FS FR-114、US-102 第 1 點；D35 建議，未確認唔 block）：按 `sort_order` 排；每張碟 `completeness { tracks, audio, mv, lyrics }`（NULL 同空字串 key 當冇）；`stats` = 專輯數、歌數、有音檔 / 歌詞 / MV 嘅歌數、有封面嘅專輯數；`catalog` = `catalog_state` 或 null
     - AC-3 新增 / 讀取（TS API-011、API-012；FS US-102 第 4、5 點）：id 規則（`^[a-z0-9]+(-[a-z0-9]+)*$`、非 `favourites`、≤ 64）同 title 必填；字母盤標記預設按碟名；排最尾；id 重覆 409 `CONFLICT`；讀取連歌（唔包歌詞原文）
-    - AC-4 修改（TS API-013、通則「並發」；FS US-102 第 2、3 點）：只改有畀嘅欄；`id`、`enabled`（CR-003）同其他未知欄 400；冇 If-Match 400、過時 409 `STALE`；同一個 If-Match 兩個請求只有一個成功；`year` 跟 `releaseDate`
-    - AC-5 驗證同安全（TS「安全設計」輸入驗證、R2 key 驗證）：文字欄擋控制 / 格式 / 行分隔字元；長度上限；日期、色碼、assets；folder 擋 `.`、`..`、`/ \ ? # %`；未知欄位名截短；錯誤一次過列晒（path + reason）
+    - AC-4 修改（TS API-013、通則「並發」；FS US-102 第 2、3 點）：只改有畀嘅欄；`id`、`enabled`（CR-003）同其他未知欄 400；冇 If-Match 400、過時 409 `STALE`；同一個 If-Match 兩個請求只有一個成功；`year` 見 AC-13
+    - AC-5 驗證同安全（TS「安全設計」輸入驗證、R2 key 驗證）：文字欄擋控制 / 格式 / 行分隔字元；長度上限；年份、色碼、assets；folder 擋 `.`、`..`、`/ \ ? # %`；未知欄位名截短；錯誤一次過列晒（path + reason）
     - AC-6 排序（TS API-015）：`ids` 要同現有專輯完全一樣（缺、多 → 409 `CONFLICT`；重覆、非字串 → 400）；冇專輯 + `[]` → 200；同時兩個排序最後係其中一個完整次序
     - AC-7 刪除（TS API-014、「ID 守衛」；FS US-102 第 6 點、D30）：冇 `?force=1` → 409 `ID_REMOVED`，`details` 列專輯同歌 id；`force=1` 刪專輯、歌、歌詞（cascade），回應列出真係刪咗嘅歌
     - AC-8 寫入後置步驟（TS API-061、「CR-003 對技術設計嘅影響」內容流程 / 生成失敗）：只喺成功寫入之後行；hook throw → 照回成功 status，加 `catalog: { ok: false }`，錯誤內容唔入回應同 log；預設 no-op 唔改回應
@@ -14,6 +14,7 @@
     - AC-10 類別同序號（CR-004，T-098；FS FR-124、D43、D44；TS API-011、API-013、「資料夾名同發行類別」）：`category` 必填、六個短名之一（`INVALID_CATEGORY`）；`categoryNo` 1–999 整數（`INVALID_ORDINAL`）；冇畀 = 同類別 `MAX + 1`，到 999 就 400 `INVALID_ORDINAL`、乜都唔寫（S-118）；同類別撞號 400 `ORDINAL_TAKEN`；新增：id 撞 409 `CONFLICT` 先過 `ORDINAL_TAKEN`；修改：404 → 409 `STALE` → `ORDINAL_TAKEN`；淨改類別用而家嘅序號查；只改其他欄唔查；同時新增 / 修改唔會撞號
     - AC-11 資料夾同來源 ETag（CR-004；TS「資料夾名同發行類別」、B-045 ①、B-049 ②）：`folder` 任何位置 `..`、`_` 開頭 → `INVALID_FOLDER`；`null` = 用預期資料夾名；回應（API-010、012、013）帶 `category`、`categoryNo`、`coverSourceEtag`（≤ 128 字，`null` 清走）、`folder`、`expectedFolder`（`<category>-<NN>-<id>`，唔可以改）
     - AC-12 第二張封面（CR-005，T-100；FS D55、FR-125；TS API-010–013、「CR-005 對技術設計嘅影響 → 第二張封面」）：新增 / 讀取 / 列表 / 修改帶 `cover2`、`thumb2`、`cover2SourceEtag`（≤ 128 字，`null` 清走）；兩個圖欄要係已上載嘅圖（`UNKNOWN_ASSET`）；改完之後 `cover2` / `thumb2` 一齊有或者一齊冇（`UNPAIRED_COVER2`）；有第二張一定有第一張（`COVER2_WITHOUT_COVER`，連清走第一張而第二張仲喺度）；同一個 PATCH 全部清走得；次序 400 欄位錯 → 404 → 409 `STALE` → 封面規則；同時兩個 PATCH = 一個 200 一個 409，唔會 500；套用第二張唔郁 `accent`
+    - AC-13 只有年份（CR-006，T-101；FS D63、D44；TS「只有年份、冇『類型』」、API-010–013）：`year` 可選，`null` 或者 1900–2100 整數（`YEAR_MIN` / `YEAR_MAX`），其他（`"2016"`、小數、範圍外、`true`）→ 400 `INVALID_YEAR`；新增同 PATCH 直接改；`releaseDate`、`type` 喺 body → 400 `NOT_EDITABLE`；任何回應（列表、讀取、新增、修改）都冇 `releaseDate` / `type`
 - Scope files:
     - `apps/api/src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`；內容 API 共用（T-023 由專輯 code 抽出，歌曲 API 都用）：`src/api/errors.ts`、`src/lib/fields.ts`
     - `apps/api/test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`（`album*.ts` 包括 T-100 嘅 `albumsSecondCover.test.ts`）

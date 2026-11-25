@@ -5,6 +5,7 @@
     - AC-1 儲存即生效（TS「核心原則 1」、API-061、API-070；FS FR-121、D30、D39、D11）：每個成功寫入回應帶 `catalog`（同 `GET /api/albums` 一樣形狀）；`catalog.json` 即刻反映；文件過 `parseCatalogDocument()`、播放端 `loadCatalog()` 收；冇歌嘅專輯、冇音檔嘅歌照列；空字串 → `null`；`mediaUrl()` 每段 encode 一次
     - AC-1b 類別（CR-004，T-098；TS API-070 / 072「專輯加 `category`、`categoryNo`」、「內容檔 schema」）：`catalog.json` 每張專輯都有 `category`、`categoryNo`；`folder`、`coverSourceEtag`、`expectedFolder` 唔入
     - AC-1c 第二張封面（CR-005，T-100；TS API-070、「CR-005 → 第二張封面」）：`catalog.json` 每張專輯都有 `cover2`、`thumb2`（冇 = `null`）；`cover2SourceEtag` 唔入；新增、修改、清走之後即刻反映
+    - AC-1d 歌號同年份（CR-006，T-101、T-102；TS「只有年份」Catalog 生成行、「歌號同歌 id」次序行）：`catalog.json` 嘅歌號係真歌號（可以跳號，刪歌之後唔重編），按 `no` 排；專輯 `year` = D1 `year`（`null` 照出）；冇 `releaseDate`、`type`；改歌號 / 刪歌 / 改年份之後即刻反映
     - AC-2 冇變唔寫（TS API-061「hash 一樣就唔寫」）：ETag、`generatedAt`、R2 object 不變；`unchanged: true`
     - AC-3 未生成（TS API-070 Error Cases）：404 `NOT_READY`，`no-store`
     - AC-4 重試 endpoint（TS API-061）：session 401、Origin 403；唔再行寫入後置步驟（一次生成）；200 / 422 `INVALID_DOCUMENT` / 502 `CATALOG_WRITE_FAILED`

@@ -1,20 +1,20 @@
 # Test Plan — api-tracks
 
-- Chain: 歌曲 API（`apps/api`）：新增歌（歌曲文字）、讀 / 存歌曲文字（If-Match，歌詞 JSON 寫 R2）、改參考欄同手動音檔 / MV、排序（歌號 1..n）、刪歌（ID 守衛）、清歌詞確認。任務 T-023
-- AC（L1 來源：TS = Technical Spec v1.2、FS = Functional Spec v1.4）:
-    - AC-1 守門（TS「API 設計」通則、「安全設計」授權 / CSRF）：6 條 route（API-020 – 023、040、041）冇 session 一律 401；寫入 Origin ≠ `WORKER_ORIGIN` 一律 403，資料同 R2 不變；讀唔使 Origin
-    - AC-2 新增（TS API-020；FS FR-104、FR-120、D31）：body `{ text }` 同 API-041；冇呢張碟 404；加喺最尾，歌號 = 次序；id `<albumId>-<6 位細楷英數>`；回應 = 正規化文字 + 歌曲物件
+- Chain: 歌曲 API（`apps/api`）：新增歌（歌號 + 歌曲文字）、讀 / 存歌曲文字（If-Match，歌詞 JSON 寫 R2）、改歌號、參考欄同手動音檔 / MV、刪歌（ID 守衛，唔重編）、清歌詞確認。任務 T-023、T-102（CR-006）
+- AC（L1 來源：TS = Technical Spec v1.6（CR-006「歌號同歌 id」）、FS = Functional Spec v1.8（D60、D61））:
+    - AC-1 守門（TS「API 設計」通則、「安全設計」授權 / CSRF）：5 條 route（API-020 – 022、040、041）冇 session 一律 401；寫入 Origin ≠ `WORKER_ORIGIN` 一律 403，資料同 R2 不變；讀唔使 Origin
+    - AC-2 新增（TS API-020、CR-006「歌號同歌 id」；FS FR-104、FR-120、D60、D61）：body `{ no?, text }`（`text` 同 API-041）；`no` 1–999 整數（其他 → 400 `INVALID_NUMBER`）；冇畀 = 最大歌號 + 1（冇歌 = 1），過 999 → 400 `NUMBER_EXHAUSTED`；撞號 → 409 `CONFLICT` + `[{ path: 'no', reason: 'NUMBER_TAKEN' }]`；次序 400 → 404（冇呢張碟）→ 409；id = `trackIdFor(albumId, no)`（`<albumId>-<NN>`，100 以上三位），已經有人用先用 `<albumId>-<6 位隨機>`；寫唔到嘅歌詞檔即刻收返；回應 = 正規化文字 + 歌曲物件
     - AC-3 讀 / 存歌曲文字（TS API-040、API-041、「`parseSongText()` 嘅規則」；FS D31、D32、D37）：讀回 = `formatSongText()`；存：有錯回 400 乜都唔寫；有歌詞先寫 R2 `catalog/v1/lyrics/<hash>.json`（API-072 內容，帶 `synced`）再寫 D1；舊檔冇人用就刪；If-Match 冇 400、過時 409 `STALE`
     - AC-4 清歌詞確認（FS D30「儲存會清走成段現有歌詞時再確認一次」）：冇 `?force=1` → 409 `LYRICS_REMOVED`，乜都唔改；`force=1` → `lyrics` 行同 R2 檔都冇咗
     - AC-5 逐行錯誤同上限（TS API-041 Error Cases、「安全設計」歌曲文字）：`TITLE_REQUIRED`、`DUPLICATE_LABEL`、`MIXED_TIMESTAMPS`、`BAD_TIMESTAMP`、`BAD_OFFSET`、`*_TOO_LONG`、`TOO_MANY_LINES` 帶行號；超過 `SONG_TEXT_MAX_BYTES` → 413 `TOO_LARGE`（大 body 未 parse 就擋）；淨係 CR 當換行（B-042）；空行之後嘅標籤樣行照存，回 `hints`（B-038）
-    - AC-6 改欄位（TS API-021、「安全設計」R2 key 驗證；FS D37）：只收 `lyricsSourceUrl`（https，冇 userinfo：S-067）、`note`、`audio`、`mv`；key 冇 `..`、唔以 `/` 開頭、冇隱藏字元、`MEDIA.head` 存在；其他欄 `NOT_EDITABLE`（最多列 20 個，B-046）；If-Match 同 AC-3
-    - AC-7 排序同刪除（TS API-022、API-023、「ID 守衛」；FS FR-104、D30）：排序 `ids` 要同張碟而家嘅歌一樣（唔係 → 409 `CONFLICT`，重覆 / 非字串 → 400）；刪歌冇 `?force=1` → 409 `ID_REMOVED`；歌號永遠 1..n
-    - AC-8 並發（TS「API 設計」並發）：同一個 If-Match 兩個寫入只有一個成功，輸咗嗰個寫嘅 R2 檔清走；同時新增 id、歌號唔撞；排序同新增 / 刪除撞，歌號仍然 1..n
+    - AC-6 改欄位（TS API-021、「安全設計」R2 key 驗證；FS D37、D60）：只收 `no`（同 AC-2 範圍；撞號 409 `NUMBER_TAKEN`；唔改 id）、`lyricsSourceUrl`（https，冇 userinfo：S-067）、`note`、`audio`、`mv`；key 冇 `..`、唔以 `/` 開頭、冇隱藏字元、`MEDIA.head` 存在；其他欄 `NOT_EDITABLE`（最多列 20 個，B-046）；次序 400（欄位 / 冇 If-Match）→ 404 → 409 `STALE` → `NUMBER_TAKEN`
+    - AC-7 刪歌同取消排序（TS API-022、~~API-023~~、CR-006「歌號同歌 id」、「ID 守衛」；FS D30、D60）：冇 `?force=1` → 409 `ID_REMOVED`；刪咗之後其他歌嘅歌號同 id 不變（唔重編），歌詞行同 R2 檔照清；之後自動歌號 = 剩低最大 + 1；舊排序 route `PUT /api/albums/:id/tracks/order` → 404，乜都唔改
+    - AC-8 並發（TS「API 設計」並發、CR-006「歌號同歌 id」）：同一個 If-Match 兩個寫入只有一個成功，輸咗嗰個寫嘅 R2 檔清走；同時兩個新增 / 兩個 PATCH 搶同一個歌號 → 一個成功一個 409 `NUMBER_TAKEN`，唔會 500；同時自動歌號唔會撞號，冇孤兒歌詞檔
     - AC-9 訊息（CLAUDE.md 介面文字；backlog B-044、B-045）：全部 `message`、`details[].message`、`hints[].message` 係中文書面語，冇未填 `{…}`；`code` 同 spec 一致
 - Scope files:
     - `apps/api/src/tracks/**`
-    - `apps/api/test/tracks*.test.ts`、`test/trackFixtures.ts`、`test/messageParams.test.ts`
-    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/api/errors.ts`、`src/lib/fields.ts`、`src/albums/{store,order}.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`（屬 `api-albums`）；`src/api/routes.ts`、`src/config.ts`、`src/lib/{http,crypto}.ts`、`src/i18n/zh-Hant.ts`（屬 `api-auth`）；`@r-gram/catalog` song-text（屬 `catalog-song-text`）
+    - `apps/api/test/tracks*.test.ts`（T-102：`tracksDelete.test.ts` 取代 `tracksDeleteOrder.test.ts`）、`test/trackFixtures.ts`、`test/messageParams.test.ts`
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/api/errors.ts`、`src/lib/fields.ts`、`src/albums/{store,order}.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`（屬 `api-albums`）；`src/api/routes.ts`、`src/config.ts`、`src/lib/{http,crypto}.ts`、`src/i18n/zh-Hant.ts`、`migrations/0001_init.sql`（屬 `api-auth`）；`@r-gram/catalog` song-text（屬 `catalog-song-text`）、`schema/ids.ts`（`trackIdFor`、`TRACK_NO_MAX`，屬 `catalog-core`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
