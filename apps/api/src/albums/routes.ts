@@ -12,6 +12,7 @@ import { albumOverview } from './overview';
 import { readOrder } from './order';
 import { toAlbum } from './rows';
 import * as store from './store';
+import { dropUnusedLyrics } from '../tracks/lyricsCleanup';
 import { tracksOf } from '../tracks/rows';
 import { parseCreate, parseFields, unknownAssetIssues } from './validate';
 
@@ -73,7 +74,9 @@ albumRoutes.delete('/:id', async (c) => {
         const removed = [{ type: 'album', id }, ...trackIds.map((t) => ({ type: 'track', id: t }))];
         return albumError(c, 'idRemoved', removed);
     }
-    const trackIds = await store.deleteAlbum(c.env.DB, id);
-    if (!trackIds) return albumError(c, 'notFound');
-    return c.json({ deleted: { albumId: id, trackIds } });
+    const deleted = await store.deleteAlbum(c.env.DB, id);
+    if (!deleted) return albumError(c, 'notFound');
+    // 同刪歌一樣：冇其他歌用緊嘅歌詞檔由 R2 刪走（backlog B-048）
+    await dropUnusedLyrics(c.env, deleted.lyricsNames);
+    return c.json({ deleted: { albumId: id, trackIds: deleted.trackIds } });
 });

@@ -1,4 +1,5 @@
-/* API-014 DELETE /api/albums/:id：ID 守衛（冇 ?force=1 回 409 ID_REMOVED），連歌同歌詞一齊刪 */
+/* API-014 DELETE /api/albums/:id：ID 守衛（冇 ?force=1 回 409 ID_REMOVED），連歌同歌詞一齊刪（R2 歌詞檔：backlog B-048） */
+import { env } from 'cloudflare:test';
 import { zhHant } from '../src/i18n/zh-Hant';
 import {
     albumRow,
@@ -36,6 +37,23 @@ describe('DELETE /api/albums/:id', () => {
             },
         });
         expect(await countOf('tracks')).toBe(3);
+    });
+
+    // backlog B-048：刪專輯之後，冇其他歌用緊嘅歌詞檔由 R2 刪走（同刪歌一樣用 dropUnusedLyrics）
+    it('should drop the lyrics files of the deleted songs that no other song uses', async () => {
+        await seed();
+        await insertLyrics('apollo-18-02');
+        await insertLyrics('beaming-01');
+        await env.DB.prepare(
+            "UPDATE lyrics SET json_name = 'apollo-18-02.json' WHERE track_id = 'beaming-01'",
+        ).run();
+        const key = (name: string) => `catalog/v1/lyrics/${name}`;
+        for (const name of ['apollo-18-01.json', 'apollo-18-02.json'])
+            await env.CATALOG.put(key(name), '{}');
+        const response = await api('DELETE', '/api/albums/apollo-18?force=1');
+        expect(response.status).toBe(200);
+        expect(await env.CATALOG.head(key('apollo-18-01.json'))).toBeNull();
+        expect(await env.CATALOG.head(key('apollo-18-02.json'))).not.toBeNull();
     });
 
     it('should not take any force value other than 1', async () => {

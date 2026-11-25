@@ -95,15 +95,33 @@ export const trackIdsOf = async (db: D1Database, albumId: string): Promise<strin
     return rows.results.map((row) => row.id);
 };
 
+export interface DeletedAlbum {
+    trackIds: string[];
+    /** 刪走嘅歌用過嘅歌詞檔名（之後由 R2 刪走冇其他歌用緊嘅，backlog B-048） */
+    lyricsNames: string[];
+}
+
 /**
- * 刪專輯：歌同歌詞由 ON DELETE CASCADE 帶走。列歌 id 同刪除喺同一個 batch，回應列出嘅就係真係刪咗嘅歌。
+ * 刪專輯：歌同歌詞由 ON DELETE CASCADE 帶走。列歌 id、歌詞檔名同刪除喺同一個 batch，回應列出嘅就係真係刪咗嘅歌。
  * 已經唔存在（例如同時刪咗）→ undefined
  */
-export const deleteAlbum = async (db: D1Database, albumId: string) => {
-    const [listed, deleted] = await db.batch<{ id: string }>([
+export const deleteAlbum = async (
+    db: D1Database,
+    albumId: string,
+): Promise<DeletedAlbum | undefined> => {
+    const [listed, lyrics, deleted] = await db.batch<{ id?: string; json_name?: string }>([
         db.prepare('SELECT id FROM tracks WHERE album_id = ? ORDER BY "no", id').bind(albumId),
+        db
+            .prepare(
+                `SELECT l.json_name FROM lyrics l JOIN tracks t ON t.id = l.track_id
+                 WHERE t.album_id = ?`,
+            )
+            .bind(albumId),
         db.prepare('DELETE FROM albums WHERE id = ?').bind(albumId),
     ]);
     if (!deleted || deleted.meta.changes === 0) return undefined;
-    return listed?.results.map((row) => row.id) ?? [];
+    return {
+        trackIds: listed?.results.map((row) => row.id as string) ?? [],
+        lyricsNames: lyrics?.results.map((row) => row.json_name as string) ?? [],
+    };
 };
