@@ -46,6 +46,7 @@ export type {
     SeedTrack,
 } from './seed/types';
 export { formatSongText } from './song-text/formatSongText';
+export { labelLinesAfterGap } from './song-text/labelHints';
 export {
     CREDIT_MAX_CHARS,
     LYRIC_LINE_MAX_CHARS,

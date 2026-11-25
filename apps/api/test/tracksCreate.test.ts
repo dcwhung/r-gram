@@ -5,7 +5,7 @@
 import { env } from 'cloudflare:test';
 import { vi } from 'vitest';
 import { zhHant } from '../src/i18n/zh-Hant';
-import { api, countOf, insertAlbum, json } from './albumFixtures';
+import { api, countOf, dbWithHook, insertAlbum, json } from './albumFixtures';
 import {
     LYRICS_NAME,
     createTrack,
@@ -69,7 +69,11 @@ describe('POST /api/albums/:id/tracks', () => {
     it('should create a track without lyrics and write nothing to R2', async () => {
         const body = await json<Created>(await createTrack('apollo-18', { text: '只有歌名' }));
         expect(body).toMatchObject({ lineCount: 0, synced: null, lyrics: null });
-        expect(body.track).toMatchObject({ title: '只有歌名', credits: null, lyrics: null });
+        expect(body.track).toMatchObject({
+            title: '只有歌名',
+            credits: { composer: null, lyricist: null, arranger: null, producer: null },
+            lyrics: null,
+        });
         expect(await lyricsRow(body.trackId)).toBeNull();
         expect(await lyricsFiles()).toEqual([]);
     });
@@ -99,12 +103,12 @@ describe('POST /api/albums/:id/tracks', () => {
         const original = crypto.getRandomValues.bind(crypto);
         const random = vi.spyOn(crypto, 'getRandomValues');
         // 只換 6 byte 嗰次（歌 id 後綴）；session token 等照用真嘅隨機數
-        random.mockImplementation(<T extends ArrayBufferView | null>(array: T): T => {
-            const bytes = array as unknown as Uint8Array;
-            if (bytes.length !== TRACK_ID_SUFFIX_CHARS) return original(array);
+        const fake = (bytes: Uint8Array) => {
+            if (bytes.length !== TRACK_ID_SUFFIX_CHARS) return original(bytes);
             bytes.forEach((_, index) => (bytes[index] = values.shift() ?? 2));
-            return array;
-        });
+            return bytes;
+        };
+        random.mockImplementation(fake as typeof crypto.getRandomValues);
         const first = await json<Created>(await createTrack('apollo-18', { text: '甲' }));
         values.unshift(0, 0, 0, 0, 0, 0);
         const second = await json<Created>(await createTrack('apollo-18', { text: '乙' }));
@@ -146,6 +150,22 @@ describe('POST /api/albums/:id/tracks', () => {
             code: 'NOT_FOUND',
             message: zhHant.tracks.errors.albumNotFound,
         });
+        expect(await lyricsFiles()).toEqual([]);
+    });
+
+    it('should answer 404 and remove its lyrics file when the album is deleted meanwhile', async () => {
+        const DB = dbWithHook('SELECT id, title, wheel_key', () =>
+            env.DB.prepare('DELETE FROM albums WHERE id = ?').bind('apollo-18').run(),
+        );
+        const response = await api(
+            'POST',
+            '/api/albums/apollo-18/tracks',
+            { text: '歌\n\n[00:01.00]一' },
+            {},
+            { ...env, DB },
+        );
+        expect(response.status).toBe(404);
+        expect(await countOf('tracks')).toBe(0);
         expect(await lyricsFiles()).toEqual([]);
     });
 

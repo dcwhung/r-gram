@@ -5,7 +5,16 @@
  */
 import { TITLE_MAX_CHARS } from '@r-gram/catalog';
 import type { zhHant } from '../i18n/zh-Hant';
-import type { Rule as FieldRule, RuleResult as FieldRuleResult } from '../lib/fields';
+import {
+    charCount,
+    fail,
+    HIDDEN_CHARACTER,
+    nullable,
+    ok,
+    text as textRule,
+    type Rule as FieldRule,
+    type RuleResult as FieldRuleResult,
+} from '../lib/fields';
 
 export type Reason = keyof typeof zhHant.albums.reasons;
 
@@ -20,24 +29,12 @@ const WHEEL_KEY_MAX_CHARS = 2;
 const ACCENT = /^#[0-9a-f]{6}$/i;
 const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 /**
- * 文字欄同字母盤標記共用嘅字元規則：控制字元（Cc：換行、tab）、格式字元（Cf：零寬空格、RTL override、BOM）、
- * 行分隔（Zl，U+2028）、段分隔（Zp，U+2029）。畫面上睇唔到或者會亂排版，亦可以砌出假 log 行。
- * 普通空格同全形空格（Zs）照收
- */
-const HIDDEN_CHARACTER = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
-/**
  * 資料夾名係 R2 key 嘅 prefix，亦會砌入播放端網址（MEDIA_BASE + key）：
  * 斜線 / 反斜線會變多層，`?` `#` `%` 令網址斷開或者被解碼（Technical Spec「安全設計 → R2 key 驗證」）
  */
 const UNSAFE_IN_FOLDER = /[/\\?#%]/;
 /** `.` / `..`：網址正規化會當成「本層 / 上一層」，跳出 MEDIA_BASE 嘅 path */
 const DOT_SEGMENT = /^\.{1,2}$/;
-
-const ok = (value: unknown): RuleResult => ({ ok: true, value });
-const fail = (reason: Reason): RuleResult => ({ ok: false, reason });
-
-/** 按字（code point）計，中文字同 emoji 都當一個字 */
-const charCount = (value: string): number => [...value].length;
 
 /** `YYYY-MM-DD` 而且真有其日（`2008-02-30` 唔收） */
 export const isCalendarDate = (value: string): boolean => {
@@ -52,20 +49,8 @@ export const isCalendarDate = (value: string): boolean => {
     );
 };
 
-/** 文字欄：trim 之後存；`required` = 唔可以係空 */
-const text =
-    (required: boolean): Rule =>
-    (value) => {
-        if (typeof value !== 'string' || HIDDEN_CHARACTER.test(value)) return fail('INVALID_TEXT');
-        const trimmed = value.trim();
-        if (required && trimmed === '') return fail('REQUIRED');
-        return charCount(trimmed) > TEXT_MAX_CHARS ? fail('TOO_LONG') : ok(trimmed);
-    };
-
-const nullable =
-    (rule: Rule): Rule =>
-    (value) =>
-        value === null ? ok(null) : rule(value);
+/** 碟名、類型、唱片公司、資料夾名 */
+const text = (required: boolean): Rule => textRule(required, TEXT_MAX_CHARS);
 
 const wheelKey: Rule = (value) => {
     const valid =

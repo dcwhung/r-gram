@@ -14,7 +14,7 @@ describe('labelLinesAfterGap', () => {
     });
 
     it('should count lines the same way as the parser (CR, CRLF, BOM, leading blanks)', () => {
-        expect(labelLinesAfterGap('﻿\r\n歌名\r\r\n監：甲')).toEqual([4]);
+        expect(labelLinesAfterGap('\uFEFF\r\n歌名\r\r\n監：甲')).toEqual([4]);
     });
 
     it('should find nothing for well-formed text, lyrics without labels, or no title', () => {

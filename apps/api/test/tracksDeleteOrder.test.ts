@@ -78,7 +78,7 @@ describe('DELETE /api/tracks/:id', () => {
     });
 
     it('should answer 404 when another request deleted the track first', async () => {
-        const DB = dbWithHook('SELECT', () =>
+        const DB = dbWithHook('SELECT t.album_id', () =>
             env.DB.prepare('DELETE FROM tracks WHERE id = ?').bind('apollo-18-02').run(),
         );
         const response = await api(

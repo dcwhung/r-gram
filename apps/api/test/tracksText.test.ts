@@ -115,7 +115,7 @@ describe('PUT /api/tracks/:id/text: saving', () => {
     });
 
     it('should answer with the normalised text that refills the text box', async () => {
-        const messy = '﻿\r\n  歌名  \r\n詞:  林夕 \r\n曲 ： 阿正\r\n\r\n\r\n第一句  \r\n';
+        const messy = '\uFEFF\r\n  歌名  \r\n詞:  林夕 \r\n曲 ： 阿正\r\n\r\n\r\n第一句  \r\n';
         const body = await json<Saved>(await putText('apollo-18-01', messy));
         expect(body.text).toBe('歌名\n曲：阿正\n詞：林夕\n\n第一句');
         expect((await getText('apollo-18-01')).text).toBe(body.text);
@@ -131,7 +131,12 @@ describe('PUT /api/tracks/:id/text: saving', () => {
             lineCount: 0,
             synced: null,
             lyrics: null,
-            track: { title: '新歌名', subtitle: null, credits: null, lyrics: null },
+            track: {
+                title: '新歌名',
+                subtitle: null,
+                credits: { composer: null, lyricist: null, arranger: null, producer: null },
+                lyrics: null,
+            },
         });
         expect(await lyricsRow('apollo-18-01')).toBeNull();
     });
@@ -309,7 +314,10 @@ describe('PUT /api/tracks/:id/text: B-038 hint for labels after a blank line', (
         const response = await putText('apollo-18-01', text);
         expect(response.status).toBe(200);
         const body = await json<Saved>(response);
-        expect(body.track).toMatchObject({ credits: null });
+        // API-012 嘅形狀：四項都冇係四個 null
+        expect(body.track).toMatchObject({
+            credits: { composer: null, lyricist: null, arranger: null, producer: null },
+        });
         expect(body.hints).toEqual([
             {
                 path: 'text',

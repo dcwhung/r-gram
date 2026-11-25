@@ -6,6 +6,7 @@
  * - errors：守門（401、403）同通用 404 / 500 嘅 message
  * - albums：專輯 API（T-022）錯誤回應嘅 message 同每個欄位錯誤（details[].reason）嘅 message；
  *   `{name}` 係參數，由 fillMessage() 填入
+ * - tracks：歌曲 API（T-023）：同上，另加歌曲文字逐行錯誤（reason = packages/catalog 嘅錯誤碼）同唔擋儲存嘅提示
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
@@ -72,6 +73,55 @@ export const zhHant = {
                 '資料夾名稱不可為空白、「.」或「..」，亦不可包含斜線、反斜線、?、#、%、換行、控制字元或不可見的格式字元。',
             UNKNOWN_ASSET: '找不到此圖片，請重新上載。',
             INVALID_LIST: '必須為不重複的專輯 ID 列表。',
+        },
+    },
+    tracks: {
+        /** error.message（按情況） */
+        errors: {
+            invalid: '資料有誤，請修正後再儲存。',
+            notFound: '找不到指定的歌曲。',
+            albumNotFound: '找不到指定的專輯。',
+            stale: '歌曲資料已被其他操作更新，請重新載入後再修改。',
+            orderChanged: '歌曲列表已變更，請重新載入後再排序。',
+            idRemoved:
+                '刪除後，播放端會即時移除此歌曲，聽眾本機對此歌曲的收藏及續播亦會失效。確認後請再次刪除。',
+            lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
+            /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
+            tooLarge: '歌曲文字超出 {max} KB 的上限。',
+        },
+        /** details[].message：key = details[].reason */
+        reasons: {
+            REQUIRED: '必須填寫。',
+            NOT_AN_OBJECT: '內容必須為 JSON 物件。',
+            NOT_EDITABLE: '此欄位不可修改。',
+            /** `{max}` = UNKNOWN_FIELDS_MAX */
+            TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
+            NOT_TEXT: '必須為文字。',
+            INVALID_TEXT: '必須為文字，且不可包含換行、控制字元或不可見的格式字元。',
+            /** `{max}` = NOTE_MAX_CHARS */
+            TOO_LONG: '字數超出上限（最多 {max} 個字）。',
+            INVALID_URL: '必須為以 https:// 開頭的有效網址。',
+            INVALID_MEDIA_KEY:
+                '檔案路徑不可為空白、不可以「/」開頭、不可包含「..」、控制字元或不可見的格式字元，長度亦有上限。',
+            MEDIA_NOT_FOUND: '媒體庫中找不到此檔案。',
+            INVALID_LIST: '必須為不重複的歌曲 ID 列表。',
+            /** 以下係歌曲文字（path = text）逐行嘅錯誤；`{max}` 由 tracks/errors.ts 按 packages/catalog 嘅上限填入 */
+            TOO_LARGE: '歌曲文字超出大小上限。',
+            TOO_MANY_LINES: '歌曲文字最多 {max} 行。',
+            TITLE_REQUIRED: '第一行必須是歌名。',
+            TITLE_TOO_LONG: '歌名或副題最多 {max} 個字。',
+            DUPLICATE_LABEL: '此標籤已出現過，每項只可填寫一次。',
+            CREDIT_TOO_LONG: '曲、詞、編、監每項最多 {max} 個字。',
+            LINE_TOO_LONG: '每行歌詞最多 {max} 個字。',
+            MIXED_TIMESTAMPS:
+                '此行沒有時間標記（其他歌詞行都有）。請補上，或者全部歌詞都不加時間標記。',
+            BAD_TIMESTAMP: '時間標記格式不正確，應為 [分:秒.百分秒]，例如 [01:23.45]。',
+            BAD_OFFSET: '[offset:] 的值必須為整數毫秒。',
+        },
+        /** 唔擋儲存嘅提示（200 / 201 回應嘅 hints[]）：key = hints[].reason */
+        hints: {
+            LABEL_AFTER_BLANK_LINE:
+                '此行看似標籤，但前面有空行，因此已當作歌詞儲存。如屬標籤，請刪除前面的空行。',
         },
     },
 } as const;

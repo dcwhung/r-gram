@@ -46,6 +46,27 @@ export const readJsonObject = async (c: Context): Promise<JsonObject | undefined
     }
 };
 
+/** body 太大：唔 parse，直接 413 */
+export const BODY_TOO_LARGE = Symbol('body too large');
+
+/**
+ * 有上限嘅 JSON object body：字元數（UTF-16）超過 `maxChars` → BODY_TOO_LARGE（未 parse 就擋，
+ * 20 MB 嘅貼上唔使行 JSON parser，backlog B-040）；唔係 JSON object → undefined
+ */
+export const readBoundedJsonObject = async (
+    c: Context,
+    maxChars: number,
+): Promise<JsonObject | undefined | typeof BODY_TOO_LARGE> => {
+    const raw = await c.req.text();
+    if (raw.length > maxChars) return BODY_TOO_LARGE;
+    try {
+        const body: unknown = JSON.parse(raw);
+        return isJsonObject(body) ? body : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
 /** If-Match 嘅值（去 `W/` 同引號）；冇 header → undefined */
 export const readIfMatch = (c: Context): string | undefined => {
     const header = c.req.header('if-match');

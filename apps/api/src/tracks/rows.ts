@@ -1,10 +1,10 @@
 /*
- * API-012 專輯頁嘅歌曲列表（唔包歌詞原文：lyrics 表只拎 synced 同行數）。
- * 歌曲嘅寫入（API-020–024、040、041）係 T-023
+ * tracks 表嘅行 ⇄ API 物件（camelCase）。API-012 專輯頁嘅歌曲列表同歌曲 API 嘅回應用同一個形狀；
+ * 唔包歌詞原文：lyrics 表只拎 synced 同行數
  */
 import { CREDIT_FIELDS, type TrackCredits } from '@r-gram/catalog';
 
-interface TrackRow extends Record<(typeof CREDIT_FIELDS)[number], string | null> {
+export interface TrackRow extends Record<(typeof CREDIT_FIELDS)[number], string | null> {
     id: string;
     no: number;
     title: string;
@@ -22,11 +22,36 @@ interface TrackRow extends Record<(typeof CREDIT_FIELDS)[number], string | null>
     line_count: number | null;
 }
 
+/** tracks 自己嘅欄（SELECT 同 RETURNING 共用；欄位名只嚟自呢度） */
+const OWN_COLUMNS = [
+    'id',
+    '"no"',
+    'title',
+    'subtitle',
+    'audio_key',
+    'audio_manual',
+    'mv_key',
+    'mv_manual',
+    'composer',
+    'lyricist',
+    'arranger',
+    'producer',
+    'lyrics_source_url',
+    'note',
+    'youtube_id',
+    'video_kind',
+    'updated_at',
+];
+
+/** UPDATE / INSERT … RETURNING：歌詞狀態用 subquery 喺同一句帶出（寫入之後唔使再讀，backlog B-043 ①） */
+export const TRACK_RETURNING = [
+    ...OWN_COLUMNS,
+    '(SELECT synced FROM lyrics WHERE track_id = tracks.id) AS synced',
+    '(SELECT line_count FROM lyrics WHERE track_id = tracks.id) AS line_count',
+].join(', ');
+
 const TRACKS_SQL = `
-    SELECT t.id, t."no", t.title, t.subtitle, t.audio_key, t.audio_manual, t.mv_key, t.mv_manual,
-        t.composer, t.lyricist, t.arranger, t.producer,
-        t.lyrics_source_url, t.note, t.youtube_id, t.video_kind, t.updated_at,
-        l.synced, l.line_count
+    SELECT ${OWN_COLUMNS.map((column) => `t.${column}`).join(', ')}, l.synced, l.line_count
     FROM tracks t
     LEFT JOIN lyrics l ON l.track_id = t.id
     WHERE t.album_id = ?
@@ -37,7 +62,7 @@ const creditsOf = (row: TrackRow): TrackCredits =>
         CREDIT_FIELDS.map((field) => [field, row[field]]),
     ) as unknown as TrackCredits;
 
-const toTrack = (row: TrackRow) => ({
+export const toTrack = (row: TrackRow) => ({
     id: row.id,
     no: row.no,
     title: row.title,

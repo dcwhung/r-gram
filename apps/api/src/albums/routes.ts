@@ -5,20 +5,17 @@
  */
 import { Hono } from 'hono';
 import type { AppEnv } from '../app';
-import { HTTP_STATUS } from '../config';
+import { FORCE_CONFIRMED, HTTP_STATUS } from '../config';
 import { readIfMatch, readJsonObject } from '../lib/http';
 import { albumError, notAnObject, validationError } from './errors';
 import { albumOverview } from './overview';
 import { readOrder } from './order';
 import { toAlbum } from './rows';
 import * as store from './store';
-import { tracksOf } from './tracks';
+import { tracksOf } from '../tracks/rows';
 import { parseCreate, parseFields, unknownAssetIssues } from './validate';
 
 export const albumRoutes = new Hono<AppEnv>();
-
-/** ID 守衛：只有 `?force=1` 先當確認咗 */
-const FORCE_CONFIRMED = '1';
 
 albumRoutes.get('/', async (c) => c.json(await albumOverview(c.env.DB)));
 

@@ -7,6 +7,8 @@ import pkg from '../../package.json';
 import { albumRoutes } from '../albums/routes';
 import type { AppEnv } from '../app';
 import { requireSameOrigin, requireSession } from '../auth/middleware';
+import { albumTrackRoutes } from '../tracks/albumTrackRoutes';
+import { trackRoutes } from '../tracks/routes';
 import { afterWrite, noPostWrite } from './afterWrite';
 
 export const apiRoutes = new Hono<AppEnv>();
@@ -18,4 +20,6 @@ apiRoutes.use('*', requireSession, requireSameOrigin);
 apiRoutes.use('*', afterWrite(noPostWrite));
 
 apiRoutes.get('/me', (c) => c.json({ email: c.get('email') }));
+apiRoutes.route('/albums/:albumId/tracks', albumTrackRoutes);
 apiRoutes.route('/albums', albumRoutes);
+apiRoutes.route('/tracks', trackRoutes);

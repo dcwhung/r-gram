@@ -42,6 +42,7 @@ export const HTTP_STATUS = {
     forbidden: 403,
     notFound: 404,
     conflict: 409,
+    payloadTooLarge: 413,
     internalError: 500,
     badGateway: 502,
 } as const;
@@ -57,10 +58,23 @@ export const ERROR_CODE = {
     conflict: 'CONFLICT',
     /** 刪除會令 id 由 catalog 消失：要帶 ?force=1 再叫（ID 守衛） */
     idRemoved: 'ID_REMOVED',
+    /** 儲存會清走一首歌現有嘅歌詞：要帶 ?force=1 再叫（Functional Spec D30） */
+    lyricsRemoved: 'LYRICS_REMOVED',
+    /** body / 歌曲文字超出上限 */
+    tooLarge: 'TOO_LARGE',
     internal: 'INTERNAL',
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
+
+/** 刪除（ID 守衛）同清走歌詞嘅確認：只有 `?force=1` 先當確認咗 */
+export const FORCE_CONFIRMED = '1';
+
+/** r-gram-catalog 入面歌詞 JSON 嘅 prefix（Technical Spec「R2 key layout」） */
+export const LYRICS_KEY_PREFIX = 'catalog/v1/lyrics/';
+/** 歌詞檔名：內容 sha256 嘅頭 16 個 hex + `.json`（同封面圖一樣用 hash 檔名） */
+export const LYRICS_HASH_HEX_CHARS = 16;
+export const JSON_CONTENT_TYPE = 'application/json';
 
 /** Worker 所有回應：唔畀搜尋引擎收錄 */
 export const ROBOTS_HEADER_VALUE = 'noindex';
