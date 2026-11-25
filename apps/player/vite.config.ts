@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { loadEnv, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { zhHant } from './src/i18n/zh-Hant';
+import { catalogCaching } from './src/pwa/catalogCaching';
 import { remoteFontCaching, remoteFontUrl, withRemoteFont } from './src/styles/fontSource';
 
 // package.json 係版本嘅唯一來源；build 時注入，唔使 runtime fetch
@@ -94,8 +95,8 @@ export default defineConfig(({ mode }) => {
                     globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
                     skipWaiting: false,
                     clientsClaim: true,
-                    // 隨 app 嘅 Rokkitt（woff2）由 globPatterns precache；遠端字體由呢度留低
-                    runtimeCaching: remoteFontCaching(fontUrl),
+                    // 隨 app 嘅 Rokkitt（woff2）由 globPatterns precache；遠端字體、catalog 圖片同歌詞由呢度留低
+                    runtimeCaching: [...remoteFontCaching(fontUrl), ...catalogCaching()],
                 },
             }),
         ],
