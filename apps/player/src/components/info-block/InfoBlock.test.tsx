@@ -164,6 +164,13 @@ describe('InfoBlock long song titles', () => {
         expect(rows(part)).toHaveLength(2);
     });
 
+    // B-072 ①：兩行之間冇空格、「…」截走咗嘅字讀屏都要讀到：成個歌名做標籤
+    it('should label the title with the full song title when it is broken or cut short', () => {
+        const full = `${LONG}${'加長'.repeat(8)}`;
+        const part = renderInfo({ track: track({ title: full }) });
+        expect(part('song-title')).toHaveAttribute('aria-label', full);
+    });
+
     // W-017：字體載入完換新嘅量字函數，要用真字體重新 fit（真字體闊啲就由一行變兩行）
     it('should fit again with the new measure after the web fonts load', () => {
         const title = '歌名較長嘅示範要縮細啲字先放得落';
