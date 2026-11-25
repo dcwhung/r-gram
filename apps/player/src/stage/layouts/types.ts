@@ -89,7 +89,7 @@ export interface PreloadLayout {
     logo: Point & { width: number; drift: number };
     /** 進度線：起點（左端）、長度、線粗、未完成部分嘅透明度 */
     bar: Point & { width: number; stroke: number; trackOpacity: number };
-    /** 三位數百分比、「R Gram」、「歌迷自製　非官方 · 版本」：置中（x 係中線） */
+    /** 三位數百分比、「R Gram」、「歌迷自製 非官方 · 版本」：置中（x 係中線） */
     percent: TextLine;
     name: TextLine;
     notice: TextLine;

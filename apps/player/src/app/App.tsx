@@ -1,36 +1,33 @@
-import type { CatalogDocument } from '@r-gram/catalog';
+import { PreloadScreen } from '../components/flag/PreloadScreen';
 import { Stage } from '../stage/Stage';
 import { backdropFor, useStageBackdrop } from '../stage/useStageBackdrop';
 import { useTextMeasure } from '../utils/useFontsVersion';
-import './app.css';
 import { HomeScene } from './HomeScene';
-import { PreloadPlaceholder } from './PreloadPlaceholder';
-import { useHome } from './useHome';
+import type { StartupDeps } from './startup/startupDeps';
+import { useBoot } from './startup/useBoot';
 
 interface AppProps {
-    /** 未實作（TDD 紅燈） */
-    startup?: unknown;
-    /**
-     * 已載入嘅 catalog（T-034 之前嘅接口）。未有 = 停喺 Preload。
-     * T-034 嘅 Preload 會自己 `loadCatalog()`，載入完再交 catalog 同 dispatch `preloadDone`。
-     */
-    catalog?: CatalogDocument | null;
+    /** 開 app 載入嘅三項（瀏覽器：main.tsx 用 createBrowserStartup()；測試用假嘅） */
+    startup: StartupDeps;
 }
 
-/** 舞台 + 場景：Preload（暫時畫面）→ 主頁。歌單、轉碟、歌書、MV 喺之後嘅任務加畫面 */
-export const App = ({ catalog = null }: AppProps) => {
-    const home = useHome(catalog);
+/**
+ * 舞台 + 場景：Preload（旗幟、真實載入進度，T-034）→ 主頁。Preload 淡出期間主頁已經喺下面。
+ * 歌單、轉碟、歌書、MV 喺之後嘅任務加畫面。
+ */
+export const App = ({ startup }: AppProps) => {
+    const { home, preload } = useBoot(startup);
     // 字體載入完會換新嘅量字函數，左上資訊用真字體重新 fit（W-017）
     const measure = useTextMeasure();
-    useStageBackdrop(backdropFor(home.stage.scene));
+    // 旗未完全淡走之前，安全區外面都保持旗嘅黑底
+    useStageBackdrop(backdropFor(preload.exit === 'gone' ? home.stage.scene : 'preload'));
     const { view, handlers } = home;
     return (
         <Stage>
             {home.stage.scene !== 'preload' && view && handlers ? (
                 <HomeScene view={view} handlers={handlers} measure={measure} />
-            ) : (
-                <PreloadPlaceholder />
-            )}
+            ) : null}
+            {preload.exit === 'gone' ? null : <PreloadScreen status={preload} />}
         </Stage>
     );
 };

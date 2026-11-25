@@ -29,11 +29,9 @@ const fakeContext = () => {
     return { context, counts };
 };
 
-const canvasWith = (context: unknown) => {
-    const canvas = document.createElement('canvas');
-    vi.spyOn(canvas, 'getContext').mockReturnValue(context as CanvasRenderingContext2D);
-    return canvas;
-};
+/** 畫面嘅 canvas：淨係要 getContext（唔用真 element，免得同離屏 canvas 共用 spy） */
+const canvasWith = (context: unknown) =>
+    ({ getContext: () => context }) as unknown as HTMLCanvasElement;
 
 const stubReducedMotion = (reduce: boolean) =>
     vi.stubGlobal(

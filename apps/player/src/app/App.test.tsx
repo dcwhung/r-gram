@@ -1,5 +1,5 @@
 import type { CatalogDocument } from '@r-gram/catalog';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import packageJson from '../../package.json';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
@@ -46,8 +46,13 @@ const renderHome = async (catalog: CatalogDocument = sampleDocument()) => {
     await flush();
     if (vi.isFakeTimers()) {
         for (const ms of PRELOAD_STEPS) await act(() => vi.advanceTimersByTimeAsync(ms));
+        // findBy 喺 fake timers 之下會等一個永遠唔到嘅 setTimeout：時間線已經行完，直接攞
+        screen.getByRole('button', { name: '開啟歌單' });
+    } else {
+        await screen.findByRole('button', { name: '開啟歌單' });
+        // 減少動態效果：旗即時拆走（0 毫秒計時器）
+        await waitFor(() => expect(screen.queryByRole('progressbar')).toBeNull());
     }
-    await screen.findByRole('button', { name: '開啟歌單' });
     const part = (name: string) => container.querySelector(`[data-part="${name}"]`);
     const button = (name: string) => screen.getByRole('button', { name });
     const armLook = () => ({
@@ -101,7 +106,8 @@ describe('App start-up', () => {
             arrive({ status: 'ready', source: 'network', document: sampleDocument() }),
         );
         expect(await screen.findByRole('button', { name: '開啟歌單' })).toBeInTheDocument();
-        expect(screen.queryByRole('progressbar')).toBeNull();
+        // 旗淡走之後（減少動態效果：即時）先拆走 Preload，安全區外面嘅底色跟返主頁
+        await waitFor(() => expect(screen.queryByRole('progressbar')).toBeNull());
         expect(document.documentElement.style.getPropertyValue('--stage-backdrop')).toBe(
             'var(--color-stage)',
         );

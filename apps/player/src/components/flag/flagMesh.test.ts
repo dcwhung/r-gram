@@ -30,12 +30,9 @@ const grid = () => {
 /* 設計稿 r-gram v16 嘅布料旗：行進波、旗杆嗰邊釘住、尾端自由（Technical Spec：旗幟 canvas 移植 mockup 嘅布料網格） */
 describe('flagWave', () => {
     it('should lie flat without wind', () => {
-        expect(flagWave(CLOTH, 0.6, 0.4, 2, 0, newSample())).toEqual({
-            z: 0,
-            zx: 0,
-            zy: 0,
-            lift: 0,
-        });
+        // −0 都算 0
+        const sample = flagWave(CLOTH, 0.6, 0.4, 2, 0, newSample());
+        expect(Object.values(sample).every((value) => value === 0)).toBe(true);
     });
 
     it('should move the fly end far more than the hoist', () => {
