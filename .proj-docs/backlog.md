@@ -61,6 +61,9 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 
 | B-068 | CR-006（PM 發現） | 統計項目（Functional Spec D35，等 U-8）：CR-006 之後歌由掃描按音檔建立，「歌曲已有音檔」個儀錶差唔多永遠係滿（只有 D62 嘅灰色行同人手新增未指定音檔嘅歌先唔係）。建議確認管理端設計稿第 2 版時，將呢個儀錶換做「歌曲已有歌曲文字（曲詞編監）」或者「專輯已掃描」，同用戶一齊定 | T-050 補畫、U-8 |
 | B-069 | CR-006（PM 發現） | `.claude/CLAUDE.md`（主 session 改）：① QA chain `api-tracks` 嘅範圍會因為 T-102 刪走 API-023；② T-025 完成時加掃描嘅 chain（`apps/api/src/media`，B-057 已記）；③ T-027 完成時「指令」表加 seed 指令（只入專輯）；④ 內容資料一行講明 `discography.json` 嘅歌單同 `credits.json` 係參考資料（Functional Spec D64），唔入資料庫 | T-102、T-025、T-027 完成時 |
+| B-070 | Review T-046 / T-047（W-031；主 session 決定：跟設計稿） | 歌名斷行：code 同設計稿第 18 版 `breakAt()` 一致（英文字、數字、括號字元唔喺字中間斬；有空格嘅括號片語可以喺空格斷）。Functional Spec D51 嘅字眼（「先喺空格斷、括號入面唔斷」）同設計稿有出入：以已確認嘅設計稿做準，改 D51 字眼；`breakAt.ts` 嘅註解一併改正。Technical Spec 第 1235 行寫 `wrapLine()`，應為 `breakAt()`（S-132） | 下次改 spec 時（PM）；註解：下一個播放端任務順手 |
+| B-071 | Review T-046 / T-047（W-032） | Service Worker 未有 catalog 圖片嘅執行期 cache 規則，FR-042 離線未達（Technical Spec 第 1228 行誤寫已有）。要做：① `vite.config.ts` 加 `/catalog/v1/img/` 嘅 CacheFirst 規則（設數量上限）；② `usePrefetchOtherArt` 由 `no-cors` 改 `cors`（圖片 route 已對 `PLAYER_ORIGINS` 回 CORS header；opaque 回應 Workbox 預設唔 cache）；③ 歌詞檔嘅離線 cache 一併考慮。歸入 T-034（Preload 預載揀中嗰張封面）做，計劃下次更新時寫明 | T-034 |
+| B-072 | Review T-046 / T-047（S-127–S-131） | ① 兩行歌名讀屏時兩行之間冇空格、「…」截短嘅歌名讀唔全：`song-title` 加 `aria-label={track.title}`。② `usePrefetchOtherArt` 測試捉唔到拎走 `.catch`。③ 網址喺 fetch 之前就記做已攞，失敗或者離線時今次開 app 唔會再試。④ 冇測試釘住「…」預留闊度同 `trimStart` 分支。⑤ 第二行後面嘅心形同泊位唱臂嘅淨空（最差約 0.3 單位，同設計稿一樣）冇 clearance 測試 | ①③：T-034 之前；②④⑤：下一個播放端任務順手 |
 ## CR-006 關閉或者轉咗去任務嘅項目（2026-11-25；下次整理可以刪走呢段）
 
 | # | 結果 |
