@@ -58,6 +58,7 @@
 | 2026-11-25 | [qa/2026-11-25_17-12_qa_T-100.md](qa/2026-11-25_17-12_qa_T-100.md) | S1 pass（冇阻擋性問題） | T-100（第二張封面：D1、內容檔、專輯 API）；review 100 / 100：[reviews/2026-11-25_17-05_review_T-100.md](reviews/2026-11-25_17-05_review_T-100.md)；`api-albums`、`api-auth`、`api-catalog`、`catalog-core`、`player-catalog` 重驗 |
 | 2026-11-25 | [qa/2026-11-25_21-14_qa_T-046_T-047.md](qa/2026-11-25_21-14_qa_T-046_T-047.md) | S1 pass（冇阻擋性問題） | T-046（隨機封面）、T-047（歌名兩行）；review 90 / 100：[reviews/2026-11-25_21-02_review_T-046_T-047.md](reviews/2026-11-25_21-02_review_T-046_T-047.md)（W-031、W-032、S-127–S-132 入 backlog B-070–B-072）；`player-home`、`player-catalog`、`player-foundation` 重驗 |
 | 2026-11-25 | [qa/2026-11-25_21-30_qa_T-102_T-101.md](qa/2026-11-25_21-30_qa_T-102_T-101.md) | S1 pass（冇阻擋性問題） | T-102（歌號跟檔名）、T-101（專輯只記年份）；review 100 / 100：[reviews/2026-11-25_21-23_review_T-102_T-101.md](reviews/2026-11-25_21-23_review_T-102_T-101.md)（S-133、S-134 入 backlog B-073）；`api-tracks`、`api-albums`、`api-auth`、`api-catalog`、`catalog-core`、`seed-tools`、`player-catalog` 重驗 |
+| 2026-11-25 | [qa/2026-11-25_22-46_qa_T-027_T-025.md](qa/2026-11-25_22-46_qa_T-027_T-025.md) | S1 pass（冇阻擋性問題） | T-027（初始資料只入 21 張專輯）、T-025（掃描：預覽、套用、資料夾列表）連 review 修正；review 85 / 100：[reviews/2026-11-25_22-08_review_T-027_T-025.md](reviews/2026-11-25_22-08_review_T-027_T-025.md)；新鏈 `api-media`、`api-seed`；`catalog-core`、`api-tracks`、`api-auth`、`repo-scaffold` 重驗。Frozen plan：[qa/plans/api-media.md](qa/plans/api-media.md)、[qa/plans/api-seed.md](qa/plans/api-seed.md) |
 
 Backlog：[backlog.md](backlog.md)
 

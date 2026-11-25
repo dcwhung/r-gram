@@ -1,6 +1,6 @@
 # Test Plan — api-tracks
 
-- Chain: 歌曲 API（`apps/api`）：新增歌（歌號 + 歌曲文字）、讀 / 存歌曲文字（If-Match，歌詞 JSON 寫 R2）、改歌號、參考欄同手動音檔 / MV、刪歌（ID 守衛，唔重編）、清歌詞確認。任務 T-023、T-102（CR-006）
+- Chain: 歌曲 API（`apps/api`）：新增歌（歌號 + 歌曲文字）、讀 / 存歌曲文字（If-Match，歌詞 JSON 寫 R2）、改歌號、參考欄同手動音檔 / MV、刪歌（ID 守衛，唔重編）、清歌詞確認。任務 T-023、T-102（CR-006）；T-025 將「指定歌號新增」抽做 `insertNumbered.ts`（掃描建立歌曲共用），`store.insertTrack` 加可選檔案欄
 - AC（L1 來源：TS = Technical Spec v1.6（CR-006「歌號同歌 id」）、FS = Functional Spec v1.8（D60、D61））:
     - AC-1 守門（TS「API 設計」通則、「安全設計」授權 / CSRF）：5 條 route（API-020 – 022、040、041）冇 session 一律 401；寫入 Origin ≠ `WORKER_ORIGIN` 一律 403，資料同 R2 不變；讀唔使 Origin
     - AC-2 新增（TS API-020、CR-006「歌號同歌 id」；FS FR-104、FR-120、D60、D61）：body `{ no?, text }`（`text` 同 API-041）；`no` 1–999 整數（其他 → 400 `INVALID_NUMBER`）；冇畀 = 最大歌號 + 1（冇歌 = 1），過 999 → 400 `NUMBER_EXHAUSTED`；撞號 → 409 `CONFLICT` + `[{ path: 'no', reason: 'NUMBER_TAKEN' }]`；次序 400 → 404（冇呢張碟）→ 409；id = `trackIdFor(albumId, no)`（`<albumId>-<NN>`，100 以上三位），已經有人用先用 `<albumId>-<6 位隨機>`；寫唔到嘅歌詞檔即刻收返；回應 = 正規化文字 + 歌曲物件
@@ -22,4 +22,4 @@
 - Probe（scratchpad，唔入 repo）：同 `api-albums`：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`；經 `src/index.ts` 打真 session cookie；本機 R2（`CATALOG`、`MEDIA`）。預期由 spec 寫，唔抄 developer 嘅 test。插隊：D1 proxy 喺指定 SQL 之後做另一個寫入（檢查同寫入之間被加 / 刪歌、刪碟）
 - HTTP smoke：唔使（route 經 workerd 打 `src/index.ts`；`wrangler dev` 只喺改到 `wrangler.toml` 或者 middleware 次序先做）
 - PWA gate: no。Performance gate: no（每個請求幾句 D1 + 一個 R2 put）。Security / Data gate: yes（AC-1、AC-5、AC-6、AC-8）
-- Out of scope: `rebuildCatalog()` 同 `catalog.ok`（T-026）；`/catalog/v1/lyrics/*` 公開讀取（T-026）；同名歌帶入 API-024、批量匯入 API-043；掃描 API-030；管理端 UI；刪專輯留低嘅歌詞檔（backlog B-048）
+- Out of scope: `rebuildCatalog()` 同 `catalog.ok`（T-026）；`/catalog/v1/lyrics/*` 公開讀取（T-026）；同名歌帶入 API-024、批量匯入 API-043；掃描 API-030 – 032（`api-media`，佢經 `insertNumbered` 同 `saveSongText` 用呢條鏈）；管理端 UI；刪專輯留低嘅歌詞檔（backlog B-048）

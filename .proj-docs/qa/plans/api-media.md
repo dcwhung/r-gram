@@ -1,0 +1,30 @@
+# Test Plan — api-media
+
+- Chain: 掃描同媒體 API（`apps/api/src/media` + 純邏輯 `packages/catalog/src/scan`）：預覽（API-030）、套用（API-031）、列資料夾（API-032）。任務 T-025（review 修正 W-033、W-035、S-135、S-136、S-137、S-139）
+- AC（L1 來源：FS = Functional Spec v1.8（CR-004 D40、D41；CR-005 D54、D55；CR-006 D59–D62、D65；FR-123、FR-125、FR-126）；TS = Technical Spec v1.6 API-030–032、「掃描嘅設計」「掃描以音檔做錨」「掃描建立歌曲」「安全設計」R2 key）:
+    - AC-1 預覽唔寫嘢（TS API-030）：D1、`CATALOG`（catalog.json、歌詞檔）同媒體 bucket 前後一樣
+    - AC-2 分類（TS「掃描嘅設計 → 檔案分類」；FS D55）：`.m4a`／`.mp3` 音檔、`.mp4`／`.m4v` MV、`NN 名.txt`、`cover`／`cover2`（`.jpg`／`.png`，唔分大細楷）；其他 `UNKNOWN_EXTENSION`，冇歌號 `NO_TRACK_NUMBER`；子資料夾唔理；`_` 開頭嘅資料夾唔係專輯
+    - AC-3 音檔做錨（FS D54 兩個例外）：冇音檔嘅歌號嘅 `.txt`／MV → `skipped` `NO_AUDIO`（有歌都一樣）；手動指定音檔嘅歌照收自己資料夾嘅 `.txt`／MV（預覽同套用）
+    - AC-4 新歌（FS D59–D61、FR-126）：每個有音檔而未有歌嘅歌號；歌號跟檔名、可以跳號；歌名同 credit 由 `.txt`，冇／有錯就由檔名（`titleSource`）；id `<albumId>-<NN>`，撞咗用 `<albumId>-<6 位隨機>`
+    - AC-5 ETag（FS D41）：ETag 同上次套用一樣 = `same`，唔讀檔
+    - AC-6 音檔消失（FS D62）：非手動、記住嘅音檔唔喺資料夾 → `audioMissing`；list 唔齊就唔列
+    - AC-7 分批同上限（TS「限制同風險」；review S-136）：`from`、`more`、`nextFrom`、`pending`；`from` 唔係 1–999 → 400；list 頁數上限 → `listTruncated`；其他資料夾嘅手動檔 head 上限 → `manualUnchecked`
+    - AC-8 套用驗證（TS API-031、「安全設計」R2 key）：成個 body 驗完先寫；key 唔喺呢張碟資料夾第一層（其他碟、`_fonts/`、`..`、`/` 開頭、`%2F`、子資料夾）、類別／歌號唔啱 → 400，乜都唔寫
+    - AC-9 套用結果（TS API-031、CR-006）：`create` 建立正確歌號同 id、連音檔同 MV、記 `text_source_etag`；`songTexts` 同 API-041 同一套（`LYRICS_REMOVED` 要 `force`、逐行錯誤）；檔案變咗 → `STALE`（`create` 成項唔做）；永遠唔刪歌；`media` 手動指定 → `MANUAL_KEPT`、MV 冇音檔 → `NO_AUDIO`
+    - AC-10 `clearAudio`（FS D62；review S-135）：只清音檔連結同掃描配對嘅 MV 連結；歌、歌名、歌詞、id 留低；手動音檔 → `STALE` 唔郁；手動 MV 留低
+    - AC-11 失敗同並發（TS API-031「一個項目失敗唔影響其他項目」；review W-035）：一項 exception → 嗰項 `INTERNAL`，其他照做，回 200，catalog 照生成，冇孤兒歌詞檔；同一個套用送兩次、同時送 → 冇 500、冇半建立嘅歌
+    - AC-12 Catalog（TS API-031「最後生成一次 catalog」）：每次套用 `catalog.json` 寫一次；新歌喺入面
+    - AC-13 封面（FS D55；TS API-031）：`cover2` 冇第一張 → `NO_FIRST_COVER`；兩個第一張 → `FIRST_COVER_CONFLICT`；Worker 唔套用封面（body 有 `cover` → 400）
+    - AC-14 列資料夾（TS API-032）：唔列 `_` 資料夾；壞 `prefix` → 400 `INVALID_PREFIX`；`truncated`
+    - AC-15 守門同訊息（TS「安全設計」；CLAUDE.md 介面文字）：三條 route 冇 session 401；套用 Origin 唔啱 403、乜都唔寫；全部 `message` 係中文書面語，冇 `{…}`
+- Scope files:
+    - `apps/api/src/media/**`
+    - `apps/api/test/{scanApply,scanApplyFailures,scanPreview,scanLimits,mediaList,songTextFile}.test.ts`、`apps/api/test/scanFixtures.ts`
+    - `packages/catalog/src/scan/**`
+    - 1-hop（唔喺呢條鏈 freeze）：`tracks/{insertNumbered,store,songText,lyricsCleanup,saved}.ts`（`api-tracks`）；`src/api/routes.ts`、`src/config.ts`、`src/i18n/zh-Hant.ts`（`api-auth`）；`albums/store.ts`、`lib/fields.ts`、`api/errors.ts`（`api-albums`）；`song-text`（`catalog-song-text`）；`schema/ids.ts`（`catalog-core`）
+- Commands:
+    - `npm run lint`、`npm run typecheck`
+    - `npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（repo 外 clone，唔入 repo）：workerd vitest，經 `src/index.ts` 打真 session cookie；本機 D1 / R2 test binding 放假檔；故障用 binding proxy（R2 `get` throw、D1 `batch` throw、`list` 回 `truncated`）。預期由 spec 寫，唔抄 developer test。Sanity mutant：每個 review 修正至少一個
+- PWA gate: no。Performance gate: no（操作數由 `SCAN_*` 常數封頂；部署後量 CPU 屬 R-016）。Security / Data gate: yes（AC-8、AC-10、AC-11、AC-15）
+- Out of scope: 管理端掃描畫面同封面處理（API-050 + API-013，T-053）；真 `rb-discography` bucket；部署後 CPU 實測；spec 回寫（S-138）
