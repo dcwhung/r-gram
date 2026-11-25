@@ -9,6 +9,7 @@
  * - tracks：歌曲 API（T-023）：同上，另加歌曲文字逐行錯誤（reason = packages/catalog 嘅錯誤碼）同唔擋儲存嘅提示
  * - assets：封面上載（API-050）同公開圖（API-071）嘅錯誤（T-024）
  * - catalog：生成 catalog（API-061）同公開內容（API-070、API-072）嘅錯誤（T-026）
+ * - scan：掃描（API-030、API-031、API-032；T-025）嘅錯誤、檔案原因同套用逐項結果
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
@@ -169,6 +170,52 @@ export const zhHant = {
             invalidDocument: '內容檔未能通過驗證，播放端會繼續使用上一份內容。',
             /** 502 CATALOG_WRITE_FAILED */
             writeFailed: '內容檔未能寫入，播放端會繼續使用上一份內容，請稍後重試。',
+        },
+    },
+    scan: {
+        /** error.message（按情況） */
+        errors: {
+            invalid: '資料有誤，請修正後再試。',
+            notFound: '找不到指定的專輯。',
+            /** 404 FOLDER_EMPTY */
+            folderEmpty: '媒體庫中找不到此專輯的資料夾，或資料夾內沒有檔案。',
+        },
+        /** details[].message、skipped[] / unmatchedFiles[] / 歌曲文字檔錯誤嘅 message：key = reason */
+        reasons: {
+            REQUIRED: '必須填寫。',
+            NOT_AN_OBJECT: '內容必須為 JSON 物件。',
+            NOT_EDITABLE: '此欄位不可修改。',
+            /** `{max}` = UNKNOWN_FIELDS_MAX */
+            TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
+            /** `{min}`、`{max}` = TRACK_NO_MIN、TRACK_NO_MAX */
+            INVALID_NUMBER: '歌號必須為 {min} 至 {max} 的整數。',
+            NOT_A_LIST: '必須為列表。',
+            /** `{max}` = SCAN_APPLY_MAX_ITEMS */
+            TOO_MANY_ITEMS: '每次最多套用 {max} 項，請分批套用。',
+            INVALID_VALUE: '格式不正確。',
+            NOT_IN_FOLDER: '檔案不在此專輯的資料夾內。',
+            NOT_IN_ALBUM: '此歌曲不屬於這張專輯。',
+            WRONG_FILE: '檔案類別或歌號與此項目不符。',
+            DUPLICATE_ITEM: '同一首歌或同一個歌號在此類項目中重複出現。',
+            INVALID_PREFIX:
+                '路徑必須為空白或以「/」結尾的資料夾路徑，不可以「/」開頭，不可包含「..」，第一層亦不可以「_」開頭。',
+            NO_AUDIO: '此歌號在資料夾內沒有音檔，因此不會匯入。',
+            AUDIO_CONFLICT: '此歌號有多於一個音檔，請先只保留一個，才可建立歌曲。',
+            NO_FIRST_COVER: '沒有第一張封面，因此不會匯入第二張封面。',
+            UNKNOWN_EXTENSION: '無法識別此檔案類別。',
+            NO_TRACK_NUMBER: '檔名開頭沒有 1 至 999 的歌號。',
+            BAD_ENCODING: '歌曲文字檔必須為 UTF-8 編碼。',
+            FILE_NOT_FOUND: '媒體庫中已找不到此檔案。',
+        },
+        /** 套用（API-031）逐項失敗嘅 message：key = 結果嘅 code */
+        items: {
+            STALE: '檔案或歌曲在掃描後已更改，未有套用，請重新掃描。',
+            NO_AUDIO: '此歌號現時沒有音檔，未有套用。',
+            NUMBER_TAKEN: '同一張專輯內已有歌曲使用此歌號，未有建立。',
+            LYRICS_REMOVED: '套用後會清除這首歌現有的歌詞，請確認後再套用。',
+            VALIDATION_ERROR: '歌曲文字有格式錯誤，未有套用。',
+            MANUAL_KEPT: '此歌曲的檔案為手動指定，掃描不會更改。',
+            NOT_FOUND: '找不到指定的歌曲。',
         },
     },
 } as const;

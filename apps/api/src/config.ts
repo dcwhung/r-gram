@@ -73,6 +73,10 @@ export const ERROR_CODE = {
     invalidDocument: 'INVALID_DOCUMENT',
     /** catalog.json 寫唔到 R2（API-061） */
     catalogWriteFailed: 'CATALOG_WRITE_FAILED',
+    /** 掃描：媒體 bucket 冇呢張專輯嘅資料夾，或者入面冇檔（API-030） */
+    folderEmpty: 'FOLDER_EMPTY',
+    /** 掃描套用：呢個歌號而家冇音檔（Functional Spec D54；API-031 逐項結果） */
+    noAudio: 'NO_AUDIO',
     internal: 'INTERNAL',
 } as const;
 
@@ -130,3 +134,16 @@ export const NO_STORE = 'no-store';
 /** callback 網址有 OAuth code + state：由 /auth 嘅頁出去唔帶 Referer */
 export const NO_REFERRER = 'no-referrer';
 export const NO_SNIFF = 'nosniff';
+
+/**
+ * 掃描（T-025；Technical Spec「CR-004 → 掃描嘅設計 → 限制同風險」、R-016）：Worker 每個請求對 Cloudflare 服務
+ *（R2、D1 binding）嘅操作有上限（Cloudflare 文件：每個請求最多 1000 個；外部 subrequest 免費計劃 50 個）。
+ * 一次預覽：list（每 1000 個檔一次）+ 最多呢個數嘅 `.txt` 讀取 + 手動指定檔案嘅 head（只限呢張碟）+ 幾句 D1。
+ * 原聲大碟 41 首，第一次掃描一次過讀得晒；超過就分批（預覽回 more / nextFrom）
+ */
+export const SCAN_TEXT_READS_MAX = 100;
+/**
+ * 一次套用每一類（create、songTexts、media、clearAudio）最多幾多項：create / songTexts 每項約 4 個操作
+ *（讀 .txt、寫歌詞檔、D1 batch、清舊歌詞檔），四類加埋最多約 500 個，留位畀 list 同生成 catalog
+ */
+export const SCAN_APPLY_MAX_ITEMS = 50;
