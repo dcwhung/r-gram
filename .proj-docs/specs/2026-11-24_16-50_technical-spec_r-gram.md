@@ -722,7 +722,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 | Worker | `wrangler deploy`；admin SPA 係 Worker 嘅 static assets（`[assets] directory = "../admin/dist"`、`not_found_handling = "single-page-application"`、`run_worker_first = ["/api/*", "/auth/*", "/catalog/*"]`） |
 | Bindings | `DB`（D1 `r-gram`）、`CATALOG`（R2 `r-gram-catalog`）、`MEDIA`（R2 `rb-discography`；⚠️ CR-004：bucket 改名，binding 名不變。`apps/api/wrangler.toml` 仲寫 `r-gram-media`，由 T-098 改） |
 | `[vars]` | `GOOGLE_CLIENT_ID`、`ADMIN_EMAILS`、`PLAYER_ORIGINS`、`WORKER_ORIGIN`、`MEDIA_BASE`（只改 `wrangler.toml`，每次 deploy 會蓋走 dashboard 改動，同 903-player） |
-| 播放端 build 變數 | `VITE_CATALOG_URL`（Worker 嘅 `catalog.json` 網址）；⚠️ CR-004（建議名，T-044 定案）：`VITE_SLAB_FONT_URL`（可選：媒體 bucket 嘅 slab 字體檔網址）、`VITE_SLAB_FONT_BOLD_URL`（可選：較粗嘅檔） |
+| 播放端 build 變數 | `VITE_CATALOG_URL`（Worker 嘅 `catalog.json` 網址）；⚠️ CR-004（T-044 已定案）：`VITE_FONT_URL`（可選：媒體 bucket 嘅 slab 字體檔網址，一定要係 https；只有一個網址，冇另外嘅粗體檔設定） |
 | CI：`ci.yml` | 非 production branch push：lint、`tsc -b`、unit、build、e2e；淨改 docs 用 job 層 `if:` 跳過（SK-025） |
 | CI：`deploy-api.yml` | production branch 改到 `apps/api`、`apps/admin`、`packages/catalog` 先跑：build job（冇 secret：lint + test + build admin）→ deploy job（有 secret：apply D1 migration → `wrangler deploy`） |
 | 版本 | 播放端：`apps/player/package.json` version，build time 注入（Vite `define` + `index.html` placeholder）；管理端顯示 `apps/api/package.json` version |
@@ -1083,8 +1083,8 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | 項目 | 設計 |
 | --- | --- |
 | 內建 | Rokkitt（`@fontsource` 系列，woff2；用可變字重或者設計用到嘅幾個字重，T-044 定），由 `apps/player` 自己嘅 bundle 出 |
-| 次序 | ① `local()`：`ITC Lubalin Graph Std Book`、`LubalinGraphStd-Book`、`ITC Lubalin Graph Std`（設計稿 `fonts.css` 用嘅三個名）→ ② `url(<VITE_SLAB_FONT_URL>)`（build 時有設定先出呢一項）→ ③ 內建 Rokkitt。做法（一個 `@font-face` 嘅 `src` 清單，定係幾個 family 順序排入 `--font-slab`）由 T-044 定案；要求：Rokkitt 用真字重；Book 單一字重遇到粗體由瀏覽器模擬，除非另外提供粗體檔 |
-| 設定 | 播放端 build 變數（建議名）：`VITE_SLAB_FONT_URL`（可選；例如 `<MEDIA_BASE>_fonts/slab-book.woff2`，`.otf` 都得），`VITE_SLAB_FONT_BOLD_URL`（可選，較粗嘅檔）。冇設定 = 完全唔向 bucket 發請求 |
+| 次序 | ① `local()`：`ITC Lubalin Graph Std Book`、`LubalinGraphStd-Book`、`ITC Lubalin Graph Std`（設計稿 `fonts.css` 用嘅三個名）→ ② `url(<VITE_FONT_URL>)`（build 時有設定先出呢一項）→ ③ 內建 Rokkitt。做法（一個 `@font-face` 嘅 `src` 清單，定係幾個 family 順序排入 `--font-slab`）由 T-044 定案；要求：Rokkitt 用真字重；Book 單一字重遇到粗體由瀏覽器模擬，除非另外提供粗體檔。**T-044 實際做法**：一個 `@font-face` 嘅 `src` 清單，兩個 family（`RB Slab`、`RB Slab Light`）都宣告 `font-weight: 100 900`（同設計稿 `fonts.css` 一樣），所以瀏覽器**唔會**模擬粗體；同前一句有出入（review W-026），等用戶決定 |
+| 設定 | 播放端 build 變數（T-044 定案）：`VITE_FONT_URL`（可選；例如 `<MEDIA_BASE>_fonts/slab-book.woff2`，`.otf` 都得；一定要係 https，其他值會被忽略並喺 build 時警告）。冇設定 = 完全唔向 bucket 發請求。冇另外嘅粗體檔設定 |
 | CORS | 跨 origin 載入字體一定要 bucket 回 `Access-Control-Allow-Origin`（播放端 origin）；冇就載入失敗，跌去 Rokkitt |
 | Preload | 字體係載入進度嘅一項：等 slab 字體就緒（`document.fonts.load()`），有逾時（常數，T-044 定）；逾時或者失敗照樣完成，用當時用到嘅字 |
 | 重新量字 | `document.fonts.ready` 同 `loadingdone` 之後，量字函數要換新，用到佢嘅元件重新 fit／斷行（review W-017；「字體載入」一行原有要求）。Noto Sans HK 按 unicode-range 分片，新字用到先載，所以唔可以只量一次 |
@@ -1159,7 +1159,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | --- | --- |
 | FR-123 掃描讀封面來源同歌曲文字檔 | `packages/catalog/scan`、`apps/api/src/media`、API-030、API-031、`albums.cover_source_etag`、`tracks.text_source_etag`；管理端掃描結果（封面處理喺瀏覽器，行 API-050、API-013） |
 | FR-124 發行類別、序號、資料夾名 | `albums.category`、`albums.category_no`、`expectedFolder()`、API-010–013、內容檔 `albums[].category`／`categoryNo` |
-| FR-041 字體 | `apps/player/src/styles/fonts.css`、`tokens.css`、`utils/textMeasure.ts`、`VITE_SLAB_FONT_URL`、Preload 進度、PWA cache |
+| FR-041 字體 | `apps/player/src/styles/fonts.css`、`tokens.css`、`utils/textMeasure.ts`、`VITE_FONT_URL`、Preload 進度、PWA cache |
 | FR-105、FR-103（改） | 同 FR-123；API-050（尺寸規則 D48 待確認） |
 | FR-108（改） | `_design_/tools/`、`apps/api/seed/*.json`、`apps/api/scripts/seed.mjs`、`matchCredits()` |
 | FR-035（22 格） | `dialLetterEvery()`、`dialShowsLetter()`（設計不變） |

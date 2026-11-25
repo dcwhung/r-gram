@@ -35,6 +35,7 @@
 | 2026-11-25 | [reviews/2026-11-25_12-18_review_T-042_T-035.md](reviews/2026-11-25_12-18_review_T-042_T-035.md) | pass 90 / 100 | T-042 唱臂三個姿勢同刻度弧跟進、T-035 主頁（`9d0c9d6..7dc6543`，`apps/player`）。冇 Critical；兩條 Warning：W-017（字體遲咗載入之後唔會重新量字，碟名會出界）同 S-072–S-075 而家同 T-044 一齊修；W-018（左上歌名放唔落時截短，同 D23 相反）要用戶決定（backlog B-055；Implementation Plan U-15）。S-076–S-081 入咗 backlog（B-056）。QA 等 W-017 修完先做 |
 | 2026-11-25 | [reviews/2026-11-25_12-30_review_T-026.md](reviews/2026-11-25_12-30_review_T-026.md) | warn 85 / 100 | T-026 catalog 生成同對外 route。冇 Critical；W-020（並發時舊內容蓋走新內容）、W-021（歌詞檔刪得太早）、W-022（測試漏洞）已修，連 S-092、S-094 |
 | 2026-11-25 | [reviews/2026-11-25_15-48_review_T-026_re-review.md](reviews/2026-11-25_15-48_review_T-026_re-review.md) | pass 100 / 100 | 同上（修正後）。五項全部關閉，18 個 mutant 全部被捉到；剩低嘅空隙同新建議 S-098–S-100 入咗 backlog（B-060–B-062） |
+| 2026-11-25 | [reviews/2026-11-25_15-51_review_T-044_player-fixes.md](reviews/2026-11-25_15-51_review_T-044_player-fixes.md) | pass 90 / 100 | T-044 字體（內建 Rokkitt，OFL；可選 bucket 字體），連 W-017 同 S-072–S-075 嘅修正（全部確認已修）。冇 Critical；W-027（商業字體守衛只睇一個資料夾）已修：`.gitignore` + 全 repo 測試；W-026（唔會模擬粗體）等用戶決定；S-113 文件已改；其餘入咗 backlog（B-063、B-064） |
 
 ## QA
 
