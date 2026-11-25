@@ -2,8 +2,7 @@
  * API-032 GET /api/media?prefix=（T-025；手動指定音檔 / MV 時揀檔用）：媒體 bucket 一層（資料夾 + 檔）。
  * `_` 開頭嘅第一層資料夾（例如 `_fonts/`）唔係專輯，唔列亦唔可以開（Technical Spec CR-004）
  */
-import { json } from './albumFixtures';
-import { api } from './albumFixtures';
+import { api, json } from './albumFixtures';
 import { call } from './helpers';
 import { putMedia, type Loose } from './scanFixtures';
 import { scanErrorMessage, scanReasonMessage, itemMessage } from '../src/media/errors';
