@@ -7,6 +7,7 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
+    第 17 版補（2026-11-25）：純文字歌詞加自動斷行、兩個版面同試排版（貼歌詞即睇）；碟多時字母盤再疏啲（最多約 9 個字母）。
     第 17 版（2026-11-25）。用戶意見：歌詞冇時間標記時成份一次過顯示、冇框；㩒 play 時唱針由上方轉到碟上再放低；碟多時字母盤每幾個先出一個字母、其餘用刻度。
     第 16 版補（2026-11-25）：加「歌書（歌詞冇時間標記）」（D38）同「歌單（專輯未有歌）」（D39）兩格。
     第 16 版（2026-11-25）。用戶決定：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺原位（同真唱片機一樣）；歌書開住時暫停，歌書留住。
@@ -141,7 +142,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede">第 17 版。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；放唔晒先縮細字，再放唔晒就上下捲。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤每幾個先出一個字母，其餘用刻度；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
+    <p class="lede">第 17 版。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇兩個版面。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用刻度；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
     <p class="lede">第 16 版嘅內容不變：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺碟上面；歌書開住時暫停，歌書留住；冇歌嘅專輯嘅歌單。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
@@ -199,8 +200,14 @@ tr:last-child td { border-bottom: 0; }
     <p class="lede">同一粒掣，每㩒一下轉一個模式，模式靠 icon 分。播緊時外圈同 icon 一齊著燈（專輯色），冇播就唔著。「重覆一首」用數字 badge。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
     <div id="modes"></div>
 
+    <h2>歌詞冇時間標記：試排版</h2>
+    <p class="lede">喺下面貼入冇時間標記嘅歌詞，即刻見到兩個版面點排。歌詞只留喺你呢個瀏覽器，唔會儲存，亦唔會寫入設計稿檔案。留空就用佔位歌詞（行長同分段照一首真歌）。</p>
+    <textarea id="plainText" rows="6" style="width: 100%; max-width: 820px; box-sizing: border-box; padding: 10px 12px; border-radius: 12px; border: 1px solid #555; background: #1b1b1b; color: #eee; font: 14px/1.6 inherit" placeholder="貼入歌詞（每行一句；段與段之間空一行）" aria-label="試排用嘅歌詞"></textarea>
+    <p class="lede"><label>捲動 <input type="range" id="plainScroll" min="0" max="100" value="0" style="width: 260px; vertical-align: middle"></label></p>
+    <div class="grid" id="plainlab"></div>
+
     <h2>刻度格數：刻度弧固定</h2>
-    <p class="lede">刻度弧嘅起點同終點固定，♥ 永遠喺弧嘅最尾（位置同之前 18 格時一樣），專輯喺弧上面平均分佈：碟少就疏啲，碟多就密啲。♥ 唔會再因為碟數改變而撞到播放模式掣或者旋鈕。字母盤打開嘅總時間固定 0.5 秒。多過 17 隻碟時，字母盤每幾個先出一個字母（24 同 30 隻都係每 2 個），其餘用短刻度；揀中嗰個永遠出粗體字母，佢左右同貼住 ♥ 嗰個會讓位改出刻度。RubberBand 而家係 17 隻，樣同之前一樣。</p>
+    <p class="lede">刻度弧嘅起點同終點固定，♥ 永遠喺弧嘅最尾（位置同之前 18 格時一樣），專輯喺弧上面平均分佈：碟少就疏啲，碟多就密啲。♥ 唔會再因為碟數改變而撞到播放模式掣或者旋鈕。字母盤打開嘅總時間固定 0.5 秒。多過 17 隻碟時，字母盤保持簡約：每幾個先出一個字母，成個盤最多約 9 個（18 隻每 2 個、24 隻每 3 個、30 隻每 4 個），其餘用短刻度；揀中嗰個永遠出粗體字母，佢旁邊同 ♥ 旁邊太近嘅會讓位改出刻度。RubberBand 而家係 17 隻，樣同之前一樣。</p>
     <div id="scales"></div>
 
     <h2>掣點分類</h2>
@@ -443,8 +450,7 @@ tr:last-child td { border-bottom: 0; }
         ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形；播放模式掣著燈', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
         ['暫停', '同真唱片機一樣：唱針略為升起，唱臂留喺碟上面原位；碟停喺原位；唱片夾係 play + 停住嘅進度圈；再㩒即刻續播，唔使重新落針', { album: 'komorebi', song: true, paused: true, wheel: 0 }],
         ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
-        ['歌書（歌詞冇時間標記）', '成份歌詞一次過顯示：直身一欄，冇框線，全部行一樣；唔跟歌行。呢首 20 行（連段落空行），放得晒', { album: 'komorebi', song: true, booklet: true, plain: 20, wheel: 0 }],
-        ['歌書（歌詞冇時間標記，長歌）', '40 行：字縮到最細都放唔晒，就可以上下捲；底部淡出表示下面仲有', { album: 'komorebi', song: true, booklet: true, plain: 40, wheel: 0 }],
+        ['歌書（歌詞冇時間標記）', '成份歌詞一次過顯示：直身一欄，冇框線，全部行一樣；唔跟歌行。太長嘅行自動斷行，放唔晒就上下捲（見下面「試排版」）', { album: 'komorebi', song: true, booklet: true, plain: true, wheel: 0 }],
         ['歌單（㩒碟面）', '唱片機壓暗；歌名沿碟弧線排；唱片夾係 play 掣；灰色嗰行 = 未有音檔（示意）', { album: 'komorebi', song: false, list: true, wheel: 0 }],
         ['MV 電視', '互動格入面會由底部升起再開機；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同快轉／倒轉', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
         ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播（再播時重新落針）', { album: 'komorebi', song: true, paused: true, parked: true, wheel: 0 }],
@@ -455,7 +461,7 @@ tr:last-child td { border-bottom: 0; }
         ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
         ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
     ];
-    const ui = { fav: true, mode: 'order', showHit: false, showGap: false };
+    const ui = { fav: true, mode: 'order', showHit: false, showGap: false, plainText: [], plainScroll: 0 };
     const live = { album: 'komorebi', song: false, paused: false, parked: false, booklet: false, list: false, mv: false, mvPaused: false, mvFresh: false, mvClosing: false, bookFresh: false, bookClosing: false, armFresh: false, armSeq: 0, wheel: 0 };
 
     /* ---------- 工具 ---------- */
@@ -465,6 +471,7 @@ tr:last-child td { border-bottom: 0; }
     const lerp = (a, b, t) => a + (b - a) * t;
     const clamp01 = (v) => Math.max(0, Math.min(1, v));
     const pt = (units) => Math.round(units * PT_PER_UNIT);
+    const esc = (text) => String(text).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
     const SLAB = `'RB Slab', Rockwell, 'Rockwell Nova', serif`;
     const SLAB_LIGHT = `'RB Slab Light', Rockwell, serif`;
     const CJK = `'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans CJK TC', sans-serif`;
@@ -881,15 +888,20 @@ tr:last-child td { border-bottom: 0; }
         openStaggerMs: 238, // 頭尾字母相差幾耐（固定；238ms + 0.26s ≈ 0.5s，幾多隻碟都一樣）
         closeStaggerMs: 136,
     };
-    /** 字母盤上兩個相鄰字母中心嘅最細距離 = 18 格時嘅距離；細過佢就每 N 個先出一個字母 */
-    const DIAL_MIN_SPACING = DIAL.letters * rad(11.25);
-    const dialLetterEvery = (positions) => Math.max(1, Math.ceil(DIAL_MIN_SPACING / (DIAL.letters * rad((SCALE.to - SCALE.from) / (positions - 1))) - 1e-6));
-    /** 呢格出字母定出刻度：揀中嗰個永遠出字母；佢左右會撞到嘅、同埋貼住 ♥ 嘅，改出刻度 */
+    /*
+     * 字母盤幾時出字母：18 格（17 隻碟 + ♥）或以下，每格都出；再多就保持簡約——每 N 個先出一個，成個盤最多約 9 個字母，其餘用短刻度。
+     * 揀中嗰個永遠出（放大粗體）；佢旁邊同 ♥ 旁邊太近嘅字母讓位改出刻度。
+     */
+    const DIAL_ALL_UP_TO = 18;
+    const DIAL_MAX_LETTERS = 9;
+    const DIAL_CLEARANCE = DIAL.letters * rad(11.25) * 1.3; // 大字同 ♥ 旁邊要留嘅位（18 格時一格嘅 1.3 倍）
+    const dialLetterEvery = (positions) => (positions <= DIAL_ALL_UP_TO ? 1 : Math.ceil((positions - 1) / DIAL_MAX_LETTERS));
     const dialShowsLetter = (pos, current, positions) => {
         const every = dialLetterEvery(positions);
-        if (pos === current) return true;
+        if (pos === current || every === 1) return true;
         if (pos % every !== 0) return false;
-        return Math.abs(pos - current) >= every && positions - 1 - pos >= every;
+        const spacing = DIAL.letters * rad((SCALE.to - SCALE.from) / (positions - 1));
+        return Math.abs(pos - current) * spacing >= DIAL_CLEARANCE && (positions - 1 - pos) * spacing >= DIAL_CLEARANCE;
     };
     const dialTick = (angle) => {
         const [x1, y1] = polar(0, 0, DIAL.letters - 8, angle);
@@ -935,30 +947,82 @@ tr:last-child td { border-bottom: 0; }
     const LYRICS = ['歌詞第一行（佔位）', '歌詞第二行（佔位）', '歌詞第三行（佔位）', '正在播放的一行', '歌詞第五行（佔位）', '歌詞第六行（佔位）', '歌詞第七行（佔位）'];
     const LYRIC_NOW = 3;
     /*
-     * 冇時間標記嘅歌詞（D38，第 17 版）：成份歌詞一次過顯示——直身、靠左一欄，冇框線，全部行同一個字款同光暗。
-     * 欄喺三粒細掣右邊，由曲詞編監下面排到旋鈕上面；放唔晒先縮細字，仲放唔晒就上下捲（底部淡出）。
+     * 冇時間標記嘅歌詞（D38，第 17 版）：成份歌詞一次過顯示——直身、靠左一欄，冇框線，全部行同一個字款同光暗，唔跟歌行。
+     * 太長嘅行自動斷行（優先喺空格位斷，續行縮入一格）；放唔晒就上下捲，頂同底淡出。
+     * 兩個版面等用戶揀：tall = 喺三粒細掣右邊嘅高窄欄，排到旋鈕上面；wide = 同曲詞編監對齊嘅闊欄，排到細掣上面。
+     * 右邊界 = 唱片夾窿嘅左邊再留 20：歌詞永遠唔會行入唱片夾（播放／暫停）。
      */
-    const PLAIN = { x: 230, top: 690, bottom: 1650, max: 32, min: 26, pitch: 1.42, fade: 120 };
-    const VERSE = 4; // 佔位歌詞：每四行一段，段與段之間空一行
-    const plainLines = (count) => Array.from({ length: count }, (_, i) => [`歌詞第 ${i + 1} 行（佔位）`, (i + 1) % VERSE === 0 && i + 1 < count ? '' : null]).flat().filter((line) => line !== null);
-    const plainLyrics = (st) => {
-        const lines = plainLines(st.plain);
-        const room = PLAIN.bottom - PLAIN.top;
-        const size = Math.max(PLAIN.min, Math.min(PLAIN.max, Math.floor(room / lines.length / PLAIN.pitch)));
-        const pitch = size * PLAIN.pitch;
-        const overflow = lines.length * pitch > room;
-        const id = `plain-${st.plain}`;
-        let text = '';
-        lines.forEach((line, i) => {
-            const y = PLAIN.top + pitch * (i + 0.5);
-            if (line && y < PLAIN.bottom + pitch) text += `<text x="${PLAIN.x}" y="${n(y)}" dominant-baseline="central" font-family="${CJK}" font-weight="500" font-size="${size}" fill="${PAPER}" opacity=".88">${line}</text>`;
-        });
-        const mask = overflow
-            ? `<linearGradient id="${id}-g" gradientUnits="userSpaceOnUse" x1="0" y1="${PLAIN.bottom - PLAIN.fade}" x2="0" y2="${PLAIN.bottom}"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient>` +
-              `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect width="${W}" height="${PLAIN.bottom}" fill="url(#${id}-g)"/></mask>`
-            : '';
-        return `${mask}<g class="book-plain"${overflow ? ` mask="url(#${id})"` : ''}>${text}</g>`;
+    const PLAIN_RIGHT = DISC.x - DISC.r * HUB.clear - 20;
+    const PLAIN_LAYOUTS = {
+        tall: { x: 230, right: PLAIN_RIGHT, top: 690, bottom: 1650, size: 30 },
+        wide: { x: 74, right: PLAIN_RIGHT, top: 690, bottom: 1300, size: 28 },
     };
+    const PLAIN = { pitch: 1.45, fade: 110, indent: 1, layout: 'wide' };
+    // 佔位歌詞：行長同分段照一首真歌（每行兩至三句，中間用全形空格分開），唔係真歌詞
+    const PH = (count) => '歌詞佔位文字'.repeat(4).slice(0, count);
+    const PH_VERSE = `${PH(7)}　${PH(6)}　${PH(10)}`;
+    const PH_BRIDGE = `${PH(8)}　${PH(7)}`;
+    const PH_CHORUS = `(Placeholder) ${PH(6)}　${PH(6)}　${PH(5)}`;
+    const PLAIN_SAMPLE = [4, 2, 4, 2, 2, 4, 4].flatMap((count, i) => [...Array(count).fill([PH_VERSE, PH_BRIDGE, PH_CHORUS][[0, 1, 2, 0, 1, 2, 2][i]]), '']).slice(0, -1);
+    const plainSource = () => (ui.plainText.length ? ui.plainText : PLAIN_SAMPLE);
+    /** 一行歌詞斷成幾列：[文字, 縮入]；優先喺空格（全形／半形）斷，一句都放唔落先逐字斷 */
+    const wrapLine = (line, size, width) => {
+        const rows = [];
+        let row = '';
+        let indent = 0;
+        const push = () => { rows.push([row.trim(), indent]); row = ''; indent = size * PLAIN.indent; };
+        line.split(/(?<=[　 ])/).forEach((word) => {
+            if (row && textWidth((row + word).trimEnd(), size) > width - indent) push();
+            [...word].forEach((ch) => {
+                if (row && textWidth(row + ch, size) > width - indent) push();
+                row += ch;
+            });
+        });
+        rows.push([row.trim(), indent]);
+        return rows;
+    };
+    const plainRows = (layout) => plainSource().flatMap((line) => wrapLine(line, layout.size, layout.right - layout.x));
+    /** 列數、一個畫面見到幾多列、要捲幾多個畫面 */
+    const plainStats = (key) => {
+        const layout = PLAIN_LAYOUTS[key];
+        const rows = plainRows(layout).length;
+        const visible = Math.floor((layout.bottom - layout.top) / (layout.size * PLAIN.pitch));
+        return { lines: plainSource().filter(Boolean).length, rows, visible, screens: Math.max(1, rows / visible) };
+    };
+    let plainSeq = 0;
+    const plainLyrics = (st) => {
+        const layout = PLAIN_LAYOUTS[st.plainLayout ?? PLAIN.layout];
+        const rows = plainRows(layout);
+        const pitch = layout.size * PLAIN.pitch;
+        const room = layout.bottom - layout.top;
+        const hidden = Math.max(0, rows.length * pitch - room);
+        const offset = hidden * (st.plainScroll ?? 0);
+        const id = `plain-${(plainSeq += 1)}`;
+        let text = '';
+        rows.forEach(([line, indent], i) => {
+            const y = layout.top + pitch * (i + 0.5) - offset;
+            if (!line || y < layout.top - pitch || y > layout.bottom + pitch) return;
+            text += `<text x="${n(layout.x + indent)}" y="${n(y)}" dominant-baseline="central" font-family="${MIXED}" font-weight="500" font-size="${layout.size}" fill="${PAPER}" opacity=".9">${esc(line)}</text>`;
+        });
+        // 頂（捲咗先有）同底（下面仲有先有）淡出
+        const fade = PLAIN.fade / room;
+        const topStop = offset > 0 ? '#000' : '#fff';
+        const bottomStop = offset < hidden ? '#000' : '#fff';
+        const mask =
+            `<linearGradient id="${id}-g" gradientUnits="userSpaceOnUse" x1="0" y1="${layout.top}" x2="0" y2="${layout.bottom}">` +
+            `<stop offset="0" stop-color="${topStop}"/><stop offset="${n(fade * 100) / 100}" stop-color="#fff"/><stop offset="${n((1 - fade) * 100) / 100}" stop-color="#fff"/><stop offset="1" stop-color="${bottomStop}"/></linearGradient>` +
+            `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect y="${layout.top}" width="${W}" height="${room}" fill="url(#${id}-g)"/></mask>`;
+        return `${mask}<g class="book-plain" mask="url(#${id})">${text}</g>`;
+    };
+    /** 試排版：兩個版面並排，用貼入嘅歌詞（冇貼就用佔位） */
+    const plainLab = () =>
+        [['wide', 'B　闊欄（同曲詞編監對齊，排到細掣上面）'], ['tall', 'A　高窄欄（喺細掣右邊，排到旋鈕上面）']].map(([key, name]) => {
+            const { lines, rows, visible, screens } = plainStats(key);
+            const layout = PLAIN_LAYOUTS[key];
+            const caption = `字 ${layout.size}（約 ${n(layout.size * PT_PER_UNIT)}pt）；${lines} 行歌詞排成 ${rows} 列，一個畫面見到 ${visible} 列，${rows > visible ? `要捲約 ${n(screens)} 個畫面` : '唔使捲'}`;
+            const st = { album: 'komorebi', song: true, booklet: true, plain: true, plainLayout: key, plainScroll: ui.plainScroll, wheel: 0 };
+            return `<article class="card"><h3>${name}</h3><p class="tag">${caption}</p><svg class="stage" viewBox="0 0 ${W} ${H}" role="img" aria-label="${name}">${scene(st, `plain-${key}`)}</svg></article>`;
+        }).join('');
     const CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }; // 左邊一欄四行，唔伸入 CD / 轉盤嘅範圍
     const ARC = { r: 556, step: 9.2, now: 44, other: 32, frame: 92 }; // 弧線半徑比之前（600）縮入一個字位；行距不變（step 同 v16 歌單一樣 9.2°）
 
@@ -1230,7 +1294,7 @@ tr:last-child td { border-bottom: 0; }
 
     /* ---------- 刻度格數示意：刻度弧固定，專輯平均分佈，♥ 永遠喺最尾 ---------- */
     const scaleShowcase = () => {
-        const COUNTS = [4, 9, 17, 24, 30]; // 專輯數（17 = 而家）
+        const COUNTS = [4, 9, 17, 18, 24, 30]; // 專輯數（17 = 而家；18 = 下一隻碟）
         const CELL = 620;
         const HEAD = 96;
         const ROWS = [['平時', false], ['轉碟中', true]];
@@ -1470,10 +1534,12 @@ tr:last-child td { border-bottom: 0; }
         liveSignature = signature;
     };
 
+    const renderPlainLab = () => { document.getElementById('plainlab').innerHTML = plainLab(); };
     const renderStatic = () => {
         document.getElementById('grid').innerHTML = VIEWS.map(staticCard).join('') + wholeDisc() + preloadCard();
         document.getElementById('modes').innerHTML = modeShowcase();
         document.getElementById('scales').innerHTML = scaleShowcase();
+        renderPlainLab();
         document.getElementById('measure').innerHTML = measurements();
     };
 
@@ -1546,6 +1612,13 @@ tr:last-child td { border-bottom: 0; }
     document.getElementById('showHit').addEventListener('change', (event) => { ui.showHit = event.target.checked; render(); });
     document.getElementById('showGap').addEventListener('change', (event) => { ui.showGap = event.target.checked; render(); });
 
+    document.getElementById('plainText').addEventListener('input', (event) => {
+        ui.plainText = event.target.value.replace(/\r\n?/g, '\n').split('\n').map((line) => line.trim());
+        while (ui.plainText.length && !ui.plainText.at(-1)) ui.plainText.pop();
+        while (ui.plainText.length && !ui.plainText[0]) ui.plainText.shift();
+        renderPlainLab();
+    });
+    document.getElementById('plainScroll').addEventListener('input', (event) => { ui.plainScroll = Number(event.target.value) / 100; renderPlainLab(); });
     buildLathe();
     render();
 })();
