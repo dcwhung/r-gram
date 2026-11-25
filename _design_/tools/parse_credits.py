@@ -16,31 +16,62 @@ import json
 import re
 import sys
 from pathlib import Path
+from typing import Any, Final, TypeAlias, TypedDict
 
-REPO = Path(__file__).resolve().parents[2]
-DEFAULT_SOURCE = REPO / '_design_' / 'rubberband-credits.html'
-DEFAULT_DISCOGRAPHY = REPO / 'apps' / 'api' / 'seed' / 'discography.json'
-DEFAULT_OUTPUT = REPO / 'apps' / 'api' / 'seed' / 'credits.json'
-NO_VALUE = ('—', '-', '')
+REPO: Final = Path(__file__).resolve().parents[2]
+DEFAULT_SOURCE: Final = REPO / '_design_' / 'rubberband-credits.html'
+DEFAULT_DISCOGRAPHY: Final = REPO / 'apps' / 'api' / 'seed' / 'discography.json'
+DEFAULT_OUTPUT: Final = REPO / 'apps' / 'api' / 'seed' / 'credits.json'
+NO_VALUE: Final = ('—', '-', '')
+
+# discography.json as read here (only `id`, `title`, `tracks[].no` / `.title` are used).
+Discography: TypeAlias = dict[str, Any]
 
 
 class SourceError(Exception):
     """The source page does not look the way this script expects."""
 
 
-def strip(fragment):
+# Output shapes: the fields packages/catalog src/seed/types.ts reads, plus reference fields.
+class CreditRow(TypedDict):
+    # A number when the cell is all digits; otherwise the cell text as is (None if absent).
+    no: int | str | None
+    title: str | None
+    firstOn: str | None
+    missing: bool
+    composer: str | None
+    lyricist: str | None
+    arranger: str | None
+    producer: str | None
+    lyricsUrl: str | None
+    note: str | None
+
+
+class CreditAlbum(TypedDict):
+    title: str
+    albumId: str | None
+    meta: str
+    tracks: list[CreditRow]
+
+
+class CreditsDocument(TypedDict):
+    source: str
+    albums: list[CreditAlbum]
+
+
+def strip(fragment: str) -> str:
     return html.unescape(re.sub(r'<[^>]+>', '', fragment)).strip()
 
 
-def updated_date(page):
+def updated_date(page: str) -> str:
     match = re.search(r'更新\s*(\d{4}-\d{2}-\d{2})', page)
     if not match:
         raise SourceError('no "更新 YYYY-MM-DD" date in the page header')
     return match.group(1)
 
 
-def parse_row(cls, row):
-    def cell(name):
+def parse_row(cls: str, row: str) -> CreditRow:
+    def cell(name: str) -> str | None:
         match = re.search(r'<td class="%s[^"]*">(.*?)</td>' % name, row, re.S)
         return strip(match.group(1)) if match else None
 
@@ -48,8 +79,9 @@ def parse_row(cls, row):
     note = re.search(r'<div class="note">(.*?)</div>', row, re.S)
     link = re.search(r'<td class="lyrics">.*?href="([^"]+)"', row, re.S)
     first_on = re.search(r'首見\s*([^<]+)', title.group(1)) if title else None
+    number = cell('no')
     return {
-        'no': int(cell('no')) if (cell('no') or '').isdigit() else cell('no'),
+        'no': int(number) if number and number.isdigit() else number,
         'title': strip(re.sub(r'<span.*?</span>', '', title.group(1), flags=re.S)) if title else None,
         'firstOn': first_on.group(1).strip() if first_on else None,
         'missing': 'missing' in cls,
@@ -62,19 +94,27 @@ def parse_row(cls, row):
     }
 
 
-def build(page, disco):
+def found(pattern: str, fragment: str, what: str) -> re.Match[str]:
+    match = re.search(pattern, fragment, re.S)
+    if not match:
+        raise SourceError(f'missing {what}')
+    return match
+
+
+def build(page: str, disco: Discography) -> tuple[CreditsDocument, str | None]:
     """Credits document and the text of the people section (for the report)."""
     source = f'rubberband-credits.html (updated {updated_date(page)})'
     page = re.sub(r'<style.*?</style>', '', page, flags=re.S)
     by_title = {album['title']: album for album in disco['albums']}
-    albums, people = [], None
+    albums: list[CreditAlbum] = []
+    people: str | None = None
     for m in re.finditer(r'<section class="(album|people)"[^>]*>(.*?)</section>', page, re.S):
         kind, sec = m.group(1), m.group(2)
         if kind == 'people':
             people = strip(sec)[:1500]
             continue
-        title = strip(re.search(r'<h2.*?</h2>', sec, re.S).group(0))
-        meta = strip(re.search(r'<p class="meta">(.*?)</p>', sec, re.S).group(1))
+        title = strip(found(r'<h2.*?</h2>', sec, 'release title').group(0))
+        meta = strip(found(r'<p class="meta">(.*?)</p>', sec, 'meta line').group(1))
         rows = [parse_row(tr.group(1), tr.group(2))
                 for tr in re.finditer(r'<tr class="([^"]*)">(.*?)</tr>', sec, re.S)]
         album_id = by_title.get(title, {}).get('id')
@@ -82,25 +122,25 @@ def build(page, disco):
     return {'source': source, 'albums': albums}, people
 
 
-def report(albums, disco, people):
+def report(albums: list[CreditAlbum], disco: Discography, people: str | None) -> None:
     """Coverage against the discography: the same three outcomes as packages/catalog matchCredits()."""
     rows = [r for a in albums for r in a['tracks']]
     print('rows:', len(rows), 'missing rows:', sum(r['missing'] for r in rows),
           'dup rows:', sum(1 for r in rows if r['firstOn']))
-    credited = {}
+    credited: dict[str | None, CreditRow] = {}
     for r in rows:
         if r['composer'] and r['composer'] not in NO_VALUE:
             credited.setdefault(r['title'], r)
     tot = hit_direct = hit_title = 0
-    miss = collections.Counter()
+    miss: collections.Counter[str] = collections.Counter()
     for a in disco['albums']:
         ca = next((x for x in albums if x['albumId'] == a['id']), None)
-        cmap = {r['no']: r for r in ca['tracks']} if ca else {}
+        cmap = {row['no']: row for row in ca['tracks']} if ca else {}
         d = t2 = 0
         for t in a['tracks']:
             tot += 1
-            r = cmap.get(t['no'])
-            if r and r['title'] == t['title'] and r['composer'] and r['composer'] not in NO_VALUE:
+            row = cmap.get(t['no'])
+            if row and row['title'] == t['title'] and row['composer'] and row['composer'] not in NO_VALUE:
                 hit_direct += 1
                 d += 1
             elif t['title'] in credited:
@@ -116,7 +156,7 @@ def report(albums, disco, people):
     print('people:', (people or '')[:400])
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument('source', nargs='?', type=Path, default=DEFAULT_SOURCE)
     parser.add_argument('discography', nargs='?', type=Path, default=DEFAULT_DISCOGRAPHY)
