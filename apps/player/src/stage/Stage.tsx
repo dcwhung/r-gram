@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { DESIGN_WIDTH } from './fitStage';
 import './stage.css';
+import { StageContext } from './StageContext';
 import { useStageFit } from './useStageFit';
 
 const CSS_PRECISION = 4;
@@ -22,8 +23,10 @@ export const Stage = ({ children }: { children: ReactNode }) => {
         '--stage-offset-y': `${fit.offsetY.toFixed(CSS_PRECISION)}px`,
     } as CSSProperties;
     return (
-        <div className="stage" data-testid="stage" style={style}>
-            {children}
-        </div>
+        <StageContext.Provider value={fit}>
+            <div className="stage" data-testid="stage" style={style}>
+                {children}
+            </div>
+        </StageContext.Provider>
     );
 };

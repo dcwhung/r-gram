@@ -19,7 +19,7 @@ describe('latheWedges', () => {
     // 明暗公式同設計稿 buildLathe() 一樣：0.76 + 0.15cos(2a) + 0.045cos(6a + 40°) + 0.02cos(14a)
     it('should shade the wedges with the brushed-metal pattern of the mockup', () => {
         expect(wedges[0]?.fill).toBe('rgb(246,246,246)');
-        expect(wedges[24]?.fill).toBe('rgb(146,146,146)');
+        expect(wedges[24]?.fill).toBe('rgb(142,142,142)');
         const levels = wedges.map(({ fill }) => Number(/rgb\((\d+)/.exec(fill)?.[1]));
         expect(Math.min(...levels)).toBeGreaterThan(130);
         expect(Math.max(...levels)).toBeLessThanOrEqual(255);

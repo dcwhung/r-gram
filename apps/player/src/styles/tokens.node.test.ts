@@ -38,6 +38,7 @@ describe('tokens.css', () => {
         ['--motion-feedback-swap', MOTION.feedback.swapMs],
         ['--motion-scene-disc-change', MOTION.scene.discChangeMs],
         ['--motion-scene-dial-key', MOTION.scene.dialKeyMs],
+        ['--motion-scene-disc-rotation', MOTION.scene.discRotationMs],
         ['--motion-scene-tonearm', MOTION.scene.tonearmMs],
         ['--motion-scene-booklet-open', MOTION.scene.bookletOpenMs],
         ['--motion-scene-booklet-close', MOTION.scene.bookletCloseMs],

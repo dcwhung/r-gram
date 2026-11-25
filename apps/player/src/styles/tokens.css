@@ -28,6 +28,7 @@
     /* 場景類（Functional Spec D1 已接受超過 300ms） */
     --motion-scene-disc-change: 500ms;
     --motion-scene-dial-key: 260ms;
+    --motion-scene-disc-rotation: 5400ms;
     --motion-scene-tonearm: 650ms;
     --motion-scene-booklet-open: 400ms;
     --motion-scene-booklet-close: 240ms;

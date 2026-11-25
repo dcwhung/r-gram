@@ -1,0 +1,17 @@
+/* 碟轉動：只轉封面（銀邊同反光唔轉）。一圈嘅時間用 token（設計稿 .spin：5.4 秒） */
+.disc-cover {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .disc-spinning {
+        animation: disc-spin var(--motion-scene-disc-rotation) linear infinite;
+    }
+}
+
+@keyframes disc-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

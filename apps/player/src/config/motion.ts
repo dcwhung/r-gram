@@ -24,6 +24,8 @@ export const MOTION = {
         dialKeyOpenStepMs: 14,
         /** 收返時每個字母遲幾耐（由最尾一格先收） */
         dialKeyCloseStepMs: 8,
+        /** 碟轉一圈 */
+        discRotationMs: 5400,
         /** 唱臂落針 / 返泊位 */
         tonearmMs: 650,
         bookletOpenMs: 400,

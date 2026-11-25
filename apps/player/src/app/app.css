@@ -1,19 +1,27 @@
-/* 暫時嘅外殼排版（位置同字級跟設計稿 Preload 底部：R Gram / 歌迷自製　非官方 / 版本） */
+/* 暫時嘅外殼排版：App 名、非官方聲明、版本喺左上（之後係專輯名同歌名嘅位置；T-035 取代） */
 .app-identity {
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: calc(var(--u) * 60);
+    top: calc(var(--u) * 110);
+    left: calc(var(--u) * 70);
     display: grid;
-    justify-items: center;
-    gap: calc(var(--u) * 10);
+    gap: calc(var(--u) * 12);
     color: var(--color-muted);
-    font-size: calc(var(--u) * 22);
+    font-size: calc(var(--u) * 24);
     letter-spacing: calc(var(--u) * 3);
+    pointer-events: none;
 }
 
 .app-identity strong {
     color: var(--color-ink);
-    font-size: calc(var(--u) * 30);
+    font-family: var(--font-slab);
+    font-size: calc(var(--u) * 88);
     font-weight: 700;
+    letter-spacing: calc(var(--u) * 1);
+    line-height: 1;
+}
+
+.stage-svg {
+    position: absolute;
+    inset: 0;
+    display: block;
 }

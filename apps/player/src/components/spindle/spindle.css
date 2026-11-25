@@ -1,0 +1,10 @@
+.spindle {
+    cursor: pointer;
+    outline: none;
+}
+
+.spindle:focus-visible [data-part='hit'] {
+    stroke: var(--color-paper);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}

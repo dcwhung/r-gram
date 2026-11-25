@@ -1,0 +1,15 @@
+.metal-button {
+    cursor: pointer;
+    outline: none;
+}
+
+.metal-button[aria-disabled='true'] {
+    cursor: default;
+}
+
+/* 鍵盤 focus：喺感應範圍畫一個圈（SVG 元素嘅 outline 喺 Safari 唔可靠） */
+.metal-button:focus-visible [data-part='hit'] {
+    stroke: var(--color-ink);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}

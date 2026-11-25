@@ -1,0 +1,6 @@
+/* 唱臂以軸心轉動：位置同角度寫喺 inline transform，CSS 只負責過場 */
+@media (prefers-reduced-motion: no-preference) {
+    .tonearm-arm {
+        transition: transform var(--motion-scene-tonearm) cubic-bezier(0.4, 0, 0.2, 1);
+    }
+}
