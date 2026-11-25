@@ -330,6 +330,52 @@ describe('rebuildCatalog: concurrent writes', () => {
         expect(calls.put).toBe(3);
     });
 
+    // review W-020（A→B→A）：「冇變」嘅一輪唔寫 R2，etag 唔郁；讀 D1 比較早嘅生成寫入時條件照啱
+    it('should not leave older content live when a newer save found nothing to write', async () => {
+        const setTitle = (title: string) =>
+            env.DB.prepare('UPDATE albums SET title = ? WHERE id = ?').bind(title, 'a').run();
+        await insertAlbum('a', 1, { title: 'T1' });
+        await rebuild();
+        let saved: Awaited<ReturnType<typeof rebuild>> | undefined;
+        // 請求 B 將 D1 改做 T0，佢嘅生成讀完 D1、寫 R2 之前：請求 A 改返 T1，生成見到同 R2 一樣，乜都唔寫
+        const { bucket } = bucketWith({
+            put: async (args, original) => {
+                if (!saved) {
+                    await setTitle('T1');
+                    saved = await rebuild();
+                }
+                return original(...args);
+            },
+        });
+        await setTitle('T0');
+        const late = await rebuild({ ...env, CATALOG: bucket });
+        expect(saved).toMatchObject({ ok: true, unchanged: true });
+        expect(late.ok).toBe(true);
+        expect((await liveDocument())?.albums[0]?.title).toBe('T1');
+        expect((await stateRow())?.hash).toBe((await liveObject())?.customMetadata?.hash);
+    });
+
+    it('should record a failure, never ok, when D1 keeps moving after every write', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        await insertAlbum('a', 1);
+        let saves = 0;
+        // 每次寫入之後 D1 都已經再改過：寫入嘅永遠唔係最新
+        const { bucket, calls } = bucketWith({
+            put: async (args, original) => {
+                const written = await original(...args);
+                saves += 1;
+                await env.DB.prepare('UPDATE albums SET title = ? WHERE id = ?')
+                    .bind(`Moved ${saves}`, 'a')
+                    .run();
+                return written;
+            },
+        });
+        const result = await rebuild({ ...env, CATALOG: bucket });
+        expect(result).toMatchObject({ ok: false, error: 'CATALOG_WRITE_FAILED' });
+        expect(calls.put).toBe(3);
+        expect((await stateRow())?.status).toBe('failed');
+    });
+
     it('should only write catalog.json when it is still the one read before D1', async () => {
         await insertAlbum('a', 1);
         await rebuild();
