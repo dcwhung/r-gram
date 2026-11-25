@@ -16,3 +16,12 @@ export const IDLE_TIMEOUT_MS = 5000;
 
 /** 冇 requestIdleCallback（Safari）就遲呢個時間先做 */
 export const IDLE_FALLBACK_MS = 1500;
+
+/**
+ * Service Worker 留低幾多張 catalog 圖片（backlog B-071 ①）。而家 21 隻碟 × 兩張封面 × 大封面同縮圖 ≈ 84 張；
+ * 留多啲位畀之後加碟同換封面（換咗嘅舊檔名唔會再用，超出上限由最舊嗰張清起）。
+ */
+export const CATALOG_IMAGE_CACHE_MAX_ENTRIES = 200;
+
+/** Service Worker 留低幾多份歌詞（B-071 ③）：291 首歌，每首最多一份，留位畀改歌詞同加歌 */
+export const LYRICS_CACHE_MAX_ENTRIES = 400;
