@@ -1,13 +1,18 @@
 /*
  * API-031 `media`（媒體配對）同 `clearAudio`（音檔已不在資料夾，Functional Spec D62）逐項套用：
  * - media：檔仲喺資料夾（唔係 → STALE）；手動指定嘅唔郁（MANUAL_KEPT）；MV 要嗰個歌號有音檔（NO_AUDIO，D54）
+ * 一項出 exception → 嗰項 INTERNAL，其他照做（applyGuard.ts）
  * - clearAudio：audio_key 仲係預覽嗰個、唔係手動指定、個檔仲係唔喺資料夾，先清（否則 STALE）；MV 都唔喺度就一齊清
  */
 import type { ApplyContext } from './applyContext';
 import type { ClearItem, MediaItem } from './applyShape';
+import { guardItem } from './applyGuard';
 import { failedItem } from './applyResult';
 import { itemMessage, type ItemCode } from './errors';
 import { clearAudioLink, linkMedia } from './store';
+
+/** 出 exception 嘅項目（W-035） */
+const INTERNAL: ItemCode = 'INTERNAL';
 
 /** 套用一項；唔套用 → 原因 */
 const applyOne = async (
@@ -29,7 +34,7 @@ const applyOne = async (
 export const applyMedia = async (db: D1Database, context: ApplyContext, items: MediaItem[]) => {
     const skipped = [];
     for (const item of items) {
-        const code = await applyOne(db, context, item);
+        const code = await guardItem(() => applyOne(db, context, item), INTERNAL);
         const { trackId, kind } = item;
         if (code) skipped.push({ trackId, kind, code, message: itemMessage(code) });
     }
@@ -57,7 +62,9 @@ export const applyClearAudio = async (
     items: ClearItem[],
 ) => {
     const results = [];
-    for (const item of items)
-        results.push({ trackId: item.trackId, ...(await clearOne(db, context, item)) });
+    for (const item of items) {
+        const result = await guardItem(() => clearOne(db, context, item), failedItem(INTERNAL));
+        results.push({ trackId: item.trackId, ...result });
+    }
     return results;
 };

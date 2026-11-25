@@ -11,6 +11,7 @@ import { insertNumbered } from '../tracks/insertNumbered';
 import { dropUnusedLyrics } from '../tracks/lyricsCleanup';
 import { putLyrics } from '../tracks/songText';
 import type { ApplyContext } from './applyContext';
+import { dropLyricsOnThrow, guardItem } from './applyGuard';
 import { failedItem, type FailedItem } from './applyResult';
 import type { CreateItem } from './applyShape';
 import { readConfirmedText } from './applyText';
@@ -55,7 +56,9 @@ const createOne = async (c: Context<AppEnv>, context: ApplyContext, item: Create
     const lyrics = song.lyrics ? await putLyrics(c.env.CATALOG, song.lyrics) : null;
     const files = { audioKey: item.audioKey, mvKey: item.mvKey, textSourceEtag: textEtag };
     const track = { db: c.env.DB, albumId: context.albumId, song, lyrics, files };
-    const result = await insertNumbered(track, item.no);
+    const result = await dropLyricsOnThrow(c.env, lyrics?.jsonName, () =>
+        insertNumbered(track, item.no),
+    );
     if (result === null || typeof result === 'string') {
         // 寫唔到：啱啱寫嘅歌詞檔未入過 catalog，即刻收返
         await dropUnusedLyrics(c.env, [lyrics?.jsonName]);
@@ -76,6 +79,9 @@ export const applyCreate = async (
     items: CreateItem[],
 ) => {
     const results = [];
-    for (const item of items) results.push({ no: item.no, ...(await createOne(c, context, item)) });
+    for (const item of items) {
+        const result = await guardItem(() => createOne(c, context, item), failedItem('INTERNAL'));
+        results.push({ no: item.no, ...result });
+    }
     return results;
 };

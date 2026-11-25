@@ -1,7 +1,8 @@
 /*
  * API-031 POST /api/albums/:albumId/scan/apply（T-025）：只套用 body 列出、管理員確認咗嘅項目。
  * 次序：驗形狀（400）→ 冇呢張碟（404）→ 讀狀態 + list 資料夾 → 驗同呢張碟對唔對得上（400）→
- * clearAudio → media → create → songTexts，逐項回結果（一項失敗唔影響其他）。
+ * clearAudio → media → create → songTexts，逐項回結果（一項失敗唔影響其他；一項出 exception = 嗰項 INTERNAL，
+ * 回應照 200，review W-035）。
  * 封面唔經呢度（管理端處理圖之後行 API-050 + API-013）。成功（200）之後 api/afterWrite.ts 生成一次 catalog，回應加 `catalog`
  */
 import type { Context } from 'hono';

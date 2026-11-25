@@ -216,6 +216,8 @@ export const zhHant = {
             VALIDATION_ERROR: '歌曲文字有格式錯誤，未有套用。',
             MANUAL_KEPT: '此歌曲的檔案為手動指定，掃描不會更改。',
             NOT_FOUND: '找不到指定的歌曲。',
+            /** 套用此項時出 exception（review W-035）：未能確認寫入咗未，所以叫管理員重新掃描 */
+            INTERNAL: '套用此項時發生錯誤，未能確認是否已套用，請重新掃描。',
         },
     },
 } as const;
