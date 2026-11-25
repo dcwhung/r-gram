@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findHardCodedText } from './hardCodedText';
+import { zhHant } from './zh-Hant';
 
 /*
  * 元件唔可以寫死介面文字（Functional Spec FR-037）：`src/` 入面除咗語言檔同測試，
@@ -36,6 +37,28 @@ describe('findHardCodedText', () => {
         expect(findHardCodedText(`const url = 'https://example.com/歌';\n`)).toEqual([
             { line: 1, text: '歌' },
         ]);
+    });
+});
+
+/** W-007：PWA 名稱同描述都係介面文字，要由語言檔嚟；`src/` 以外呢兩個檔都唔可以寫死中文 */
+describe('player shell files', () => {
+    const APP_ROOT = fileURLToPath(new URL('../..', import.meta.url));
+    const HTML_COMMENT = /<!--[\s\S]*?-->/g;
+    const read = (name: string) => readFileSync(join(APP_ROOT, name), 'utf8');
+
+    it('should not hard-code UI text in vite.config.ts', () => {
+        expect(findHardCodedText(read('vite.config.ts'))).toEqual([]);
+    });
+
+    it('should not hard-code UI text in index.html', () => {
+        const html = read('index.html').replace(HTML_COMMENT, '');
+        expect(findHardCodedText(html)).toEqual([]);
+    });
+
+    it('should take the description from the locale file', () => {
+        expect(zhHant.app.description).toBe('歌迷自製的 RubberBand 唱片機（非官方）');
+        expect(read('index.html')).toContain('content="%APP_DESCRIPTION%"');
+        expect(read('vite.config.ts')).toContain('zhHant.app.description');
     });
 });
 

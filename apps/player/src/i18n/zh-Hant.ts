@@ -6,6 +6,8 @@
 export const zhHant = {
     app: {
         name: 'R Gram',
+        /** PWA 描述（manifest 同 `<meta name="description">`；build 時由 vite.config.ts 注入） */
+        description: '歌迷自製的 RubberBand 唱片機（非官方）',
         unofficial: '歌迷自製　非官方',
         version: 'v{version}',
     },
