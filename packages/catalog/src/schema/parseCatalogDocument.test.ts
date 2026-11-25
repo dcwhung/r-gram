@@ -1,4 +1,5 @@
 import { parseCatalogDocument } from './parseCatalogDocument';
+import type { Fields } from './issues';
 import type { CatalogAlbum, CatalogDocument, CatalogTrack } from './types';
 
 const track = (overrides: Partial<CatalogTrack> = {}): CatalogTrack => ({
@@ -40,9 +41,9 @@ const document = (overrides: Partial<CatalogDocument> = {}): CatalogDocument => 
     ...overrides,
 });
 
-/** 刪走某啲（選填）欄位 */
-const without = (value: CatalogAlbum, ...keys: ('category' | 'categoryNo')[]): CatalogAlbum => {
-    const copy = { ...value };
+/** 刪走某啲欄位（模擬漏咗欄嘅文件） */
+const without = (value: CatalogAlbum, ...keys: ('category' | 'categoryNo')[]): Fields => {
+    const copy: Fields = { ...value };
     keys.forEach((key) => delete copy[key]);
     return copy;
 };
@@ -251,9 +252,16 @@ describe('parseCatalogDocument', () => {
             expect(parseCatalogDocument(document({ albums })).ok).toBe(true);
         });
 
-        it('should still accept an album without both fields', () => {
+        // Technical Spec API-072：兩個欄都係必填，漏晒都唔收
+        it('should reject an album without both fields', () => {
             const bare = without(album(), 'category', 'categoryNo');
-            expect(parseCatalogDocument(document({ albums: [bare] })).ok).toBe(true);
+            expect(parseCatalogDocument({ ...document(), albums: [bare] })).toEqual({
+                ok: false,
+                errors: [
+                    { path: 'albums[0].category', code: 'INVALID_CATEGORY' },
+                    { path: 'albums[0].categoryNo', code: 'INVALID_NUMBER' },
+                ],
+            });
         });
 
         it.each(['Album', 'compilation', '', null, 3])(
@@ -278,7 +286,7 @@ describe('parseCatalogDocument', () => {
         it('should require the ordinal with a category and the category with an ordinal', () => {
             const noOrdinal = without(album(), 'categoryNo');
             const noCategory = without(album({ id: 'beaming', tracks: [] }), 'category');
-            expect(errorPaths(document({ albums: [noOrdinal, noCategory] }))).toEqual([
+            expect(errorPaths({ ...document(), albums: [noOrdinal, noCategory] })).toEqual([
                 'albums[0].categoryNo',
                 'albums[1].category',
             ]);

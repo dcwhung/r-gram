@@ -11,6 +11,8 @@ import {
 
 export const FIXTURE_CATALOG_URL = 'https://api.example/catalog/v1/catalog.json';
 const FIXTURE_ACCENT = '#c8442b';
+/** 類別內序號：validator 唔查重覆，全部碟用同一個就得 */
+const FIXTURE_CATEGORY_NO = 1;
 
 export const makeTrack = (albumId: string, no: number, audio: string | null): CatalogTrack => ({
     id: `${albumId}-${String(no).padStart(2, '0')}`,
@@ -31,6 +33,8 @@ export const makeAlbum = (id: string, audio: readonly (string | null)[]): Catalo
     releaseDate: null,
     year: null,
     type: '',
+    category: 'album',
+    categoryNo: FIXTURE_CATEGORY_NO,
     label: '',
     accent: FIXTURE_ACCENT,
     cover: null,
@@ -59,6 +63,16 @@ export const sampleDocument = (generatedAt?: string): CatalogDocument =>
         ],
         generatedAt,
     );
+
+/**
+ * CR-004 之前嘅 catalog（碟冇 `category` / `categoryNo`）：舊版 app 存喺本機嗰份就係咁。
+ * 而家驗唔過，用嚟測試讀到舊副本時點樣退回。
+ */
+export const preCategoryDocument = (generatedAt?: string): unknown => {
+    const document = sampleDocument(generatedAt);
+    const albums = document.albums.map(({ category: _category, categoryNo: _no, ...rest }) => rest);
+    return { ...document, albums };
+};
 
 /** 一個 `Response`：body 係 JSON（或者原樣嘅字串），可以加 header */
 export const jsonResponse = (
