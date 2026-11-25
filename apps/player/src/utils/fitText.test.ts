@@ -62,4 +62,15 @@ describe('fitText', () => {
             ELLIPSIS,
         );
     });
+
+    // S-075：截短位啱啱喺空格之後，唔好變「笑容 …」
+    it('should drop trailing spaces before the ellipsis', () => {
+        const fitted = fitText('一二 三四五六', {
+            size: 10,
+            minSize: 10,
+            maxWidth: 40,
+            measure: square,
+        });
+        expect(fitted.text).toBe(`一二${ELLIPSIS}`);
+    });
 });
