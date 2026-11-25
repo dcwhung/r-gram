@@ -1,6 +1,7 @@
 /*
  * LRC 歌詞 parser（全 project 只有呢一份）：管理端即時驗證、API 儲存驗證、轉歌詞 JSON 都用佢。
  * 時間戳：`[mm:ss]`、`[mm:ss.x]`、`[mm:ss.xx]`、`[mm:ss.xxx]`；一行可以有幾個；`[offset:±毫秒]` 會套用。
+ * Metadata（`[ti:…]`、`[ar:…]` 等）要獨立一行先會被忽略；其他以 `[` 開頭而讀唔到時間戳嘅行一律報錯。
  */
 export interface LyricLine {
     /** 毫秒 */
@@ -37,6 +38,8 @@ const LEADING_TAG = /^\[([^\]]*)\]/;
 const TIMESTAMP = /^(\d{2,}):(\d{2})(?:\.(\d{1,3}))?$/;
 /** 只有數字、冒號同點但格式錯（例如 `1:2`、`00:60.00`）：當錯誤，唔當 metadata（metadata 係 `字母:內容`） */
 const TIMESTAMP_LIKE = /^[\d:.]+$/;
+/** Metadata（ID tag）：成行只有一個 `[key:value]`，key 由字母或者 `#` 開頭（ti、ar、by、length…） */
+const METADATA_LINE = /^\[[A-Za-z#][^:\]]*:[^\]]*\]$/;
 const OFFSET_TAG = /^offset:(.*)$/i;
 const SIGNED_INTEGER = /^[+-]?\d+$/;
 
@@ -70,6 +73,15 @@ const readTimestamps = (source: string): { times: (number | null)[]; rest: strin
     return { times, rest };
 };
 
+/**
+ * 冇讀到時間戳嘅行。以 `[` 開頭但唔係獨立一行 metadata（例如 `[00:1O.00]歌詞`、`[Chorus]副歌`）
+ * 當係打錯嘅時間戳報錯：唔可以冇聲冇氣咁掉咗一句歌詞（US-106：錯誤逐行指出）。
+ */
+const parseUntimedLine = (source: string): ParsedLine => {
+    if (METADATA_LINE.test(source)) return { kind: 'metadata' };
+    return { kind: 'error', code: LEADING_TAG.test(source) ? 'INVALID_TIMESTAMP' : 'NO_TIMESTAMP' };
+};
+
 const parseLine = (source: string): ParsedLine => {
     if (source === '') return { kind: 'blank' };
     const offset = OFFSET_TAG.exec(LEADING_TAG.exec(source)?.[1] ?? '');
@@ -80,11 +92,7 @@ const parseLine = (source: string): ParsedLine => {
             : { kind: 'error', code: 'INVALID_OFFSET' };
     }
     const { times, rest } = readTimestamps(source);
-    if (times.length === 0) {
-        return LEADING_TAG.test(source)
-            ? { kind: 'metadata' }
-            : { kind: 'error', code: 'NO_TIMESTAMP' };
-    }
+    if (times.length === 0) return parseUntimedLine(source);
     const valid = times.filter((ms): ms is number => ms !== null);
     if (valid.length !== times.length) return { kind: 'error', code: 'INVALID_TIMESTAMP' };
     return { kind: 'lyric', times: valid, text: rest.trim() };

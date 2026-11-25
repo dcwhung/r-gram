@@ -88,6 +88,32 @@ describe('parseLrc', () => {
         },
     );
 
+    // W-001：以 `[` 開頭但唔係時間戳、亦唔係獨立一行 metadata 嘅行，唔可以冇報錯就消失
+    it.each([
+        ['[aa:bb]a', '字母 tag 後面有歌詞'],
+        ['[00:1O.00]第二句', '數字入面混咗字母 O'],
+        ['[00:02,50]b', '用咗逗號'],
+        ['[00:02.50 ]b', 'tag 入面有空格'],
+        ['[00：02.50]b', '全形冒號'],
+        ['[Chorus]副歌歌詞', '段落標記'],
+        ['[]x', '空 tag'],
+        ['[ar:RubberBand] 後面有字', 'metadata 後面有字'],
+    ])('should report %j instead of dropping the line (%s)', (source) => {
+        const { lines, errors } = parseLrc(`[00:01.00]a\n${source}\n[00:03.00]c`);
+        expect(lines.map((line) => line.text)).toEqual(['a', 'c']);
+        expect(errors).toEqual([{ line: 2, code: 'INVALID_TIMESTAMP', text: source }]);
+    });
+
+    it.each(['[by:me]', '[ti:歌名]', '[length:03:20]', '[re:編輯器 v1.0]', '[#:備註]'])(
+        'should still ignore the stand-alone metadata line %j',
+        (source) => {
+            expect(parseLrc(`${source}\n[00:01.00]a`)).toEqual({
+                lines: [{ t: 1_000, text: 'a' }],
+                errors: [],
+            });
+        },
+    );
+
     it('should treat a two-letter tag as metadata, not as a broken timestamp', () => {
         // `[by:me]` 係合法 metadata；唔可以因為似 `aa:bb` 就報錯
         expect(parseLrc('[by:me]\n[00:01.00]a')).toEqual({
