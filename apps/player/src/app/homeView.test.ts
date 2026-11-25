@@ -151,3 +151,55 @@ describe('homeView', () => {
         );
     });
 });
+
+/*
+ * T-036：揀碟（Functional Spec D52、CR-005 第 18 版確認；Technical Spec「播緊時揀碟」「補充：第 18 版」）。
+ * 載入嘅碟 = 播放狀態嘅 albumId；顯示嘅碟 = viewAlbumId；兩個唔同就係拎住另一隻碟（holding）
+ */
+describe('homeView while choosing a disc', () => {
+    const document = sampleDocument();
+    const choosing = (overrides: Partial<StageState> = {}) =>
+        home({ scene: 'discChange', ...overrides });
+
+    it('should fade out the tonearm and small buttons while the dial is open, even with no song', () => {
+        expect(homeView(document, choosing(), IDLE_PLAYBACK).chromeHidden).toBe(true);
+        expect(homeView(document, home(), IDLE_PLAYBACK).chromeHidden).toBe(false);
+    });
+
+    it('should fade out the song part of the info while a song is loaded and the dial is open', () => {
+        const view = homeView(document, choosing(), playback());
+        expect(view).toMatchObject({ chromeHidden: true, songHidden: true });
+        expect(homeView(document, home(), playback()).songHidden).toBe(false);
+    });
+
+    it('should stop the disc turning while the dial is open, even on the playing disc', () => {
+        expect(homeView(document, home(), playback()).spinning).toBe(true);
+        expect(homeView(document, choosing(), playback()).spinning).toBe(false);
+        expect(homeView(document, home(), userPaused).spinning).toBe(false);
+    });
+
+    it('should know which disc is loaded in the turntable', () => {
+        expect(homeView(document, home(), IDLE_PLAYBACK).loadedAlbumId).toBeNull();
+        const view = homeView(document, choosing({ viewAlbumId: 'room' }), userPaused);
+        expect(view.loadedAlbumId).toBe('apollo-18');
+    });
+
+    it.each([
+        ['the dial points at another disc', choosing({ viewAlbumId: 'room' }), playback(), true],
+        ['released on another disc', home({ viewAlbumId: 'room' }), userPaused, true],
+        ['back on the loaded disc', choosing(), playback(), false],
+        ['no song is loaded', choosing({ viewAlbumId: 'room' }), IDLE_PLAYBACK, false],
+    ])('should tell whether another disc is held when %s', (_case, stage, state, holding) => {
+        expect(homeView(document, stage, state).holding).toBe(holding);
+    });
+
+    it('should keep the song part and the tonearm hidden while holding another disc', () => {
+        const view = homeView(document, home({ viewAlbumId: 'room' }), playback());
+        expect(view).toMatchObject({ chromeHidden: true, songHidden: true, spinning: false });
+    });
+
+    it('should hand the dial to the scene', () => {
+        const view = homeView(document, choosing({ viewAlbumId: 'room' }), IDLE_PLAYBACK);
+        expect(view.dial).toMatchObject({ open: true, current: 1 });
+    });
+});
