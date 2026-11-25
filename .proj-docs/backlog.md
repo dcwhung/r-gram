@@ -59,6 +59,16 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-066 | T-098 / T-097（開發者交低） | ① ~~catalog 入面 `category`、`categoryNo` 而家係「兩個都有或者兩個都冇」~~ 做緊：review T-098／T-097 W-028，主 session 決定改為必填（跟 Technical Spec API-070），同 W-029、S-118、S-120、S-121 一齊修。② 歌曲 API 回應未有 `text_source_etag`（T-025 掃描用）。③ `_design_/tools` 嘅 Python 測試 CI 未跑。④ `singles-01`（Ciao）變咗 `zoi-jat-hei-01`：未上線，冇用戶資料受影響；記錄備查。⑤ `apps/api/test/schema.test.ts` 嘅 `catalog_state` fixture 仲寫 17 / 262（任意值） | ① T-098／T-097 review 修正（進行中）；② T-025；③ T-028 之前；⑤ 順手 |
 | B-067 | Review T-100（S-123–S-125） | ① Technical Spec 未記錄 `COVER2_WITHOUT_COVER`、`UNPAIRED_COVER2` 兩個錯誤代碼同報喺邊個欄位。② D1 嘅 `cover2` CHECK 如果觸發，用戶端會收到 500（而家 API 先驗證，行唔到）：註明「出現即係 bug」或者轉做 409。③ 未有「兩個 PATCH 同時」嘅測試（實測結果：一個 200、一個 409） | ① 下次改 spec 時；②③ T-052 之前 |
 
+| B-068 | CR-006（PM 發現） | 統計項目（Functional Spec D35，等 U-8）：CR-006 之後歌由掃描按音檔建立，「歌曲已有音檔」個儀錶差唔多永遠係滿（只有 D62 嘅灰色行同人手新增未指定音檔嘅歌先唔係）。建議確認管理端設計稿第 2 版時，將呢個儀錶換做「歌曲已有歌曲文字（曲詞編監）」或者「專輯已掃描」，同用戶一齊定 | T-050 補畫、U-8 |
+| B-069 | CR-006（PM 發現） | `.claude/CLAUDE.md`（主 session 改）：① QA chain `api-tracks` 嘅範圍會因為 T-102 刪走 API-023；② T-025 完成時加掃描嘅 chain（`apps/api/src/media`，B-057 已記）；③ T-027 完成時「指令」表加 seed 指令（只入專輯）；④ 內容資料一行講明 `discography.json` 嘅歌單同 `credits.json` 係參考資料（Functional Spec D64），唔入資料庫 | T-102、T-025、T-027 完成時 |
+## CR-006 關閉或者轉咗去任務嘅項目（2026-11-25；下次整理可以刪走呢段）
+
+| # | 結果 |
+| --- | --- |
+| Review T-098／T-097 S-119（終於好天氣冇完整發行日期） | 用戶答「碟唔需要發行日期，只要年份；無年份就唔顯示」：Functional Spec D63；年份由唔完整日期攞（2016），唱片公司留空；code 喺 T-101 |
+| B-066 ②（歌曲 API 回應未有 `text_source_etag`） | 仍然屬 T-025；CR-006 嘅掃描建立歌曲（`create`）一樣要寫呢個欄 |
+| D44、D49、D54 兩個例外、D55 `cover2.png`、U-16、U-17 | Functional Spec v1.8 §CR-006 定案；Implementation Plan v1.5：T-101、T-102，T-025、T-027 改範圍 |
+
 ## CR-005 關閉或者轉咗去任務嘅項目（2026-11-25，連第 18 版確認；下次整理可以刪走呢段）
 
 | # | 結果 |
