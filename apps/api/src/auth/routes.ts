@@ -13,10 +13,11 @@ import {
 } from '../config';
 import { isAdminEmail } from '../lib/env';
 import { authorizationUrl, exchangeCode, GoogleAuthError } from './google';
+import { requireSameOrigin } from './middleware';
 import { safeNext } from './next';
 import { newOAuthState, openOAuthState, sealOAuthState, type OpenedOAuthState } from './oauthState';
 import { AUTH_PAGE_CSP, deniedPage, loginExpiredPage, loginFailedPage } from './pages';
-import { createSession } from './session';
+import { createSession, deleteSession } from './session';
 
 /** __Host- cookie 一定要 Secure + Path=/ + 冇 Domain */
 const HOST_COOKIE = { httpOnly: true, secure: true, sameSite: 'Lax', path: '/' } as const;
@@ -86,4 +87,15 @@ authRoutes.get('/google/callback', async (c) => {
         console.warn('[auth] Google login failed:', error.message);
         return htmlPage(c, loginFailedPage(), HTTP_STATUS.badGateway);
     }
+});
+
+/**
+ * 登出：刪 D1 嘅 session + 清 cookie。要 same-origin（第二個網站唔可以代人登出）；
+ * 冇 session / session 已過期都照回 204：登出本身冇嘢要保護，管理端唔使分情況處理
+ */
+authRoutes.post('/logout', requireSameOrigin, async (c) => {
+    const token = getCookie(c, SESSION_COOKIE);
+    if (token) await deleteSession(c.env.DB, token);
+    deleteCookie(c, SESSION_COOKIE, HOST_COOKIE);
+    return c.body(null, HTTP_STATUS.noContent);
 });
