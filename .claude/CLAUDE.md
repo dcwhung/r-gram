@@ -26,6 +26,8 @@
 | 播放端開發 server            | `npm run dev -w apps/player`                                                             |
 | 播放端 build                 | `npm run build -w apps/player`                                                           |
 | 淨跑播放端測試               | `npx vitest run --project @r-gram/player`                                                |
+| Worker 本機開發              | `npm run dev -w apps/api`（先抄 `apps/api/.dev.vars.example` 做 `.dev.vars`）            |
+| 淨跑 Worker 測試（workerd）  | `npx vitest run --project @r-gram/api`                                                   |
 | Cloud sandbox 嘅 Playwright  | 預裝 Chromium：`PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`；唔好跑 `playwright install` |
 
 加 app（`apps/player`、`apps/admin`、`apps/api`）時：喺根 `tsconfig.json` 嘅 `references`、根 `vitest.config.ts` 嘅 `projects`、`.github/workflows/ci.yml` 各加一行，並更新呢個表。
@@ -51,9 +53,9 @@
 
 跟 ai-dev-team `skills/sw-validation-gate/SKILL.md`。
 
-| 項目               | 設定                                                                                 |
-| ------------------ | ------------------------------------------------------------------------------------ |
-| Ledger             | `.proj-docs/qa/verification-ledger.tsv`                                              |
-| Frozen plans       | `.proj-docs/qa/plans/<chain_id>.md`                                                  |
-| Chains（隨開發加） | `catalog-core`（`packages/catalog`）                                                 |
-| `impact` base      | 未有 `main` 之前：上一個任務最後一個 commit；之後：`git merge-base HEAD origin/main` |
+| 項目               | 設定                                                                                                                                     |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Ledger             | `.proj-docs/qa/verification-ledger.tsv`                                                                                                  |
+| Frozen plans       | `.proj-docs/qa/plans/<chain_id>.md`                                                                                                      |
+| Chains（隨開發加） | `catalog-core`（`packages/catalog`）、`player-foundation`（`apps/player`：i18n、舞台、幾何表）、`api-auth`（`apps/api`：scaffold、登入） |
+| `impact` base      | 未有 `main` 之前：上一個任務最後一個 commit；之後：`git merge-base HEAD origin/main`                                                     |
