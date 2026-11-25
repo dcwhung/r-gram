@@ -3,6 +3,7 @@ import { afterEach, vi } from 'vitest';
 import type { Env } from '../src/env';
 import { invalidEnvNames } from '../src/lib/validateEnv';
 import { call } from './helpers';
+import devVarsExample from '../.dev.vars.example?raw';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -119,5 +120,14 @@ describe('misconfigured Worker', () => {
         expect(logged).toContain('SESSION_SECRET');
         expect(logged).toContain('WORKER_ORIGIN');
         expect(logged).not.toContain('too-short-secret');
+    });
+});
+
+// backlog B-046 ③：照抄 .dev.vars.example 嘅 placeholder 唔可以令設定檢查回 500
+describe('.dev.vars.example', () => {
+    it('should carry an obviously fake SESSION_SECRET that passes the length check', () => {
+        const secret = /^SESSION_SECRET=(.*)$/m.exec(devVarsExample)?.[1] ?? '';
+        expect(secret).toMatch(/fake/);
+        expect(withEnv({ SESSION_SECRET: secret })).toEqual([]);
     });
 });
