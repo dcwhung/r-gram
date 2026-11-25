@@ -13,7 +13,7 @@ describe('resolveLocale', () => {
         [['en-GB'], 'zh-Hant'],
         [['zh-CN'], 'zh-Hant'],
         [[], 'zh-Hant'],
-    ])('should resolve %j to %s', (preferred, expected) => {
+    ])('should resolve %j to %s (the only locale so far)', (preferred, expected) => {
         expect(resolveLocale(preferred)).toBe(expected);
     });
 });

@@ -2,7 +2,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findHardCodedText } from './hardCodedText';
+import { findHanText, findHardCodedText } from './hardCodedText';
 import { zhHant } from './zh-Hant';
 
 /*
@@ -33,6 +33,39 @@ describe('findHardCodedText', () => {
         expect(findHardCodedText(source)).toEqual([]);
     });
 
+    // S-016：以下幾個情況舊嘅 regex 做法會走漏或者誤報
+    it('should report JSX text that contains comment-like characters', () => {
+        const source =
+            'export const A = () => <a>https://example.com/歌</a>;\nexport const B = () => <p>// 播放</p>;\n';
+        expect(findHardCodedText(source)).toEqual([
+            { line: 1, text: '歌' },
+            { line: 2, text: '播放' },
+        ]);
+    });
+
+    it('should not be confused by quotes inside a regex literal', () => {
+        const source =
+            'const QUOTE = /"/; // 引號 "x"\nconst TICK = /`/g; // 反引號\nconst n = 1;\n';
+        expect(findHardCodedText(source)).toEqual([]);
+    });
+
+    it('should ignore a comment inside a template placeholder and report the text around it', () => {
+        const source = 'const n = 1;\nconst a = `第 ${/* 註解 */ n} 首`;\n';
+        expect(findHardCodedText(source)).toEqual([
+            { line: 2, text: '第' },
+            { line: 2, text: '首' },
+        ]);
+    });
+
+    it('should report attribute values and multi-line JSX text with the right line', () => {
+        const source =
+            'export const A = () => (\n    <p aria-label="暫停">\n        播放\n    </p>\n);\n';
+        expect(findHardCodedText(source)).toEqual([
+            { line: 2, text: '暫停' },
+            { line: 3, text: '播放' },
+        ]);
+    });
+
     it('should not treat // inside a string as a comment', () => {
         expect(findHardCodedText(`const url = 'https://example.com/歌';\n`)).toEqual([
             { line: 1, text: '歌' },
@@ -52,7 +85,7 @@ describe('player shell files', () => {
 
     it('should not hard-code UI text in index.html', () => {
         const html = read('index.html').replace(HTML_COMMENT, '');
-        expect(findHardCodedText(html)).toEqual([]);
+        expect(findHanText(html)).toEqual([]);
     });
 
     it('should take the description from the locale file', () => {
@@ -64,6 +97,8 @@ describe('player shell files', () => {
 
 describe('player source', () => {
     it('should keep all UI text in the locale file', () => {
+        // 路徑一錯就會掃唔到任何檔而空過：先確認真係掃到 source
+        expect(sourceFiles().some((file) => file.endsWith(join('app', 'App.tsx')))).toBe(true);
         const offenders = sourceFiles().flatMap((file) =>
             findHardCodedText(readFileSync(file, 'utf8')).map((hit) => ({ file, ...hit })),
         );
