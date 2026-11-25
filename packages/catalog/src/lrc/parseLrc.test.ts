@@ -1,4 +1,4 @@
-import { parseLrc, toLyricsJson } from './parseLrc';
+import { parseLrc, startsWithTimestamp, toLyricsJson } from './parseLrc';
 
 describe('parseLrc', () => {
     it('should parse the four timestamp precisions into milliseconds', () => {
@@ -183,14 +183,50 @@ describe('parseLrc', () => {
     });
 });
 
+describe('startsWithTimestamp', () => {
+    it('should detect a line that starts with a time mark, valid or malformed', () => {
+        expect(startsWithTimestamp('[00:12.30]一早地下鐵')).toBe(true);
+        expect(startsWithTimestamp('  [00:16.80]')).toBe(true);
+        expect(startsWithTimestamp('[00:60.00]秒數錯')).toBe(true);
+        expect(startsWithTimestamp('[1:2]位數錯')).toBe(true);
+    });
+
+    it('should not take metadata, section names or plain text as a time mark', () => {
+        expect(startsWithTimestamp('[ti:歌名]')).toBe(false);
+        expect(startsWithTimestamp('[offset:500]')).toBe(false);
+        expect(startsWithTimestamp('[Chorus]副歌')).toBe(false);
+        expect(startsWithTimestamp('一早地下鐵 [00:12.30]')).toBe(false);
+        expect(startsWithTimestamp('')).toBe(false);
+    });
+});
+
 describe('toLyricsJson', () => {
-    it('should wrap the lines in the published lyrics document', () => {
+    it('should wrap timed lines in the lyrics document with synced true', () => {
         const { lines } = parseLrc('[00:12.30]一早地下鐵\n[00:16.80]');
-        expect(toLyricsJson(lines)).toEqual({
+        expect(toLyricsJson({ synced: true, lines })).toEqual({
+            synced: true,
             lines: [
                 { t: 12_300, text: '一早地下鐵' },
                 { t: 16_800, text: '' },
             ],
+        });
+    });
+
+    it('should write plain lines without a time and with synced false', () => {
+        const lines = [{ text: '第一句' }, { text: '' }, { text: '第二段' }];
+        expect(toLyricsJson({ synced: false, lines })).toEqual({ synced: false, lines });
+    });
+
+    it('should copy only the known fields', () => {
+        const lines = [{ t: 1, text: 'a', extra: true }];
+        expect(toLyricsJson({ synced: true, lines })).toEqual({
+            synced: true,
+            lines: [{ t: 1, text: 'a' }],
+        });
+        const plain = [{ text: 'b', t: 5 }];
+        expect(toLyricsJson({ synced: false, lines: plain })).toEqual({
+            synced: false,
+            lines: [{ text: 'b' }],
         });
     });
 });
