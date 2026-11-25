@@ -2,6 +2,7 @@ import {
     armCentreYAt,
     heartHitPoint,
     heartPoint,
+    orbitPose,
     platterLeftAt,
     polar,
     positionsFor,
@@ -86,5 +87,38 @@ describe('scale arc', () => {
         expect(normalised(angleOf(heartHitPoint(PHONE_LAYOUT)))).toBeCloseTo(
             normalised(scale.toDeg),
         );
+    });
+});
+
+/* T-036：轉碟時其他碟沿弧線排（設計稿 discPose()；ORBIT r 1000、由 −48° 起每張隔 30°、0.72 倍、白紗 0.42） */
+describe('orbitPose', () => {
+    const { disc } = PHONE_LAYOUT;
+
+    it('should keep the selected disc on the platter at full size', () => {
+        expect(orbitPose(PHONE_LAYOUT, 0, true)).toEqual({ ...disc, opacity: 1, veil: 0 });
+        expect(orbitPose(PHONE_LAYOUT, 0, false)).toEqual({ ...disc, opacity: 1, veil: 0 });
+    });
+
+    it('should place the next disc on the arc, smaller and veiled, once the dial is open', () => {
+        const pose = orbitPose(PHONE_LAYOUT, 1, true);
+        expect(pose.x).toBeCloseTo(1221.9, 1);
+        expect(pose.y).toBeCloseTo(1630.1, 1);
+        expect(pose.r).toBeCloseTo(504);
+        expect(pose).toMatchObject({ opacity: 1, veil: 0.42 });
+    });
+
+    it('should spread the discs further out and hide them while the dial is closed', () => {
+        const pose = orbitPose(PHONE_LAYOUT, -1, false);
+        // −48 − 30 × 1.9 = −105°
+        expect(pose.x).toBeCloseTo(270.87 + 1000 * Math.cos((-105 * Math.PI) / 180), 1);
+        expect(pose.opacity).toBe(0);
+    });
+
+    it.each([-2, 3])('should keep the disc %d places away hidden even when open', (offset) => {
+        expect(orbitPose(PHONE_LAYOUT, offset, true).opacity).toBe(0);
+    });
+
+    it.each([-1, 2])('should show the disc %d places away when open', (offset) => {
+        expect(orbitPose(PHONE_LAYOUT, offset, true).opacity).toBe(1);
     });
 });
