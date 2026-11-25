@@ -1,5 +1,9 @@
-/* 專輯欄位規則（fieldRules.ts、validate.ts）：資料夾名做 R2 key prefix 嘅安全限制（W-013）、未知欄位名長度（S-053） */
-import { FIELD_RULES } from '../src/albums/fieldRules';
+/*
+ * 專輯欄位規則（fieldRules.ts、validate.ts）：資料夾名做 R2 key prefix 嘅安全限制（W-013；CR-004：
+ * 任何 `..`、`_` 開頭，backlog B-045 ①、B-049 ②）、發行類別同序號、封面來源 ETag、未知欄位名長度（S-053）
+ */
+import { reasonMessage } from '../src/albums/errors';
+import { CATEGORY_NO_MAX, FIELD_RULES, SOURCE_ETAG_MAX_CHARS } from '../src/albums/fieldRules';
 import { parseFields } from '../src/albums/validate';
 import { UNKNOWN_FIELDS_MAX, UNKNOWN_KEY_MAX_CHARS } from '../src/lib/fields';
 import { zhHant } from '../src/i18n/zh-Hant';
@@ -17,26 +21,75 @@ describe('folder rule', () => {
         }
     });
 
+    // backlog B-045 ①、B-049 ②：同手動指定媒體 key 一樣，任何 `..` 都唔收
+    it('should refuse two dots anywhere in the name', () => {
+        for (const name of ['...', 'a..b', '..a', 'a..', 'vol..2']) {
+            expect(reasonOf('folder', name), name).toBe('INVALID_FOLDER');
+        }
+    });
+
+    // `_` 開頭嘅資料夾（例如 `_fonts/`）保留，唔係專輯資料夾
+    it('should refuse a name that starts with an underscore', () => {
+        for (const name of ['_fonts', '_', ' _x']) {
+            expect(reasonOf('folder', name), name).toBe('INVALID_FOLDER');
+        }
+    });
+
     it('should keep ordinary names: letters, digits, hyphen, underscore, spaces, CJK, inner dots', () => {
         for (const name of [
             'Beaming 2005',
             'apollo-18',
+            'album-01-apollo-18',
             'lost_found',
             '《原始的你》',
             'vol.2',
-            '...',
+            'a.b.c',
         ]) {
             expect(reasonOf('folder', name), name).toBe('OK');
         }
     });
 
     it('should answer 400 INVALID_FOLDER through the API for a parent-directory name', async () => {
-        const response = await api('POST', '/api/albums', { id: 'x', title: 'X', folder: '..' });
+        const input = { id: 'x', title: 'X', category: 'album', folder: 'a..b' };
+        const response = await api('POST', '/api/albums', input);
         expect(response.status).toBe(400);
         const body = await json<{ error: { details: { path: string; reason: string }[] } }>(
             response,
         );
         expect(body.error.details).toMatchObject([{ path: 'folder', reason: 'INVALID_FOLDER' }]);
+    });
+});
+
+describe('release category, ordinal and cover source rules (CR-004)', () => {
+    it('should accept the six short names and nothing else', () => {
+        for (const value of ['album', 'ep', 'best', 'live', 'ost', 'single']) {
+            expect(reasonOf('category', value), value).toBe('OK');
+        }
+        for (const value of ['', 'Album', 'EP', 'compilation', ' album', null, 1]) {
+            expect(reasonOf('category', value), String(value)).toBe('INVALID_CATEGORY');
+        }
+    });
+
+    it('should accept whole ordinals from 1 to CATEGORY_NO_MAX', () => {
+        for (const value of [1, 2, 99, 100, CATEGORY_NO_MAX]) {
+            expect(reasonOf('categoryNo', value), String(value)).toBe('OK');
+        }
+        for (const value of [0, -1, 1.5, '1', null, CATEGORY_NO_MAX + 1, Number.NaN]) {
+            expect(reasonOf('categoryNo', value), String(value)).toBe('INVALID_ORDINAL');
+        }
+    });
+
+    it('should accept an ETag string or null for the cover source', () => {
+        expect(reasonOf('coverSourceEtag', '"9b2c1a"')).toBe('OK');
+        expect(reasonOf('coverSourceEtag', null)).toBe('OK');
+        expect(reasonOf('coverSourceEtag', '')).toBe('REQUIRED');
+        expect(reasonOf('coverSourceEtag', 'a\nb')).toBe('INVALID_TEXT');
+        expect(reasonOf('coverSourceEtag', 'e'.repeat(SOURCE_ETAG_MAX_CHARS + 1))).toBe('TOO_LONG');
+    });
+
+    it('should word the ordinal limit with CATEGORY_NO_MAX and list the six categories', () => {
+        expect(reasonMessage('INVALID_ORDINAL')).toContain(String(CATEGORY_NO_MAX));
+        expect(reasonMessage('INVALID_CATEGORY')).toContain('album、ep、best、live、ost、single');
     });
 });
 
@@ -135,6 +188,7 @@ describe('control characters other than a line feed (S-055)', () => {
             const response = await api('POST', '/api/albums', {
                 id: 'x',
                 title: `A${char}B`,
+                category: 'album',
                 wheelKey: `A${char}`,
             });
             const body = await json<{ error: { details: { path: string; reason: string }[] } }>(

@@ -13,11 +13,14 @@ const insert = (table: string, row: Record<string, unknown>) => {
         .run();
 };
 
+/** 預設係錄音室專輯，序號 = sortOrder + 1（同類別唔重覆；要撞號嘅 test 自己傳 category_no） */
 export const insertAlbum = (id: string, sortOrder: number, extra: Record<string, unknown> = {}) =>
     insert('albums', {
         id,
         title: `Album ${id}`,
         wheel_key: 'A',
+        category: 'album',
+        category_no: sortOrder + 1,
         accent: '#c8442b',
         sort_order: sortOrder,
         created_at: NOW,

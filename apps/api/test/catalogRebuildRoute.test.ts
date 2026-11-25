@@ -142,7 +142,8 @@ describe('POST /api/catalog/rebuild', () => {
 
 describe('save takes effect (afterWrite → rebuildCatalog)', () => {
     it('should put a new album in catalog.json at once, even with no songs (D39)', async () => {
-        const response = await api('POST', '/api/albums', { id: 'apollo-18', title: 'Apollo 18' });
+        const album = { id: 'apollo-18', title: 'Apollo 18', category: 'album' };
+        const response = await api('POST', '/api/albums', album);
         expect(response.status).toBe(201);
         const body = await json<{ catalog: Record<string, unknown> }>(response);
         expect(body.catalog).toMatchObject({ ok: true, albumCount: 1, trackCount: 0, error: null });

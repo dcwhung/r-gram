@@ -1,4 +1,4 @@
-/* migrations/0001_init.sql 對 Technical Spec「數據庫設計」（CR-003 之後）：6 張表、欄位、約束、索引 */
+/* migrations/0001_init.sql 對 Technical Spec「數據庫設計」（CR-003、CR-004 之後）：6 張表、欄位、約束、索引 */
 import { env } from 'cloudflare:test';
 
 const NOW = '2026-11-25T00:00:00.000Z';
@@ -41,6 +41,8 @@ const insertAlbum = (id: string, extra: Record<string, unknown> = {}) => {
         id,
         title: 'Apollo 18',
         wheel_key: 'A',
+        category: 'album',
+        category_no: 1,
         accent: '#c8442b',
         sort_order: 0,
         created_at: NOW,
@@ -117,9 +119,12 @@ describe('D1 schema (0001_init)', () => {
             'release_date TEXT',
             'year INTEGER',
             "type TEXT NOT NULL DEFAULT ''",
+            'category TEXT NOT NULL',
+            'category_no INTEGER NOT NULL',
             "label TEXT NOT NULL DEFAULT ''",
             'accent TEXT NOT NULL',
             'cover TEXT',
+            'cover_source_etag TEXT',
             'thumb TEXT',
             'folder TEXT',
             'sort_order INTEGER NOT NULL',
@@ -145,6 +150,7 @@ describe('D1 schema (0001_init)', () => {
             'producer TEXT',
             'lyrics_source_url TEXT',
             'note TEXT',
+            'text_source_etag TEXT',
             'youtube_id TEXT',
             'video_kind TEXT',
             'created_at TEXT NOT NULL',
@@ -254,6 +260,36 @@ describe('D1 constraints (0001_init)', () => {
         );
         await insertAlbum('apollo-18', { cover: name, thumb: name });
         expect(await count('albums')).toBe(1);
+    });
+
+    // CR-004（FR-124）：發行類別係六個短名之一；序號由 1 起。同類別序號唔重覆由 API 驗（DB 唔加 UNIQUE）
+    it('should require a release category of the six short names', async () => {
+        for (const category of ['album', 'ep', 'best', 'live', 'ost', 'single']) {
+            await insertAlbum(`a-${category}`, { category });
+        }
+        for (const category of ['', 'Album', 'compilation', null]) {
+            await expect(insertAlbum('bad', { category }), String(category)).rejects.toThrow();
+        }
+        expect(await count('albums')).toBe(6);
+    });
+
+    it('should require an ordinal of at least 1 and allow the same ordinal twice', async () => {
+        for (const no of [0, -1, null]) {
+            await expect(insertAlbum('bad', { category_no: no }), String(no)).rejects.toThrow();
+        }
+        await insertAlbum('apollo-18', { category_no: 1 });
+        await insertAlbum('beaming', { category_no: 1 });
+        expect(await count('albums')).toBe(2);
+    });
+
+    it('should keep the source ETags of the cover and the song text, empty by default', async () => {
+        await insertAlbum('apollo-18', { cover_source_etag: '"9b2c"' });
+        await insertTrack('apollo-18-01', 'apollo-18', 1, { text_source_etag: '"77aa"' });
+        await insertTrack('apollo-18-02', 'apollo-18', 2);
+        const tracks = await env.DB.prepare(
+            'SELECT text_source_etag AS etag FROM tracks ORDER BY id',
+        ).all<{ etag: string | null }>();
+        expect(tracks.results.map((row) => row.etag)).toEqual(['"77aa"', null]);
     });
 
     // CR-003：冇上下架，兩張表都冇 enabled 欄

@@ -39,9 +39,13 @@ const seedTwo = async () => {
         release_date: '2008-09-26',
         year: 2008,
         type: '錄音室專輯',
+        category: 'ep',
+        category_no: 3,
         label: '金牌娛樂',
         cover: '0123456789abcdef.webp',
+        cover_source_etag: '"e1"',
         thumb: 'fedcba9876543210.webp',
+        folder: 'Beaming 2008',
     });
     await insertAlbum('a', 2, { title: 'Apollo 18' });
     await insertTrack('b-02', 'b', 2, { title: '第二首', mv_key: 'b/02 二.mp4' });
@@ -89,6 +93,9 @@ describe('rebuildCatalog: document', () => {
             releaseDate: '2008-09-26',
             year: 2008,
             type: '錄音室專輯',
+            // CR-004：類別同序號入 catalog；folder、封面來源 ETag 係管理用，唔入
+            category: 'ep',
+            categoryNo: 3,
             label: '金牌娛樂',
             accent: '#c8442b',
             cover: '0123456789abcdef.webp',
