@@ -2,8 +2,8 @@
 
 - Chain: 播放端基礎（`apps/player`）：Vite + PWA plugin scaffold、design token、動畫時長 token、i18n（語言檔、有型別 `t()`、書面語同寫死文字測試）、舞台縮放（1080 × 1920）、手機幾何資料表同淨空規則測試。任務 T-030
 - AC（L1 來源：TS = Technical Spec、FS = Functional Spec、Plan = Implementation Plan）:
-    - AC-1 幾何表（TS「版面系統」；TS CR-002「幾何資料表」「旋鈕位置」；FS CR-002「版面」「控件」）：`layouts/phone.ts` 嘅數值 = 設計稿 `_mockups_/home-turntable/src/template.html` 嘅常數；旋鈕 x 由轉盤計出嚟（266）
-    - AC-2 淨空規則（FS CR-002「淨空規則」；FR-032）：掣同 CD ≥ 16、控件同轉盤 ≥ 40、細掣同旋鈕刻度 ≥ 40、左下螺絲 120 之內冇控件、旋鈕左右空白相差 ≤ 2、感應範圍 ≥ 44pt 互不重疊；有自動測試鎖住，量度方法同設計稿「量度」一節一致
+    - AC-1 幾何表（TS「版面系統」；TS CR-002「幾何資料表」「旋鈕位置」；FS CR-002「版面」「控件」）：`layouts/phone.ts` 嘅數值 = 設計稿 `_mockups_/home-turntable/src/template.html` 嘅常數；旋鈕 x 由轉盤計出嚟（266）；左上歌名 = 設計稿第 18 版 `SONG_FIT`（size 44、min 32、step 2、`maxRight` 772、lift 22、pitch 38、`secondRight` 470、心形 rise 0.364；T-047）
+    - AC-2 淨空規則（FS CR-002「淨空規則」；FR-032）：掣同 CD ≥ 16、控件同轉盤 ≥ 40、細掣同旋鈕刻度 ≥ 40、左下螺絲 120 之內冇控件、旋鈕左右空白相差 ≤ 2、感應範圍 ≥ 44pt 互不重疊；歌名第二行（到 `secondRight`）喺泊位唱臂上面（`armCentreYAt`，T-047）；有自動測試鎖住，量度方法同設計稿「量度」一節一致
     - AC-3 舞台（TS「版面系統」；實現注意事項 13）：`--u` = 舞台闊 ÷ 1080；9:16 或者更高嘅畫面闊度填滿，高出嘅部分 = `--stage-extra`；闊過 9:16 按高度縮放、保持 9:16、置中；`100dvh`、頁面唔捲動；舞台只用安全區
     - AC-4 i18n（FS「介面語言同 i18n」同用詞表；FR-037；TS CR-002 i18n 三行）：文字集中喺 `zh-Hant.ts`；`t()` 有型別；預設同退路都係 `zh-Hant`；用詞同用詞表、設計稿 `T` / `BUTTON_LABEL` / `MODE_LABEL` 一樣；語言檔冇口語字；`src/app`、`src/components` 冇寫死中文；`<html lang>`、manifest `lang` = `zh-Hant`，`name` / `description` 用書面語
     - AC-5 動畫 token（FS「過場動畫」；TS 實現注意事項 10、11）：時長喺 `config/motion.ts`，同 `tokens.css` 同值；回饋類 ≤ 300ms；場景類 = 已確認嘅時長；減少動態效果時時長 = 0

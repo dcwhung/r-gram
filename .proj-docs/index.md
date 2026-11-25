@@ -56,6 +56,7 @@
 | 2026-11-25 | [qa/2026-11-25_16-10_qa_player-home_player-fonts.md](qa/2026-11-25_16-10_qa_player-home_player-fonts.md) | S1 pass（冇阻擋性問題） | 新鏈 `player-home`、`player-fonts`：T-042（刻度、唱臂兩段開場）、T-035（主畫面）、T-044（字體同字體守衛）；`player-core`、`player-foundation` 重驗。Frozen plan：[qa/plans/player-home.md](qa/plans/player-home.md)、[qa/plans/player-fonts.md](qa/plans/player-fonts.md) |
 | 2026-11-25 | [qa/2026-11-25_16-43_qa_T-098_T-097.md](qa/2026-11-25_16-43_qa_T-098_T-097.md) | S1 pass（冇阻擋性問題） | T-098（專輯類別、序號、資料夾）、T-097（內容資料重新生成）連 review 修正；新鏈 `seed-tools`；`api-albums`、`api-auth`、`api-tracks`、`api-catalog`、`catalog-core`、`catalog-song-text`、`player-catalog` 重驗。Frozen plan：[qa/plans/seed-tools.md](qa/plans/seed-tools.md) |
 | 2026-11-25 | [qa/2026-11-25_17-12_qa_T-100.md](qa/2026-11-25_17-12_qa_T-100.md) | S1 pass（冇阻擋性問題） | T-100（第二張封面：D1、內容檔、專輯 API）；review 100 / 100：[reviews/2026-11-25_17-05_review_T-100.md](reviews/2026-11-25_17-05_review_T-100.md)；`api-albums`、`api-auth`、`api-catalog`、`catalog-core`、`player-catalog` 重驗 |
+| 2026-11-25 | [qa/2026-11-25_21-14_qa_T-046_T-047.md](qa/2026-11-25_21-14_qa_T-046_T-047.md) | S1 pass（冇阻擋性問題） | T-046（隨機封面）、T-047（歌名兩行）；review 90 / 100：[reviews/2026-11-25_21-02_review_T-046_T-047.md](reviews/2026-11-25_21-02_review_T-046_T-047.md)（W-031、W-032、S-127–S-132 入 backlog B-070–B-072）；`player-home`、`player-catalog`、`player-foundation` 重驗 |
 
 Backlog：[backlog.md](backlog.md)
 

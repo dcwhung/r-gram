@@ -1,18 +1,19 @@
 # Test Plan — player-home
 
-- Chain: 播放端主頁（`apps/player`）：主頁場景（左上資訊、版本號、三粒細掣狀態、唱片夾、歌單暫時暗層、Preload 暫時畫面）、暫時播放狀態、主頁衍生值、唱臂三個姿勢同兩段開場、超長文字縮字 / 截短、舞台底色。任務 T-035、T-042（唱臂部分）；修正 S-072 – S-075
+- Chain: 播放端主頁（`apps/player`）：主頁場景（左上資訊、版本號、三粒細掣狀態、唱片夾、歌單暫時暗層、Preload 暫時畫面）、暫時播放狀態、主頁衍生值、唱臂三個姿勢同兩段開場、超長文字縮字 / 截短、舞台底色。任務 T-035、T-042（唱臂部分）、T-047（左上歌名兩行）；修正 S-072 – S-075
 - AC（L1 來源：FS = Functional Spec v1.5、TS = Technical Spec v1.3、設計稿 = `_mockups_/home-turntable/index.html` 第 17 版，常數喺 `src/template.html`）:
     - AC-1 唱臂（FR-040、D36；設計稿 `ARM`、`ARM_LIFT`、`ARM_IN`）：泊位 176°／播緊 99°／暫停 = 留喺 99°、升針（scale 1.018、落影 14, 25；放低時 5, 9）、小燈熄；由泊位開始播：升高住轉入 650 ms → 放低 160 ms，小燈同碟等放低之後先郁；暫停後繼續只放低唱針；轉入途中暫停 / 再播唔會提早著燈轉碟（S-072）；MV 收返之後泊位，下一次播行足兩段；減少動態效果冇過場
-    - AC-2 左上資訊同版本號（US-002、FR-036、D23；設計稿 `info()`）：碟名 70／192、88 號（slab；中文 80 號 Noto Sans HK 900）、年份 74／244、29 號、字距 6 + 專輯色橫線（y 234、長 98、粗 3.5）、歌名 128／318、44 號、三條棒、空心心形佔位、「第 nn 首 · m:ss」74／368、22 號；版本號 1008／118、22 號、靠右；放唔落先縮字（碟名最細 48、歌名最細 32），最細都放唔落用「…」截短，「…」前面冇空格（S-075）
+    - AC-2 左上資訊同版本號（US-002、FR-036、D23；設計稿 `info()`）：碟名 70／192、88 號（slab；中文 80 號 Noto Sans HK 900）、年份 74／244、29 號、字距 6 + 專輯色橫線（y 234、長 98、粗 3.5）、歌名 128／318、44 號、三條棒、空心心形佔位、「第 nn 首 · m:ss」74／368、22 號；版本號 1008／118、22 號、靠右；放唔落先縮字（碟名最細 48，最細都放唔落用「…」截短，「…」前面冇空格，S-075）；歌名見 AC-6
     - AC-3 細掣同唱片夾（US-004、D24、FR-037；設計稿 `buttonState()`）：冇歌時歌書同 MV 停用（`aria-disabled`）、有歌先用得；歌書係開關掣（`aria-pressed`、著燈）；MV 冇 MV 停用、開咗著燈；播放模式只喺播緊著燈；唱片夾標籤 開啟歌單／播放／暫停；MV 開住時唱片夾停用（S-073）
     - AC-4 歌單暗層（D25；S-074）：開歌單時細掣唔喺 Tab 次序、`aria-hidden`；㩒暗位收返、focus 返唱片夾
+    - AC-6 左上歌名兩行（T-047；FS D51、FR-036、CR-005「第 18 版確認」第 2 點；設計稿第 18 版 `SONG_FIT`、`fitSong()`、格「歌名較長（縮字）」「歌名好長（斷兩行）」「歌名好長 + 唱臂喺泊位」）：放得落 44；放唔落每次縮 2，最細 32（連心形右邊 ≤ 772）；32 都放唔落 = 兩行、32 號、第一行基線 296、第二行 334（行距 38）、「第 nn 首」行 368 唔郁、第二行右邊 ≤ 470、心形中心 = 最後一行尾 + 46、基線 − 0.364 × 字級、色棒跟第一行；英文字、數字唔喺中間斷；兩行都唔夠先喺第二行尾「…」；字體遲到載入之後結果一樣；泊位唱臂唔遮歌名同心形
     - AC-5 版面（FR-039）：高身手機左上資訊、頂部螺絲、版本號貼頂，唱片機成組貼底；闊屏置中；碟以專輯 id 做 key；頁面冇重覆 id、冇指空嘅 `url(#…)`；console 冇錯；介面文字全部經語言檔、書面語
 - Scope files:
     - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`ListVeil.tsx`、`PreloadPlaceholder.tsx`、`Turntable.tsx`、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`
-    - `apps/player/src/components/info-block/**`、`apps/player/src/components/small-buttons/**`
+    - `apps/player/src/components/info-block/**`（連 `songFit.ts`）、`apps/player/src/components/small-buttons/**`
     - `apps/player/src/components/tonearm/armPose.ts`、`armPose.test.ts`、`useArmLeadIn.ts`、`useArmLeadIn.test.ts`
     - `apps/player/src/stage/useStageBackdrop.ts`、`useStageBackdrop.test.ts`
-    - `apps/player/src/utils/fitText.ts`、`fitText.test.ts`、`formatTime.ts`、`formatTime.test.ts`、`textMeasure.ts`、`textMeasure.test.ts`
+    - `apps/player/src/utils/fitText.ts`、`fitText.test.ts`、`fitLines.ts`、`fitLines.test.ts`、`breakAt.ts`、`breakAt.test.ts`、`formatTime.ts`、`formatTime.test.ts`、`textMeasure.ts`、`textMeasure.test.ts`
     - 1-hop（屬其他鏈，唔喺呢度凍結）：`app/App.tsx`、`components/tonearm/Tonearm.tsx`、`spindle/Spindle.tsx`、`metal-button/MetalButton.tsx`（`player-core`）
 - Commands:
     - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
@@ -20,6 +21,6 @@
     - 每個 context 封晒 `localhost`／`127.0.0.1` 以外嘅 host 並記數；Chromium 加 `--no-proxy-server` 同 `--host-resolver-rules`
     - 360 × 640、393 × 852、1280 × 800：AC-2 屬性同字體、AC-3 / AC-4 狀態、Tab 次序、AC-5 錨定（設計單位）
     - 唱臂：每格取樣（computed transform、小燈、`data-spinning`）量 AC-1 時間線；`reducedMotion: 'reduce'` 再行一次
-    - 超長碟名 / 歌名（中、英、有空格）量字級、「…」、右邊界
+    - 超長碟名量字級、「…」、右邊界；AC-6 五種歌名（放得落、縮字、兩行中文 + 括號、兩行英文、兩行 +「…」）量字級、基線、右邊、心形中心、色棒；MV 開完收返（泊位）用 `isPointInFill` 逐點驗唱臂唔掂歌名同心形；字體 woff2 遲 2.5 秒對比
 - PWA gate: no（呢條鏈冇 build 設定、manifest、Service Worker）。Security / Data gate: no。Performance gate: no
-- Out of scope（已知、已接受）：旋鈕、刻度、♥（T-036）；心形係佔位（T-070）；歌單、歌書、MV 畫面（T-037、T-072、T-060）；時間 0:00（冇播放，T-038）；production build 只有 Preload 佔位（T-034）；W-018（最細字級截短）；backlog B-055、B-056、B-063、B-064
+- Out of scope（已知、已接受）：旋鈕、刻度、♥（T-036）；心形係佔位（T-070）；歌單、歌書、MV 畫面（T-037、T-072、T-060）；時間 0:00（冇播放，T-038）；production build 只有 Preload 佔位（T-034）；W-031（括號斷位：spec 同設計稿講法唔同，等用戶）；S-127、S-130 – S-132；backlog B-055、B-056、B-063、B-064、B-070 – B-072
