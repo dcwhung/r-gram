@@ -6,6 +6,7 @@
 import { parseCatalogDocument } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
 import { rebuildCatalog } from '../src/catalog/rebuild';
+import { recordSuccess } from '../src/catalog/state';
 import {
     insertAlbum,
     insertAsset,
@@ -129,6 +130,13 @@ describe('rebuildCatalog: document', () => {
         });
     });
 
+    // 年份跟發行日期：冇日期就冇年份（review W-022）
+    it('should give no year when there is no release date, whatever the stored year', async () => {
+        await insertAlbum('a', 1, { release_date: null, year: 2008 });
+        await rebuild();
+        expect((await liveDocument())?.albums[0]).toMatchObject({ releaseDate: null, year: null });
+    });
+
     // backlog B-005：validator 唔收空字串（type / label 除外）
     it('should turn empty and blank strings into null', async () => {
         await insertAlbum('a', 1, { release_date: '', type: '', label: '' });
@@ -209,6 +217,28 @@ describe('rebuildCatalog: writing and state', () => {
         await env.DB.prepare("DELETE FROM albums WHERE id = 'a'").run();
         expect((await rebuild()).albumCount).toBe(1);
         expect((await liveDocument())?.albums.map((album) => album.id)).toEqual(['b']);
+    });
+});
+
+describe('recordSuccess', () => {
+    const live = (generatedAt: string, hash: string) => ({
+        hash,
+        generatedAt,
+        albumCount: 1,
+        trackCount: 0,
+    });
+
+    // review W-022：hash / 時間 / 數目只會向前行，遲到嘅舊成功唔可以蓋過新嘅
+    it('should not let a late, older success overwrite a newer recorded state', async () => {
+        const newer = live('2026-11-25T02:00:00.000Z', 'b'.repeat(64));
+        await recordSuccess(env.DB, newer, { updatedAt: newer.generatedAt, actor: ACTOR });
+        const older = live('2026-11-25T01:00:00.000Z', 'a'.repeat(64));
+        await recordSuccess(env.DB, older, { updatedAt: older.generatedAt, actor: 'late' });
+        expect(await stateRow()).toMatchObject({
+            hash: newer.hash,
+            generated_at: newer.generatedAt,
+            updated_by: ACTOR,
+        });
     });
 });
 
