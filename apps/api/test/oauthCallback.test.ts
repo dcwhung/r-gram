@@ -261,6 +261,21 @@ describe('GET /auth/google/callback: Google failures', () => {
         await expectLoginFailed(await callback(state, cookie));
     });
 
+    it('should answer 500 without a session cookie when the session cannot be stored', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => {});
+        const { cookie, state } = await start();
+        mockGoogle(googleClaims(ADMIN));
+        const brokenDb = {
+            prepare: () => {
+                throw new Error('D1 is down');
+            },
+        } as unknown as D1Database;
+        const response = await callback(state, cookie, { ...env, DB: brokenDb });
+        expect(response.status).toBe(500);
+        expect(await response.json()).toMatchObject({ error: { code: 'INTERNAL' } });
+        await expectNoSession(response);
+    });
+
     it('should send the user back home when they cancel on Google', async () => {
         const { cookie } = await start();
         const bodies = mockGoogle(googleClaims(ADMIN));
