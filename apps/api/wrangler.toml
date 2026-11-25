@@ -26,7 +26,7 @@ bucket_name = "r-gram-catalog"
 # 音檔 / MV bucket（公開網址直出）：Worker 只會 list / head（掃描），唔寫
 [[r2_buckets]]
 binding = "MEDIA"
-bucket_name = "r-gram-media"
+bucket_name = "rb-discography"
 
 # 非 secret 設定；GOOGLE_CLIENT_SECRET、SESSION_SECRET 用 `wrangler secret put`（本機：.dev.vars）。
 # 只改呢個檔：每次 deploy 會蓋走 dashboard 嘅改動
@@ -39,5 +39,5 @@ ADMIN_EMAILS = "admin@example.com"
 PLAYER_ORIGINS = "https://r-gram-player.example.com"
 # TODO(T-028)：Worker 自己嘅 origin，唔好 / 結尾（OAuth redirect、CSRF Origin 檢查、catalog 圖 URL）
 WORKER_ORIGIN = "https://r-gram-api.example.workers.dev"
-# TODO(U-1)：r-gram-media 嘅公開網址（要 / 結尾）
-MEDIA_BASE = "https://r-gram-media.example.com/"
+# rb-discography 嘅公開網址（要 / 結尾）；r2.dev 係開發用，之後轉自訂網域只要改呢行
+MEDIA_BASE = "https://pub-fd99bea8c79a485b8a7eb3847cea696c.r2.dev/"
