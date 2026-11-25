@@ -27,4 +27,36 @@ describe('PHONE_LAYOUT', () => {
             heartGap: 18,
         });
     });
+
+    // T-035：左上資訊同版本號，數值照設計稿 info()（第 17 版）
+    it('should carry the top-left info block and the version text of the mockup', () => {
+        const { info } = PHONE_LAYOUT;
+        expect(info.title).toMatchObject({
+            x: 70,
+            latin: { y: 192, size: 88, spacing: 1 },
+            cjk: { y: 188, size: 80, spacing: 4 },
+        });
+        expect(info.year).toEqual({ x: 74, y: 244, size: 29, spacing: 6 });
+        expect(info.rule).toEqual({ gap: 22, y: 234, length: 98, width: 3.5 });
+        expect(info.song).toMatchObject({ x: 128, y: 318, size: 44 });
+        expect(info.bars).toEqual({
+            x: 74,
+            step: 13,
+            width: 8,
+            height: 30,
+            corner: 1.5,
+            lift: 2,
+            levels: [0.72, 1, 0.5],
+        });
+        expect(info.heart).toEqual({ gap: 46, size: 50, lift: 16, stroke: 2.6 });
+        expect(info.track).toEqual({ x: 74, y: 368, size: 22, spacing: 3 });
+        expect(info.version).toEqual({ x: 1008, y: 118, size: 22, spacing: 3 });
+    });
+
+    // 左上嘅字唔可以伸去唱臂底座（設計稿冇寫明闊度：右邊留返同左邊一樣嘅位；歌名連心形停喺底座 40 之外）
+    it('should keep the title within the right margin and the song line clear of the tonearm base', () => {
+        const { info, arm } = PHONE_LAYOUT;
+        expect(info.title.maxRight).toBe(1080 - info.title.x);
+        expect(info.song.maxRight).toBe(arm.x - arm.base - 40);
+    });
 });
