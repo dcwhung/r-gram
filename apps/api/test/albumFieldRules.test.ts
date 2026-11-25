@@ -53,3 +53,42 @@ describe('unknown field names in validation details (S-053)', () => {
         ]);
     });
 });
+
+describe('shared character rule for text fields and wheelKey (S-054)', () => {
+    /** 控制（Cc：U+0001、U+007F）、格式（Cf：零寬空格、RTL override、BOM）、行分隔（Zl）、段分隔（Zp） */
+    const HIDDEN_CODE_POINTS = [0x01, 0x7f, 0x200b, 0x202e, 0xfeff, 0x2028, 0x2029];
+    const HIDDEN = HIDDEN_CODE_POINTS.map((point) => String.fromCodePoint(point));
+    const IDEOGRAPHIC_SPACE = String.fromCodePoint(0x3000);
+    const TEXT_FIELDS = {
+        title: 'INVALID_TEXT',
+        type: 'INVALID_TEXT',
+        label: 'INVALID_TEXT',
+        folder: 'INVALID_FOLDER',
+    } as const;
+
+    it('should refuse control, format, line and paragraph separator characters in text fields', () => {
+        for (const [field, expected] of Object.entries(TEXT_FIELDS)) {
+            for (const char of HIDDEN) {
+                const label = `${field} U+${char.codePointAt(0)?.toString(16)}`;
+                expect(reasonOf(field as keyof typeof TEXT_FIELDS, `a${char}b`), label).toBe(
+                    expected,
+                );
+            }
+        }
+    });
+
+    it('should refuse the same characters in the wheel key', () => {
+        for (const char of HIDDEN) {
+            const label = `U+${char.codePointAt(0)?.toString(16)}`;
+            expect(reasonOf('wheelKey', char), label).toBe('INVALID_WHEEL_KEY');
+            expect(reasonOf('wheelKey', `A${char}`), label).toBe('INVALID_WHEEL_KEY');
+        }
+    });
+
+    it('should keep ordinary and ideographic spaces legal inside text', () => {
+        expect(reasonOf('title', 'Apollo 18')).toBe('OK');
+        expect(reasonOf('label', `新藝寶${IDEOGRAPHIC_SPACE}唱片`)).toBe('OK');
+        expect(reasonOf('folder', 'Beaming 2005')).toBe('OK');
+        expect(reasonOf('wheelKey', '中')).toBe('OK');
+    });
+});

@@ -18,8 +18,12 @@ const TEXT_MAX_CHARS = TITLE_MAX_CHARS;
 const WHEEL_KEY_MAX_CHARS = 2;
 const ACCENT = /^#[0-9a-f]{6}$/i;
 const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
-/** 換行、tab 等控制字元：畫面上冇意義，亦可以砌出假 log 行 */
-const CONTROL = /\p{Cc}/u;
+/**
+ * 文字欄同字母盤標記共用嘅字元規則：控制字元（Cc：換行、tab）、格式字元（Cf：零寬空格、RTL override、BOM）、
+ * 行分隔（Zl，U+2028）、段分隔（Zp，U+2029）。畫面上睇唔到或者會亂排版，亦可以砌出假 log 行。
+ * 普通空格同全形空格（Zs）照收
+ */
+const HIDDEN_CHARACTER = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
 /**
  * 資料夾名係 R2 key 嘅 prefix，亦會砌入播放端網址（MEDIA_BASE + key）：
  * 斜線 / 反斜線會變多層，`?` `#` `%` 令網址斷開或者被解碼（Technical Spec「安全設計 → R2 key 驗證」）
@@ -51,7 +55,7 @@ export const isCalendarDate = (value: string): boolean => {
 const text =
     (required: boolean): Rule =>
     (value) => {
-        if (typeof value !== 'string' || CONTROL.test(value)) return fail('INVALID_TEXT');
+        if (typeof value !== 'string' || HIDDEN_CHARACTER.test(value)) return fail('INVALID_TEXT');
         const trimmed = value.trim();
         if (required && trimmed === '') return fail('REQUIRED');
         return charCount(trimmed) > TEXT_MAX_CHARS ? fail('TOO_LONG') : ok(trimmed);
@@ -67,6 +71,7 @@ const wheelKey: Rule = (value) => {
         typeof value === 'string' &&
         value !== '' &&
         value.trim() === value &&
+        !HIDDEN_CHARACTER.test(value) &&
         charCount(value) <= WHEEL_KEY_MAX_CHARS;
     return valid ? ok(value) : fail('INVALID_WHEEL_KEY');
 };
