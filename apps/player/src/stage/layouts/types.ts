@@ -62,6 +62,44 @@ export interface InfoLayout {
     version: TextLine;
 }
 
+/**
+ * Preload（T-034）：旗幟布料（設計稿 r-gram v16 FLAG）同底部文字、進度線（第 18 版 preloadCard()）。
+ * 底部嘅嘢貼底（高身手機向下移）；布料同 logo 跟畫面高度伸（見 components/flag/flagScene.ts）。
+ */
+export interface PreloadLayout {
+    /**
+     * 布料（平放時）：大細、左上角（離畫面頂同左邊，負數 = 喺畫面外）、網格格數、光暗圖解像度、
+     * 波幅同透視焦距（z 向鏡頭為正）
+     */
+    flag: {
+        width: number;
+        height: number;
+        x: number;
+        y: number;
+        cols: number;
+        rows: number;
+        lightCols: number;
+        lightRows: number;
+        amp: number;
+        focal: number;
+    };
+    /**
+     * 旗上嘅 logo：畫面上嘅中心同闊度（第 18 版）；`drift` = 平放時要向右移幾多（v16：布料摺皺會將佢拉向旗杆）
+     */
+    logo: Point & { width: number; drift: number };
+    /** 進度線：起點（左端）、長度、線粗、未完成部分嘅透明度 */
+    bar: Point & { width: number; stroke: number; trackOpacity: number };
+    /** 三位數百分比、「R Gram」、「歌迷自製　非官方 · 版本」：置中（x 係中線） */
+    percent: TextLine;
+    name: TextLine;
+    notice: TextLine;
+    /** 冇 catalog：錯誤訊息同重試掣（置中）；`hit` = 感應範圍嘅高度（闊度連埋外框） */
+    failure: {
+        message: TextLine;
+        retry: TextLine & { width: number; height: number; stroke: number; hit: number };
+    };
+}
+
 export interface StageLayout {
     id: LayoutId;
     /** 主頁嘅碟（圓心、半徑） */
@@ -113,6 +151,8 @@ export interface StageLayout {
     screws: { points: readonly Point[]; zoneIndex: number };
     /** 左上資訊、右上版本號（貼頂組） */
     info: InfoLayout;
+    /** Preload 旗幟畫面 */
+    preload: PreloadLayout;
     /** 歌單同歌書：沿住同碟同心嘅弧線排 */
     arc: { r: number; stepDeg: number };
     /** 淨空同感應範圍規則（Functional Spec CR-002） */

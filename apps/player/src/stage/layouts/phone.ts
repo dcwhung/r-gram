@@ -23,6 +23,47 @@ const INFO_X = 70;
 const SONG_ARM_GAP = 36;
 const TITLE_MIN_SIZE = 48;
 
+/*
+ * Preload（T-034）。布料照 _mockups_/r-gram/src/anim.js（v16）嘅 FLAG；logo、進度線同文字照第 18 版 preloadCard()。
+ * v16 logo 平放時中心 x = 838 − 240 = 598、闊 640；第 18 版靜止畫面係 540、闊 560：
+ * 用第 18 版嘅位同闊度，保留 v16 嘅 58 單位偏移（摺皺會將 logo 拉向旗杆，飄起嚟先喺中間）。
+ * 錯誤同重試掣設計稿冇畫：放喺進度線嘅位，同進度線一樣置中，唔撞「R Gram」。
+ */
+const PRELOAD_CENTRE = DESIGN_WIDTH / 2;
+const PRELOAD_BAR_Y = 1640;
+const PRELOAD = {
+    flag: {
+        width: 1760,
+        height: 2400,
+        x: -240,
+        y: -240,
+        cols: 30,
+        rows: 40,
+        lightCols: 90,
+        lightRows: 120,
+        amp: 122,
+        focal: 1500,
+    },
+    logo: { x: PRELOAD_CENTRE, y: 860, width: 560, drift: 58 },
+    bar: { x: 340, y: PRELOAD_BAR_Y, width: 400, stroke: 4, trackOpacity: 0.25 },
+    percent: { x: PRELOAD_CENTRE, y: PRELOAD_BAR_Y + 56, size: 30, spacing: 6 },
+    name: { x: PRELOAD_CENTRE, y: 1802, size: 34, spacing: 2 },
+    notice: { x: PRELOAD_CENTRE, y: 1846, size: 22, spacing: 3 },
+    failure: {
+        message: { x: PRELOAD_CENTRE, y: 1590, size: 30, spacing: 3 },
+        retry: {
+            x: PRELOAD_CENTRE,
+            y: 1680,
+            size: 30,
+            spacing: 6,
+            width: 240,
+            height: 76,
+            stroke: 3,
+            hit: 124,
+        },
+    },
+} as const;
+
 export const PHONE_LAYOUT: StageLayout = {
     id: 'phone',
     disc: DISC,
@@ -101,6 +142,7 @@ export const PHONE_LAYOUT: StageLayout = {
         track: { x: 74, y: 368, size: 22, spacing: 3 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
     },
+    preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },
 };

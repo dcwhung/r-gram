@@ -3,9 +3,11 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import packageJson from '../../package.json';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
+import type { CatalogLoadResult } from '../catalog/loader';
 import { MOTION } from '../config/motion';
 import { installFakeFonts, removeFakeFonts } from '../utils/testing/fakeFonts';
 import { App } from './App';
+import type { StartupDeps } from './startup/startupDeps';
 
 const stubReducedMotion = (reduce: boolean) =>
     vi.stubGlobal(
@@ -21,8 +23,31 @@ const catalogWithMv = (): CatalogDocument => {
     return document;
 };
 
-const renderHome = (catalog: CatalogDocument = sampleDocument()) => {
-    const { container } = render(<App catalog={catalog} />);
+/** 開 app 嘅三項即刻完成（catalog 由網絡攞到） */
+const instantStartup = (catalog: CatalogDocument): StartupDeps => ({
+    loadCatalog: () => Promise.resolve({ status: 'ready', source: 'network', document: catalog }),
+    loadFonts: () => Promise.resolve(),
+    loadImage: () => Promise.resolve(true),
+});
+
+/** 行晒排緊嘅 promise 同 effect（每輪 effect 可能再排 promise） */
+const FLUSH_ROUNDS = 4;
+const flush = async () => {
+    for (let round = 0; round < FLUSH_ROUNDS; round += 1) await act(async () => {});
+};
+
+/** 有動畫時離開 Preload：進度線最後一步 + 停留，再淡出 */
+const { preloadStepMs, preloadHoldMs, flagFadeMs } = MOTION.scene;
+const PRELOAD_STEPS = [preloadStepMs + preloadHoldMs, flagFadeMs];
+
+/** 開 app，等 Preload 行完（減少動態效果：冇停留、冇淡出；fake timers：行晒 Preload 嘅時間線） */
+const renderHome = async (catalog: CatalogDocument = sampleDocument()) => {
+    const { container } = render(<App startup={instantStartup(catalog)} />);
+    await flush();
+    if (vi.isFakeTimers()) {
+        for (const ms of PRELOAD_STEPS) await act(() => vi.advanceTimersByTimeAsync(ms));
+    }
+    await screen.findByRole('button', { name: '開啟歌單' });
     const part = (name: string) => container.querySelector(`[data-part="${name}"]`);
     const button = (name: string) => screen.getByRole('button', { name });
     const armLook = () => ({
@@ -36,24 +61,67 @@ const PARKED = { arm: expect.stringContaining('rotate(176deg)'), lift: 'transfor
 const PLAYING = { arm: expect.stringContaining('rotate(99deg)'), lift: 'transform: scale(1);' };
 const LIFTED = { arm: expect.stringContaining('rotate(99deg)'), lift: 'transform: scale(1.018);' };
 
-describe('App before the catalog is ready (Preload is T-034)', () => {
-    it('should show the app name, the unofficial notice and the version from package.json', () => {
-        render(<App />);
+/** 由測試決定 catalog 幾時到 */
+const lateCatalog = () => {
+    let arrive: (result: CatalogLoadResult) => void = () => {};
+    const deps: StartupDeps = {
+        ...instantStartup(sampleDocument()),
+        loadCatalog: () =>
+            new Promise((resolve) => {
+                arrive = resolve;
+            }),
+    };
+    return { deps, arrive: (result: CatalogLoadResult) => arrive(result) };
+};
+
+/* T-034：Functional Spec US-001、FR-001、FR-034 */
+describe('App start-up', () => {
+    beforeEach(() => stubReducedMotion(true));
+
+    it('should open on Preload with the app name, the unofficial notice and the version', async () => {
+        const { deps } = lateCatalog();
+        render(<App startup={deps} />);
         expect(screen.getByText('R Gram')).toBeInTheDocument();
-        // 中間係全形空格：Testing Library 會將空白正規化，所以用 regex 對
-        expect(screen.getByText(/^歌迷自製\s非官方$/)).toBeInTheDocument();
-        expect(screen.getByText(`v${packageJson.version}`)).toBeInTheDocument();
+        expect(
+            screen.getByText(new RegExp(`非官方\\s·\\sv${packageJson.version}$`)),
+        ).toBeInTheDocument();
         expect(document.documentElement.style.getPropertyValue('--stage-backdrop')).toBe(
             'var(--color-flag-bg)',
         );
+        // 字體同封面完成咗，catalog 未到：停喺三分之一
+        expect(await screen.findByRole('progressbar')).toHaveAttribute('aria-valuenow', '33');
+    });
+
+    // S-078：catalog 最遲先到都要入到主頁
+    it('should open the home scene when the catalog arrives last', async () => {
+        const { deps, arrive } = lateCatalog();
+        render(<App startup={deps} />);
+        await screen.findByRole('progressbar');
+        await act(async () =>
+            arrive({ status: 'ready', source: 'network', document: sampleDocument() }),
+        );
+        expect(await screen.findByRole('button', { name: '開啟歌單' })).toBeInTheDocument();
+        expect(screen.queryByRole('progressbar')).toBeNull();
+        expect(document.documentElement.style.getPropertyValue('--stage-backdrop')).toBe(
+            'var(--color-stage)',
+        );
+    });
+
+    it('should offer a retry when there is no catalog at all', async () => {
+        const { deps, arrive } = lateCatalog();
+        render(<App startup={deps} />);
+        await act(async () => arrive({ status: 'unavailable', failure: 'network' }));
+        expect(await screen.findByRole('alert')).toHaveTextContent('未能載入唱片資料');
+        await userEvent.click(screen.getByRole('button', { name: '重試' }));
+        expect(await screen.findByRole('progressbar')).toBeInTheDocument();
     });
 });
 
 describe('App home scene', () => {
     beforeEach(() => stubReducedMotion(true));
 
-    it('should open on the first disc with no song, the arm parked and the version at the top right', () => {
-        const { part, button, armLook } = renderHome();
+    it('should open on the first disc with no song, the arm parked and the version at the top right', async () => {
+        const { part, button, armLook } = await renderHome();
         expect(part('album-title')).toHaveTextContent('APOLLO-18');
         expect(part('song-title')).toBeNull();
         expect(part('version')).toHaveTextContent(`v${packageJson.version}`);
@@ -66,7 +134,7 @@ describe('App home scene', () => {
     });
 
     it('should walk the clamp from no song to the list, playing, paused and playing again', async () => {
-        const { part, button, armLook } = renderHome();
+        const { part, button, armLook } = await renderHome();
         await userEvent.click(button('開啟歌單'));
         expect(button('關閉歌單')).toBeInTheDocument();
         await userEvent.click(button('播放'));
@@ -82,7 +150,7 @@ describe('App home scene', () => {
     });
 
     it('should close the list from the dimmed area without playing', async () => {
-        const { button, armLook } = renderHome();
+        const { button, armLook } = await renderHome();
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('關閉歌單'));
         expect(screen.queryByRole('button', { name: '關閉歌單' })).toBeNull();
@@ -92,7 +160,7 @@ describe('App home scene', () => {
 
     // S-074：歌單開住時，暗層下面嘅三粒細掣 Tab 唔到、讀屏唔讀；用鍵盤收返歌單之後 focus 返唱片夾
     it('should keep Tab off the buttons under the list and refocus the clamp when it closes', async () => {
-        const { button } = renderHome();
+        const { button } = await renderHome();
         await userEvent.click(button('開啟歌單'));
         const stops = new Set<string | null | undefined>();
         for (let step = 0; step < 6; step += 1) {
@@ -108,7 +176,7 @@ describe('App home scene', () => {
     });
 
     it('should light the mode button only while playing', async () => {
-        const { button } = renderHome();
+        const { button } = await renderHome();
         const ring = () => button('播放模式：順序播放').querySelector('[data-part="glow-ring"]');
         expect(ring()).toBeNull();
         await userEvent.click(button('開啟歌單'));
@@ -120,7 +188,7 @@ describe('App home scene', () => {
 
     // 歌書係其他任務（T-072）：呢度只係改場景狀態，掣亮燈；暫停時歌書留住（CR-003 決定 5）
     it('should toggle the booklet state once a song is loaded and keep it open on pause', async () => {
-        const { button } = renderHome();
+        const { button } = await renderHome();
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('播放'));
         const booklet = button('歌書：歌詞及創作人員');
@@ -134,7 +202,7 @@ describe('App home scene', () => {
 
     // MV 電視係 T-060：開 MV 時停播、唱臂返泊位；收返之後要㩒先續播，再播重新落針
     it('should park the arm for the MV and keep it parked after the MV until play is pressed', async () => {
-        const { button, armLook } = renderHome(catalogWithMv());
+        const { button, armLook } = await renderHome(catalogWithMv());
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('播放'));
         await userEvent.click(button('觀看 MV'));
@@ -147,7 +215,7 @@ describe('App home scene', () => {
 
     // S-073：電視開住時唱片夾㩒唔到：讀屏要講「已停用」，唔可以係一粒冇反應嘅「播放」掣
     it('should disable the clamp while the MV is open', async () => {
-        const { button, armLook } = renderHome(catalogWithMv());
+        const { button, armLook } = await renderHome(catalogWithMv());
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('播放'));
         await userEvent.click(button('觀看 MV'));
@@ -158,10 +226,10 @@ describe('App home scene', () => {
         expect(armLook()).toEqual(PLAYING);
     });
 
-    it('should keep the info, the top screws and the version on top and move the turntable down on tall phones', () => {
+    it('should keep the info, the top screws and the version on top and move the turntable down on tall phones', async () => {
         Object.defineProperty(window, 'innerWidth', { configurable: true, value: 360 });
         Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });
-        const { container } = renderHome();
+        const { container } = await renderHome();
         const extra = 800 / (360 / 1080) - 1920;
         const top = container.querySelector('[data-anchor="top"]');
         const bottom = container.querySelector('[data-anchor="bottom"]');
@@ -187,8 +255,8 @@ describe('App home scene with motion', () => {
     afterEach(() => vi.useRealTimers());
 
     // 由泊位開始播：轉入（升高住）→ 放低；碟等放低之後先轉
-    it('should start turning the disc only after the needle is down', () => {
-        const { part, button } = renderHome();
+    it('should start turning the disc only after the needle is down', async () => {
+        const { part, button } = await renderHome();
         fireEvent.click(button('開啟歌單'));
         fireEvent.click(button('播放'));
         expect(part('arm-lift')).toHaveAttribute('style', 'transform: scale(1.018);');
@@ -234,7 +302,7 @@ describe('App when the fonts finish loading', () => {
         const catalog = sampleDocument();
         const first = catalog.albums[0];
         if (first) first.title = 'GREATEST HITS 1999';
-        const { part } = renderHome(catalog);
+        const { part } = await renderHome(catalog);
         const sizeBefore = Number(part('album-title')?.getAttribute('font-size'));
         loaded = true;
         await act(() => fonts.resolveReady());

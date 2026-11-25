@@ -8,6 +8,8 @@ import { PreloadPlaceholder } from './PreloadPlaceholder';
 import { useHome } from './useHome';
 
 interface AppProps {
+    /** 未實作（TDD 紅燈） */
+    startup?: unknown;
     /**
      * 已載入嘅 catalog（T-034 之前嘅接口）。未有 = 停喺 Preload。
      * T-034 嘅 Preload 會自己 `loadCatalog()`，載入完再交 catalog 同 dispatch `preloadDone`。
