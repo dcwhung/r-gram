@@ -24,6 +24,7 @@ const Cover = ({ coverUrl, accent, spinning }: Omit<DiscArtProps, 'hub'>) => (
         {coverUrl ? (
             <image
                 href={coverUrl}
+                crossOrigin="anonymous"
                 x={-ART}
                 y={-ART}
                 width={ART * 2}
