@@ -30,6 +30,9 @@ export const splitStateCookie = (cookie: string) => {
 };
 
 /** 假 id_token（callback 直接由 Google token endpoint 攞，唔驗簽名） */
+const MS_PER_SECOND = 1000;
+const ID_TOKEN_TTL_SECONDS = 3600;
+
 export const idToken = (claims: Record<string, unknown>): string =>
     [encodeJson({ alg: 'RS256' }), encodeJson(claims), 'sig'].join('.');
 
@@ -38,6 +41,8 @@ export const googleClaims = (email: string, extra: Record<string, unknown> = {})
     aud: env.GOOGLE_CLIENT_ID,
     email,
     email_verified: true,
+    // Google 嘅 id_token 有效 1 小時
+    exp: Math.floor(Date.now() / MS_PER_SECOND) + ID_TOKEN_TTL_SECONDS,
     ...extra,
 });
 

@@ -228,6 +228,17 @@ describe('GET /auth/google/callback: Google failures', () => {
         expect(response.status).toBe(302);
     });
 
+    // S-029：OIDC Core 3.1.3.7：過咗期嘅 id_token 唔收
+    it.each([
+        ['expired', { exp: 1 }],
+        ['without exp', { exp: undefined }],
+        ['with a non-numeric exp', { exp: 'tomorrow' }],
+    ])('should refuse an id_token that is %s', async (_label, extra) => {
+        const { response } = await login(googleClaims('admin@example.com', extra));
+        expect(response.status).toBe(502);
+        await expectNoSession(response);
+    });
+
     it('should answer 502 (not 500) when the token endpoint is unreachable', async () => {
         vi.spyOn(console, 'warn').mockImplementation(() => {});
         const { cookie, state } = await start();

@@ -104,11 +104,17 @@ const decodeClaims = (tokens: unknown): Record<string, unknown> => {
     return claims;
 };
 
+const MS_PER_SECOND = 1000;
+/** `exp`（秒）要係數字而且未過（OIDC Core 3.1.3.7） */
+const isUnexpired = (exp: unknown): boolean =>
+    typeof exp === 'number' && Number.isFinite(exp) && exp * MS_PER_SECOND > Date.now();
+
 /** code + verifier → email；token endpoint 錯 / id_token 唔係畀我哋 → GoogleAuthError */
 export const exchangeCode = async (env: Env, code: string, verifier: string) => {
     const claims = decodeClaims(await requestTokens(env, code, verifier));
     if (!GOOGLE_ISSUERS.includes(String(claims.iss))) throw new GoogleAuthError('bad issuer');
     if (claims.aud !== env.GOOGLE_CLIENT_ID) throw new GoogleAuthError('bad audience');
+    if (!isUnexpired(claims.exp)) throw new GoogleAuthError('expired id_token');
     if (typeof claims.email !== 'string') throw new GoogleAuthError('no email claim');
     const identity: GoogleIdentity = {
         email: claims.email,

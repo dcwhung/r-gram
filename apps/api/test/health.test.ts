@@ -52,6 +52,23 @@ describe('error format', () => {
         });
     });
 
+    // S-028：decode 咗嘅 path 可以有換行，寫入 log 會砌出一行假記錄；只記 route pattern
+    it('should log the route pattern, never the request path', async () => {
+        const errorLog = vi.spyOn(console, 'error').mockImplementation(() => {});
+        const app = new Hono().onError(handleError);
+        app.get('/api/*', () => {
+            throw new Error('boom');
+        });
+        const response = await app.request(
+            'https://api.test/api/x%0A[auth]%20login%20ok%20for%20admin',
+        );
+        expect(response.status).toBe(500);
+        const logged = errorLog.mock.calls.flat().join(' ');
+        expect(logged).toContain('GET /api/*');
+        expect(logged).not.toContain('login ok');
+        expect(logged).not.toContain('\n');
+    });
+
     it('should answer 500 INTERNAL without leaking or logging the error message', async () => {
         const errorLog = vi.spyOn(console, 'error').mockImplementation(() => {});
         const app = new Hono().notFound(handleNotFound).onError(handleError);
