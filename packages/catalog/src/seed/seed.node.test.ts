@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { parseCatalogDocument } from '../schema/parseCatalogDocument';
 import { matchCredits } from './matchCredits';
 import { seedToCatalog } from './seedToCatalog';
+import { trackIdFor } from './trackId';
 import type { SeedCredits, SeedDiscography } from './types';
 
 // 真實初始資料（apps/api/seed/）：鎖住 Functional Spec US-109 寫明嘅配對結果
@@ -18,12 +19,24 @@ const credits = readSeed<SeedCredits>('credits.json');
 
 const EXPECTED_ALBUMS = 17;
 const EXPECTED_TRACKS = 262;
+const SOUNDTRACK_ALBUM_ID = 'men-on-the-dragon-ost';
+const SOUNDTRACK_TRACKS_WITHOUT_CREDITS = 39;
 
 describe('seed data', () => {
     it('should match credits as the spec states: 187 direct, 22 by title, 53 missing', () => {
         const { stats, byTrackId } = matchCredits(discography, credits);
         expect(stats).toEqual({ direct: 187, byTitle: 22, missing: 53 });
         expect(Object.keys(byTrackId)).toHaveLength(187 + 22);
+    });
+
+    // US-109：53 首冇 credit 嘅歌入面，39 首係《逆流大叔》原聲大碟嘅配樂
+    it('should leave 39 tracks of the film soundtrack without credits', () => {
+        const { byTrackId } = matchCredits(discography, credits);
+        const soundtrack = discography.albums.find((album) => album.id === SOUNDTRACK_ALBUM_ID);
+        const missing = soundtrack?.tracks.filter(
+            (track) => !byTrackId[trackIdFor(SOUNDTRACK_ALBUM_ID, track.no)],
+        );
+        expect(missing).toHaveLength(SOUNDTRACK_TRACKS_WITHOUT_CREDITS);
     });
 
     it('should build a catalog document that passes the validator', () => {

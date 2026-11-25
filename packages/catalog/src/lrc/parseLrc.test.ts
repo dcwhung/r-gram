@@ -37,6 +37,13 @@ describe('parseLrc', () => {
         ]);
     });
 
+    it('should accept a file that starts with a UTF-8 byte order mark', () => {
+        expect(parseLrc('\uFEFF[ti:歌名]\n[00:01.00]a')).toEqual({
+            lines: [{ t: 1_000, text: 'a' }],
+            errors: [],
+        });
+    });
+
     it('should ignore metadata tags and blank lines', () => {
         const { lines, errors } = parseLrc(
             '[ti:歌名]\n[ar:RubberBand]\n\n[length:03:20]\n[00:01.00]a',
