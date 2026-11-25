@@ -15,14 +15,13 @@ const BUTTON_COLUMN_X = 112;
 const SCREW_INSET = 62;
 const ARM = { x: 900, y: 330, length: 640, base: 92, parkDeg: 176, playDeg: 99, bend: -1 } as const;
 /*
- * 左上資訊嘅闊度上限（設計稿冇寫明，T-035 定）：碟名右邊留返同左邊一樣嘅位；
- * 歌名連後面嘅心形喺唱臂底座嗰行，停喺底座左邊 INFO_ARM_GAP 之外（同控件同轉盤邊一樣留 40）。
- * 縮字最細：歌名 32（同歌單其他行一樣），碟名 48。
+ * 左上資訊嘅闊度上限：碟名右邊留返同左邊一樣嘅位（T-035 定）；碟名縮字最細 48。
+ * 歌名照設計稿第 18 版 SONG_FIT（CR-005 D51）：連後面嘅心形停喺唱臂底座左邊 SONG_ARM_GAP 之外
+ *（SONG_FIT.right = ARM.x − ARM.base − 36）；44 → 32 每次縮 2；斷兩行時第二行到 470（泊位嘅唱臂）。
  */
 const INFO_X = 70;
-const INFO_ARM_GAP = 40;
+const SONG_ARM_GAP = 36;
 const TITLE_MIN_SIZE = 48;
-const SONG_MIN_SIZE = 32;
 
 export const PHONE_LAYOUT: StageLayout = {
     id: 'phone',
@@ -82,8 +81,12 @@ export const PHONE_LAYOUT: StageLayout = {
             x: 128,
             y: 318,
             size: 44,
-            minSize: SONG_MIN_SIZE,
-            maxRight: ARM.x - ARM.base - INFO_ARM_GAP,
+            minSize: 32,
+            step: 2,
+            maxRight: ARM.x - ARM.base - SONG_ARM_GAP,
+            lift: 22,
+            pitch: 38,
+            secondRight: 470,
         },
         bars: {
             x: 74,
@@ -94,7 +97,7 @@ export const PHONE_LAYOUT: StageLayout = {
             lift: 2,
             levels: [0.72, 1, 0.5],
         },
-        heart: { gap: 46, size: 50, lift: 16, stroke: 2.6 },
+        heart: { gap: 46, size: 50, rise: 0.364, stroke: 2.6 },
         track: { x: 74, y: 368, size: 22, spacing: 3 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
     },

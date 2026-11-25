@@ -30,7 +30,20 @@ export interface InfoLayout {
     year: TextLine;
     /** 年份後面嘅專輯色橫線：離年份幾遠、高度、長度、線粗 */
     rule: { gap: number; y: number; length: number; width: number };
-    song: Point & { size: number; minSize: number; maxRight: number };
+    /**
+     * 歌名（設計稿第 18 版 SONG_FIT；Functional Spec D51）：放唔落先每次縮 `step`，最細 `minSize`；
+     * 仍然放唔落就斷兩行：第一行向上移 `lift`、行距 `pitch`（「第 nn 首」行唔郁），
+     * 第二行字最遠去到 `secondRight`（唱臂喺泊位時喺嗰個高度橫過）。`maxRight` = 一行時連心形最遠去到邊
+     */
+    song: Point & {
+        size: number;
+        minSize: number;
+        step: number;
+        maxRight: number;
+        lift: number;
+        pitch: number;
+        secondRight: number;
+    };
     /** 歌名前面三條專輯色棒：位置、間距、闊、最高、圓角、底部離基線幾多、各條高度（× height） */
     bars: {
         x: number;
@@ -41,8 +54,8 @@ export interface InfoLayout {
         lift: number;
         levels: readonly number[];
     };
-    /** 歌名後面嘅心形：離歌名尾幾遠（到心形中心）、大細、中心比基線高幾多、空心線粗（icon 格單位） */
-    heart: { gap: number; size: number; lift: number; stroke: number };
+    /** 歌名後面嘅心形：離歌名尾幾遠（到心形中心）、大細、中心比基線高幾多（× 歌名字級）、空心線粗（icon 格單位） */
+    heart: { gap: number; size: number; rise: number; stroke: number };
     /** 「第 nn 首 · m:ss」 */
     track: TextLine;
     /** 右上版本號（靠右對齊：x 係右邊） */
