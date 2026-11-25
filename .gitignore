@@ -14,3 +14,13 @@ __pycache__/
 # apps/api（Cloudflare Worker）：本機 secret、wrangler / miniflare state
 .dev.vars
 .wrangler/
+# 字體：repo 係公開嘅，只准打包用嘅兩個 Rokkitt（SIL OFL）。商業字體（例如 ITC Lubalin Graph）唔可以入 repo，
+# 放喺邊度都唔得；用戶自己上載去媒體 bucket（scripts/ci/font-guard.test.mjs 會再驗一次）
+*.otf
+*.ttf
+*.ttc
+*.woff
+*.woff2
+*.eot
+!apps/player/src/assets/fonts/rokkitt-extrabold-latin1.woff2
+!apps/player/src/assets/fonts/rokkitt-light-latin1.woff2
