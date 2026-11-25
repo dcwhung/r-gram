@@ -130,13 +130,20 @@ describe('planScan: existing tracks', () => {
         ]);
     });
 
-    it('should keep the MV out of audioMissing when the MV file is still there', () => {
+    it('should list the MV link to clear even when the MV file is still there', () => {
+        // S-135：冇音檔就冇 MV，清音檔連結時連掃描配對嘅 MV 一齊清
         const tracks = [track(9, { audioKey: key('09 a.m4a'), mvKey: key('09 a.mp4') })];
         const result = plan(['09 a.mp4'], tracks);
-        expect(result.audioMissing[0]?.mvKey).toBeNull();
+        expect(result.audioMissing[0]?.mvKey).toBe(key('09 a.mp4'));
         expect(result.skipped).toEqual([
             { key: key('09 a.mp4'), no: 9, kind: 'mv', reason: 'NO_AUDIO' },
         ]);
+    });
+
+    it('should not list a manually assigned MV to clear', () => {
+        const mv = { mvKey: 'other/v.mp4', mvManual: true };
+        const tracks = [track(9, { audioKey: key('09 a.m4a'), ...mv })];
+        expect(plan(['01 a.m4a'], tracks).audioMissing[0]?.mvKey).toBeNull();
     });
 
     it('should never touch manual assignments and count a manual audio as the anchor', () => {

@@ -417,16 +417,19 @@ describe('POST /api/albums/:id/scan/apply: media and missing audio', () => {
         });
     });
 
-    it('should keep the MV link when the MV file is still in the folder', async () => {
+    it('should clear the matched MV link too when the MV file is still in the folder', async () => {
         await insertScanTrack(9, { audio_key: mediaKey('09 a.m4a'), mv_key: mediaKey('09 a.mp4') });
         await putMediaFiles(['09 a.mp4']);
         const { body } = await apply({
             clearAudio: [{ trackId: 'komorebi-09', audioKey: mediaKey('09 a.m4a') }],
         });
         expect(body.clearAudio[0]).toMatchObject({ ok: true });
+        // S-135：冇音檔就冇 MV；歌本身（歌名、credit、歌詞、id）留低
         expect(await trackRow('komorebi-09')).toMatchObject({
+            id: 'komorebi-09',
+            title: 'Track komorebi-09',
             audio_key: null,
-            mv_key: mediaKey('09 a.mp4'),
+            mv_key: null,
         });
     });
 
