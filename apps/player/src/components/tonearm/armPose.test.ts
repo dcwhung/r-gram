@@ -1,4 +1,4 @@
-import { armLook, leadInAfter, leadInStart } from './armPose';
+import { armLook, leadInAfter, leadInOnPose, leadInStart } from './armPose';
 
 describe('armLook', () => {
     it.each([
@@ -25,5 +25,19 @@ describe('lead-in', () => {
     it('should go from the swing to the drop and then finish', () => {
         expect(leadInAfter('swing')).toBe('drop');
         expect(leadInAfter('drop')).toBeNull();
+    });
+
+    // S-072：轉入途中暫停 / 再播，唱臂仲轉緊；返泊位就停
+    it('should keep the swing through a pause during the swing and drop it when parked', () => {
+        expect(leadInOnPose('swing', 'playing', 'lifted')).toBe('swing');
+        expect(leadInOnPose('swing', 'lifted', 'playing')).toBe('swing');
+        expect(leadInOnPose('swing', 'lifted', 'parked')).toBeNull();
+        expect(leadInOnPose('drop', 'playing', 'lifted')).toBeNull();
+        expect(leadInOnPose(null, 'parked', 'playing')).toBe('swing');
+    });
+
+    it('should not drop the needle when the swing ends while paused', () => {
+        expect(leadInAfter('swing', 'lifted')).toBeNull();
+        expect(leadInAfter('swing', 'playing')).toBe('drop');
     });
 });
