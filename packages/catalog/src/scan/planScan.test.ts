@@ -241,6 +241,14 @@ describe('planScan: covers', () => {
         ]);
     });
 
+    it('should name the first-cover conflict, not a missing first cover, for the second cover', () => {
+        const result = plan(['cover.jpg', 'cover.png', 'cover2.jpg']);
+        expect(result.cover2).toBeNull();
+        expect(result.skipped).toEqual([
+            { key: key('cover2.jpg'), kind: 'cover2', reason: 'FIRST_COVER_CONFLICT' },
+        ]);
+    });
+
     it('should accept a second cover when the album already has a first cover', () => {
         const album = { ...NO_COVERS, hasCover: true };
         expect(plan(['cover2.jpg'], [], { album }).cover2?.key).toBe(key('cover2.jpg'));
