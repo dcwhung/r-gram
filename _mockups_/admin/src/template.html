@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>R Gram 管理端 — 設計稿</title>
+<!--
+    P-3 管理端 mockup，第 1 版（2026-11-25）。靜態設計稿，唔係 app code。
+    Source：src/template.html；資料由 src/build.py 由 apps/api/seed/*.json 抽出嚟。改完跑 `python3 src/build.py`。
+    結構同元件沿用 903-player apps/admin（左邊實色 nav、浮起嘅內容 panel、漸變統計卡、分段 tab、儲存條、對話框）；
+    主色由天藍改做 R Gram 嘅黑白。框入面所有介面文字用中文書面語；框外面嘅說明係畀設計討論用。
+-->
+<style>
+:root {
+    --nav-bg: #151515; --on-nav: #fff; --primary: #151515; --primary-hover: #333; --on-primary: #fff;
+    --bg: #e9ecf0; --panel: #f5f6f8; --surface: #fff; --surface-2: #eff1f4; --ink: #16181d; --muted: #5f6670; --line: #dde1e6;
+    --ok: #1f7a4d; --ok-bg: #e3f5ec; --warn: #b96a00; --warn-bg: #fff3df; --danger: #c2333a; --danger-bg: #fdebec;
+    --info: #2563a8; --info-bg: #e8f1fb; --brand: #c2410c;
+    --shadow: 0 6px 20px rgb(20 30 50 / .08), 0 1px 3px rgb(20 30 50 / .06); --shadow-pop: 0 18px 50px rgb(0 0 0 / .28);
+    --grad-ink: linear-gradient(135deg, #5b616b, #23262b); --grad-green: linear-gradient(135deg, #6fdca4, #23935c);
+    --grad-orange: linear-gradient(135deg, #ffc46b, #f08a24); --grad-red: linear-gradient(135deg, #ff8a8a, #e0444c);
+    --radius-card: 20px; --radius-ctl: 12px; --nav-w: 224px;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: #0f1012; color: #e8e6e1; font: 15px/1.55 -apple-system, "Segoe UI", "PingFang HK", "Noto Sans HK", "Microsoft JhengHei", sans-serif; }
+.doc { max-width: 1280px; margin: 0 auto; padding: 28px 16px 12px; }
+.doc h1 { font-size: 24px; margin: 0 0 6px; font-weight: 700; }
+.doc p { margin: 0 0 12px; color: #b3b0a8; max-width: 72ch; }
+.switch { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 4px; }
+.switch button { font: inherit; font-size: 14px; color: #e8e6e1; background: #1d1f23; border: 1px solid #33363c; border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+.switch button[aria-pressed="true"] { background: #e8e6e1; color: #111; border-color: #e8e6e1; }
+.stage { max-width: 1280px; margin: 0 auto; padding: 8px 16px 8px; }
+.caption { color: #b3b0a8; font-size: 14px; margin: 0 0 10px; min-height: 2.6em; }
+.notes { max-width: 1280px; margin: 0 auto; padding: 8px 16px 60px; }
+.notes h2 { font-size: 18px; margin: 28px 0 10px; }
+.notes .wrap { overflow-x: auto; border: 1px solid #2c2f34; border-radius: 12px; }
+.notes table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+.notes th, .notes td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #2c2f34; vertical-align: top; }
+.notes th { color: #9b988f; font-weight: 500; white-space: nowrap; }
+.notes tr:last-child td { border-bottom: 0; }
+
+/* ---------- 管理端本身（由呢度開始係設計） ---------- */
+.app { position: relative; display: grid; grid-template-columns: var(--nav-w) 1fr; min-height: 760px; background: var(--nav-bg); color: var(--ink); border-radius: 26px; padding: 12px; gap: 12px; overflow: hidden; }
+.app.bare { grid-template-columns: 1fr; background: var(--bg); }
+.nav { display: flex; flex-direction: column; gap: 6px; color: var(--on-nav); padding: 6px 4px; }
+.brand { background: #000; border: 1px solid #2a2a2a; border-radius: 16px; padding: 16px 14px; margin-bottom: 10px; }
+.brand b { display: block; font: 700 22px/1.1 Rockwell, "Roboto Slab", Georgia, serif; letter-spacing: .5px; }
+.brand span { display: inline-block; margin-top: 8px; background: var(--brand); color: #fff; border-radius: 999px; font-size: 12px; font-weight: 600; padding: 2px 9px; }
+.nav small { color: rgb(255 255 255 / .55); padding: 10px 12px 2px; font-size: 12px; }
+.nav button { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; font: inherit; font-weight: 600; color: var(--on-nav); background: none; border: 0; border-radius: 14px; padding: 9px 12px; cursor: pointer; text-align: left; }
+.nav button:hover { background: rgb(255 255 255 / .1); }
+.nav button[aria-current="page"] { background: #fff; color: var(--ink); }
+.nav .count { margin-left: auto; background: var(--brand); color: #fff; border-radius: 999px; font-size: 12px; min-width: 22px; text-align: center; padding: 1px 6px; }
+.nav .foot { margin-top: auto; }
+.nav .who { color: rgb(255 255 255 / .6); font-size: 13px; padding: 4px 12px; overflow: hidden; text-overflow: ellipsis; }
+.panel { background: var(--panel); border-radius: 22px; padding: 26px 28px 96px; min-width: 0; position: relative; }
+.head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 18px; }
+.head h2 { font-size: 24px; margin: 0; font-weight: 700; margin-right: auto; }
+.crumb { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 14px; margin-bottom: 6px; }
+.crumb button { font: inherit; color: var(--info); background: none; border: 0; padding: 0; cursor: pointer; }
+.icon { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; font: inherit; font-weight: 600; border-radius: var(--radius-ctl); padding: 9px 16px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); white-space: nowrap; }
+.btn:hover { border-color: #b8bec7; }
+.btn.primary { background: var(--primary); color: var(--on-primary); border-color: var(--primary); box-shadow: 0 2px 6px rgb(0 0 0 / .25); }
+.btn.primary:hover { background: var(--primary-hover); }
+.btn.danger { color: var(--danger); border-color: #edc4c6; }
+.btn.small { min-height: 36px; padding: 5px 12px; font-size: 14px; }
+.btn.ghost { border-color: transparent; background: none; }
+.notice { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; background: var(--warn-bg); color: #6b3d00; border-radius: 16px; padding: 12px 16px; margin-bottom: 18px; }
+.notice .grow { flex: 1 1 220px; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+.stat { color: #fff; border-radius: var(--radius-card); padding: 16px 18px; display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow); }
+.stat i { width: 44px; height: 44px; border-radius: 50%; background: rgb(255 255 255 / .22); display: grid; place-items: center; flex: none; }
+.stat b { display: block; font-size: 26px; line-height: 1.1; }
+.stat span { font-size: 13px; opacity: .95; }
+.card { background: var(--surface); border-radius: var(--radius-card); box-shadow: var(--shadow); padding: 8px 18px; }
+.card.pad { padding: 20px; }
+.rows { width: 100%; border-collapse: collapse; }
+.rows th { text-align: left; font-size: 13px; color: var(--muted); font-weight: 600; padding: 12px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.rows td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.rows tr:last-child > td { border-bottom: 0; }
+.rows tr.link { cursor: pointer; }
+.rows tr.link:hover > td { background: var(--surface-2); }
+.rows .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grip { color: #a3a9b3; cursor: grab; width: 28px; }
+.title b { display: block; font-weight: 600; }
+.title small { color: var(--muted); }
+.disc { --c: #6e6e6e; width: 44px; height: 44px; border-radius: 50%; flex: none; background: radial-gradient(circle, #111 0 9%, #d9dbdf 9% 13%, transparent 13%), radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--c) 55%, #fff), var(--c) 55%, color-mix(in srgb, var(--c) 70%, #000)); box-shadow: 0 0 0 2px #e3e5e9, 0 2px 6px rgb(0 0 0 / .25); }
+.disc.big { width: 208px; height: 208px; box-shadow: 0 0 0 6px #e3e5e9, 0 0 0 7px #b9bdc4, 0 14px 30px rgb(0 0 0 / .3); }
+.key { display: inline-grid; place-items: center; min-width: 30px; height: 30px; border-radius: 9px; background: var(--surface-2); font-weight: 700; padding: 0 6px; }
+.meter { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.meter i { display: block; width: 46px; height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; }
+.meter i::after { content: ""; display: block; height: 100%; width: var(--p, 0%); background: var(--ok); border-radius: 3px; }
+.meter.none i::after { background: var(--danger); }
+.toggle { position: relative; width: 52px; height: 30px; border-radius: 999px; border: 0; background: #b7bdc6; cursor: pointer; flex: none; }
+.toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .3); transition: transform .16s ease; }
+.toggle[aria-checked="true"] { background: var(--ok); }
+.toggle[aria-checked="true"]::after { transform: translateX(22px); }
+.hit { display: inline-grid; place-items: center; min-width: 44px; min-height: 44px; }
+.tabs { display: inline-flex; background: var(--surface-2); border-radius: 14px; padding: 4px; margin-bottom: 18px; }
+.tabs button { font: inherit; font-weight: 600; min-height: 40px; padding: 6px 18px; border: 0; background: none; border-radius: 11px; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 4px rgb(0 0 0 / .12); }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+.form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field.wide { grid-column: 1 / -1; }
+.field.span2 { grid-column: span 2; }
+.field label { font-size: 13px; color: var(--muted); font-weight: 600; }
+.field input, .field select, .field textarea { font: inherit; color: var(--ink); width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: var(--radius-ctl); padding: 9px 12px; background: var(--surface); }
+.field input[readonly] { background: var(--surface-2); color: var(--muted); }
+.field .hint { font-size: 12.5px; color: var(--muted); }
+.inline { display: flex; align-items: center; gap: 10px; }
+.swatch { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--line); flex: none; }
+.cover { display: grid; justify-items: center; gap: 14px; text-align: center; }
+.cover small { color: var(--muted); }
+.savebar { position: absolute; left: 28px; right: 28px; bottom: 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: #1b1d21; color: #fff; border-radius: 16px; padding: 10px 12px 10px 18px; box-shadow: var(--shadow-pop); }
+.savebar span { margin-right: auto; }
+.savebar .btn { border-color: #44484f; background: #2a2d33; color: #fff; }
+.savebar .btn.primary { background: #fff; color: #111; border-color: #fff; }
+.chip { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 600; white-space: nowrap; border: 0; font-family: inherit; }
+.chip.ok { background: var(--ok-bg); color: var(--ok); }
+.chip.no { background: var(--surface-2); color: var(--muted); }
+.chip.warn { background: var(--warn-bg); color: var(--warn); }
+.chip.bad { background: var(--danger-bg); color: var(--danger); }
+.chip.info { background: var(--info-bg); color: var(--info); }
+button.chip { cursor: pointer; min-height: 32px; }
+.detail { background: var(--surface-2); border-radius: 14px; padding: 16px; margin: 2px 0 10px; }
+.detail .form { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.detail .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.editor { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; }
+.lrc { font: 14px/1.9 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.lrc div { display: grid; grid-template-columns: 44px 1fr; }
+.lrc div > i { font-style: normal; color: #9aa1ab; text-align: right; padding-right: 10px; background: var(--surface-2); }
+.lrc div > span { padding: 0 12px; white-space: pre-wrap; word-break: break-all; }
+.lrc .err > span { background: var(--danger-bg); }
+.lrc .err > i { background: var(--danger); color: #fff; }
+.problems { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+.problems li { display: flex; gap: 8px; align-items: baseline; color: var(--danger); font-size: 14px; }
+.preview { background: #121315; color: #f4f1ea; border-radius: 16px; padding: 18px; display: grid; gap: 6px; text-align: center; }
+.preview p { margin: 0; opacity: .38; }
+.preview p.now { opacity: 1; font-size: 19px; font-weight: 700; }
+.player { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.player .bar { flex: 1; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.player .bar::after { content: ""; display: block; width: 34%; height: 100%; background: var(--ink); }
+.scrim { position: absolute; inset: 0; background: rgb(10 12 16 / .55); display: grid; place-items: start center; padding: 72px 16px 20px; border-radius: inherit; z-index: 5; }
+.dialog { width: min(760px, 100%); max-height: 100%; overflow: auto; background: var(--surface); border-radius: 22px; box-shadow: var(--shadow-pop); padding: 22px 24px; }
+.dialog h3 { margin: 0 0 4px; font-size: 20px; }
+.dialog > p { margin: 0 0 14px; color: var(--muted); }
+.group { border: 1px solid var(--line); border-radius: 14px; margin-bottom: 12px; overflow: hidden; }
+.group h4 { margin: 0; font-size: 14px; padding: 10px 14px; background: var(--surface-2); display: flex; gap: 8px; align-items: center; }
+.group ul { list-style: none; margin: 0; padding: 4px 14px; }
+.group li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.group li:last-child { border-bottom: 0; }
+.group li code { font: 13px ui-monospace, Menlo, Consolas, monospace; word-break: break-all; }
+.group li .grow { flex: 1 1 200px; min-width: 0; }
+.group select { font: inherit; min-height: 36px; border: 1px solid var(--line); border-radius: 10px; padding: 4px 8px; background: var(--surface); }
+.dialog .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.login { min-height: 736px; display: grid; place-items: center; background: radial-gradient(circle at 50% 30%, #2a2c31, #0c0d0f 70%); border-radius: 18px; padding: 20px; }
+.login .box { width: min(400px, 100%); background: var(--surface); border-radius: 22px; padding: 30px 28px; text-align: center; box-shadow: var(--shadow-pop); display: grid; gap: 14px; justify-items: center; }
+.login h2 { margin: 0; font: 700 28px/1.1 Rockwell, "Roboto Slab", Georgia, serif; }
+.login p { margin: 0; color: var(--muted); }
+.gsi { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font: inherit; font-weight: 600; border: 1px solid #747775; background: #fff; color: #1f1f1f; border-radius: 999px; padding: 9px 18px; cursor: pointer; }
+.toast { position: absolute; left: 50%; bottom: 96px; transform: translateX(-50%); background: #1b1d21; color: #fff; border-radius: 999px; padding: 9px 16px; display: flex; gap: 8px; align-items: center; box-shadow: var(--shadow-pop); z-index: 6; }
+.history td small { color: var(--muted); }
+@media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; padding: 8px; border-radius: 18px; }
+    .nav { flex-direction: row; flex-wrap: wrap; align-items: center; padding: 4px; }
+    .brand { margin: 0; padding: 8px 12px; } .brand b { font-size: 17px; display: inline; } .brand span { margin: 0 0 0 6px; }
+    .nav small, .nav .who { display: none; }
+    .nav button { width: auto; }
+    .nav .foot { margin: 0 0 0 auto; }
+    .panel { padding: 18px 12px 110px; border-radius: 16px; }
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .split, .editor { grid-template-columns: 1fr; }
+    .form, .detail .form { grid-template-columns: 1fr 1fr; }
+    .savebar { left: 14px; right: 14px; }
+    .hide-s { display: none; }
+    .card { padding: 4px 8px; }
+    .rows th, .rows td { padding-left: 4px; padding-right: 4px; }
+    .meter i, .chip .lbl { display: none; }
+    .title small { display: none; }
+    .stage, .doc, .notes { padding-left: 8px; padding-right: 8px; }
+    .panel { padding-bottom: 150px; }
+    .scrim { padding-top: 24px; }
+}
+@media (max-width: 520px) {
+    .form, .detail .form { grid-template-columns: 1fr; }
+    .field.span2 { grid-column: auto; }
+}
+</style>
+</head>
+<body>
+<div class="doc">
+    <h1>R Gram 管理端 — 設計稿（P-3）</h1>
+    <p>第 1 版。結構同元件沿用 903-player 管理端；主色改做黑白。㩒下面嘅掣睇唔同畫面，框入面大部分嘢都㩒得（專輯行、分頁、掃描、歌詞、發佈、上架掣）。資料係真嘅 17 張專輯；音檔、MV、歌詞嘅數量係示意。</p>
+    <div class="switch" id="switch"></div>
+</div>
+<div class="stage">
+    <p class="caption" id="caption"></p>
+    <div id="app"></div>
+</div>
+<div class="notes">
+    <h2>畫面同步數</h2>
+    <div class="wrap"><table>
+        <thead><tr><th>畫面</th><th>做到乜</th><th>步數</th><th>對應需求</th></tr></thead>
+        <tbody>
+            <tr><td>登入</td><td>以 Google 帳戶登入；唔喺白名單就見到「沒有管理權限」</td><td>2 ✅</td><td>US-101</td></tr>
+            <tr><td>專輯列表</td><td>一眼睇晒 17 張碟嘅完整度；拖動排序；撥掣上下架；有未發佈修改時頂部有提示同發佈掣</td><td>排序 1、上下架 1 ✅</td><td>US-102、FR-114</td></tr>
+            <tr><td>專輯 › 資料</td><td>改欄位、換封面、專輯色（上載封面後自動抽，可以手改）、即時碟面預覽</td><td>揀專輯 → 改 → 儲存 = 3 ✅</td><td>US-102、US-103</td></tr>
+            <tr><td>專輯 › 歌曲</td><td>每首歌嘅音檔 / MV / 歌詞狀態；㩒一行展開改歌名、副題、曲詞編監、參考欄</td><td>揀專輯 → 改 → 儲存 = 3 ✅</td><td>US-104、FR-117、FR-118</td></tr>
+            <tr><td>掃描結果</td><td>已配對、無法配對（可以手動指定）、同一首歌多個檔案（要揀）、未有音檔嘅歌</td><td>揀專輯 → 掃描 → 套用 = 3 ✅</td><td>US-105</td></tr>
+            <tr><td>歌詞編輯</td><td>貼 LRC，逐行即時驗證；有錯唔畀儲存；旁邊同步預覽（P1）</td><td>揀專輯 → 開歌詞 → 貼上 → 儲存 = 4 🟡（spec 已有理由）</td><td>US-106、FR-119</td></tr>
+            <tr><td>發佈</td><td>變更摘要 + 警告 → 確認；發佈記錄</td><td>2 ✅</td><td>US-108、FR-113</td></tr>
+        </tbody>
+    </table></div>
+    <h2>要你決定</h2>
+    <div class="wrap"><table>
+        <thead><tr><th>#</th><th>題目</th><th>我嘅建議</th><th>原因</th></tr></thead>
+        <tbody>
+            <tr><td>A1</td><td>主色</td><td>黑白（nav 同主按鈕用黑），唔跟 903-player 嘅天藍</td><td>同播放端一致；專輯色先係畫面入面嘅顏色</td></tr>
+            <tr><td>A2</td><td>改歌嘅方式</td><td>㩒一行就地展開，唔另開一頁</td><td>一張碟十幾首歌要逐首改 credit，展開快過入頁再返出嚟</td></tr>
+            <tr><td>A3</td><td>歌詞入口</td><td>歌曲行嘅「歌詞」狀態本身就係掣</td><td>少一粒掣；狀態同入口喺同一個位</td></tr>
+            <tr><td>A4</td><td>統計卡</td><td>專輯數、已上架、未有音檔嘅歌、未有歌詞嘅歌</td><td>後兩個係你而家最大嘅工作量</td></tr>
+            <tr><td>A5</td><td>深色模式</td><td>第一版只做淺色</td><td>自用工具；之後要加只係多一套顏色</td></tr>
+        </tbody>
+    </table></div>
+</div>
+<script>
+(() => {
+    const DATA = /*__DATA__*/null;
+    const DEMO = DATA.albums.find((album) => album.id === 'apollo-18');
+    // 示意數量：邊幾張碟已經有音檔（真數字要掃描 R2 先知）
+    const WITH_MEDIA = { 'apollo-18': [14, 11, 4], komorebi: [12, 6, 0], juntos: [9, 5, 0], hours: [9, 3, 2], i: [9, 0, 0] };
+    const ENABLED = new Set(['apollo-18', 'komorebi', 'juntos', 'hours', 'i']);
+    const ICON = {
+        disc: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/>',
+        history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4M12 7v5l3 2"/>',
+        logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+        send: '<path d="m22 2-7 20-4-9-9-4zM22 2 11 13"/>',
+        plus: '<path d="M12 5v14M5 12h14"/>',
+        grip: '<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
+        scan: '<path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/>',
+        upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>',
+        check: '<path d="M20 6 9 17l-5-5"/>',
+        minus: '<path d="M6 12h12"/>',
+        alert: '<path d="M12 9v4M12 17h.01M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/>',
+        music: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+        text: '<path d="M17 6H3M21 12H3M15 18H3"/>',
+        link: '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+        play: '<path d="m6 3 14 9-14 9z"/>',
+        trash: '<path d="M3 6h18M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+        copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+        chevron: '<path d="m9 18 6-6-6-6"/>',
+        pipette: '<path d="m2 22 1-1h3l9-9M3 21v-3l9-9M15 6l3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3z"/>',
+    };
+    const icon = (name) => `<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
+    const esc = (text) => String(text ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+    const SCREENS = [
+        ['albums', '專輯列表', '登入之後嘅第一頁。㩒任何一行入去嗰張碟；㩒「發佈」睇發佈確認。'],
+        ['info', '專輯 › 資料', '改完任何欄位，底部會出儲存條。專輯色喺上載封面時自動抽，亦可以手改。'],
+        ['tracks', '專輯 › 歌曲', '㩒一行展開改歌同 credit；㩒「歌詞」狀態入歌詞編輯；㩒「掃描 R2 資料夾」睇掃描結果。'],
+        ['scan', '掃描結果', '掃描只係預覽，㩒「套用配對」先會寫入。手動指定過嘅配對唔會被之後嘅掃描蓋走。'],
+        ['lyrics', '歌詞編輯', '左邊貼 LRC，有問題嘅行會標紅並喺下面列出；有錯就唔畀儲存。右邊同步預覽係 P1。'],
+        ['publish', '發佈確認', '發佈前睇清楚改咗乜同有乜警告；警告唔會阻止發佈。'],
+        ['history', '發佈記錄', '每次發佈嘅時間、發佈者同摘要（P1）。'],
+        ['login', '登入', '只有白名單入面嘅 Google 帳戶入到。'],
+        ['denied', '沒有權限', '用咗唔喺白名單嘅帳戶登入。'],
+    ];
+    const state = { screen: 'albums', expanded: 2, dirty: false, toast: false, enabled: new Set(ENABLED) };
+
+    /* ---------- 共用 ---------- */
+    const nav = (current) => `
+        <nav class="nav" aria-label="主選單">
+            <div class="brand"><b>R Gram</b><span>管理 v0.1.0</span></div>
+            <small>內容</small>
+            <button data-go="albums" ${current === 'albums' ? 'aria-current="page"' : ''}>${icon('disc')}專輯<span class="count" title="未發佈的修改">3</span></button>
+            <small>記錄</small>
+            <button data-go="history" ${current === 'history' ? 'aria-current="page"' : ''}>${icon('history')}發佈記錄</button>
+            <div class="foot"><div class="who">admin@example.com</div><button data-go="login">${icon('logout')}登出</button></div>
+        </nav>`;
+    const toggle = (on, label, act) => `<span class="hit"><button class="toggle" role="switch" aria-checked="${on}" aria-label="${label}" data-act="${act}"></button></span>`;
+    const meter = (have, total) => `<span class="meter ${have === 0 ? 'none' : ''}"><i style="--p: ${Math.round((have / total) * 100)}%"></i>${have} / ${total}</span>`;
+    const mediaOf = (album) => WITH_MEDIA[album.id] ?? [0, 0, 0];
+    const totals = () => DATA.albums.reduce((sum, album) => {
+        const [audio, , lyrics] = mediaOf(album);
+        return { tracks: sum.tracks + album.tracks, noAudio: sum.noAudio + album.tracks - audio, noLyrics: sum.noLyrics + album.tracks - lyrics };
+    }, { tracks: 0, noAudio: 0, noLyrics: 0 });
+
+    /* ---------- 專輯列表 ---------- */
+    const albumRow = (album) => {
+        const [audio, mv, lyrics] = mediaOf(album);
+        return `<tr class="link" data-go="info">
+            <td class="grip hide-s" title="拖動排序">${icon('grip')}</td>
+            <td><div class="inline"><span class="disc" style="--c: ${album.accent}"></span><span class="title"><b>${esc(album.title)}</b><small>${esc(album.type)}</small></span></div></td>
+            <td class="num hide-s">${album.year ?? '—'}</td>
+            <td class="hide-s"><span class="key">${esc(album.key)}</span></td>
+            <td class="num hide-s">${album.tracks}</td>
+            <td>${meter(audio, album.tracks)}</td>
+            <td class="hide-s">${meter(mv, album.tracks)}</td>
+            <td class="hide-s">${meter(lyrics, album.tracks)}</td>
+            <td>${toggle(state.enabled.has(album.id), `上架：${esc(album.title)}`, `enable:${album.id}`)}</td>
+        </tr>`;
+    };
+    const albums = () => {
+        const sum = totals();
+        return `
+        <div class="head"><h2>專輯</h2><button class="btn">${icon('plus')}新增專輯</button></div>
+        <div class="notice"><span class="grow">${icon('alert')} 有 3 項修改尚未發佈，播放端仍然顯示上一次發佈的內容。</span><button class="btn primary" data-go="publish">${icon('send')}發佈</button></div>
+        <div class="stats">
+            <div class="stat" style="background: var(--grad-ink)"><i>${icon('disc')}</i><div><b>${DATA.albums.length}</b><span>專輯</span></div></div>
+            <div class="stat" style="background: var(--grad-green)"><i>${icon('check')}</i><div><b>${state.enabled.size}</b><span>已上架</span></div></div>
+            <div class="stat" style="background: var(--grad-orange)"><i>${icon('music')}</i><div><b>${sum.noAudio}</b><span>未有音檔的歌曲</span></div></div>
+            <div class="stat" style="background: var(--grad-red)"><i>${icon('text')}</i><div><b>${sum.noLyrics}</b><span>未有歌詞的歌曲</span></div></div>
+        </div>
+        <div class="card"><table class="rows">
+            <thead><tr><th class="hide-s"></th><th>專輯</th><th class="num hide-s">年份</th><th class="hide-s">標記</th><th class="num hide-s">歌曲</th><th>音檔</th><th class="hide-s">MV</th><th class="hide-s">歌詞</th><th>上架</th></tr></thead>
+            <tbody>${DATA.albums.map(albumRow).join('')}</tbody>
+        </table></div>`;
+    };
+
+    /* ---------- 專輯頁 ---------- */
+    const albumHead = (tab) => `
+        <div class="crumb"><button data-go="albums">專輯</button>${icon('chevron')}<span>${esc(DEMO.title)}</span></div>
+        <div class="head"><h2>${esc(DEMO.title)}</h2>${toggle(state.enabled.has(DEMO.id), '上架', `enable:${DEMO.id}`)}<span>${state.enabled.has(DEMO.id) ? '已上架' : '未上架'}</span></div>
+        <div class="tabs" role="tablist">
+            <button role="tab" aria-selected="${tab === 'info'}" data-go="info">資料</button>
+            <button role="tab" aria-selected="${tab === 'tracks'}" data-go="tracks">歌曲（${DEMO.tracks}）</button>
+        </div>`;
+    const field = (label, value, extra = '') => `<div class="field ${extra.includes('wide') ? 'wide' : ''}"><label>${label}</label><input value="${esc(value)}" data-act="dirty" ${extra.includes('readonly') ? 'readonly' : ''}></div>`;
+    const savebar = () => (state.dirty ? `<div class="savebar"><span>有未儲存的修改</span><button class="btn" data-act="discard">捨棄</button><button class="btn primary" data-act="save">${icon('check')}儲存</button></div>` : '');
+    const info = () => `${albumHead('info')}
+        <div class="split">
+            <div class="card pad"><div class="form">
+                ${field('專輯名稱', DEMO.title, 'wide')}
+                ${field('字母盤標記', DEMO.key)}
+                ${field('發行日期', DEMO.releaseDate)}
+                ${field('類型', DEMO.type)}
+                ${field('唱片公司', DEMO.label)}
+                <div class="field"><label>專輯色</label><div class="inline"><span class="swatch" style="background: ${DEMO.accent}"></span><input value="${DEMO.accent}" data-act="dirty" aria-label="專輯色"></div><span class="hint">上載封面後自動抽取，可以手動更改</span></div>
+                <div class="field"><label>R2 資料夾</label><input value="${DEMO.id}" data-act="dirty"><span class="hint">音檔及 MV 檔所在的資料夾</span></div>
+                <div class="field wide"><label>專輯 ID</label><input value="${DEMO.id}" readonly><span class="hint">建立後不可更改</span></div>
+            </div>
+            <div class="detail actions" style="background: none; padding: 0; margin: 18px 0 0"><button class="btn danger">${icon('trash')}刪除專輯</button></div></div>
+            <div class="card pad cover">
+                <span class="disc big" style="--c: ${DEMO.accent}"></span>
+                <small>碟面預覽（示意：未有封面時顯示專輯色）</small>
+                <button class="btn" data-act="dirty">${icon('upload')}更換封面</button>
+                <button class="btn ghost small">${icon('pipette')}由封面抽取顏色</button>
+                <small>JPEG、PNG 或 WebP，最大 5 MB；自動裁成正方形</small>
+            </div>
+        </div>${savebar()}`;
+
+    const NO_AUDIO_TRACK = 15; // 示意：最後一首未有音檔（同掃描結果、發佈提示一致）
+    const status = (have, label) => `<span class="chip ${have ? 'ok' : 'no'}" title="${have ? '已有' : '未有'}${label}">${icon(have ? 'check' : 'minus')}<span class="lbl">${label}</span></span>`;
+    const trackDetail = (track) => `<tr><td colspan="7"><div class="detail">
+        <div class="form">
+            <div class="field span2"><label>歌名</label><input value="${esc(track.title)}" data-act="dirty"></div>
+            <div class="field"><label>副題</label><input value="${esc(track.subtitle)}" data-act="dirty"></div>
+            <div class="field"><label>歌號</label><input value="${track.no}" data-act="dirty" inputmode="numeric"></div>
+            <div class="field"><label>作曲</label><input value="${esc(track.composer)}" data-act="dirty"></div>
+            <div class="field"><label>填詞</label><input value="${esc(track.lyricist)}" data-act="dirty"></div>
+            <div class="field"><label>編曲</label><input value="${esc(track.arranger)}" data-act="dirty"></div>
+            <div class="field"><label>監製</label><input value="${esc(track.producer)}" data-act="dirty"></div>
+            <div class="field span2"><label>歌詞參考連結（不會發佈）</label><input value="${esc(track.lyricsUrl)}" data-act="dirty"></div>
+            <div class="field span2"><label>備註（不會發佈）</label><input value="${esc(track.note)}" data-act="dirty"></div>
+        </div>
+        <div class="actions"><button class="btn small">${icon('copy')}由同名歌曲複製</button><button class="btn small danger">${icon('trash')}刪除歌曲</button></div>
+    </div></td></tr>`;
+    const trackRow = (track) => {
+        const [audio, mv, lyrics] = [track.no !== NO_AUDIO_TRACK, track.no <= 11, track.no <= 4]; // 示意
+        const open = state.expanded === track.no;
+        return `<tr class="link" data-act="expand:${track.no}" aria-expanded="${open}">
+            <td class="grip hide-s">${icon('grip')}</td>
+            <td class="num">${String(track.no).padStart(2, '0')}</td>
+            <td><span class="title"><b>${esc(track.title)}</b><small>${esc([track.composer && `曲 ${track.composer}`, track.lyricist && `詞 ${track.lyricist}`].filter(Boolean).join('　'))}</small></span></td>
+            <td>${status(audio, '音檔')}</td>
+            <td class="hide-s">${status(mv, 'MV')}</td>
+            <td><button class="chip ${lyrics ? 'ok' : 'info'}" data-go="lyrics" aria-label="${lyrics ? '編輯歌詞' : '加入歌詞'}：${esc(track.title)}">${lyrics ? icon('check') + '歌詞' : icon('plus') + '歌詞'}</button></td>
+            <td>${toggle(true, `上架：${esc(track.title)}`, 'noop')}</td>
+        </tr>${open ? trackDetail(track) : ''}`;
+    };
+    const tracks = () => `${albumHead('tracks')}
+        <div class="toolbar"><button class="btn primary" data-go="scan">${icon('scan')}掃描 R2 資料夾</button><button class="btn">${icon('plus')}新增歌曲</button><button class="btn">${icon('upload')}批量匯入歌詞</button></div>
+        <div class="card"><table class="rows">
+            <thead><tr><th class="hide-s"></th><th class="num">#</th><th>歌名</th><th>音檔</th><th class="hide-s">MV</th><th>歌詞</th><th>上架</th></tr></thead>
+            <tbody>${DATA.tracks.map(trackRow).join('')}</tbody>
+        </table></div>${savebar()}`;
+
+    /* ---------- 掃描結果 ---------- */
+    const scanDialog = () => {
+        const name = (no, ext) => `<code>${DEMO.id}/${String(no).padStart(2, '0')} ${esc(DATA.tracks[no - 1].title)}.${ext}</code>`;
+        const options = DATA.tracks.map((track) => `<option>${String(track.no).padStart(2, '0')} ${esc(track.title)}</option>`).join('');
+        return `<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-label="掃描結果">
+            <h3>掃描結果</h3><p>資料夾 <code>${DEMO.id}/</code>：找到 29 個檔案。確認後才會套用。</p>
+            <div class="group"><h4>${icon('check')}已配對（24）</h4><ul>
+                <li><span class="grow">${name(1, 'm4a')}</span><span class="chip no">不變</span></li>
+                <li><span class="grow">${name(1, 'mp4')}</span><span class="chip ok">新增</span></li>
+                <li><span class="grow">${name(2, 'm4a')}</span><span class="chip warn">取代現有檔案</span></li>
+                <li><span class="grow" style="color: var(--muted)">其餘 21 個…</span></li>
+            </ul></div>
+            <div class="group"><h4>${icon('alert')}同一首歌有多個檔案（1）</h4><ul>
+                <li><span class="grow">第 03 首 ${esc(DATA.tracks[2].title)}（音檔）</span><select aria-label="選擇第 03 首的音檔"><option>請選擇</option><option>03 ${esc(DATA.tracks[2].title)}.m4a</option><option>03 ${esc(DATA.tracks[2].title)} (remaster).mp3</option></select></li>
+            </ul></div>
+            <div class="group"><h4>${icon('alert')}無法配對的檔案（3）</h4><ul>
+                <li><span class="grow"><code>${DEMO.id}/cover.jpg</code></span><span class="chip no">不支援的檔案類型</span></li>
+                <li><span class="grow"><code>${DEMO.id}/Tears (Live).m4a</code></span><span class="chip no">檔名沒有歌號</span><select aria-label="指定歌曲"><option>指定歌曲…</option>${options}</select></li>
+                <li><span class="grow"><code>${DEMO.id}/16 Hidden.m4a</code></span><span class="chip no">沒有第 16 首</span><select aria-label="指定歌曲"><option>指定歌曲…</option>${options}</select></li>
+            </ul></div>
+            <div class="group"><h4>${icon('music')}未有音檔的歌曲（1）</h4><ul><li>第 15 首 ${esc(DATA.tracks[14].title)}</li></ul></div>
+            <div class="actions"><button class="btn" data-go="tracks">取消</button><button class="btn primary" data-act="apply">${icon('check')}套用配對</button></div>
+        </div></div>`;
+    };
+
+    /* ---------- 歌詞編輯 ---------- */
+    const LRC = ['[ti:一早地下鐵]', '[00:12.30]歌詞第一行（佔位）', '[00:16.80]歌詞第二行（佔位）', '沒有時間標記的一行', '[00:24.10]歌詞第四行（佔位）', '[00:28.55]', '[00:61.00]時間標記超出範圍', '[00:36.20]歌詞第六行（佔位）', '[00:40.75]歌詞第七行（佔位）'];
+    const LRC_ERRORS = { 4: '沒有時間標記', 7: '時間標記格式不正確' };
+    const lyrics = () => {
+        const track = DATA.tracks[0];
+        return `
+        <div class="crumb"><button data-go="albums">專輯</button>${icon('chevron')}<button data-go="tracks">${esc(DEMO.title)}</button>${icon('chevron')}<span>歌詞</span></div>
+        <div class="head"><h2>歌詞：${esc(track.title)}</h2><button class="btn small">${icon('link')}開啟歌詞參考頁</button></div>
+        <div class="editor">
+            <div>
+                <div class="lrc" role="textbox" aria-multiline="true" aria-label="LRC 歌詞">${LRC.map((line, i) => `<div class="${LRC_ERRORS[i + 1] ? 'err' : ''}"><i>${i + 1}</i><span>${esc(line) || '&nbsp;'}</span></div>`).join('')}</div>
+                <ul class="problems">${Object.entries(LRC_ERRORS).map(([line, reason]) => `<li>${icon('alert')}<span>第 ${line} 行：${reason}</span></li>`).join('')}</ul>
+                <p style="color: var(--muted); margin: 10px 0 0">共 6 行歌詞，2 行有問題。修正後才可以儲存。</p>
+            </div>
+            <div class="card pad">
+                <div class="player"><button class="btn small" aria-label="播放">${icon('play')}</button><span class="bar"></span><span style="font-variant-numeric: tabular-nums">0:26</span></div>
+                <div class="preview"><p>歌詞第一行（佔位）</p><p>歌詞第二行（佔位）</p><p class="now">歌詞第四行（佔位）</p><p>歌詞第六行（佔位）</p><p>歌詞第七行（佔位）</p></div>
+                <p style="color: var(--muted); margin: 12px 0 0; font-size: 13.5px">同步預覽：播放音檔時，正在唱的一行會放大。</p>
+            </div>
+        </div>
+        <div class="savebar"><span>有未儲存的修改</span><button class="btn">${icon('copy')}由同名歌曲複製</button><button class="btn">${icon('trash')}清除歌詞</button><button class="btn primary" disabled style="opacity: .5; cursor: not-allowed">${icon('check')}儲存</button></div>`;
+    };
+
+    /* ---------- 發佈 ---------- */
+    const publishDialog = () => `<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-label="發佈內容">
+        <h3>發佈內容</h3><p>確認後，播放端會在下次開啟時顯示新內容。</p>
+        <div class="group"><h4>${icon('plus')}新增（1）</h4><ul><li>上架專輯《KOMOREBI》（12 首）</li></ul></div>
+        <div class="group"><h4>${icon('text')}修改（2）</h4><ul><li>《Apollo 18》：4 首歌曲加入歌詞</li><li>《Hours》：更換封面及專輯色</li></ul></div>
+        <div class="group"><h4>${icon('alert')}提示（2）</h4><ul>
+            <li><span class="chip warn">提示</span><span class="grow">《i》已上架但沒有封面，播放端會顯示專輯色。</span></li>
+            <li><span class="chip warn">提示</span><span class="grow">《Apollo 18》有 1 首已上架的歌曲沒有音檔，播放端會以灰色顯示。</span></li>
+        </ul></div>
+        <div class="actions"><button class="btn" data-go="albums">取消</button><button class="btn primary" data-act="publish">${icon('send')}確認發佈</button></div>
+    </div></div>`;
+    const HISTORY = [['2026-11-25 21:40', '上架《KOMOREBI》；《Apollo 18》加入 4 首歌詞；《Hours》更換封面', '1 新增 · 2 修改'], ['2026-11-23 18:05', '上架《JUNTOS》、《Hours》、《i》', '3 新增'], ['2026-11-22 22:12', '首次發佈：《Apollo 18》', '1 新增']];
+    const history = () => `
+        <div class="head"><h2>發佈記錄</h2></div>
+        <div class="card history"><table class="rows">
+            <thead><tr><th>時間</th><th>內容</th><th class="hide-s">摘要</th><th class="hide-s">發佈者</th></tr></thead>
+            <tbody>${HISTORY.map(([time, what, summary]) => `<tr><td style="white-space: nowrap">${time}</td><td>${what}</td><td class="hide-s"><span class="chip no">${summary}</span></td><td class="hide-s"><small>admin@example.com</small></td></tr>`).join('')}</tbody>
+        </table></div>`;
+
+    /* ---------- 登入 ---------- */
+    const GOOGLE = '<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.400 13.700 17.700 9.500 24 9.500z"/><path fill="#4285F4" d="M46.100 24.500c0-1.600-.100-3.100-.400-4.500H24v9h12.400c-.500 2.900-2.200 5.300-4.600 7l7.200 5.600c4.200-3.900 7.100-9.600 7.100-17.100z"/><path fill="#FBBC05" d="M10.500 28.600A14.500 14.500 0 0 1 9.500 24c0-1.600.300-3.200.800-4.600l-7.900-6.200A24 24 0 0 0 0 24c0 3.900.900 7.500 2.600 10.800z"/><path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.200-5.600c-2.200 1.500-5 2.400-8.700 2.400-6.300 0-11.600-4.200-13.500-9.900l-7.900 6.200C6.500 42.600 14.600 48 24 48z"/></svg>';
+    const login = (denied) => `<div class="login"><div class="box">
+        <h2>R Gram</h2><p>${denied ? '此帳戶沒有管理權限。' : '內容管理'}</p>
+        ${denied ? `<p style="font-size: 14px">已登入：someone@example.com</p><button class="btn" data-go="login">改用其他帳戶</button>` : `<button class="gsi" data-go="albums">${GOOGLE}以 Google 帳戶登入</button><button class="btn ghost small" data-go="denied">（示範：沒有權限的帳戶）</button>`}
+    </div></div>`;
+
+    /* ---------- 組合 ---------- */
+    const BODY = { albums, info, tracks, lyrics, history, scan: tracks, publish: albums };
+    const DIALOG = { scan: scanDialog, publish: publishDialog }; // 對話框蓋住成個管理端（連 nav）
+    const NAV_OF = { history: 'history' };
+    const render = () => {
+        const root = document.getElementById('app');
+        const bare = state.screen === 'login' || state.screen === 'denied';
+        const toast = state.toast ? `<div class="toast" role="status">${icon('check')}${state.toast}</div>` : '';
+        root.innerHTML = bare
+            ? `<div class="app bare">${login(state.screen === 'denied')}</div>`
+            : `<div class="app">${nav(NAV_OF[state.screen] ?? 'albums')}<main class="panel">${BODY[state.screen]()}${toast}</main>${DIALOG[state.screen]?.() ?? ''}</div>`;
+        document.getElementById('switch').innerHTML = SCREENS.map(([id, label]) => `<button data-go="${id}" aria-pressed="${state.screen === id}">${label}</button>`).join('');
+        document.getElementById('caption').textContent = SCREENS.find(([id]) => id === state.screen)[2];
+    };
+    const TOAST_MS = 1800;
+    const flash = (text) => { state.toast = text; setTimeout(() => { state.toast = false; render(); }, TOAST_MS); };
+    const ACTIONS = {
+        dirty: () => { state.dirty = true; },
+        discard: () => { state.dirty = false; },
+        save: () => { state.dirty = false; flash('已儲存'); },
+        apply: () => { state.screen = 'tracks'; flash('已套用 24 項配對'); },
+        publish: () => { state.screen = 'albums'; flash('已發佈'); },
+        expand: (no) => { state.expanded = state.expanded === Number(no) ? 0 : Number(no); },
+        enable: (id) => { if (state.enabled.has(id)) state.enabled.delete(id); else state.enabled.add(id); state.dirty = state.screen !== 'albums'; },
+        noop: () => {},
+    };
+    document.addEventListener('click', (event) => {
+        const target = event.target.closest('[data-act], [data-go]');
+        if (!target || target.matches('input')) return;
+        if (target.dataset.act) {
+            const [name, arg] = target.dataset.act.split(':');
+            ACTIONS[name](arg);
+        } else {
+            state.screen = target.dataset.go;
+            if (state.screen === 'albums') state.dirty = false;
+        }
+        event.stopPropagation();
+        render();
+    });
+    document.addEventListener('input', (event) => {
+        if (event.target.matches('[data-act="dirty"]') && !state.dirty) {
+            state.dirty = true;
+            const bar = document.createElement('div');
+            bar.innerHTML = savebar();
+            document.querySelector('.panel').append(bar.firstChild);
+        }
+    });
+    render();
+})();
+</script>
+</body>
+</html>

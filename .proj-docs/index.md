@@ -20,7 +20,7 @@
 | 次序 | Mockup | 阻住 |
 | --- | --- | --- |
 | 1 | 播放端場景 → [`_mockups_/home-turntable/index.html`](../_mockups_/home-turntable/index.html)（source：`src/template.html`，`python3 src/build.py`）。**主頁、轉碟、歌書、播放模式、Favourites 碟：用戶 2026-11-24 已確認（第 12 版）**，已寫入 Functional Spec CR-002。第 13 版加咗歌單、Favourites 歌單、MV 電視；第 14 版：電視照 v16 重畫層次同光暗 + 新電視腳、電視升起／開熄機過場、字母盤過場、介面文字全部改書面語；第 15 版：歌書開關過場、屏幕開熄機加快、電視第二粒旋鈕 icon 改 ◀◀ ▶▶、「尚未收藏歌曲」唔要提示。**第 15 版全部場景用戶 2026-11-25 已確認** | 播放端核心（M2） |
-| 2 | P-3 管理端 → `_mockups_/admin/` | 管理端 UI（M1 嘅 UI 部分） |
+| 2 | P-3 管理端 → [`_mockups_/admin/index.html`](../_mockups_/admin/index.html)（source：`src/template.html`，`python3 src/build.py`）。第 1 版（T-050）：登入、專輯列表、專輯資料、歌曲、掃描結果、歌詞編輯、發佈確認、發佈記錄，**等用戶確認**（A1–A5） | 管理端 UI（Phase E：T-051 起；歌詞編輯器 T-081） |
 | 3 | P-5 收藏 + Favourites 碟、P-6 Shuffle / Repeat | M4 |
 | 4 | P-1 歌詞、P-2 Info（連歌曲 credit） | M5 |
 | 5 | P-7 iPhone Duo → HomeView → 電腦 | M6–M8 |
