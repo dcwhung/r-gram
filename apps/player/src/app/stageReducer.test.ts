@@ -115,7 +115,25 @@ describe('stageReducer', () => {
 
         it('should ignore selectAlbum outside disc change', () => {
             const state = home();
+            const list = after(
+                { type: 'openList' },
+                { type: 'focusTrack', trackId: 'komorebi-07' },
+            );
             expect(stageReducer(state, { type: 'selectAlbum', albumId: 'hours' })).toBe(state);
+            expect(stageReducer(list, { type: 'selectAlbum', albumId: 'hours' })).toBe(list);
+        });
+
+        it('should ignore closeDiscChange outside disc change', () => {
+            const states = [
+                INITIAL_STAGE,
+                home(),
+                after({ type: 'openList' }),
+                after({ type: 'toggleBooklet', hasSong: true }),
+                after({ type: 'openMv', hasMv: true }),
+            ];
+            for (const state of states) {
+                expect(stageReducer(state, { type: 'closeDiscChange' })).toBe(state);
+            }
         });
     });
 
@@ -165,6 +183,19 @@ describe('stageReducer', () => {
             const state = home();
             expect(stageReducer(state, { type: 'focusTrack', trackId: 'x' })).toBe(state);
             expect(stageReducer(state, { type: 'playSelected' })).toBe(state);
+        });
+
+        it('should ignore closeList outside the list', () => {
+            const states = [
+                INITIAL_STAGE,
+                home(),
+                after({ type: 'openDiscChange' }),
+                after({ type: 'toggleBooklet', hasSong: true }),
+                after({ type: 'openMv', hasMv: true }),
+            ];
+            for (const state of states) {
+                expect(stageReducer(state, { type: 'closeList' })).toBe(state);
+            }
         });
     });
 
@@ -280,23 +311,88 @@ describe('stageReducer', () => {
         });
     });
 
-    it('should never show an overlay outside the home scene', () => {
-        const actions: StageAction[] = [
-            { type: 'toggleBooklet', hasSong: true },
+    /*
+     * 窮舉（S-036）：由 INITIAL_STAGE 開始，用下面每一個動作做 BFS，行晒所有可到達嘅狀態，
+     * 逐個驗不變量。取代之前只行一條固定次序嘅測試。
+     */
+    describe('every reachable state', () => {
+        const ACTIONS: StageAction[] = [
+            { type: 'preloadDone', albumId: 'komorebi' },
             { type: 'openDiscChange' },
-            { type: 'toggleFavourites' },
+            { type: 'selectAlbum', albumId: 'hours' },
+            { type: 'selectAlbum', albumId: FAVOURITES },
+            { type: 'closeDiscChange' },
             { type: 'openList' },
+            { type: 'focusTrack', trackId: 'track-a' },
+            { type: 'focusTrack', trackId: 'track-b' },
+            { type: 'playSelected' },
             { type: 'closeList' },
+            { type: 'toggleFavourites' },
+            { type: 'toggleBooklet', hasSong: true },
+            { type: 'toggleBooklet', hasSong: false },
             { type: 'openMv', hasMv: true },
-            { type: 'openList' },
+            { type: 'openMv', hasMv: false },
             { type: 'closeMv' },
-            { type: 'openList' },
         ];
-        let state = home();
-        for (const action of actions) {
-            state = stageReducer(state, action);
-            if (state.scene !== 'home') expect(state.overlay).toBeNull();
-        }
-        expect(state.scene).toBe('list');
+        const key = (state: StageState) =>
+            [
+                state.scene,
+                state.overlay,
+                state.viewAlbumId,
+                state.previousAlbumId,
+                state.selectedTrackId,
+            ].join('|');
+        const isPlainHome = (state: StageState) => state.scene === 'home' && state.overlay === null;
+
+        const reachable = (): StageState[] => {
+            const seen = new Set([key(INITIAL_STAGE)]);
+            const queue = [INITIAL_STAGE];
+            // 一路行一路加：queue 入面每個狀態只會出現一次
+            for (const state of queue) {
+                for (const action of ACTIONS) {
+                    const next = stageReducer(state, action);
+                    if (seen.has(key(next))) continue;
+                    seen.add(key(next));
+                    queue.push(next);
+                }
+            }
+            return queue;
+        };
+        const states = reachable();
+
+        it('should reach every scene and both overlays', () => {
+            expect(new Set(states.map((state) => state.scene))).toEqual(
+                new Set(['preload', 'home', 'discChange', 'list']),
+            );
+            expect(new Set(states.map((state) => state.overlay))).toEqual(
+                new Set([null, 'booklet', 'mv']),
+            );
+        });
+
+        it('should only show an overlay on the home scene', () => {
+            const offenders = states.filter(
+                (state) => state.overlay !== null && state.scene !== 'home',
+            );
+            expect(offenders).toEqual([]);
+        });
+
+        it('should have an album to show everywhere except preload, which is only the start', () => {
+            const preload = states.filter((state) => state.scene === 'preload');
+            const albumless = states.filter(
+                (state) => state.scene !== 'preload' && state.viewAlbumId === null,
+            );
+            expect(preload).toEqual([INITIAL_STAGE]);
+            expect(albumless).toEqual([]);
+        });
+
+        // 冇卡死嘅狀態：每個狀態最多一個動作就返到淨主頁（冇 overlay 嘅 home）
+        it('should be at most one action away from the plain home scene', () => {
+            const stuck = states.filter(
+                (state) =>
+                    !isPlainHome(state) &&
+                    !ACTIONS.some((action) => isPlainHome(stageReducer(state, action))),
+            );
+            expect(stuck).toEqual([]);
+        });
     });
 });
