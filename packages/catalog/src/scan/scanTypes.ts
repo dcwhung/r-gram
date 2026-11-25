@@ -80,7 +80,7 @@ export interface MatchedMedia {
     change: FileChange;
 }
 
-export type SkipReason = 'NO_AUDIO' | 'AUDIO_CONFLICT' | 'NO_FIRST_COVER';
+export type SkipReason = 'NO_AUDIO' | 'AUDIO_CONFLICT' | 'NO_FIRST_COVER' | 'FIRST_COVER_CONFLICT';
 
 export interface SkippedFile {
     key: string;
