@@ -18,7 +18,8 @@
     /* 字體：英文數字用 slab（有裝 Lubalin Graph 就用，冇就用隨 app 提供嘅 Rokkitt）；中文用 Noto Sans HK */
     --font-cjk: 'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans CJK TC', sans-serif;
     --font-slab: 'Lubalin Graph', 'ITC Lubalin Graph', 'Rokkitt', Rockwell, serif;
-    --font-mixed: var(--font-slab), var(--font-cjk);
+    /* 混排：slab 之後直接係中文字體。generic family 只可以喺成串嘅最尾，否則平台嘅 serif 會搶咗漢字 */
+    --font-mixed: 'Lubalin Graph', 'ITC Lubalin Graph', 'Rokkitt', Rockwell, var(--font-cjk);
 
     /* 回饋類（≤ 300ms） */
     --motion-feedback-toggle: 160ms;
