@@ -121,7 +121,8 @@ class ParseCreditsTest(unittest.TestCase):
                                     'albums': []})
 
     def test_refuses_a_page_without_a_date(self):
-        with self.assertRaises(SystemExit):
+        # S-120: build() raises like parse_discography; only main() exits
+        with self.assertRaisesRegex(parse_credits.SourceError, 'YYYY-MM-DD'):
             parse_credits.build('<p>no date</p>', {'albums': []})
 
 
