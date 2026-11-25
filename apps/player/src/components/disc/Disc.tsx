@@ -4,38 +4,16 @@ import { DEF, ref } from '../metal/defIds';
 import { px, ratio } from '../svgNumber';
 import './disc.css';
 import { DISC_ART, DISC_ART_RADIUS as ART } from './discArt';
+import { DiscCover, type DiscCoverProps } from './DiscCover';
 import { ringPath } from './ringPath';
 
-interface DiscArtProps {
+interface DiscArtProps extends DiscCoverProps {
     hub: StageLayout['hub'];
-    /** 封面圖；null = 未有封面，用專輯色 */
-    coverUrl: string | null;
-    accent: string;
-    /** 碟轉緊（播緊） */
-    spinning: boolean;
 }
 
 interface DiscProps extends DiscArtProps {
     r: number;
 }
-
-const Cover = ({ coverUrl, accent, spinning }: Omit<DiscArtProps, 'hub'>) => (
-    <g data-part="cover" className="disc-cover" data-spinning={spinning}>
-        {coverUrl ? (
-            <image
-                href={coverUrl}
-                crossOrigin="anonymous"
-                x={-ART}
-                y={-ART}
-                width={ART * 2}
-                height={ART * 2}
-                preserveAspectRatio="xMidYMid slice"
-            />
-        ) : (
-            <circle data-part="cover-fill" r={ART} fill={accent} />
-        )}
-    </g>
-);
 
 /** 膠圈同碟孔嘅線（設計稿 discArt()：v16 finishDisc） */
 const HubRings = ({ hub }: Pick<DiscArtProps, 'hub'>) => {
@@ -79,7 +57,7 @@ const HubRings = ({ hub }: Pick<DiscArtProps, 'hub'>) => {
 };
 
 /** 碟面（設計稿 discArt()），以原點為中心、半徑 ART */
-const DiscArt = ({ hub, coverUrl, accent, spinning }: DiscArtProps) => {
+const DiscArt = ({ hub, ...cover }: DiscArtProps) => {
     // useId() 可以有冒號等符號；clip-path 嘅 url(#…) 用返淨係英數嘅 id
     const clipId = `disc-clip-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
     const rim = ART * hub.rim;
@@ -98,7 +76,7 @@ const DiscArt = ({ hub, coverUrl, accent, spinning }: DiscArtProps) => {
                 <path clipRule="evenodd" d={ringPath(rim, ART * hub.clear)} />
             </clipPath>
             <g clipPath={`url(#${clipId})`}>
-                <Cover coverUrl={coverUrl} accent={accent} spinning={spinning} />
+                <DiscCover {...cover} />
                 <circle r={px(rim)} fill={ref(DEF.sheen)} />
             </g>
             <circle
