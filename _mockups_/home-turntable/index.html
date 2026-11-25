@@ -82,6 +82,7 @@ svg.live[data-choosing="true"] [data-anim="arm"], svg.live[data-arm-instant="tru
 svg.live[data-playing="false"] .spin { animation-play-state: paused; }
 /* 第 18 版：右上角細唱片機嘅碟照轉（畫面嗰隻碟唔轉）；細唱片機隱藏咗就停 */
 svg.live[data-playing="false"] .mini-spin { animation-play-state: running; }
+svg.live [data-scroll] { touch-action: none; }
 svg.live [data-anim="mini"][pointer-events="none"] .mini-spin { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { svg.live [data-anim] { transition: none; } }
 .facts { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
@@ -152,7 +153,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede"><b>第 18 版（等你確認）。</b>① 字母盤改用實際資料：21 隻碟 + ♥ = 22 格，次序按類型（專輯、迷你專輯、精選、現場、原聲、單曲）再按編號；因為多過 17 隻碟，由第一日起就係「每 3 個出一個字母，其餘用細點」。② 左上歌名太長：先縮字（44 → 最細 32）；最細字都放唔落就斷做兩行，歌號同時間嗰行位置不變；兩行都放唔落先用「…」。③ 播緊時揀碟（模擬真實情況：唱片機照播，人行開去拎第二隻碟睇，揀啱先放入機播）：一擰旋鈕，唱臂、左下三粒細掣同左上歌名淡出，隻碟停轉，聲照播；擰到另一隻碟，左上碟名跟住變，唱片機縮去右上角照播（碟照轉），旁邊寫住播緊邊首。鬆手喺另一隻碟 = 手上拎住嗰隻碟：冇轉盤、冇唱臂；㩒碟面睇佢嘅歌單，揀歌再㩒唱片夾 = 放入唱片機播（原本首歌先停）；㩒右上角細唱片機 = 返去播緊嗰隻碟。轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉。</p>
+    <p class="lede"><b>第 18 版（等你確認）。</b>① 字母盤改用實際資料：21 隻碟 + ♥ = 22 格，次序按類型（專輯、迷你專輯、精選、現場、原聲、單曲）再按編號；因為多過 17 隻碟，由第一日起就係「每 3 個出一個字母，其餘用細點」。② 左上歌名太長：先縮字（44 → 最細 32）；最細字都放唔落就斷做兩行，歌號同時間嗰行位置不變；兩行都放唔落先用「…」。③ 播緊時揀碟（模擬真實情況：唱片機照播，人行開去拎第二隻碟睇，揀啱先放入機播）：一擰旋鈕，唱臂、左下三粒細掣同左上歌名淡出，隻碟停轉，聲照播；擰到另一隻碟，左上碟名跟住變，唱片機縮去右上角照播（碟照轉），旁邊寫住播緊邊首。碟名下面即刻列出嗰隻碟嘅歌單（半透明黑板，唔係成個畫面壓暗；歌多可以上下捲）。鬆手喺另一隻碟 = 手上拎住嗰隻碟：冇轉盤、冇唱臂；㩒歌單其中一行 = 放入唱片機播嗰首（原本首歌先停）；㩒右上角細唱片機 = 返去播緊嗰隻碟。轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉。</p>
     <p class="lede">第 17 版（已確認）。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用細點；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
     <p class="lede">第 16 版嘅內容不變：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺碟上面；歌書開住時暫停，歌書留住；冇歌嘅專輯嘅歌單。</p>
     <p class="lede">封面同歌詞係佔位。</p>
@@ -167,9 +168,9 @@ tr:last-child td { border-bottom: 0; }
 <ol class="lede" style="margin: 0 0 16px; padding-left: 1.4em; color: var(--muted)">
         <li>㩒碟面打開歌單，再㩒中間嘅唱片夾：唱針落碟，開始播。</li>
         <li>㩒左下大旋鈕（= 開始擰旋鈕揀碟）：唱臂、三粒細掣同左上歌名淡出，隻碟停轉；聲當照播。</li>
-        <li>㩒旁邊滑入嚟嘅碟（= 擰去嗰隻碟）：左上碟名跟住變；右上角出現細唱片機，照播緊原本隻碟。</li>
-        <li>再㩒大旋鈕（= 鬆手）：手上拎住嗰隻碟，冇轉盤、冇唱臂。㩒碟面睇歌單（示範資料：JUNTOS 同「我的收藏」有歌單）。</li>
-        <li>喺歌單㩒唱片夾：隻碟放入唱片機，落針播新歌，細唱片機消失。</li>
+        <li>㩒旁邊滑入嚟嘅碟（= 擰去嗰隻碟）：左上碟名跟住變，碟名下面即刻出歌單；右上角出現細唱片機，照播緊原本隻碟。再㩒右邊嘅碟可以去到 We Are RubberBand（30 首，歌單可以上下拖）。</li>
+        <li>再㩒大旋鈕（= 鬆手）：手上拎住嗰隻碟，歌單板伸長。</li>
+        <li>㩒歌單其中一行：隻碟放入唱片機，落針播嗰首，細唱片機消失。</li>
         <li>或者㩒右上角細唱片機：放低隻碟，返去播緊嗰隻碟。</li>
     </ol>
     <div class="hero">
@@ -399,6 +400,7 @@ tr:last-child td { border-bottom: 0; }
         i: { title: 'i', sub: '2020', cover: 'rings', accent: '#77777a', glow: 'hsl(0 0% 72%)' },
         juntos: { title: 'JUNTOS', sub: '2023', cover: 'dots', accent: '#c98a5e', glow: 'hsl(22 90% 62%)' },
         'frank-ep': { title: '¿Frank?', sub: '2014', cover: 'plain', accent: '#8c7fc4', glow: 'hsl(250 80% 70%)' },
+        'we-are-rubberband': { title: 'We Are RubberBand', sub: '2015', cover: 'dots', accent: '#c98a5e', glow: 'hsl(22 90% 62%)' },
         'ni-dou': { title: '呢度', sub: '2016', cover: 'rings', accent: '#77777a', glow: 'hsl(0 0% 72%)' },
         favourites: {
             title: T.favouritesTitle, sub: T.trackCount(8), cover: 'favourites', accent: '#d7263d', glow: 'hsl(352 96% 60%)',
@@ -413,6 +415,10 @@ tr:last-child td { border-bottom: 0; }
         komorebi: {
             focus: 6,
             rows: [['下一位參賽者'], ['跟住去邊度'], ['搲撈HK'], ['毒蟲圖鑑', 'off'], ['太平門'], ['理想的下午'], ['我永遠記得'], ['揀睇誌'], ['一杯'], ['想寫好的功課'], ['G’night'], ['木漏日']],
+        },
+        'we-are-rubberband': {
+            focus: 0,
+            rows: [['發現號'], ['Slow & Easy'], ['陪著你走'], ['小涼伴 (Live)'], ['睜開眼'], ['夜不眠 (Live)'], ['一轉身卻天亮了'], ['長夜 My Love Goodnight'], ['3字頭'], ['囍宴樂隊'], ['夥伙'], ['Tears (Live)'], ['進化論'], ['Easy'], ['田鼠論壇'], ['SimpleLoveSong'], ['More Than A Woman'], ['電玩男 (Live)'], ['細街盃'], ['擦身情緣'], ['阿藍的故事'], ['天連地'], ['阿波羅 (Live)'], ['Here We Are (Live)'], ['倒行詩'], ['畫出彩虹'], ['海．地'], ['最後... 那'], ['Dedicated To...'], ['無名英雄進行曲']],
         },
         juntos: {
             focus: 2,
@@ -469,6 +475,7 @@ tr:last-child td { border-bottom: 0; }
         { key: 'K', album: 'komorebi', cover: 'komorebi', pos: 10 },
         { key: 'F', album: 'frank-ep', cover: 'plain', pos: 11 },
         { key: '呢', album: 'ni-dou', cover: 'rings', pos: 12 },
+        { key: 'W', album: 'we-are-rubberband', cover: 'dots', pos: 15 }, // 示範：跳過咗 13、14 兩格
         { key: '♥', album: 'favourites', cover: 'favourites', pos: 21 },
     ];
     const ART = 500; // 每隻碟以原點為中心、半徑 500 畫一次，位置同大細由外層 transform 決定
@@ -493,9 +500,9 @@ tr:last-child td { border-bottom: 0; }
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['播緊時揀碟', '第 18 版：聲照播；唱臂、左下三粒細掣同左上歌名嗰部分淡出，只留碟名；隻碟停轉；轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉', { album: 'komorebi', song: true, wheel: 1 }],
-        ['播緊時揀碟：轉到另一隻碟', '第 18 版：好似行開去碟架拎第二隻碟睇——唱片機縮去右上角照播（碟照轉、唱針喺碟上面），旁邊寫住播緊邊首；左上碟名同年份跟住旋鈕指住嘅碟變', { album: 'juntos', song: false, wheel: 1, away: true, loaded: 'komorebi' }],
-        ['播緊時，手上拎住另一隻碟', '第 18 版：鬆手之後。聲照播；手上隻碟冇轉盤、冇唱臂、冇三粒細掣，所以唔會以為佢喺機度播緊。㩒碟面睇佢嘅歌單；㩒右上角細唱片機 = 放低隻碟，返去播緊嗰隻', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
-        ['手上隻碟嘅歌單', '第 18 版：揀一首再㩒唱片夾 = 將呢隻碟放入唱片機：原本首歌停，隻碟落轉盤，唱針由泊位轉過嚟落碟，開始播', { album: 'juntos', song: false, list: true, away: true, loaded: 'komorebi', wheel: 0 }],
+        ['播緊時揀碟：轉到另一隻碟', '第 18 版：好似行開去碟架拎第二隻碟睇——唱片機縮去右上角照播；左上碟名跟住旋鈕指住嘅碟變，碟名下面即刻列出呢隻碟嘅歌單（一塊半透明黑板，唔係成個畫面壓暗）', { album: 'juntos', song: false, wheel: 1, away: true, loaded: 'komorebi' }],
+        ['播緊時，手上拎住另一隻碟', '第 18 版：鬆手之後，歌單板向下伸長。㩒一行 = 將隻碟放入唱片機播嗰首：原本首歌停，隻碟落轉盤，唱針由泊位轉過嚟落碟。㩒右上角細唱片機 = 放低隻碟，返去播緊嗰隻', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
+        ['長歌單（30 首）', '第 18 版：放唔晒就喺板入面上下捲；頂同底淡出表示仲有，右邊有位置條；歌名太長用「…」；每行高 44pt，啱手指㩒', { album: 'we-are-rubberband', song: false, wheel: 0, away: true, loaded: 'komorebi', listScroll: 0.4 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 未有音檔（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
         ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
@@ -832,6 +839,60 @@ tr:last-child td { border-bottom: 0; }
         );
     };
 
+    /**
+     * 第 18 版：手上拎住另一隻碟（連擰緊旋鈕指住嗰陣）——碟名下面直接列出佢嘅歌單，唔使再㩒碟面。
+     * 一塊半透明黑板（唔係成個畫面壓暗），直排、靠左；每行高 = 最細感應範圍（44pt），㩒一行 = 將隻碟放入唱片機播嗰首。
+     * 歌多就喺板入面上下捲：頂（捲咗先有）同底（下面仲有先有）淡出，右邊有位置條。
+     */
+    const PANEL = { x: 40, y: 384, w: 660, bottomOpen: 1470, bottomHeld: 1640, pad: 22, radius: 30, row: HIT, title: 38, number: 26, numberW: 78, fade: 90, fill: '#141414', opacity: 0.7, bar: 6 };
+    const panelMetrics = (st) => {
+        const rows = (TRACKS[st.album] ?? { rows: [] }).rows;
+        const bottom = st.wheel > 0 ? PANEL.bottomOpen : PANEL.bottomHeld;
+        const top = PANEL.y + PANEL.pad;
+        const room = bottom - PANEL.pad - top;
+        return { rows, bottom, top, room, hidden: Math.max(0, rows.length * PANEL.row - room) };
+    };
+    let panelSeq = 0;
+    const trackPanel = (st) => {
+        if (!st.away || st.list || st.mv) return '';
+        const { rows, bottom, top, room, hidden } = panelMetrics(st);
+        const { accent, glow } = ALBUMS[st.album];
+        const offset = hidden * (st.listScroll ?? 0);
+        const id = `panel-${(panelSeq += 1)}`;
+        const textX = PANEL.x + PANEL.pad + PANEL.numberW;
+        const titleRoom = PANEL.x + PANEL.w - PANEL.pad - 16 - textX;
+        let out = `<rect x="${PANEL.x}" y="${PANEL.y}" width="${PANEL.w}" height="${bottom - PANEL.y}" rx="${PANEL.radius}" fill="${PANEL.fill}" fill-opacity="${PANEL.opacity}"/>`;
+        if (!rows.length) {
+            return `${out}<text x="${textX}" y="${top + PANEL.row / 2}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${PANEL.title}" fill="${PAPER}">${st.album === 'favourites' ? T.emptyFavourites : T.emptyAlbum}</text>`;
+        }
+        let list = '';
+        rows.forEach(([title, flag], i) => {
+            const y = top + PANEL.row * (i + 0.5) - offset;
+            if (y < top - PANEL.row || y > top + room + PANEL.row) return;
+            const off = flag === 'off';
+            const shown = textWidth(title, PANEL.title) > titleRoom ? `${breakAt(title, PANEL.title, titleRoom - PANEL.title)[0]}…` : title;
+            const row =
+                `<rect x="${PANEL.x}" y="${n(y - PANEL.row / 2)}" width="${PANEL.w}" height="${PANEL.row}" fill="#fff" fill-opacity="0"/>` +
+                `<text x="${PANEL.x + PANEL.pad + 8}" y="${n(y)}" dominant-baseline="central" font-family="${SLAB}" font-size="${PANEL.number}" fill="${off ? '#77746d' : glow}">${String(i + 1).padStart(2, '0')}</text>` +
+                `<text x="${textX}" y="${n(y)}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${PANEL.title}" fill="${PAPER}" opacity="${off ? 0.4 : 1}">${esc(shown)}</text>` +
+                (i < rows.length - 1 ? `<path d="M${textX} ${n(y + PANEL.row / 2)}H${PANEL.x + PANEL.w - PANEL.pad - 16}" stroke="#fff" stroke-opacity=".1" stroke-width="1.5"/>` : '');
+            list += off ? `<g>${row}</g>` : `<g data-act="playrow" data-i="${i}" role="button" aria-label="${T.play}：${esc(title)}">${row}</g>`;
+        });
+        const fade = PANEL.fade / room;
+        out +=
+            `<linearGradient id="${id}-g" gradientUnits="userSpaceOnUse" x1="0" y1="${top}" x2="0" y2="${top + room}">` +
+            `<stop offset="0" stop-color="${offset > 0 ? '#000' : '#fff'}"/><stop offset="${n(fade * 100) / 100}" stop-color="#fff"/><stop offset="${n((1 - fade) * 100) / 100}" stop-color="#fff"/><stop offset="1" stop-color="${offset < hidden ? '#000' : '#fff'}"/></linearGradient>` +
+            `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect y="${top}" width="${W}" height="${room}" fill="url(#${id}-g)"/></mask>` +
+            `<g mask="url(#${id})">${list}</g>`;
+        if (hidden > 0) {
+            const barX = PANEL.x + PANEL.w - PANEL.pad + 2;
+            const thumb = Math.max(60, (room * room) / (rows.length * PANEL.row));
+            const thumbY = top + (room - thumb) * (st.listScroll ?? 0);
+            out += `<rect x="${barX}" y="${top}" width="${PANEL.bar}" height="${room}" rx="3" fill="#fff" fill-opacity=".1"/><rect x="${barX}" y="${n(thumbY)}" width="${PANEL.bar}" height="${n(thumb)}" rx="3" fill="${accent}"/>`;
+        }
+        return `<g data-scroll="tracks">${out}</g>`;
+    };
+
     /** 粗略估文字闊度（中文字 = 一個字級，其他 = 0.56） */
     const textWidth = (text, size, spacing = 0) => [...text].reduce((sum, ch) => sum + (ch.charCodeAt(0) > 0x2e7f ? size : size * 0.56) + spacing, 0);
 
@@ -879,7 +940,7 @@ tr:last-child td { border-bottom: 0; }
         const lineX = 74 + textWidth(sub, SUB_SIZE, SUB_SPACING) + 22;
         // 碟名：英文數字用 slab；中文用 Noto Sans HK 900（HANDOFF §3）
         let out = isLatin(title)
-            ? `<text x="70" y="192" font-family="${SLAB}" font-size="88" fill="${ink}" letter-spacing="1">${title}</text>`
+            ? `<text x="70" y="192" font-family="${SLAB}" font-size="${n(Math.min(88, ((st.away ? MINI.x - MINI.r - 20 : W - 70) - 70) / textWidth(title, 1, 1 / 88)))}" fill="${ink}" letter-spacing="1">${title}</text>`
             : `<text x="70" y="188" font-family="${CJK}" font-weight="900" font-size="80" fill="${ink}" letter-spacing="4">${title}</text>`;
         out += `<text x="74" y="244" font-family="${MIXED}" font-size="${SUB_SIZE}" fill="${soft}" letter-spacing="${SUB_SPACING}">${sub}</text>`;
         out += `<path d="M${n(lineX)} 234H${n(lineX + 98)}" stroke="${accent}" stroke-width="3.5" stroke-linecap="round"/>`;
@@ -1606,7 +1667,8 @@ tr:last-child td { border-bottom: 0; }
         }
         // 歌單：三粒細掣一齊壓暗（喺暗層下面）；歌書：三粒細掣留喺暗層上面（i 著燈，㩒返就收起）
         if (st.list) return [turntable, buttons, listLayer(st), infoLayer].join('');
-        if (!st.booklet) return [turntable, buttons, infoLayer, `<g data-swap="overlays">${overlays(st)}</g>`].join('');
+        const panel = `<g data-swap="panel">${trackPanel(st)}</g>`;
+        if (!st.booklet) return [turntable, buttons, panel, infoLayer, `<g data-swap="overlays">${overlays(st)}</g>`].join('');
         // 歌書：左上資訊由黑字轉白字。過場期間喺暗層下面墊一份黑字，上面嗰份白字淡入 / 淡出
         const moving = Boolean(st.bookFresh || st.bookClosing);
         const inkInfo = moving ? info({ ...st, booklet: false }).replace(/ data-(swap|anim|act|follow)=/g, ' data-ghost-$1=') : '';
@@ -1732,7 +1794,7 @@ tr:last-child td { border-bottom: 0; }
         // 等今次重畫完（淡出開始）先計時，否則未淡出晒就換碟
         requestAnimationFrame(() => setTimeout(() => {
             liveSvg.dataset.armInstant = 'true';
-            live.album = album;
+            Object.assign(live, { album, listScroll: 0 });
             renderLive(); // 只重畫互動格：成頁重畫太慢，淡入會遲
             setTimeout(() => { delete liveSvg.dataset.armInstant; live.swapping = false; renderLive(); }, 60);
         }, reducedMotion() ? 0 : SWAP_FADE_MS));
@@ -1749,11 +1811,18 @@ tr:last-child td { border-bottom: 0; }
             if (live.song) swapAlbum(album); // 有歌播緊 / 暫停緊：聲唔停，唱臂同細掣淡出 → 換碟 → 淡入
             else Object.assign(live, { album, booklet: false });
         },
-        list: () => { if (atHome()) Object.assign(live, { list: true, booklet: false }); },
+        list: () => { if (atHome() && !liveView().away) Object.assign(live, { list: true, booklet: false }); }, // 手上拎住嘅碟：歌單已經喺碟名下面
+        // 㩒歌單板其中一行 = 將手上隻碟放入唱片機，播嗰首（原本首歌停）
+        playrow: (target) => {
+            if (!liveView().away || live.wheel > 0) return;
+            const i = Number(target.dataset.i);
+            Object.assign(live, { song: true, paused: false, parked: false, songAlbum: live.album, songTitle: TRACKS[live.album].rows[i][0], songNo: i + 1, listScroll: 0 });
+            startArmIn();
+        },
         // 㩒右上角細唱片機：放低手上隻碟，返去播緊嗰隻碟
         back: () => { if (live.song && live.album !== live.songAlbum && !live.swapping && !live.list && !live.mv) { live.wheel = 0; swapAlbum(live.songAlbum); } },
         // 揀碟時轉去另一隻碟：左上碟名即刻跟住變；聲照播
-        turn: (target) => { if (live.wheel === 1 && ALBUMS[target.dataset.to]) Object.assign(live, { album: target.dataset.to, booklet: false }); },
+        turn: (target) => { if (live.wheel === 1 && ALBUMS[target.dataset.to]) Object.assign(live, { album: target.dataset.to, booklet: false, listScroll: 0 }); },
         closelist: () => { live.list = false; },
         playpause: () => {
             if (live.mv || live.wheel > 0) return;
@@ -1782,9 +1851,39 @@ tr:last-child td { border-bottom: 0; }
             setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true, parked: true }); renderLive(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
         },
     };
-    const LIVE_ONLY = new Set(['wheel', 'turn', 'back', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
+    const LIVE_ONLY = new Set(['wheel', 'turn', 'back', 'playrow', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
+
+    /* 歌單板上下捲（互動格）：拖動或者滾輪；拖過就唔當㩒 */
+    const drag = { on: false, y: 0, from: 0, moved: false };
+    const scrollPanelBy = (units) => {
+        const { hidden } = panelMetrics(liveView());
+        if (!hidden) return;
+        live.listScroll = clamp01((live.listScroll ?? 0) + units / hidden);
+        renderLive();
+    };
+    const unitsPerPx = () => H / liveSvg.getBoundingClientRect().height;
+    liveSvg.addEventListener('pointerdown', (event) => {
+        if (!event.target.closest('[data-scroll]')) return;
+        Object.assign(drag, { on: true, y: event.clientY, moved: false });
+    });
+    window.addEventListener('pointermove', (event) => {
+        if (!drag.on) return;
+        const dy = event.clientY - drag.y;
+        if (!drag.moved && Math.abs(dy) < 6) return;
+        drag.moved = true;
+        drag.y = event.clientY;
+        scrollPanelBy(-dy * unitsPerPx());
+    });
+    // 拖完嗰一下 click 唔當㩒；之後嘅 click 照常
+    window.addEventListener('pointerup', () => { drag.on = false; setTimeout(() => { drag.moved = false; }, 0); });
+    liveSvg.addEventListener('wheel', (event) => {
+        if (!event.target.closest('[data-scroll]')) return;
+        event.preventDefault();
+        scrollPanelBy(event.deltaY * unitsPerPx());
+    }, { passive: false });
 
     document.addEventListener('click', (event) => {
+        if (drag.moved) { drag.moved = false; return; }
         const target = event.target.closest('[data-act]');
         const name = target && target.dataset.act;
         if (!name || !ACTIONS[name]) return;
