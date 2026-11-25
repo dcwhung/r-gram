@@ -17,9 +17,9 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-016 | Review T-020 / T-021（S-031） | Env 驗證而家收 `wrangler.toml` 嘅 placeholder（`admin@example.com`、全 0 嘅 `database_id`）：安全（部署唔到、冇人登入到）但唔會即刻提示。部署前嘅檢查要擋 placeholder；`MEDIA_BASE` 唔應該收有 userinfo 嘅網址 | T-028 |
 | B-018 | Review T-020 / T-021（S-030） | 測試名同內容唔完全對應：`oauthCallback.test.ts`「use the state cookie once」只驗 Set-Cookie 有清；replay 測試同「Google rejects the code」實際一樣；`session.test.ts`「requested size」只試 32 | 下次改呢幾個檔時 |
 | B-019 | Review T-020 / T-021（Observation） | 之後 Backend 任務要留意：① `/api` 守門靠註冊次序，新 route 一定要加喺 `use('*')` 之後；② `tracks (album_id, no)` UNIQUE 逐句檢查，重編歌號要分兩步；③ 重新登入唔會收返同一個瀏覽器之前嘅 session；④ `/auth/google/start` 同 callback 冇 rate limit；⑤ 自訂網域要加 HSTS；CI 未有 Worker bundle 檢查 | T-022、T-023、T-028 |
-| B-020 | QA S1 api-auth（Minor） | `safeNext` 嘅長度上限按輸入嘅 UTF-8 byte 計，但放入 state cookie 嘅係編碼後嘅字串（每個中文字 9 個字元）再加 base64：`next` 有約 330 個中文字時 cookie 超過 4096 byte，瀏覽器唔收，callback 出「登入逾時」（再登入一次就得，冇安全影響）。上限改為按回傳嘅字串計；加測試「長中文 `next` → 當冇」 | T-022（下次改 `apps/api`） |
+| B-020 | QA S1 api-auth（Minor） | `safeNext` 嘅長度上限按輸入嘅 UTF-8 byte 計，但放入 state cookie 嘅係編碼後嘅字串（每個中文字 9 個字元）再加 base64：`next` 有約 330 個中文字時 cookie 超過 4096 byte，瀏覽器唔收，callback 出「登入逾時」（再登入一次就得，冇安全影響）。上限改為按回傳嘅字串計；加測試「長中文 `next` → 當冇」 | T-023（T-022 冇掂嗰幾個檔，順延） |
 | B-021 | QA S1 player-foundation | `robots.txt`：FR-011 同 Technical Spec「安全設計」有要求（Implementation Plan v1.1 已寫入 T-039、T-028）；而家 `/robots.txt` 回嘅係 `index.html`。播放端同 Worker 都要有 | T-039（播放端）、T-028（Worker） |
-| B-022 | QA S1 api-auth（補測） | `test/oauthHelpers.ts` 嘅 `encodeJson` 用 `btoa`，非 Latin-1 字元會 throw，所以 W-008 只有 unit test。改做 UTF-8 安全，加一個經 callback 嘅 Kelvin 符號測試 | T-022（下次改 `apps/api`） |
+| B-022 | QA S1 api-auth（補測） | `test/oauthHelpers.ts` 嘅 `encodeJson` 用 `btoa`，非 Latin-1 字元會 throw，所以 W-008 只有 unit test。改做 UTF-8 安全，加一個經 callback 嘅 Kelvin 符號測試 | T-023（T-022 冇掂嗰幾個檔，順延） |
 | B-023 | QA S1 player-foundation | 加 E2E 時，將 QA 嘅播放端 browser check（三個尺寸：舞台位置、`--u`、`lang`、robots、版本、manifest、冇 console error、頁面唔捲動）寫成 smoke spec | T-040 |
 | B-024 | Review T-032 / T-033（S-035） | `metal/SvgDefs.tsx`：`latheWedges()` 每次 re-render 重砌 96 格車床紋；T-038 進度每秒更新幾次就每次重砌。改做 module 常數，`SvgDefs` 包 `memo` | T-038 之前 |
 | B-025 | Review T-032 / T-033（S-039） | 測試名實不符：`MetalButton.test.tsx`「44pt rule」只驗 prop 原樣出返（真正嘅 44pt 喺 `TurntableShell.tsx`，冇測試）；`Icon.test.tsx` 只驗「有 path」，兩個 icon 對調都過；`Disc.test.tsx` 只驗 class 名（W-011 修正之後要再核對）。Platter、Screws、Metal、StageSvg 冇自己嘅測試（靠 `App.test.tsx`） | T-035（取代暫時外殼時） |
@@ -40,6 +40,8 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-040 | Review T-029 / T-096（S-051、Observation） | 長度上限喺正規化之前量：CRLF 同 BOM 嘅 byte 都計入 64 KiB；1000 行加一個結尾換行會報 `TOO_MANY_LINES`。貼入 20 MB 文字要約 0.7 秒先回 `TOO_LARGE`（可以先睇 `text.length`）。`TOO_LARGE` 由 parser 以第 0 行回報，API 要轉做 413；錯誤嘅 `text` 欄會回成行內容，API 要決定 400 嘅 details 包唔包；API-041 例子用 `reason`，package 用 `code`，要對應 | T-023 |
 | B-041 | Review T-029 / T-096 | Technical Spec 同步（下次 CR）：`parseSongText()` 規則寫返開發時定嘅細節——第一行如果係標籤行或者時間標記行 = `TITLE_REQUIRED`；重覆標籤報喺重覆嗰行、留第一個值；冒號前後可以有空格、值 = 第一個冒號之後；時間標記要有冒號（W-012）；正規化（CRLF、BOM、行尾空白、歌詞前後空行）；長度上限數值；四個 credit 全空時 `credits` 係 `null`；API-041 錯誤碼加 `BAD_OFFSET`、`TITLE_TOO_LONG`；`catalog_state` 嘅欄位同 CHECK；`toLyricsJson` 新簽名 | 下次 Change Request |
 | B-042 | QA S1 catalog-song-text（Minor、Observation） | ① 淨係 CR（`\r`，舊 Mac 格式）嘅換行唔會分行：成段變成一個歌名，冇報錯（瀏覽器文字框會轉做 LF，只有直接叫 API 先遇到）；分行規則加埋單獨嘅 CR，或者喺 API-041 先正規化。② 有時間標記嘅歌詞入面，`[1] 二` 報嘅係 `BAD_TIMESTAMP` 唔係 `MIXED_TIMESTAMPS`，寫錯誤訊息時要留意。③ `qa/plans/api-auth.md` AC-8 仲寫住 `publishes` 表，下次改嗰份 plan 時更新（改完要重新 freeze） | T-023 |
+| B-043 | Review T-022（S-057、S-058） | ① PATCH 專輯：寫入之後再讀之間，如果另一個請求刪咗嗰隻碟，會回 404 但其實已經寫入；改用 `UPDATE … RETURNING`。② 排序嘅「檢查 id 齊唔齊」同寫入唔喺同一個 transaction（一個管理員嘅情況可以接受，加註解）。③ `afterWrite` 之後亦會喺 `POST /api/catalog/rebuild`（變成生成兩次）同 `PUT /api/assets` 行，T-026 要排除 | T-026 |
+| B-044 | Review T-022（S-059、決定 12） | Technical Spec 同步（下次 CR）：冇 If-Match → 400；`ID_REMOVED` 嘅 details 形狀同強制刪除回 200 連 body；排序 409；專輯欄位上限同 folder 規則；`reason` 碼用大寫；API-012 嘅歌曲形狀；`year` 跟 `releaseDate`；新增專輯嘅預設值；改歌名唔重算字母盤標記。另要定一條規則：API 錯誤訊息嘅語言（專輯 API 用中文書面語，登入相關嘅 401／403 同通用 404／500 仲係英文）——建議全部用中文書面語，管理端以 `code`／`reason` 砌自己嘅文字 | 下次 Change Request；語言規則喺 T-023 之前定 |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 
