@@ -1,4 +1,5 @@
--- R Gram 內容資料（Technical Spec「數據庫設計」）。
+-- R Gram 內容資料（Technical Spec「數據庫設計」，CR-003 之後：冇上下架、冇發佈記錄）。
+-- D1 未部署過，所以 CR-003 直接改呢個檔，唔加新 migration。
 -- 時間欄一律 ISO 8601 UTC 字串（sessions.expires_at 例外：epoch ms）。
 -- CHECK 只鎖結構上唔會變嘅規則（id 格式、0 / 1、狀態值）；長度上限等可調嘅規則由 packages/catalog validator 管。
 -- TEXT PRIMARY KEY 喺 SQLite 唔會自動 NOT NULL，所以逐個寫明。
@@ -37,7 +38,6 @@ CREATE TABLE albums (
     thumb TEXT REFERENCES assets (name),
     folder TEXT,
     sort_order INTEGER NOT NULL,
-    enabled INTEGER NOT NULL DEFAULT 0 CHECK (enabled IN (0, 1)),
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -68,7 +68,6 @@ CREATE TABLE tracks (
     note TEXT,
     youtube_id TEXT,
     video_kind TEXT,
-    enabled INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
@@ -76,34 +75,48 @@ CREATE TABLE tracks (
 -- 專輯頁列歌；保證歌號唔重覆
 CREATE UNIQUE INDEX tracks_album_no ON tracks (album_id, "no");
 
--- 搵其他專輯同名歌（複製 credit / 歌詞）
+-- 搵其他專輯同名歌（由同名歌帶入）
 CREATE INDEX tracks_title ON tracks (title);
 
--- lyrics：獨立一張表，歌曲列表查詢唔使拎歌詞原文
---   lrc：管理員貼入嘅 LRC 原文；json_name：R2 lyrics/<hash>.json 檔名
+-- lyrics：獨立一張表，歌曲列表查詢唔使拎歌詞原文；冇歌詞 = 冇呢一行
+--   source：歌曲文字入面歌詞部分嘅原文（packages/catalog parseSongText 正規化後，回填文字框用）
+--   synced：1 = 有時間標記（同步歌詞）；0 = 純文字（Functional Spec D32）
+--   json_name：R2 lyrics/<hash>.json 檔名
 CREATE TABLE lyrics (
     track_id TEXT PRIMARY KEY NOT NULL REFERENCES tracks (id) ON DELETE CASCADE,
-    lrc TEXT NOT NULL,
+    source TEXT NOT NULL,
+    synced INTEGER NOT NULL CHECK (synced IN (0, 1)),
     json_name TEXT NOT NULL,
     line_count INTEGER NOT NULL,
     updated_at TEXT NOT NULL
 );
 
--- publishes：每次發佈記一行；先寫 pending，R2 寫成功先轉 ok。最大 id（PK）= 最新一次
---   hash：document JSON 嘅 sha256（= catalog.json 嘅 ETag）
---   ids：JSON，今次發佈嘅專輯 id + 歌 id（ID 守衛用）；summary：JSON，變更摘要
-CREATE TABLE publishes (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    created_at TEXT NOT NULL,
-    created_by TEXT NOT NULL,
-    status TEXT NOT NULL CHECK (status IN ('pending', 'ok', 'failed')),
-    hash TEXT NOT NULL,
-    document TEXT NOT NULL,
-    ids TEXT NOT NULL,
-    album_count INTEGER NOT NULL,
-    track_count INTEGER NOT NULL,
-    summary TEXT NOT NULL,
-    error TEXT
+-- catalog_state：得一行（id = 1），記低而家 R2 嗰份 catalog.json；冇發佈記錄、冇 diff、冇還原
+--   未生成過就冇呢一行；每次嘗試生成都 upsert
+--   status：最近一次生成嘅結果；failed = D1 比 catalog.json 新（管理端顯示提示同重試）
+--   hash：而家 R2 嗰份 document JSON 嘅 sha256（= catalog.json 嘅 ETag）
+--   hash、generated_at、album_count、track_count：而家嗰份嘅資料；生成失敗時保留上一份，
+--     未成功過就係 NULL。status = 'ok' 時一定有
+--   updated_at / updated_by：最近一次嘗試（admin email 或者 seed）；error：失敗原因
+CREATE TABLE catalog_state (
+    id INTEGER PRIMARY KEY NOT NULL CHECK (id = 1),
+    status TEXT NOT NULL CHECK (status IN ('ok', 'failed')),
+    hash TEXT,
+    generated_at TEXT,
+    album_count INTEGER,
+    track_count INTEGER,
+    updated_at TEXT NOT NULL,
+    updated_by TEXT NOT NULL,
+    error TEXT,
+    CHECK (
+        status = 'failed'
+        OR (
+            hash IS NOT NULL
+            AND generated_at IS NOT NULL
+            AND album_count IS NOT NULL
+            AND track_count IS NOT NULL
+        )
+    )
 );
 
 -- sessions：只存 token 嘅 SHA-256 hex（D1 漏咗都用唔到）；expires_at 係 epoch ms
