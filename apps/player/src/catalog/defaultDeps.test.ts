@@ -15,6 +15,8 @@ describe('readCatalogUrl', () => {
 });
 
 describe('browserStorage', () => {
+    afterEach(() => vi.restoreAllMocks());
+
     it('should return localStorage when it is available', () => {
         expect(browserStorage()).toBe(globalThis.localStorage);
     });
@@ -24,7 +26,6 @@ describe('browserStorage', () => {
             throw new DOMException('denied', 'SecurityError');
         });
         expect(browserStorage()).toBeNull();
-        vi.restoreAllMocks();
     });
 });
 

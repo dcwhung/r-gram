@@ -12,7 +12,7 @@ export interface TrackLocation {
 
 const NO_TRACKS: readonly CatalogTrack[] = [];
 
-/** 轉碟刻度上真專輯嘅次序 = catalog 次序（管理端次序）；冇歌嘅專輯照列（Functional Spec D39）。♥ 永遠喺最尾，唔喺呢度 */
+/** 轉碟刻度上真專輯嘅次序 = catalog 次序（管理端次序）；冇歌嘅專輯照列（CR-003 決定 7：冇上下架，全部專輯都顯示）。♥ 永遠喺最尾，唔喺呢度 */
 export const dialAlbums = (document: CatalogDocument): readonly CatalogAlbum[] => document.albums;
 
 export const findAlbum = (document: CatalogDocument, albumId: string): CatalogAlbum | null =>

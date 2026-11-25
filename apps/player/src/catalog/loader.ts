@@ -9,7 +9,7 @@
  * `max-age=60` + ETag 嘅重新驗證交畀瀏覽器 HTTP cache 做（佢自己帶 ETag，304 會變返 200 畀我哋）。
  */
 import { type CatalogDocument, parseCatalogDocument } from '@r-gram/catalog';
-import type { CatalogStore } from './catalogStore';
+import type { CachedCatalog, CatalogStore } from './catalogStore';
 
 /** 點解冇用到網絡嗰份 */
 export type CatalogFailure = 'notConfigured' | 'network' | 'timeout' | 'http' | 'invalid';
@@ -51,12 +51,14 @@ const readDocument = async (response: Response): Promise<FetchOutcome> => {
     return { ok: true, document: parsed.document, etag: response.headers.get('ETag') };
 };
 
-/** 請求 + 讀 body，超時就 abort；abort 引致嘅錯一律當 timeout */
+/** 請求 + 讀 body，超時就 abort；abort 引致嘅錯一律當 timeout（包括 body 讀到一半） */
 const fetchDocument = async (url: string, deps: CatalogLoaderDeps): Promise<FetchOutcome> => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), deps.timeoutMs);
     try {
-        return await readDocument(await deps.fetch(url, { signal: controller.signal }));
+        const outcome = await readDocument(await deps.fetch(url, { signal: controller.signal }));
+        // body 讀到一半超時：`json()` 會失敗，readDocument 分唔到，喺呢度改返做 timeout
+        return !outcome.ok && controller.signal.aborted ? fail('timeout') : outcome;
     } catch {
         return fail(controller.signal.aborted ? 'timeout' : 'network');
     } finally {
@@ -71,11 +73,20 @@ const fallBack = (store: CatalogStore, failure: CatalogFailure): CatalogLoadResu
         : { status: 'unavailable', failure };
 };
 
+/** 存唔到本機唔影響今次載入（注入嘅 store 就算 throw 都唔可以令 loadCatalog reject） */
+const remember = (store: CatalogStore, entry: CachedCatalog): void => {
+    try {
+        store.write(entry);
+    } catch {
+        // 下次開 app 冇得離線用，今次照常
+    }
+};
+
 /** 載入 catalog。永遠 resolve（唔 reject）：結果入面講明用咗邊份、點解 */
 export const loadCatalog = async (deps: CatalogLoaderDeps): Promise<CatalogLoadResult> => {
     if (deps.url === null) return fallBack(deps.store, 'notConfigured');
     const outcome = await fetchDocument(deps.url, deps);
     if (!outcome.ok) return fallBack(deps.store, outcome.failure);
-    deps.store.write({ etag: outcome.etag, document: outcome.document });
+    remember(deps.store, { etag: outcome.etag, document: outcome.document });
     return { status: 'ready', source: 'network', document: outcome.document };
 };

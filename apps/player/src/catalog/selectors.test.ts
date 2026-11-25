@@ -18,7 +18,7 @@ describe('catalog selectors', () => {
             expect(dialAlbums(ordered).map((album) => album.id)).toEqual(['zebra', 'apple']);
         });
 
-        it('should keep albums that have no tracks yet (D39)', () => {
+        it('should keep albums that have no tracks yet (CR-003 decision 7: nothing is hidden)', () => {
             const withEmpty = makeDocument([makeAlbum('new-album', [])]);
             expect(dialAlbums(withEmpty).map((album) => album.id)).toEqual(['new-album']);
         });

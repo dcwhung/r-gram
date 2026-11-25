@@ -32,7 +32,34 @@ const hangingFetch: CatalogFetch = (_url, init) =>
         );
     });
 
+/** Header 即刻到，但 body 永遠讀唔完：`json()` 只會喺 signal abort 時失敗 */
+const stalledBodyFetch: CatalogFetch = (_url, init) => {
+    const response = jsonResponse(sampleDocument(FRESH_AT));
+    vi.spyOn(response, 'json').mockImplementation(
+        () =>
+            new Promise((_resolve, reject) => {
+                init.signal.addEventListener('abort', () =>
+                    reject(new DOMException('aborted', 'AbortError')),
+                );
+            }),
+    );
+    return Promise.resolve(response);
+};
+
 describe('loadCatalog', () => {
+    // S-048：「永遠 resolve」唔可以靠注入嘅 store 守規矩
+    it('should still resolve when the store fails to save the fetched document', async () => {
+        const fresh = sampleDocument(FRESH_AT);
+        const { deps } = setup(() => Promise.resolve(jsonResponse(fresh)));
+        deps.store = {
+            read: () => null,
+            write: () => {
+                throw new Error('quota');
+            },
+        };
+        await expect(loadCatalog(deps)).resolves.toMatchObject({ source: 'network' });
+    });
+
     it('should fetch the catalog URL and return the validated document', async () => {
         const fresh = sampleDocument(FRESH_AT);
         const { deps } = setup(() => Promise.resolve(jsonResponse(fresh)));
@@ -126,9 +153,18 @@ describe('loadCatalog', () => {
                     : Promise.resolve(answer);
             });
             const result = await loadCatalog(deps);
-            await vi.advanceTimersByTimeAsync(CATALOG_FETCH_TIMEOUT_MS);
-            expect(result).toMatchObject({ status: 'ready', source: 'network' });
+            // 一回應就要清走計時器：未行時間之前就要係 0（S-044）
             expect(vi.getTimerCount()).toBe(0);
+            expect(result).toMatchObject({ status: 'ready', source: 'network' });
+        });
+
+        // S-043：header 到咗但 body 讀到一半超時，都係 timeout（唔係 invalid）
+        it('should report a timeout when the body stalls after the headers arrive', async () => {
+            const cached = sampleDocument(CACHED_AT);
+            const { deps } = setup(stalledBodyFetch, cached);
+            const pending = loadCatalog(deps);
+            await vi.advanceTimersByTimeAsync(CATALOG_FETCH_TIMEOUT_MS);
+            await expect(pending).resolves.toMatchObject({ source: 'cache', failure: 'timeout' });
         });
     });
 });
