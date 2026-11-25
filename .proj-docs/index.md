@@ -27,6 +27,7 @@
 | 2026-11-25 | [reviews/2026-11-25_06-19_review_T-032_T-033.md](reviews/2026-11-25_06-19_review_T-032_T-033.md) | warn 85 / 100（W-009–W-011） | T-032 場景狀態機、T-033 唱片機基本元件（SVG） |
 | 2026-11-25 | [reviews/2026-11-25_07-53_review_T-032_T-033_re-review.md](reviews/2026-11-25_07-53_review_T-032_T-033_re-review.md) | pass 100 / 100 | 同上（修正後）。S-035、S-039–S-042 同 Observation 入咗 backlog B-024–B-033 |
 | 2026-11-25 | [reviews/2026-11-25_08-27_review_T-031.md](reviews/2026-11-25_08-27_review_T-031.md) | pass 100 / 100 | T-031 播放端 catalog loader（`cbd855b..b8a7d9b`）。冇 Critical / Warning；S-043、S-044、S-046、S-048 已修，S-045、S-047 入咗 backlog（B-035、B-036） |
+| 2026-11-25 | [reviews/2026-11-25_08-59_review_T-029_T-096.md](reviews/2026-11-25_08-59_review_T-029_T-096.md) | pass 95 / 100 | T-029 歌曲文字 parser、T-096 D1 schema 跟 CR-003。一條 Warning W-012（`[1]`、`[1999]` 被當成時間標記）已修；S-049–S-052 同 Observation 入咗 backlog（B-038–B-041） |
 
 ## QA
 
