@@ -19,7 +19,7 @@ export interface ParsedFields {
 }
 
 /** 專輯 id 上限：歌 id 係 `<albumId>-<6 位>`，亦會出現喺 R2 key 同網址；64 已經好鬆 */
-const ALBUM_ID_MAX_CHARS = 64;
+export const ALBUM_ID_MAX_CHARS = 64;
 const ID_KEY = 'id';
 /** 未知欄位名原樣回傳做 details[].path 時嘅上限：100 KB 嘅 key 唔可以變成 100 KB 嘅錯誤回應 */
 export const UNKNOWN_KEY_MAX_CHARS = 64;

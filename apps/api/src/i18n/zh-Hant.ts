@@ -1,7 +1,8 @@
 /*
  * Worker 自己出嘅文字：中文書面語，唔用口語字（test/writtenChinese.test.ts 鎖住）。
  * - auth：登入流程嘅三個頁
- * - albums：專輯 API（T-022）錯誤回應嘅 message 同每個欄位錯誤（details[].reason）嘅 message
+ * - albums：專輯 API（T-022）錯誤回應嘅 message 同每個欄位錯誤（details[].reason）嘅 message；
+ *   `{name}` 係參數，由 fillMessage() 填入
  * 守門（401、403）同通用 404 / 500 嘅 message 仍然係畀開發者睇嘅英文
  */
 export const zhHant = {
@@ -42,8 +43,9 @@ export const zhHant = {
             REQUIRED: '必須填寫。',
             NOT_AN_OBJECT: '內容必須為 JSON 物件。',
             NOT_EDITABLE: '此欄位不可修改。',
+            /** `{max}` = ALBUM_ID_MAX_CHARS（errors.ts 填入） */
             INVALID_ID:
-                '只可使用小楷英文字母、數字及單個連字號（首尾不可為連字號），不可為保留字，最多 64 個字元。',
+                '只可使用小寫英文字母、數字及單個連字號（首尾不可為連字號），不可為保留字，最多 {max} 個字元。',
             INVALID_TEXT: '必須為文字，且不可包含換行、控制字元或不可見的格式字元。',
             TOO_LONG: '字數超出上限。',
             INVALID_WHEEL_KEY:

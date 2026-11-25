@@ -1,4 +1,5 @@
 /* API-011 POST /api/albums：新增專輯（冇上下架、冇草稿；欄位驗證錯誤用書面語） */
+import { ALBUM_ID_MAX_CHARS } from '../src/albums/validate';
 import { zhHant } from '../src/i18n/zh-Hant';
 import { albumRow, api, insertAlbum, insertAsset, json } from './albumFixtures';
 
@@ -124,6 +125,17 @@ describe('POST /api/albums', () => {
                 'id:INVALID_ID',
             ]);
         }
+    });
+
+    it('should word the id rule in written Chinese with the limit taken from ALBUM_ID_MAX_CHARS', async () => {
+        const template: string = zhHant.albums.reasons.INVALID_ID;
+        expect(template).toContain('小寫');
+        expect(template).not.toContain('小楷');
+        expect(template).not.toMatch(/\d/);
+        const body = await json<ErrorBody>(await create({ id: 'A', title: 'T' }));
+        const message = String(body.error.details?.[0]?.message);
+        expect(message).toContain(`最多 ${ALBUM_ID_MAX_CHARS} 個字元`);
+        expect(message).not.toMatch(/[{}]/);
     });
 
     it('should refuse wrong types, control characters and over-long text', async () => {
