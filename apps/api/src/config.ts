@@ -143,6 +143,15 @@ export const NO_SNIFF = 'nosniff';
  */
 export const SCAN_TEXT_READS_MAX = 100;
 /**
+ * 媒體 bucket 一次 list 最多讀幾頁（每頁最多 1000 個，一頁 = 一個 R2 操作；review S-136）：
+ * 一張碟嘅資料夾幾十個檔，一頁就夠；到咗上限就停，回應講明（listTruncated / truncated），唔會一直讀落去
+ */
+export const SCAN_LIST_PAGES_MAX = 5;
+/**
+ * 預覽時手動指定喺其他資料夾嘅檔最多 head 幾個（review S-136）；超過嘅唔檢查，列喺 manualUnchecked
+ */
+export const SCAN_MANUAL_HEADS_MAX = 50;
+/**
  * 一次套用每一類（create、songTexts、media、clearAudio）最多幾多項：create / songTexts 每項約 4 個操作
  *（讀 .txt、寫歌詞檔、D1 batch、清舊歌詞檔），四類加埋最多約 500 個，留位畀 list 同生成 catalog
  */

@@ -25,7 +25,12 @@ describe('GET /api/media', () => {
     it('should list the album folders at the top level, hiding reserved ones', async () => {
         const { status, body } = await list();
         expect(status).toBe(200);
-        expect(body).toEqual({ prefix: '', folders: ['album-01-apollo-18/'], files: [] });
+        expect(body).toEqual({
+            prefix: '',
+            folders: ['album-01-apollo-18/'],
+            files: [],
+            truncated: false,
+        });
     });
 
     it('should list the files and sub-folders of a folder', async () => {

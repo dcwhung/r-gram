@@ -1,7 +1,7 @@
 /*
  * 掃描：封面來源（Technical Spec「CR-004 → 掃描嘅設計」、CR-005 D55）。只比 ETag，唔讀圖（圖由管理端處理）。
  * `cover.jpg` 同 `cover.png` 都有 = 衝突；第二張封面要有第一張：資料夾冇可用嘅第一張、專輯本身亦冇封面 →
- * 已略過（NO_FIRST_COVER）
+ * 已略過：資料夾有兩個第一張封面 = FIRST_COVER_CONFLICT（S-139：問題係揀唔到，唔係冇），否則 NO_FIRST_COVER
  */
 import type { FileGroups } from './scanFiles';
 import type {
@@ -10,6 +10,7 @@ import type {
     FileChange,
     ScanAlbumState,
     ScanConflict,
+    SkipReason,
     SkippedFile,
 } from './scanTypes';
 
@@ -44,13 +45,17 @@ const conflictsOf = (groups: FileGroups): ScanConflict[] =>
         .filter(([, files]) => files.length > 1)
         .map(([kind, files]) => ({ kind, keys: files.map(({ key }) => key) }));
 
+/** 第二張封面用唔到嘅原因：第一張有兩個候選檔 = 衝突，冇 = 冇第一張 */
+const cover2SkipReason = (groups: FileGroups): SkipReason =>
+    (groups.covers.get('cover') ?? []).length > 1 ? 'FIRST_COVER_CONFLICT' : 'NO_FIRST_COVER';
+
 export const planCovers = (groups: FileGroups, album: ScanAlbumState): CoverPlan => {
     const cover = sourceOf(groups, 'cover', album.coverSourceEtag, album.hasCover);
     const second = sourceOf(groups, 'cover2', album.cover2SourceEtag, album.hasCover2);
     const firstMissing = cover === null && !album.hasCover;
     const skipped: SkippedFile[] =
         second && firstMissing
-            ? [{ key: second.key, kind: 'cover2', reason: 'NO_FIRST_COVER' }]
+            ? [{ key: second.key, kind: 'cover2', reason: cover2SkipReason(groups) }]
             : [];
     return {
         cover,

@@ -6,6 +6,7 @@
 import { SONG_TEXT_MAX_BYTES } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
 import { SCAN_TEXT_READS_MAX } from '../src/config';
+import { zhHant } from '../src/i18n/zh-Hant';
 import { countOf, insertLyrics, json } from './albumFixtures';
 import { call } from './helpers';
 import {
@@ -250,6 +251,19 @@ describe('GET /api/albums/:id/scan: covers', () => {
         const preview = await previewOf();
         expect(preview.cover2).toBeNull();
         expect(preview.skipped[0]).toMatchObject({ kind: 'cover2', reason: 'NO_FIRST_COVER' });
+    });
+
+    it('should say the first cover has two files when cover.jpg and cover.png both exist', async () => {
+        await putMediaFiles(['cover.jpg', 'cover.png', 'cover2.jpg']);
+        const preview = await previewOf();
+        expect(preview.skipped).toEqual([
+            {
+                key: mediaKey('cover2.jpg'),
+                kind: 'cover2',
+                reason: 'FIRST_COVER_CONFLICT',
+                message: zhHant.scan.reasons.FIRST_COVER_CONFLICT,
+            },
+        ]);
     });
 });
 

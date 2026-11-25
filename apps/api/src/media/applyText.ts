@@ -10,6 +10,7 @@ import { dropLyricsLater, dropUnusedLyrics } from '../tracks/lyricsCleanup';
 import { putLyrics } from '../tracks/songText';
 import { findTrackText, saveSongText, type TrackTextRow } from '../tracks/store';
 import type { ApplyContext } from './applyContext';
+import { dropLyricsOnThrow, guardItem } from './applyGuard';
 import { failedItem, type FailedItem } from './applyResult';
 import type { TextItem, TextRef } from './applyShape';
 import { readSongTextFile, type TextRead } from './songTextFile';
@@ -35,7 +36,9 @@ const writeText = async (
     etag: string,
 ): Promise<Saved> => {
     const lyrics = song.lyrics ? await putLyrics(c.env.CATALOG, song.lyrics) : null;
-    const row = await saveSongText(c.env.DB, current.id, current.updated_at, song, lyrics, etag);
+    const row = await dropLyricsOnThrow(c.env, lyrics?.jsonName, () =>
+        saveSongText(c.env.DB, current.id, current.updated_at, song, lyrics, etag),
+    );
     if (!row) {
         await dropUnusedLyrics(c.env, [lyrics?.jsonName]);
         return failedItem('STALE');
@@ -69,7 +72,9 @@ export const applySongTexts = async (
     items: TextItem[],
 ) => {
     const results = [];
-    for (const item of items)
-        results.push({ trackId: item.trackId, ...(await saveOne(c, context, item)) });
+    for (const item of items) {
+        const result = await guardItem(() => saveOne(c, context, item), failedItem('INTERNAL'));
+        results.push({ trackId: item.trackId, ...result });
+    }
     return results;
 };

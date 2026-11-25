@@ -19,6 +19,8 @@ export interface ApplyContext {
     tracks: Map<string, ScanTrack>;
     /** 呢個歌號有冇音檔：資料夾有 `.m4a`／`.mp3`，或者有歌手動指定咗音檔（Functional Spec D54） */
     hasAudio: (no: number) => boolean;
+    /** list 讀齊：唔齊（S-136）就唔可以判斷「檔已唔喺資料夾」，clearAudio 一律 STALE */
+    complete: boolean;
 }
 
 const audioNumbers = (files: readonly ScanFile[], tracks: readonly ScanTrack[]): Set<number> => {
@@ -36,7 +38,7 @@ export const loadApplyContext = async (
     album: AlbumRow,
 ): Promise<ApplyContext> => {
     const state = await readScanState(db, album);
-    const files = await listFolder(bucket, state.folder);
+    const { files, truncated } = await listFolder(bucket, state.folder);
     const numbers = audioNumbers(files, state.tracks);
     return {
         albumId: album.id,
@@ -44,6 +46,7 @@ export const loadApplyContext = async (
         files: new Map(files.map((file) => [file.key, file])),
         tracks: new Map(state.tracks.map((track) => [track.id, track])),
         hasAudio: (no) => numbers.has(no),
+        complete: !truncated,
     };
 };
 

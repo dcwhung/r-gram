@@ -130,13 +130,20 @@ describe('planScan: existing tracks', () => {
         ]);
     });
 
-    it('should keep the MV out of audioMissing when the MV file is still there', () => {
+    it('should list the MV link to clear even when the MV file is still there', () => {
+        // S-135：冇音檔就冇 MV，清音檔連結時連掃描配對嘅 MV 一齊清
         const tracks = [track(9, { audioKey: key('09 a.m4a'), mvKey: key('09 a.mp4') })];
         const result = plan(['09 a.mp4'], tracks);
-        expect(result.audioMissing[0]?.mvKey).toBeNull();
+        expect(result.audioMissing[0]?.mvKey).toBe(key('09 a.mp4'));
         expect(result.skipped).toEqual([
             { key: key('09 a.mp4'), no: 9, kind: 'mv', reason: 'NO_AUDIO' },
         ]);
+    });
+
+    it('should not list a manually assigned MV to clear', () => {
+        const mv = { mvKey: 'other/v.mp4', mvManual: true };
+        const tracks = [track(9, { audioKey: key('09 a.m4a'), ...mv })];
+        expect(plan(['01 a.m4a'], tracks).audioMissing[0]?.mvKey).toBeNull();
     });
 
     it('should never touch manual assignments and count a manual audio as the anchor', () => {
@@ -189,6 +196,14 @@ describe('planScan: existing tracks', () => {
             { trackId: 'komorebi-04', no: 4, title: 'Song 4' },
         ]);
     });
+
+    it('should not match an MV to an existing track whose number has no audio', () => {
+        const result = plan(['04 a.mp4'], [track(4)]);
+        expect(result.matched).toEqual([]);
+        expect(result.skipped).toEqual([
+            { key: key('04 a.mp4'), no: 4, kind: 'mv', reason: 'NO_AUDIO' },
+        ]);
+    });
 });
 
 describe('planScan: covers', () => {
@@ -226,9 +241,27 @@ describe('planScan: covers', () => {
         ]);
     });
 
+    it('should name the first-cover conflict, not a missing first cover, for the second cover', () => {
+        const result = plan(['cover.jpg', 'cover.png', 'cover2.jpg']);
+        expect(result.cover2).toBeNull();
+        expect(result.skipped).toEqual([
+            { key: key('cover2.jpg'), kind: 'cover2', reason: 'FIRST_COVER_CONFLICT' },
+        ]);
+    });
+
     it('should accept a second cover when the album already has a first cover', () => {
         const album = { ...NO_COVERS, hasCover: true };
         expect(plan(['cover2.jpg'], [], { album }).cover2?.key).toBe(key('cover2.jpg'));
+    });
+
+    it('should tell for each cover whether the album already has that cover', () => {
+        const onlyFirst = { ...NO_COVERS, hasCover: true };
+        const both = { ...NO_COVERS, hasCover: true, hasCover2: true };
+        const files = ['cover.jpg', 'cover2.jpg'];
+        const first = plan(files, [], { album: onlyFirst });
+        expect([first.cover?.hasCover, first.cover2?.hasCover]).toEqual([true, false]);
+        const second = plan(files, [], { album: both });
+        expect([second.cover?.hasCover, second.cover2?.hasCover]).toEqual([true, true]);
     });
 });
 

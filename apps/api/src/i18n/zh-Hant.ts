@@ -202,6 +202,8 @@ export const zhHant = {
             NO_AUDIO: '此歌號在資料夾內沒有音檔，因此不會匯入。',
             AUDIO_CONFLICT: '此歌號有多於一個音檔，請先只保留一個，才可建立歌曲。',
             NO_FIRST_COVER: '沒有第一張封面，因此不會匯入第二張封面。',
+            /** 資料夾同時有 cover.jpg 同 cover.png（S-139） */
+            FIRST_COVER_CONFLICT: '第一張封面有多於一個檔案，請先只保留一個，才可匯入第二張封面。',
             UNKNOWN_EXTENSION: '無法識別此檔案類別。',
             NO_TRACK_NUMBER: '檔名開頭沒有 1 至 999 的歌號。',
             BAD_ENCODING: '歌曲文字檔必須為 UTF-8 編碼。',
@@ -216,6 +218,8 @@ export const zhHant = {
             VALIDATION_ERROR: '歌曲文字有格式錯誤，未有套用。',
             MANUAL_KEPT: '此歌曲的檔案為手動指定，掃描不會更改。',
             NOT_FOUND: '找不到指定的歌曲。',
+            /** 套用此項時出 exception（review W-035）：未能確認寫入咗未，所以叫管理員重新掃描 */
+            INTERNAL: '套用此項時發生錯誤，未能確認是否已套用，請重新掃描。',
         },
     },
 } as const;

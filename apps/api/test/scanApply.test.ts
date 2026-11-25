@@ -102,6 +102,26 @@ describe('POST /api/albums/:id/scan/apply: request shape', () => {
     });
 });
 
+describe('POST /api/albums/:id/scan/apply: duplicate items', () => {
+    it('should reject the same track twice in media, songTexts or clearAudio', async () => {
+        await insertScanTrack(1);
+        const audio = { trackId: 'komorebi-01', kind: 'audio', key: mediaKey('01 a.m4a') };
+        const text = { trackId: 'komorebi-01', key: mediaKey('01 a.txt'), etag: '"x"' };
+        const clear = { trackId: 'komorebi-01', audioKey: mediaKey('01 a.m4a') };
+        const { status, body } = await apply({
+            media: [audio, { ...audio, kind: 'mv', key: mediaKey('01 a.mp4') }, audio],
+            songTexts: [text, text],
+            clearAudio: [clear, clear],
+        });
+        expect(status).toBe(400);
+        expect(detailsOf(body).map(({ path, reason }) => `${path}:${reason}`)).toEqual([
+            'media[2].trackId:DUPLICATE_ITEM',
+            'songTexts[1].trackId:DUPLICATE_ITEM',
+            'clearAudio[1].trackId:DUPLICATE_ITEM',
+        ]);
+    });
+});
+
 describe('POST /api/albums/:id/scan/apply: create', () => {
     it('should create the track from its audio, MV and song text and rebuild the catalog', async () => {
         await putMediaFiles(['05 太平門.m4a', '05 太平門.mp4']);
@@ -369,6 +389,68 @@ describe('POST /api/albums/:id/scan/apply: media and missing audio', () => {
         ]);
         expect(await trackRow('komorebi-09')).toMatchObject({ audio_key: null, mv_key: null });
         expect(await countOf('tracks')).toBe(3);
+    });
+
+    it('should count a manually assigned audio as the anchor for the text and the MV', async () => {
+        await insertScanTrack(2, { audio_key: 'other/x.m4a', audio_manual: 1 });
+        await putMediaFiles(['02 b.mp4']);
+        const etag = await putMedia('02 b.txt', TEXT_05);
+        const { body } = await apply({
+            media: [{ trackId: 'komorebi-02', kind: 'mv', key: mediaKey('02 b.mp4') }],
+            songTexts: [{ trackId: 'komorebi-02', key: mediaKey('02 b.txt'), etag }],
+        });
+        expect(body.media).toEqual({ applied: 1, skipped: [] });
+        expect(body.songTexts).toEqual([{ trackId: 'komorebi-02', ok: true }]);
+        expect(await trackRow('komorebi-02')).toMatchObject({
+            audio_key: 'other/x.m4a',
+            mv_key: mediaKey('02 b.mp4'),
+            title: '太平門',
+        });
+    });
+
+    it('should never clear a manually assigned audio', async () => {
+        await insertScanTrack(9, { audio_key: mediaKey('09 a.m4a'), audio_manual: 1 });
+        const { body } = await apply({
+            clearAudio: [{ trackId: 'komorebi-09', audioKey: mediaKey('09 a.m4a') }],
+        });
+        expect(body.clearAudio[0]).toMatchObject({ ok: false, code: 'STALE' });
+        expect(await trackRow('komorebi-09')).toMatchObject({
+            audio_key: mediaKey('09 a.m4a'),
+            audio_manual: 1,
+        });
+    });
+
+    it('should keep a manually assigned MV when clearing the audio', async () => {
+        await insertScanTrack(9, {
+            audio_key: mediaKey('09 a.m4a'),
+            mv_key: 'other/v.mp4',
+            mv_manual: 1,
+        });
+        const { body } = await apply({
+            clearAudio: [{ trackId: 'komorebi-09', audioKey: mediaKey('09 a.m4a') }],
+        });
+        expect(body.clearAudio[0]).toMatchObject({ ok: true });
+        expect(await trackRow('komorebi-09')).toMatchObject({
+            audio_key: null,
+            mv_key: 'other/v.mp4',
+            mv_manual: 1,
+        });
+    });
+
+    it('should clear the matched MV link too when the MV file is still in the folder', async () => {
+        await insertScanTrack(9, { audio_key: mediaKey('09 a.m4a'), mv_key: mediaKey('09 a.mp4') });
+        await putMediaFiles(['09 a.mp4']);
+        const { body } = await apply({
+            clearAudio: [{ trackId: 'komorebi-09', audioKey: mediaKey('09 a.m4a') }],
+        });
+        expect(body.clearAudio[0]).toMatchObject({ ok: true });
+        // S-135：冇音檔就冇 MV；歌本身（歌名、credit、歌詞、id）留低
+        expect(await trackRow('komorebi-09')).toMatchObject({
+            id: 'komorebi-09',
+            title: 'Track komorebi-09',
+            audio_key: null,
+            mv_key: null,
+        });
     });
 
     it('should answer with empty results for the lists it was not given', async () => {
