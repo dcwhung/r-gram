@@ -2,7 +2,8 @@
  * T-027 初始資料：只入專輯（Technical Spec「CR-006 → 初始資料只入專輯」、Functional Spec D59、D64）。
  * discography.json 嘅 albums[] → D1（id、碟名、字母、類別、序號、年份、唱片公司、次序；專輯色中性灰；
  * folder、封面欄 NULL）。唔入歌、credit、封面。之後生成一次 catalog（updated_by = seed）。
- * 由 src/seed/worker.ts 行（scripts/seed.mjs 用 wrangler 喺本機開佢，同 `wrangler dev` 同一份本機 D1 / R2）
+ * 由 src/seed/worker.ts 行（scripts/seed.mjs 用 wrangler 喺本機開佢，同 `wrangler dev` 同一份本機 D1 / R2）。
+ * 只做本機；production 用 albumsSql.ts 生成嘅 seed/albums.sql（review W-034）
  */
 import {
     NEUTRAL_ACCENT,
@@ -13,6 +14,7 @@ import {
 } from '@r-gram/catalog';
 import { rebuildCatalog, statusOf, type RebuildEnv } from '../catalog/rebuild';
 import type { CatalogStatus } from '../catalog/state';
+import { SEED_ALBUM_COLUMNS } from './albumsSql';
 
 /** catalog_state.updated_by（Technical Spec「catalog_state」） */
 export const SEED_ACTOR = 'seed';
@@ -30,8 +32,7 @@ export interface SeedReport {
  * 兩樣喺 planAlbumSeed() 已經揀過，呢度係同一句 SQL 嘅保險（讀同寫之間有人改）
  */
 const INSERT_SQL = `
-    INSERT INTO albums (id, title, wheel_key, year, category, category_no, label, accent,
-        sort_order, created_at, updated_at)
+    INSERT INTO albums (${SEED_ALBUM_COLUMNS})
     SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10
     WHERE NOT EXISTS (SELECT 1 FROM albums WHERE category = ?5 AND category_no = ?6)
     ON CONFLICT (id) DO NOTHING`;
