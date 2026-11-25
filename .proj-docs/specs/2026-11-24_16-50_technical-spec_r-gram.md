@@ -4,7 +4,7 @@
 **日期**：2026-11-25 08:06（v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
 **作者**：Architect Agent（v1.2：Project Manager Agent 跟 CR-003 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
 **關聯 Functional Spec**：v1.4（包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：**v1.2**（CR-003）。跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。播放端設計稿第 16 版、管理端設計稿第 2 版同 Implementation Plan A-7 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
+**狀態**：**v1.2**（CR-003）。跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -130,7 +130,7 @@ src/
 ├── playback/       audioEngine.ts、queue.ts（純函數）、playModes.ts、mediaSession.ts、resume.ts
 ├── mv/             videoEngine.ts、volumeGain.ts（Web Audio）
 ├── favourites/     store.ts、favouritesAlbum.ts（由收藏砌出虛擬專輯）
-├── lyrics/         loader.ts、activeLine.ts
+├── lyrics/         loader.ts、activeLine.ts；第 17 版：歌詞斷行同長行策略嘅純函數（`wrapLine`、`fitLyricLine`；檔名由 T-082 定案）
 ├── pwa/            updateManager.ts
 ├── styles/         tokens.css、global.css
 ├── i18n/           zh-Hant.ts（語言檔）、t.ts、locale.ts、writtenChinese.test.ts（CR-002：FR-037）
@@ -155,10 +155,25 @@ src/
 | 姿勢 | 條件 |
 | --- | --- |
 | `playing`（落針 99°，小燈著） | 播放狀態 `playing`，`overlay ≠ mv`，`viewAlbumId` = 播緊嘅碟 |
-| `lifted`（升針：角度唔變，成支臂放大少少、落影移遠；設計稿第 16 版 `ARM_LIFT`） | 播放狀態 `paused` 而且係用戶㩒唱片夾暫停，`overlay ≠ mv`，`viewAlbumId` = 停低嗰隻碟 |
+| `lifted`（升針：角度唔變，成支臂放大少少、落影移遠；設計稿第 17 版 `ARM_LIFT`，由第 16 版起） | 播放狀態 `paused` 而且係用戶㩒唱片夾暫停，`overlay ≠ mv`，`viewAlbumId` = 停低嗰隻碟 |
 | `parked`（泊位 176°） | 其餘：未揀歌、`overlay = mv`、MV 熄咗之後未再播。Functional Spec D36（已確認）：重開 app 回復上次嘅歌、播完最後一首、載入失敗、睇緊另一隻碟 |
 
 要分得出「用戶暫停」同「因為 MV／重開 app 而停」：播放 store 記低暫停原因（例如 `pauseReason: 'user'｜'mv'｜'restore'`），做法由 T-038 定案。`lifted → playing` 冇轉動（即刻續播）；`parked → playing` 行完整落針動作。
+
+**唱針開場同姿勢之間嘅動作**（⚠️ 設計稿第 17 版，用戶 2026-11-25 確認；Functional Spec FR-040「唱針開場」）：
+
+| 轉換 | 動作 | 時長（`config/motion.ts`） |
+| --- | --- | --- |
+| `parked → playing`（由泊位開始播：揀歌之後第一次播、MV 熄咗之後再播、重開 app 之後第一次播；D36 其餘泊位情況一樣） | 兩段：① 升高住（`ARM_LIFT` 嘅放大同落影）由 176° 轉去 99°；② 放低唱針（放大同落影返原位）。針頭小燈同碟嘅轉動延遲到 ② 完咗先開始 | ① `tonearmMs` 650（現有）；② `tonearmDropMs` 160（新）；延遲 = 兩個相加（810），唔另外寫死 |
+| `lifted → playing`（暫停之後再播） | 只做 ②，冇轉動 | `tonearmDropMs` 160 |
+| `playing → lifted`（用戶暫停） | ② 倒轉：升起唱針 | `tonearmDropMs` 160 |
+| 去 `parked`（開 MV、播完最後一首、載入失敗） | 轉返泊位（照舊） | `tonearmMs` 650 |
+| 減少動態效果 | 全部冇動畫，直接到位；小燈同碟唔延遲 | 0 |
+
+- 新 token 名（`tonearmDropMs`、CSS `--motion-scene-tonearm-drop`）係建議，由 T-042 定案；`motion.test.ts` 同 `tokens.node.test.ts` 要鎖住數值。小燈淡入用現有回饋類 token（設計稿 0.12s）。
+- 設計稿嘅做法可以照用：`parked → playing` 嗰刻畀唱臂一個開場 class，行 `armSwing`（650ms）再行 `armDrop`（160ms，延遲 650ms）兩個 CSS keyframes；播完要除走個 class，否則佢最後一格會蓋住之後嘅 `lifted`。狀態機唔等 `animationend`（實現注意事項 11）：class 嘅加同除只係顯示層嘅事。
+- 開場跟「開始播」走，唔係跟畫面切換走：轉碟期間唱臂本身淡出；睇完另一隻碟返去播緊嗰隻碟，`pose` 會由 `parked` 變 `playing`，但唔應該再行一次開場（建議做法，由 T-038 定案）。
+- 出聲時間照實現注意事項 1：② 完嗰刻出聲；`audioEngine` 介面由 T-011 定案。
 
 **版面系統**（`stage/`）
 
@@ -181,13 +196,13 @@ src/
 | --- | --- | --- |
 | 旗幟 | `<canvas>` 2D，移植 mockup 嘅布料網格 | DPR 上限 2；網格密度係常數，真機唔夠 30fps 就降；reduced-motion 畫一格靜止 |
 | CD | SVG `<g>`：封面用 evenodd `clipPath` 挖走碟孔，銀邊同膠圈係 SVG 圖形；以設計稿嘅畫圖半徑 500 畫，再由外層 `scale(r / 500)` 放大 | 轉動用 CSS animation，長駐喺封面，暫停只切換 `animation-play-state`（停喺原位）。同一個 SVG 入面保證唔到獨立合成層：真機預覽（Implementation Plan R-005）要量轉碟時嘅 fps。換碟時以專輯 id 做 `key`，新封面先會由 0° 開始 |
-| 唱臂 | SVG `<g>`，CSS `rotate` | 時長用 scene token；三個姿勢（泊位 / 落針 / 升針，CR-003 決定 11） |
+| 唱臂 | SVG `<g>`，CSS `rotate` | 時長用 scene token；三個姿勢（泊位 / 落針 / 升針，CR-003 決定 11）；由泊位開始播有兩段開場（轉入 650ms → 放低 160ms，第 17 版；見上面「唱針開場」） |
 | 金屬面 / 掣 / 旋鈕 / 螺絲 / 轉盤 / 唱片夾 | SVG gradient 同 filter，集中喺一個共用 `<defs>`（`components/metal/SvgDefs.tsx`；id 同引用共用 `defIds.ts` 嘅常數） | 光圈用 CSS；感應範圍係零件上面一個透明圖形（圓形，半徑按 44pt 換算） |
-| 轉碟旋鈕 + 字母盤（CR-002 取代 Wheel） | SVG；pointer 拖動旋鈕（吸附去最近一格） | `role="listbox"`；方向鍵可操作；角度由 `scaleAngle()` 計（CR-003：弧固定、專輯平均分佈） |
+| 轉碟旋鈕 + 字母盤（CR-002 取代 Wheel） | SVG；pointer 拖動旋鈕（吸附去最近一格） | `role="listbox"`；方向鍵可操作；角度由 `scaleAngle()` 計（CR-003：弧固定、專輯平均分佈）。第 17 版：邊格出字母、邊格出細點由純函數 `dialShowsLetter()` 決定（Functional Spec D28）；出細點嘅格照舊係 listbox 嘅 option，無障礙名稱唔變 |
 | 歌單 | SVG `<text>` 行，用 `arcRows()` 沿弧線排（以碟心做原點；T-037 定案） | 拖動 / 滾輪捲動 + 吸附；`role="listbox"` |
 | 電視 | SVG 機身（同一個畫布）；`<video>` 係疊喺畫布上面嘅 HTML element，用 `clip-path: path()` 裁成弧面螢幕，位置由幾何表換算；掃描線用 CSS 疊層 | 獨立 chunk，㩒 MV 掣先載入；T-060 定案 |
 | 模糊層 | 唱片機層 `filter: blur()` | 唔用 mockup 嘅 `blurBackdrop()` |
-| 歌書（曲詞編監 + 歌詞） | SVG `<text>`，歌詞用 `arcRows()`（T-072、T-082 定案） | 獨立 chunk |
+| 歌書（曲詞編監 + 歌詞） | SVG `<text>`。有時間標記嘅歌詞用 `arcRows()`，而家嗰行太長就喺框入面斷行；冇時間標記嘅歌詞係直身一欄，可以上下捲（第 17 版；見「播放端設計稿第 17 版嘅技術設計」。T-072、T-082 定案） | 獨立 chunk |
 
 ### 組件圖：`apps/api`
 
@@ -463,7 +478,7 @@ POST /api/albums/:id/scan/apply ─► 寫入非手動指定嘅配對（手動�
 
 `t` 係毫秒、已按時間排序、已套用 `[offset:]`；空白 `text` = 間奏（唔 highlight 任何一行）。
 
-⚠️ CR-003（Functional Spec D32，已確認）：加 `synced`。純文字歌詞係 `{ "synced": false, "lines": [{ "text": "第一句歌詞" }, { "text": "" }] }`：冇 `t`，空白 `text` = 分段；播放端唔行 `activeLine()`，歌書唔跟歌行（顯示方式：Functional Spec D38，已確認）。
+⚠️ CR-003（Functional Spec D32，已確認）：加 `synced`。純文字歌詞係 `{ "synced": false, "lines": [{ "text": "第一句歌詞" }, { "text": "" }] }`：冇 `t`，空白 `text` = 分段；播放端唔行 `activeLine()`，歌書唔跟歌行（顯示方式：Functional Spec D38，已確認；設計稿第 17 版修訂為直身一欄，自動斷行、上下捲。JSON 格式唔使改：斷行只喺播放端顯示時做，空白 `text` 照舊係分段）。
 
 ---
 
@@ -682,7 +697,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 | 風險 | 可能性 | 影響 | 應對方案 |
 | --- | --- | --- | --- |
-| iOS 要喺用戶手勢入面先播到聲，但設計係㩒 play 之後約 1.5 秒（落針）先出聲 | 高 | 高 | 手勢入面即刻解鎖 `<audio>`（靜音 `play()`），落針嗰刻先由頭出聲；M0 真機驗證（見實現注意事項 1） |
+| iOS 要喺用戶手勢入面先播到聲，但設計係㩒 play 之後約 1.5 秒（落針）先出聲 | 高 | 高 | 手勢入面即刻解鎖 `<audio>`（靜音 `play()`），落針嗰刻先由頭出聲；M0 真機驗證（見實現注意事項 1）。設計稿第 17 版：唱針開場本身係 0.81 秒（轉入 0.65 + 放低 0.16）；由手勢到出聲嘅總時間（連歌單收返）喺 T-010 / T-038 量 |
 | iOS 背景 / 鎖屏自動播下一首失敗 | 中 | 高 | 用同一個 `<audio>` 喺 `ended` 入面換 `src` 再 `play()`；唱片播放**唔經** Web Audio（AudioContext 喺背景會被暫停）；903-player 已有同類經驗；M0 驗證 |
 | MV 音量旋鈕（Web Audio gain）喺 iPhone 唔穩定，或者 CORS 設錯導致冇聲 | 中 | 中 | M0 驗證；特徵檢測：`video.volume` 可寫就直接用（電腦 / Android）；唔得先行 Web Audio；兩樣都唔得就退做靜音開關 |
 | 主頁改版令 v16 幾何數值作廢 | 高（已確定會改） | 中 | 幾何資料表同元件分離；改版 = 換數值 + 主頁排版元件 |
@@ -767,18 +782,18 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | --- | --- | --- |
 | 場景狀態機 | `scene`：`preload → home ⇄ wheel → list → home`；`overlay`：`mv`｜`lyrics`｜`info` | `scene`：`preload → home ⇄ discChange`、`home ⇄ list`；`overlay`：`mv`｜`booklet`。冇 `lyrics`、`info` |
 | 播放狀態 | `idle`｜`loading`｜`playing`｜`paused`｜`error` | 不變。新增衍生值：唱片夾顯示（冇 icon／play／pause + 進度圈／play + 進度圈）由 `scene` + 播放狀態計出嚟 |
-| 幾何資料表 | 初版數值由 v16 `anim.js` 抄入 | 初版數值由 `_mockups_/home-turntable/src/template.html` 嘅常數抄入（`DISC`、`PLATTER`、`ARM`、`BUTTONS`、`KNOB`、`SCALE`、`DIAL`、`ORBIT`、`LIST`、`ARC`、`CREDITS`、`TV`）。唱臂、旗幟、金屬質感、電視外觀仍然參考 v16 |
+| 幾何資料表 | 初版數值由 v16 `anim.js` 抄入 | 初版數值由 `_mockups_/home-turntable/src/template.html` 嘅常數抄入（`DISC`、`PLATTER`、`ARM`、`BUTTONS`、`KNOB`、`SCALE`、`DIAL`、`ORBIT`、`LIST`、`ARC`、`CREDITS`、`TV`）。唱臂、旗幟、金屬質感、電視外觀仍然參考 v16。⚠️ 第 17 版（已確認）新增：`PLAIN_LAYOUT`、`PLAIN`、`LONG`（歌書歌詞）、`ARM_LIFT`、`ARM_IN`（唱臂）、`DIAL_ALL_UP_TO`、`DIAL_MAX_LETTERS`、`DIAL_CLEARANCE`、`DIAL_DOT`（字母盤） |
 | 旋鈕位置 | — | 唔寫死：`KNOB.x = round(platterLeftAt(KNOB.y) / 2)`，其他裝置版面轉盤位置唔同都啱 |
 | 刻度同字母盤 | Wheel 錶盤（SVG） | `positions = 專輯數 + 1`；角度 = `fromDeg + pos × (toDeg − fromDeg) ÷ 專輯數`（⚠️ CR-003 決定 2：弧固定 185°–376.25°，♥ 喺 `toDeg`；之前係固定每格 `step`，格數按已上架專輯數）；刻度同字母共用同一個函數 |
-| 元件 | `wheel/`、`lyrics/`、`info-panel/` | 刪走；改為 `knob/`（旋鈕 + 刻度 + ♥）、`dial-ring/`（字母盤）、`booklet/`（曲詞編監 + 弧線歌詞）、`spindle/`（固定唱片夾）、`platter/` |
+| 元件 | `wheel/`、`lyrics/`、`info-panel/` | 刪走；改為 `knob/`（旋鈕 + 刻度 + ♥）、`dial-ring/`（字母盤）、`booklet/`（曲詞編監 + 弧線歌詞；第 17 版：加純文字歌詞嘅直身一欄）、`spindle/`（固定唱片夾）、`platter/` |
 | 碟 | 碟芯連唱片夾係碟嘅一部分 | 碟係空心環（封面用 evenodd clip 挖走碟孔）；唱片夾係獨立元件，DOM 次序緊接喺而家隻碟後面（之後嘅碟蓋過佢） |
 | 弧線排列 | `drawList()` 邏輯重用 | 歌單同歌書共用一個純函數 `arcRows(centre, radius, stepDeg, focusIndex)`，輸出每行位置同淡出值 |
-| 文字長度 | — | `fitText()`：量度文字闊度（canvas `measureText`），按 D22／D23 縮字、「…」或者跑馬燈；純函數部分（決定用邊個策略）有 unit test |
+| 文字長度 | — | `fitText()`：量度文字闊度（canvas `measureText`），按 D23 縮字或者用「…」（歌名）；純函數部分（決定用邊個策略）有 unit test。⚠️ 第 17 版（D22 修訂）：歌詞行唔用跑馬燈；而家嗰行先縮字（44 → 32），仍然放唔落就用 `wrapLine()` 喺框入面斷行（`fitLyricLine()` 決定策略）；其他行同純文字歌詞嘅處理見「播放端設計稿第 17 版嘅技術設計」 |
 | Favourites 碟面 | — | App 內建靜態圖（唔經管理端）：由用戶提供嘅 logo 生成嘅透明 PNG／SVG；正式用要高清檔 |
 | Catalog | 專輯有 `type`、`label`、`releaseDate` | 播放端唔再用 `type`、`label`、`releaseDate`（只用 `year`）；欄位照留喺 catalog，方便之後用，唔影響 API |
 | 淨空規則 | — | `stage/layouts/*.test.ts`：對每份幾何表驗 Functional Spec CR-002 嘅淨空規則（掣同 CD ≥ 16、控件同轉盤 ≥ 40、細掣同旋鈕 ≥ 40、螺絲周圍 120、旋鈕左右空白相差 ≤ 2、感應範圍 ≥ 44pt 唔重疊）。加裝置版面時同一組測試照跑。⚠️ CR-003：44pt 以 390pt 闊做基準；「唔重疊」同「螺絲周圍」要對任何專輯數都成立（測試掃 1 至 30 張） |
 | 動畫 | scene token | 新增：轉碟 0.5s（字母盤、其他碟滑入、唱臂同細掣淡出）、指針轉動 0.5s；全部用現有 `--motion-scene-*`；preview 嘅做法（只改 `transform`／`opacity`，靠 CSS transition）可以照用 |
-| 字母盤過場（FR-038） | — | 底盤：`scale` 由 0.42（內圈貼旋鈕邊）去 1，0.5s，打開用回彈曲線；字母：每個獨立 `transform` + `opacity`，0.26s，用 `transition-delay` 做順時針逐個出（打開每格 14ms、收返每格 8ms，由最尾一格先收）。延遲由格數計，唔寫死 17。⚠️ CR-003：打開嘅總時間固定 0.5s，每格延遲 = (0.5s − 0.26s) ÷ (格數 − 1)，最多 14ms（做法跟設計稿第 16 版，T-036 定案） |
+| 字母盤過場（FR-038） | — | 底盤：`scale` 由 0.42（內圈貼旋鈕邊）去 1，0.5s，打開用回彈曲線；字母：每個獨立 `transform` + `opacity`，0.26s，用 `transition-delay` 做順時針逐個出（打開每格 14ms、收返每格 8ms，由最尾一格先收）。延遲由格數計，唔寫死 17。⚠️ CR-003：打開嘅總時間固定 0.5s，每格延遲 = (0.5s − 0.26s) ÷ (格數 − 1)，最多 14ms（做法跟設計稿第 17 版 `DIAL_MOTION`，T-036 定案）。第 17 版：出細點嘅格同字母用同一組 `transform` + `opacity` 同延遲 |
 | MV 電視過場（FR-038） | 升起 + CRT 開熄（v16） | CSS keyframes：`tvRise` 0.8s（回彈）→ `crtOn` 0.22s（0.7s 開始）；`crtOff` 0.15s → `tvDrop` 0.45s；天線 `scale` 彈出／縮返；背後模糊層疊喺清晰層上面做 `opacity` 淡入淡出（唔對 `filter: blur` 做動畫，慳 GPU）。熄機期間（約 0.63s）鎖住電視掣，完咗先轉場景狀態。時長全部入 `config/motion.ts` |
 | 歌書過場（FR-038） | — | 打開 0.4s：暗層 `opacity`；框線以唱片夾嗰邊做原點 `scaleX(0 → 1)`（`vector-effect: non-scaling-stroke`）；歌詞每行以碟心做原點 `rotate(k × step → 0)` + `opacity`；曲詞編監逐行 `translateX` + `opacity`（每行遲 40ms）；左上資訊黑字墊底、白字淡入。收返 0.24s 倒轉，期間鎖住 i 掣，完咗先轉場景狀態。歌單日後要加過場可以重用同一組（`arcRows()` 已經以碟心做原點） |
 | 減少動態效果 | `prefersReducedMotion` | 上面三組過場喺 `prefers-reduced-motion: reduce` 下時長 = 0，狀態即時切換 |
@@ -797,14 +812,14 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | FR-033 歌書 | `components/booklet`、`lyrics/activeLine.ts`、`stage/arcRows.ts`、catalog `tracks[].credits` |
 | FR-034 Preload 文字 | `components/flag`（版本號用 build 注入嘅值） |
 | FR-035 刻度同字母盤自動生成 | `components/knob`、`components/dial-ring`、catalog `albums[].wheelKey` |
-| FR-036 超長文字 | `utils/fitText.ts` |
+| FR-036 超長文字 | `utils/fitText.ts`（歌名）；第 17 版：歌詞行用 `wrapLine()`、`fitLyricLine()`（`lyrics/`） |
 | FR-037 介面語言同 i18n | `apps/player/src/i18n/`、`apps/admin/src/i18n/`、兩邊嘅 `writtenChinese.test.ts`、寫死文字測試 |
 | FR-038 過場動畫 | `components/dial-ring`、`components/booklet`、`components/tv`、`config/motion.ts`、`utils/motion.ts` |
 | FR-017 Info | 刪 |
 
 ## CR-003 對技術設計嘅影響
 
-同 CR-002 唔同，今次 Backend、API、資料庫都受影響。本節取代上文同佢有出入嘅地方；受影響嘅表已喺原位改（標 ⚠️ CR-003）。「狀態」欄對應 Functional Spec D30–D39 嘅行：用戶 2026-11-25 已確認（D33 係技術決定，唔使用戶確認；D35 等管理端設計稿第 2 版確認）。寫「等確認」嘅係設計稿，確認之前靠佢嘅任務唔開工。
+同 CR-002 唔同，今次 Backend、API、資料庫都受影響。本節取代上文同佢有出入嘅地方；受影響嘅表已喺原位改（標 ⚠️ CR-003）。「狀態」欄對應 Functional Spec D30–D39 嘅行：用戶 2026-11-25 已確認（D33 係技術決定，唔使用戶確認；D35 等管理端設計稿第 2 版確認）。寫「等確認」嘅係設計稿，確認之前靠佢嘅任務唔開工：播放端設計稿第 17 版用戶 2026-11-25 已確認，淨返管理端設計稿第 2 版。
 
 | 範疇 | v1.1 | v1.2 | 狀態 |
 | --- | --- | --- | --- |
@@ -820,10 +835,10 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | 統計 | API-010 每張專輯嘅完整度 | API-010 加全站統計（專輯數、歌曲數、有音檔 / 歌詞 / MV 嘅歌數、有封面嘅專輯數） | 決定 9 已確認；項目 D35 **待確認**（等管理端設計稿第 2 版） |
 | 場景零件 | 逐個元件 `<div>` / `<img>` / inline SVG | 單一 `<svg>` 畫布（`stage/StageSvg.tsx`），零件係 React SVG 元件；共用 `<defs>`（`metal/SvgDefs.tsx`、`defIds.ts`） | 決定 4 已確認（T-033 已做） |
 | 高身手機 | 舞台 9:16 按比例 | `StageSvg`：「貼頂」組唔郁，「貼底」組 `translate(0, extraUnits)` | 決定 1 已確認（T-033 已做） |
-| 刻度弧 | 角度 = `fromDeg + pos × stepDeg`（固定 11.25°） | 幾何表 `scale: { fromDeg: 185, toDeg: 376.25, … }`，刪 `stepDeg`；`scaleAngle(layout, pos, albumCount)` = `fromDeg + pos × (toDeg − fromDeg) ÷ albumCount`；♥ 永遠喺 `toDeg` | 決定 2 已確認；設計稿第 16 版等確認 |
-| 淨空測試 | `SUPPORTED_POSITIONS = [8, 9, 10, 15, 16, 17, 18]` | ♥ 位置固定，感應範圍同螺絲規則同專輯數無關：測試改為掃 1 至 30 張全部過。唔設專輯數硬上限；字母盤可讀性（約 24 張清楚、30 張貼埋；21 張起而家嗰格嘅放大字可能要縮）唔入測試，到時先處理 | 決定 2 已確認 |
+| 刻度弧 | 角度 = `fromDeg + pos × stepDeg`（固定 11.25°） | 幾何表 `scale: { fromDeg: 185, toDeg: 376.25, … }`，刪 `stepDeg`；`scaleAngle(layout, pos, albumCount)` = `fromDeg + pos × (toDeg − fromDeg) ÷ albumCount`；♥ 永遠喺 `toDeg` | 決定 2 已確認；設計稿第 17 版已確認（2026-11-25） |
+| 淨空測試 | `SUPPORTED_POSITIONS = [8, 9, 10, 15, 16, 17, 18]` | ♥ 位置固定，感應範圍同螺絲規則同專輯數無關：測試改為掃 1 至 30 張全部過。唔設專輯數硬上限。字母盤可讀性：⚠️ 第 17 版由 `dialShowsLetter()` 處理（碟多時每幾格先出一個字母，其餘出細點），唔使縮字；呢條規則有自己嘅 unit test（見「播放端設計稿第 17 版嘅技術設計」） | 決定 2 已確認；字母規則（D28 補充）已確認（2026-11-25） |
 | 細屏 | 感應範圍 ≥ 44pt | 以 `clearance.viewportPt = 390` 做基準（而家已經係咁計）；唔加細屏分支 | 決定 3 已確認 |
-| 唱臂 | 落針 = `playing` 而且 `overlay ≠ mv` 而且 `viewAlbumId` = 播緊嘅碟；否則泊位 | 三個姿勢 `parked｜playing｜lifted`（衍生值）；播放 store 記暫停原因；`Tonearm` 由 `playing: boolean` 改為 `pose` | 決定 11 已確認；其餘情況 D36 已確認；設計稿第 16 版等確認 |
+| 唱臂 | 落針 = `playing` 而且 `overlay ≠ mv` 而且 `viewAlbumId` = 播緊嘅碟；否則泊位 | 三個姿勢 `parked｜playing｜lifted`（衍生值）；播放 store 記暫停原因；`Tonearm` 由 `playing: boolean` 改為 `pose`。第 17 版：`parked → playing` 有兩段開場（650ms + 160ms），`lifted ⇄ playing` 只係放低／升起（160ms） | 決定 11 已確認；其餘情況 D36 已確認；設計稿第 17 版已確認（2026-11-25） |
 | 歌書 + 暫停 | 冇講 | 暫停唔改 `overlay`；`stageReducer` 唔使改 | 決定 5 已確認 |
 | 管理端 UI | 沿用 903-player `apps/admin/src/ui/` 嘅元件 | 外觀按設計稿第 2 版重做（鋁面板、螺絲、碟、儀錶）；只移植行為（裁切、拖動排序、Toast、確認對話框）。播放端嘅金屬 SVG 零件（`components/metal`、車床紋、螺絲）係咪抽去共用 package：設計稿第 2 版確認之後先定（Implementation Plan 開放問題） | 決定 9 已確認；設計稿第 2 版等確認 |
 | 管理端主題 | — | 只做淺色；唔加 `prefers-color-scheme` 分支 | 決定 10 已確認 |
@@ -854,22 +869,62 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | `apps/player/src/stage/layouts/types.ts`、`phone.ts:44` | `scale.stepDeg: 11.25` | `toDeg: 376.25`，刪 `stepDeg` | T-042 |
 | `apps/player/src/stage/geometry.ts:30-31` 同用到 `scaleAngle` 嘅 `heartPoint`、`heartHitPoint`、`screwGap` | 每格固定角度；♥ = 最尾一格 | 角度按專輯數平均分；♥ 用 `toDeg` | T-042 |
 | `apps/player/src/stage/geometry.test.ts:20-21`、`layouts/clearance.test.ts`（`SUPPORTED_POSITIONS`、註解指去 B-010） | 只列 7 個過到嘅格數 | 改為任何專輯數都過；刪 B-010 註解 | T-042 |
-| `apps/player/src/components/tonearm/Tonearm.tsx:15,82`、`armShape.ts`、`Tonearm.test.tsx`、`partsMarkup` snapshot | `playing: boolean`（落針 / 泊位） | `pose: 'parked'｜'playing'｜'lifted'`；升針照設計稿第 16 版 `ARM_LIFT` | T-042 |
+| `apps/player/src/components/tonearm/Tonearm.tsx:15,82`、`armShape.ts`、`Tonearm.test.tsx`、`partsMarkup` snapshot | `playing: boolean`（落針 / 泊位） | `pose: 'parked'｜'playing'｜'lifted'`；升針照設計稿第 17 版 `ARM_LIFT`；唱針開場照 `ARM_IN`（`armSwing` 650ms → `armDrop` 160ms），`config/motion.ts`、`tokens.css` 加 160ms 嘅 token（連 `motion.test.ts`、`tokens.node.test.ts`） | T-042 |
 | `apps/player/src/stage/StageSvg.tsx:16` | 註解「backlog B-009：等用戶睇過預覽再定」 | 改註解（決定 1 已定） | T-042 |
 | `apps/player/src/app/TurntableShell.tsx` | 暫時外殼：暫停 = 泊位 | T-035 取代呢個檔時跟新規則 | T-035 |
 | `apps/player/src/app/stageReducer.ts` | — | 唔使改 | — |
 
 上面嘅檔案屬於已凍結嘅 QA 鏈（`api-auth`、`catalog-core`、`player-foundation`），改完要按 validation gate 重驗有改動嘅部分。
 
+### 播放端設計稿第 17 版嘅技術設計（用戶 2026-11-25 確認）
+
+對應 Functional Spec §CR-003「補充：播放端設計稿第 17 版」。只影響 `apps/player`；Backend、API、資料庫、歌詞 JSON 唔使改。數值全部嚟自 `_mockups_/home-turntable/src/template.html` 嘅常數（1080 × 1920 基準），抄入 `stage/layouts/phone.ts`，元件只讀表；時長入 `config/motion.ts`。寫「定案」嘅細節留畀嗰個任務。
+
+**歌書歌詞版面**（T-082）
+
+| 範疇 | 做法 | 設計稿常數 |
+| --- | --- | --- |
+| 揀邊個版面 | 歌詞 JSON `synced = true` → 弧線版面（`activeLine()`）；`synced = false` → 直身一欄，唔行 `activeLine()` | — |
+| 斷行（共用純函數） | `wrapLine(line, size, width, indentEm, measure)` → 每列 `{ text, indent }`。規則：喺全形／半形空格後面切成詞，成個詞放唔落就開新列；一個詞自己都放唔落先逐字斷；行尾嘅空格唔計闊度，亦唔會帶去下一列嘅開頭；續列縮入 `indentEm × size`。量字闊嘅函數由外面注入（瀏覽器用 canvas `measureText`，同 `fitText()` 共用；unit test 用固定字闊），所以規則可以唔靠 DOM 測試 | `wrapLine` |
+| 字體載入 | 量字闊要用同畫面一樣嘅字體；字體未載入完就量會斷錯位，`document.fonts.ready` 之後要重新斷一次（Lubalin Graph／Rokkitt 字闊唔同，見技術風險） | — |
+| 純文字：直身一欄 | 幾何表加一組：左邊 x = 230、右邊界 = 唱片夾窿左邊再留 20（= 碟心 x − 碟半徑 × 0.16 − 20 = 808，由幾何計，唔寫死）、頂 690、底 1650、字級 30、行距 = 字級 × 1.45、續行縮入 1 個字。全部列同一個字重同透明度；冇框線；歌詞 JSON 入面空白 `text` = 空一列 | `PLAIN_LAYOUT`、`PLAIN` |
+| 純文字：捲動 | 元件自己記捲動位置（0 至 列數 × 行距 − 可見高度），pointer 拖動同滾輪改 `translateY`，唔吸附；同歌單一樣係元件內部手勢（`touch-action: none`，實現注意事項 13）。只 render 可見範圍上下各多一列。播放／暫停唔改位置。換歌返去頂（建議）、鍵盤同螢幕閱讀器嘅做法由 T-082 定案 | `plainLyrics` |
+| 純文字：淡出 | SVG `mask` + 直向 `linearGradient`，淡出高 110：頂邊只喺捲咗（位置 > 0）先淡，底邊只喺下面仲有（位置 < 最大值）先淡 | `PLAIN.fade` |
+| 有時間標記：而家嗰行 | `fitLyricLine(text, measure)` 決定策略：字級 44 一列放得落 → 照舊；縮到最細 32 一列放得落 → 縮字；仍然放唔落 → `wrapLine(text, 32, 框內闊, 0)`（續列唔縮入，左邊對齊）。框內闊 = 唱片夾窿邊留 10 至框線左邊（碟心 x − 弧線半徑）再留 24（而家嘅數 = 410）。斷咗行：列距 44，框線高 = 列數 × 44 + 34（一列時照舊 92）。唔做跑馬燈 | `LONG`（`size`、`pitch`、`pad`、`inset`、`rim`） |
+| 有時間標記：其他行 | 各佔一列，唔斷行。闊過右邊界就用 `clipPath` + 橫向 `linearGradient` 淡出（闊 110），唔加「…」。右邊界：行嘅中心離碟心高度少過「唱片夾窿半徑 + 20」（132）→ 去到唱片夾之前（同純文字欄嘅右邊界，808）；其餘 → 畫面闊 − 40。長行版面入面其他行由框線邊起計（隔 14），字級 28、行距 50、上下各 3 行，x 跟弧線（碟心 x − √(弧線半徑² − 高度差²)） | `LONG`（`other`、`otherPitch`、`gap`、`around`、`fade`、`edge`）、`CLAMP_BAND` |
+| 有時間標記：換行 | `activeLine()` 變咗，成組沿弧線移動；`prefers-reduced-motion` 直接切換。時長 token 由 T-082 定案 | `longLyrics` |
+| 未定嘅細節（T-082 定案，照設計稿「歌書」同「試排版」兩格） | ① 短行用 `ARC`（其他行字級 32、每行隔 9.2°）、長行用 `LONG`（其他行字級 28、行距 50）：同一首歌入面長短行交替時點樣過渡。② 高身手機：純文字欄頂邊跟「貼頂」組、底邊跟「貼底」組（Functional Spec 建議），多出嚟嘅高度畀歌詞欄 | — |
+| 測試 | `wrapLine`、`fitLyricLine`：unit test（空格優先、逐字斷、行尾空格、續列縮入、空行）。直身一欄嘅右邊界同頂底入幾何表，加入淨空規則測試（唔入唱片夾窿、唔掂三粒細掣同旋鈕刻度）。截圖比對：設計稿「歌書（歌詞冇時間標記）」同「試排版」兩格 | — |
+
+**字母盤嘅字母**（T-036）
+
+| 範疇 | 做法 | 設計稿常數 |
+| --- | --- | --- |
+| 規則（純函數） | `dialLetterEvery(positions)`：`positions ≤ 18` → 1；否則 `⌈(positions − 1) ÷ 9⌉`（`positions` = 專輯數 + 1）。`dialShowsLetter(pos, current, positions)`：`pos = current` 永遠 true；`every = 1` 全部 true；`pos % every ≠ 0` → false；其餘要離揀中嗰格同離 ♥（最尾一格）嘅弧長都 ≥ 淨空先 true | `dialLetterEvery`、`dialShowsLetter` |
+| 淨空 | 字母半徑（237）× 18 格時一格嘅弧度（11.25°）× 1.3 ≈ 60.5；由幾何表嘅數計出嚟，唔寫死 | `DIAL_CLEARANCE` |
+| 數值放邊 | `layouts/phone.ts` 嘅字母盤一組加：全部出字母嘅格數上限 18、字母數上限 9、淨空倍數 1.3、細點半徑 2.2；細點顏色（`#8f8f8b`）入 `tokens.css` | `DIAL_ALL_UP_TO`、`DIAL_MAX_LETTERS`、`DIAL_DOT` |
+| 繪圖 | 冇出字母嘅格畫一粒細點（`<circle>`），位置、過場同字母一樣；刻度線照舊每張專輯一條 | `dialDot` |
+| 測試 | 掃 1 至 30 張 × 每個揀中位置：揀中嗰格一定出字母；`positions ≤ 18` 全部出字母；出字母嘅格（唔計揀中）最多 9 個；冇字母喺揀中嗰格或者 ♥ 嘅淨空之內 | — |
+
+**唱臂**（T-042；狀態同時長見「場景狀態機」下面嘅「唱針開場同姿勢之間嘅動作」）
+
+| 範疇 | 做法 | 設計稿常數 |
+| --- | --- | --- |
+| 姿勢 | `pose: 'parked'｜'playing'｜'lifted'`（衍生值，唔另外存） | `armOnDisc`、`armLifted` |
+| 開場 | `parked → playing`：`armSwing` 650ms → `armDrop` 160ms；小燈同碟轉延遲 810ms（兩個 token 相加） | `ARM_IN`、`ARM_IN_MS` |
+| 升針嘅樣 | 成支臂 `scale(1.018)`，落影由 (5, 9) 移去 (14, 25) | `ARM_LIFT` |
+| Token | `config/motion.ts`、`tokens.css` 加放低／升起唱針嘅 160ms；`tonearmMs` 650 不變 | — |
+
 ### Functional Spec 對照（CR-003 新增／改動）
 
 | Functional 需求 | 技術落點 |
 | --- | --- |
 | FR-039 高身手機 | `stage/StageSvg.tsx`、`stage/fitStage.ts`（`extraUnits`） |
-| FR-040 暫停時嘅唱臂 | `components/tonearm`（`pose`）、播放 store（暫停原因）、`config/motion.ts` |
-| FR-035 刻度弧（改） | `stage/geometry.ts`（`scaleAngle`）、`stage/layouts/*.ts`（`scale.toDeg`）、`components/knob`、`components/dial-ring` |
+| FR-040 暫停時嘅唱臂、唱針開場（第 17 版） | `components/tonearm`（`pose`、開場 class）、播放 store（暫停原因）、`config/motion.ts`（`tonearmMs` + 新嘅 160ms token）、`styles/tokens.css` |
+| FR-035 刻度弧（改）、字母盤嘅字母（第 17 版） | `stage/geometry.ts`（`scaleAngle`、`dialShowsLetter`）、`stage/layouts/*.ts`（`scale.toDeg`、字母盤嘅上限同淨空）、`components/knob`、`components/dial-ring` |
 | FR-032 淨空（改） | `stage/layouts/clearance.test.ts` |
-| FR-033 歌書（改） | `components/booklet`；歌詞 JSON `synced`（D32） |
+| FR-033 歌書（改） | `components/booklet`；歌詞 JSON `synced`（D32）。第 17 版：`synced = false` 用直身一欄（`wrapLine`、捲動、頂底淡出） |
+| FR-036 超長歌詞行（第 17 版改） | `lyrics/` 嘅 `wrapLine()`、`fitLyricLine()`；`components/booklet`（框線變高、其他行右邊淡出）。冇跑馬燈 |
 | FR-120 歌曲文字框 | `packages/catalog/song-text`、API-020、API-040、API-041、`apps/admin`（文字框 + 檢查結果） |
 | FR-121 儲存即生效 | `apps/api/src/catalog/rebuild.ts`、API-061、`catalog_state`、API-014 / API-022（ID 守衛） |
 | FR-122 管理端外觀 | `apps/admin`：按 `_mockups_/admin/` 第 2 版；只做淺色 |
@@ -887,3 +942,4 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | v1.1 Approved | 2026-11-25 00:07 | 用戶確認；狀態改 Approved。內容冇改 |
 | v1.2 | 2026-11-25 08:06 | 跟 Functional Spec v1.4（**CR-003**）更新：加「CR-003 對技術設計嘅影響」一節（對照表、`parseSongText()` 規則、已完成 code 受影響清單）。Backend：冇草稿同發佈，每次寫入之後生成 catalog（核心原則 1、數據流 A、API-061）；刪 `enabled` 兩欄；`publishes` → `catalog_state`；`lyrics` 改欄；歌曲文字 API（API-020、API-040、API-041）；刪 API-042、API-044、API-060、API-062；ID 守衛搬去刪除。播放端：繪圖方式改為單一 SVG 畫布；狀態機補 `discChange → list` 同 `previousAlbumId`（review S-042）；唱臂三個姿勢；刻度弧固定；高身同細屏。同步已完成嘅實作（backlog B-017）：API-003 認證欄、`apps/api` 組件圖、Header 行。T1、T3 用戶已確認。標「待確認」嘅行等 Functional Spec D30–D39 |
 | v1.2（確認） | 2026-11-25 | **2026-11-25：D30–D39 確認**（CR-003 之內嘅狀態更新，唔係新 CR；版本號不變，設計內容冇改）。用戶答「嗰 8 條跟建議」：對應 D30、D31、D32、D34、D36、D37 嘅「待確認」改為已確認（內容流程、生成失敗、`catalog_state`、ID 守衛、歌曲文字、純文字歌詞同 `synced`、批量匯入同同名歌、唱臂其餘情況、`parseSongText()` 規則）。D33（儲存欄位照舊分開、`lyrics.lrc` 改名 `source`）記做技術決定，唔使用戶確認。D35（API-010 嘅統計項目）仍然待確認，等管理端設計稿第 2 版。刪走「D32 唔接受嘅話」嘅兩個後備講法（API-041 嘅 `NO_TIMED_LINES`、歌詞 JSON 唔加 `synced`）；API-024 嘅「併入」講法改清楚（API-044 併入 API-024） |
+| v1.2（第 17 版確認） | 2026-11-25 | **2026-11-25：播放端設計稿第 17 版確認**（CR-003 之內嘅補充，唔係新 CR；版本號不變）。跟 Functional Spec v1.4 嘅同名補充：加「播放端設計稿第 17 版嘅技術設計」一節：歌書歌詞版面（純文字用直身一欄，`wrapLine()` 自動斷行、上下捲、頂底淡出；有時間標記嘅長行用 `fitLyricLine()`，縮字之後喺框入面斷行、框線變高，其他行右邊淡出）、字母盤嘅字母（`dialShowsLetter()`）、唱臂。「場景狀態機」加「唱針開場同姿勢之間嘅動作」：`parked → playing` 兩段（650ms + 160ms，小燈同碟轉延遲 810ms），`lifted ⇄ playing` 只係放低／升起（160ms），減少動態效果直接到位；`config/motion.ts` 要加 160ms 嘅 token。`fitText()` 嘅跑馬燈策略刪走（D22 修訂）。狀態：刻度弧、唱臂兩行由「設計稿第 16 版等確認」改為「第 17 版已確認」。Backend、API、資料庫、歌詞 JSON 唔受影響。仍然等用戶：管理端設計稿第 2 版連 D35、A-7、A-8 |
