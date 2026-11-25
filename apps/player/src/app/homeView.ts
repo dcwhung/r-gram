@@ -15,6 +15,7 @@ import { albumArt, albumTracks, findAlbum, isPlayable } from '../catalog/selecto
 import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
 import { formatTime } from '../utils/formatTime';
+import { dialView, type DialView } from './dialView';
 import type { PlaybackState } from './playbackState';
 import type { StageState } from './stageReducer';
 
@@ -62,6 +63,18 @@ export interface HomeView {
     listOpen: boolean;
     bookletOpen: boolean;
     mvOpen: boolean;
+    /** 旋鈕、刻度、字母盤、轉盤上面嘅碟（T-036） */
+    dial: DialView;
+    /** 唱片機入面嗰隻碟（播放狀態，有歌播緊或者暫停緊）；冇 = null */
+    loadedAlbumId: string | null;
+    /** 拎住另一隻碟：有歌載入，但旋鈕指住（或者鬆手停喺）另一隻碟（CR-005 第 18 版；畫面係 T-048） */
+    holding: boolean;
+    /** 唱臂同三粒細掣淡出（揀碟期間、拎住另一隻碟時；Functional Spec D52） */
+    chromeHidden: boolean;
+    /** 左上歌名嗰部分（音量條、歌名、心形、「第 nn 首」同時間）淡出，只留碟名同年份 */
+    songHidden: boolean;
+    /** 畫面上嘅碟轉緊：播緊呢隻碟，而且唔係揀緊碟、唔係拎住另一隻碟 */
+    spinning: boolean;
 }
 
 const loadedTrack = (album: CatalogAlbum | null, stage: StageState, playback: PlaybackState) =>
@@ -77,6 +90,28 @@ const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: 
     return { accent, glow: glowColor(accent), coverUrl };
 };
 
+/** 唱片機入面嘅碟：播放狀態唔係 idle 先有 */
+const loadedAlbumOf = (playback: PlaybackState): string | null =>
+    playback.status === 'idle' ? null : playback.albumId;
+
+/**
+ * 揀碟相關嘅衍生值（Technical Spec「補充：第 18 版」）：`holding` = 載入嘅碟 ≠ 顯示嘅碟（主頁或者揀緊碟）；
+ * 揀碟期間或者拎住另一隻碟時，唱臂、細掣同歌名嗰部分淡出，碟停轉
+ */
+const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose) => {
+    const loadedAlbumId = loadedAlbumOf(playback);
+    const onHome = stage.scene === 'home' || stage.scene === 'discChange';
+    const holding = loadedAlbumId !== null && onHome && stage.viewAlbumId !== loadedAlbumId;
+    const chromeHidden = stage.scene === 'discChange' || holding;
+    return {
+        loadedAlbumId,
+        holding,
+        chromeHidden,
+        songHidden: chromeHidden,
+        spinning: pose === 'playing' && !chromeHidden,
+    };
+};
+
 const progressOf = ({ positionSec, durationSec }: PlaybackState): number =>
     durationSec ? Math.min(1, positionSec / durationSec) : 0;
 
@@ -89,12 +124,13 @@ export const homeView = (
     const album = stage.viewAlbumId ? findAlbum(document, stage.viewAlbumId) : null;
     const track = loadedTrack(album, stage, playback);
     const spindle = spindleMode(stage, playback);
+    const pose = armPose(stage, playback);
     return {
         album,
         track,
         ...colours(document, album, covers),
         spindle,
-        armPose: armPose(stage, playback),
+        armPose: pose,
         progress: progressOf(playback),
         timeText: formatTime(playback.positionSec),
         hasSong: track !== null,
@@ -103,5 +139,7 @@ export const homeView = (
         listOpen: stage.scene === 'list',
         bookletOpen: stage.overlay === 'booklet',
         mvOpen: stage.overlay === 'mv',
+        dial: dialView(document, stage, covers),
+        ...choosingView(stage, playback, pose),
     };
 };
