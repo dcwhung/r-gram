@@ -10,7 +10,8 @@ import {
     mediaUrl,
     NEUTRAL_ACCENT,
 } from '@r-gram/catalog';
-import { albumTracks, findAlbum, isPlayable } from '../catalog/selectors';
+import { coverVariantOf, type CoverVariants, NO_COVER_PICKS } from '../catalog/coverVariants';
+import { albumArt, albumTracks, findAlbum, isPlayable } from '../catalog/selectors';
 import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
 import { formatTime } from '../utils/formatTime';
@@ -68,9 +69,11 @@ const loadedTrack = (album: CatalogAlbum | null, stage: StageState, playback: Pl
         ? (album?.tracks.find((track) => track.id === playback.trackId) ?? null)
         : null;
 
-const colours = (document: CatalogDocument, album: CatalogAlbum | null) => {
+/** 封面用開 app 時揀中嗰張（CR-005 D56）；專輯色永遠跟第一張 */
+const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: CoverVariants) => {
     const accent = album?.accent ?? NEUTRAL_ACCENT;
-    const coverUrl = album?.cover ? mediaUrl(document.imageBase, album.cover) : null;
+    const cover = album ? albumArt(album, coverVariantOf(covers, album.id)).cover : null;
+    const coverUrl = cover ? mediaUrl(document.imageBase, cover) : null;
     return { accent, glow: glowColor(accent), coverUrl };
 };
 
@@ -81,6 +84,7 @@ export const homeView = (
     document: CatalogDocument,
     stage: StageState,
     playback: PlaybackState,
+    covers: CoverVariants = NO_COVER_PICKS,
 ): HomeView => {
     const album = stage.viewAlbumId ? findAlbum(document, stage.viewAlbumId) : null;
     const track = loadedTrack(album, stage, playback);
@@ -88,7 +92,7 @@ export const homeView = (
     return {
         album,
         track,
-        ...colours(document, album),
+        ...colours(document, album, covers),
         spindle,
         armPose: armPose(stage, playback),
         progress: progressOf(playback),
