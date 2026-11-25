@@ -1,7 +1,8 @@
 /*
  * D1 資料 → catalog 文件（Technical Spec API-070；packages/catalog 嘅 CatalogDocument）。
  * - 全部專輯同歌（CR-003：冇上下架）；冇歌嘅專輯照出（D39）；冇音檔嘅歌照出，audio = null（D11）
- * - 空字串 / 空白轉 null（validator 唔收空字串；type、label 例外，backlog B-005）
+ * - 空字串 / 空白轉 null（validator 唔收空字串；label 例外，backlog B-005）
+ * - CR-006（Functional Spec D63、D44）：專輯只有年份（直接輸入嘅值），冇發行日期、冇自由文字類型
  * - audio / mv 係媒體 bucket（rb-discography）嘅 key 原文，cover / thumb / lyrics 係檔名：播放端用 mediaUrl(base, key) 逐段 encode
  * - CR-005（D55）：第二張封面 cover2 / thumb2 一律出（冇 = null，同第一張一樣嘅寫法；validator 亦收冇呢兩個欄嘅舊 document）
  * 呢度唔驗證：rebuild.ts 寫入之前一定行 parseCatalogDocument()
@@ -51,27 +52,21 @@ const toTrack = (track: TrackSnapshot): CatalogTrack => ({
     lyrics: orNull(track.json_name),
 });
 
-const toAlbum = (album: AlbumSnapshot, tracks: readonly TrackSnapshot[]): CatalogAlbum => {
-    const releaseDate = orNull(album.release_date);
-    return {
-        id: album.id,
-        title: album.title,
-        wheelKey: album.wheel_key,
-        releaseDate,
-        // 年份跟發行日期：冇日期就冇年份
-        year: releaseDate === null ? null : album.year,
-        type: album.type,
-        category: album.category,
-        categoryNo: album.category_no,
-        label: album.label,
-        accent: album.accent,
-        cover: orNull(album.cover),
-        thumb: orNull(album.thumb),
-        cover2: orNull(album.cover2),
-        thumb2: orNull(album.thumb2),
-        tracks: tracks.map(toTrack),
-    };
-};
+const toAlbum = (album: AlbumSnapshot, tracks: readonly TrackSnapshot[]): CatalogAlbum => ({
+    id: album.id,
+    title: album.title,
+    wheelKey: album.wheel_key,
+    year: album.year,
+    category: album.category,
+    categoryNo: album.category_no,
+    label: album.label,
+    accent: album.accent,
+    cover: orNull(album.cover),
+    thumb: orNull(album.thumb),
+    cover2: orNull(album.cover2),
+    thumb2: orNull(album.thumb2),
+    tracks: tracks.map(toTrack),
+});
 
 /** 歌按專輯分組（snapshot 已按歌號排好） */
 const tracksByAlbum = (tracks: readonly TrackSnapshot[]): Map<string, TrackSnapshot[]> => {

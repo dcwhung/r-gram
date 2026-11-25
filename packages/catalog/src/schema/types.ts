@@ -38,10 +38,11 @@ export interface CatalogAlbum {
     title: string;
     /** 字母盤標記，1–2 個字 */
     wheelKey: string;
-    /** `YYYY-MM-DD` */
-    releaseDate: string | null;
+    /**
+     * CR-006（Functional Spec D63、D44）：只有年份（可選，`YEAR_MIN` 至 `YEAR_MAX`）；冇發行日期。
+     * 冇自由文字「類型」：要顯示就由 `category` 喺各 app 語言檔攞中文名
+     */
     year: number | null;
-    type: string;
     /**
      * CR-004（FR-124）、Technical Spec API-072：發行類別同類別內序號（由 1 起），必填。播放端唔顯示。
      * 舊版 app 存喺本機、冇呢兩個欄嘅 catalog 驗唔過，播放端當冇本機副本（未部署過，冇舊播放端要兼容）

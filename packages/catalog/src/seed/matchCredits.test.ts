@@ -1,5 +1,5 @@
 import { matchCredits } from './matchCredits';
-import { seedToCatalog, trackIdFor } from './seedToCatalog';
+import { seedToCatalog } from './seedToCatalog';
 import type { SeedCredits, SeedCreditTrack, SeedDiscography } from './types';
 
 const creditRow = (overrides: Partial<SeedCreditTrack>): SeedCreditTrack => ({
@@ -24,9 +24,7 @@ const DISCOGRAPHY: SeedDiscography = {
             categoryNo: 1,
             wheelKey: 'A',
             title: 'Apollo 18',
-            releaseDate: '2008-09-26',
             year: 2008,
-            type: '錄音室專輯',
             label: '金牌娛樂',
             tracks: [
                 { no: 1, title: 'Hero', subtitle: null },
@@ -40,9 +38,7 @@ const DISCOGRAPHY: SeedDiscography = {
             categoryNo: 2,
             wheelKey: 'B',
             title: 'Beaming',
-            releaseDate: null,
             year: null,
-            type: '精選',
             label: '',
             tracks: [
                 { no: 5, title: 'Hero', subtitle: null },
@@ -103,16 +99,6 @@ describe('matchCredits', () => {
             albums: [{ albumId: 'apollo-18', tracks: [dashes] }],
         });
         expect(result.stats).toEqual({ direct: 0, byTitle: 0, missing: 4 });
-    });
-});
-
-describe('trackIdFor', () => {
-    it.each([
-        [1, 'apollo-18-01'],
-        [15, 'apollo-18-15'],
-        [120, 'apollo-18-120'],
-    ])('should pad track %i to two digits', (no, expected) => {
-        expect(trackIdFor('apollo-18', no)).toBe(expected);
     });
 });
 

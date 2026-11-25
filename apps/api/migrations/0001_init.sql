@@ -1,6 +1,6 @@
 -- R Gram 內容資料（Technical Spec「數據庫設計」，CR-003 之後：冇上下架、冇發佈記錄；
 -- CR-004：發行類別、序號、封面同歌曲文字嘅來源 ETag）。
--- D1 未部署過，所以 CR-003、CR-004 直接改呢個檔，唔加新 migration。
+-- D1 未部署過，所以 CR-003 至 CR-006 直接改呢個檔，唔加新 migration。
 -- 時間欄一律 ISO 8601 UTC 字串（sessions.expires_at 例外：epoch ms）。
 -- CHECK 只鎖結構上唔會變嘅規則（id 格式、0 / 1、狀態值）；長度上限等可調嘅規則由 packages/catalog validator 管。
 -- TEXT PRIMARY KEY 喺 SQLite 唔會自動 NOT NULL，所以逐個寫明。
@@ -17,6 +17,7 @@ CREATE TABLE assets (
 -- albums：一隻碟一行
 --   id：^[a-z0-9]+(-[a-z0-9]+)*$（同 packages/catalog isAlbumId），建立後不變；
 --       'favourites' 係播放端虛擬專輯嘅保留字
+--   year：年份（可選，NULL = 冇）；CR-006 之後直接輸入，冇發行日期、冇自由文字類型（範圍由 API 驗）
 --   category：發行類別短名（packages/catalog RELEASE_CATEGORIES；串法待用戶確認，Functional Spec D43）
 --   category_no：類別內序號，由 1 起；同類別唔可以重覆由 API 驗（唔加 UNIQUE：兩張碟對調序號要分兩步改）
 --   cover_source_etag：上次由掃描套用嘅封面來源（cover.jpg｜png）嘅 R2 ETag；NULL = 未套用過
@@ -37,9 +38,7 @@ CREATE TABLE albums (
     ),
     title TEXT NOT NULL,
     wheel_key TEXT NOT NULL,
-    release_date TEXT,
     year INTEGER,
-    type TEXT NOT NULL DEFAULT '',
     category TEXT NOT NULL CHECK (category IN ('album', 'ep', 'best', 'live', 'ost', 'single')),
     category_no INTEGER NOT NULL CHECK (category_no >= 1),
     label TEXT NOT NULL DEFAULT '',
@@ -59,14 +58,16 @@ CREATE TABLE albums (
 CREATE INDEX albums_sort_order ON albums (sort_order);
 
 -- tracks：一首歌一行
---   id：^[a-z0-9-]+$（同 packages/catalog isTrackId），建立後不變
+--   id：^[a-z0-9-]+$（同 packages/catalog isTrackId），建立後不變（建立時 = trackIdFor(album_id, no)，撞咗用隨機）
+--   no：歌號 = 檔名開頭嘅歌號，1 至 999（packages/catalog TRACK_NO_MIN / TRACK_NO_MAX），可以跳號；
+--     CR-006 之後刪歌唔重編，唔再需要負數做中轉，所以可以鎖範圍
 --   audio_manual / mv_manual：1 = 手動指定，掃描唔蓋
 --   lyrics_source_url、note、youtube_id、video_kind：參考欄，唔入 catalog
 --   text_source_etag：上次由掃描套用嘅歌曲文字檔（NN 名.txt）嘅 R2 ETag；NULL = 未套用過。人手儲存唔改佢
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY NOT NULL CHECK (id <> '' AND id NOT GLOB '*[^a-z0-9-]*'),
     album_id TEXT NOT NULL REFERENCES albums (id) ON DELETE CASCADE,
-    "no" INTEGER NOT NULL,
+    "no" INTEGER NOT NULL CHECK ("no" BETWEEN 1 AND 999),
     title TEXT NOT NULL,
     subtitle TEXT,
     audio_key TEXT,

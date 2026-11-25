@@ -9,9 +9,7 @@ export interface AlbumSnapshot {
     id: string;
     title: string;
     wheel_key: string;
-    release_date: string | null;
     year: number | null;
-    type: string;
     category: ReleaseCategory;
     category_no: number;
     label: string;
@@ -40,7 +38,7 @@ export interface CatalogSnapshot {
 }
 
 const ALBUMS_SQL = `
-    SELECT id, title, wheel_key, release_date, year, type, category, category_no, label, accent,
+    SELECT id, title, wheel_key, year, category, category_no, label, accent,
         cover, thumb, cover2, thumb2
     FROM albums
     ORDER BY sort_order, id`;

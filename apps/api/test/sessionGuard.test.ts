@@ -49,7 +49,6 @@ describe('session guard', () => {
     it('should answer 401 UNAUTHORIZED on every track route without a session', async () => {
         const routes: [string, string][] = [
             ['POST', '/api/albums/apollo-18/tracks'],
-            ['PUT', '/api/albums/apollo-18/tracks/order'],
             ['GET', '/api/tracks/x/text'],
             ['PUT', '/api/tracks/x/text'],
             ['PATCH', '/api/tracks/x'],

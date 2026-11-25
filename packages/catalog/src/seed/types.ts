@@ -20,9 +20,8 @@ export interface SeedAlbum {
     categoryNo: number;
     wheelKey: string;
     title: string;
-    releaseDate: string | null;
+    /** CR-006（D63）：只有年份；來源只有 `YYYY-MM` 都攞到年（review S-119） */
     year: number | null;
-    type: string;
     label: string;
     tracks: SeedTrack[];
 }

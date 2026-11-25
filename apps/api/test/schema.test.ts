@@ -125,9 +125,7 @@ describe('D1 schema (0001_init)', () => {
             'id TEXT NOT NULL PK',
             'title TEXT NOT NULL',
             'wheel_key TEXT NOT NULL',
-            'release_date TEXT',
             'year INTEGER',
-            "type TEXT NOT NULL DEFAULT ''",
             'category TEXT NOT NULL',
             'category_no INTEGER NOT NULL',
             "label TEXT NOT NULL DEFAULT ''",
@@ -340,6 +338,19 @@ describe('D1 constraints (0001_init)', () => {
         await expect(insertTrack('apollo-18-01', 'apollo-18', 1, { enabled: 1 })).rejects.toThrow(
             /enabled/,
         );
+    });
+
+    // CR-006（Functional Spec D60）：歌號 1 至 999，可以跳號；同一張碟唔可以重覆
+    it('should only accept track numbers from 1 to 999, gaps allowed', async () => {
+        await insertAlbum('apollo-18');
+        for (const no of [0, -1, 1000]) {
+            await expect(insertTrack('bad', 'apollo-18', no), String(no)).rejects.toThrow(/CHECK/);
+        }
+        await insertTrack('apollo-18-01', 'apollo-18', 1);
+        await insertTrack('apollo-18-07', 'apollo-18', 7);
+        await insertTrack('apollo-18-999', 'apollo-18', 999);
+        await expect(insertTrack('apollo-18-x', 'apollo-18', 7)).rejects.toThrow(/UNIQUE/);
+        expect(await count('tracks')).toBe(3);
     });
 
     it('should only accept 0 or 1 for the manual flags', async () => {

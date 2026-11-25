@@ -3,11 +3,10 @@
  * 並發：
  * - 改單一首歌用 `WHERE updated_at = If-Match` 一句完成；歌詞嘅寫入同一個 batch（transaction），
  *   用 `changes() > 0` 跟住上一句：歌冇改到，歌詞都唔會郁
- * - 歌號 = 次序，一定由 1 連續（Functional Spec D31）。(album_id, no) UNIQUE 逐行檢查（backlog B-019 ②），
- *   所以重編先將成張碟嘅歌號轉做負數，再按次序一次過編返 1..n（COMPACT）。排序同刪除都喺一個 batch 入面
- *   以 COMPACT 收尾：同時有另一個請求加 / 刪歌，結果都係連續、唔撞號
+ * - 歌號跟檔名、可以跳號（CR-006，Functional Spec D60）：新增同改歌號都係明確嘅值，刪歌唔重編。
+ *   同碟撞號由 D1 UNIQUE (album_id, no) 擋，寫入一方按 isNumberTaken() 回 409
  */
-import { CREDIT_FIELDS, type SongText } from '@r-gram/catalog';
+import { CREDIT_FIELDS, TRACK_NO_MIN, type SongText } from '@r-gram/catalog';
 import { nextUpdatedAt } from '../lib/updatedAt';
 import { MEDIA_FIELDS, type TrackField } from './fieldRules';
 import { TRACK_RETURNING, type TrackRow } from './rows';
@@ -75,10 +74,32 @@ const withLyrics = (row: TrackRow, lyrics: StoredLyrics | null): TrackRow => ({
     line_count: lyrics ? lyrics.lineCount : null,
 });
 
-/** API-020：加喺張碟最尾（歌號 = 而家最大 + 1，同一句計，同時新增唔會撞）；冇呢張碟 → null。id 撞咗會 throw */
+const UNIQUE_VIOLATION = 'UNIQUE constraint failed';
+/** SQLite 講明撞咗邊個 index 嘅欄：(album_id, no) 係 `tracks.album_id, tracks.no` */
+const NUMBER_COLUMN = 'tracks.no';
+const ID_COLUMN = 'tracks.id';
+
+const violates = (error: unknown, column: string): boolean =>
+    error instanceof Error &&
+    error.message.includes(UNIQUE_VIOLATION) &&
+    error.message.includes(column);
+
+/** 同碟已有歌用呢個歌號 */
+export const isNumberTaken = (error: unknown): boolean => violates(error, NUMBER_COLUMN);
+/** 歌 id 已經有人用（PK） */
+export const isIdTaken = (error: unknown): boolean => violates(error, ID_COLUMN);
+
+/** API-020 冇畀歌號時用：而家最大歌號 + 1（冇歌 = 1） */
+export const nextTrackNo = async (db: D1Database, albumId: string): Promise<number> =>
+    (await db
+        .prepare('SELECT COALESCE(MAX("no"), 0) + 1 AS next FROM tracks WHERE album_id = ?')
+        .bind(albumId)
+        .first<number>('next')) ?? TRACK_NO_MIN;
+
+/** API-020：新增一首歌；冇呢張碟 → null。id 或者歌號撞咗會 throw（isIdTaken / isNumberTaken） */
 export const insertTrack = async (
     db: D1Database,
-    ids: { id: string; albumId: string },
+    ids: { id: string; albumId: string; no: number },
     song: SongText,
     lyrics: StoredLyrics | null,
 ): Promise<TrackRow | null> => {
@@ -87,12 +108,11 @@ export const insertTrack = async (
         .prepare(
             `INSERT INTO tracks (id, album_id, "no", title, subtitle,
                  composer, lyricist, arranger, producer, created_at, updated_at)
-             SELECT ?1, a.id, (SELECT COALESCE(MAX("no"), 0) + 1 FROM tracks WHERE album_id = ?2),
-                 ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?9
+             SELECT ?1, a.id, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10
              FROM albums a WHERE a.id = ?2
              RETURNING ${TRACK_RETURNING}`,
         )
-        .bind(ids.id, ids.albumId, song.title, song.subtitle, ...creditValues(song), now);
+        .bind(ids.id, ids.albumId, ids.no, song.title, song.subtitle, ...creditValues(song), now);
     const statements = lyrics ? [insert, lyricsWrite(db, ids.id, lyrics, now)] : [insert];
     const [inserted] = await db.batch<TrackRow>(statements);
     const row = inserted?.results[0];
@@ -122,6 +142,7 @@ export const saveSongText = async (
 };
 
 const COLUMN_OF: Record<TrackField, string> = {
+    no: '"no"',
     lyricsSourceUrl: 'lyrics_source_url',
     note: 'note',
     audio: 'audio_key',
@@ -140,7 +161,7 @@ const assignments = (fields: TrackFields): { sql: string[]; values: unknown[] } 
     return { sql, values };
 };
 
-/** API-021：只喺 updated_at 仲係 `expected` 時改，RETURNING 同一句回改好嘅行；改唔到 → null */
+/** API-021：只喺 updated_at 仲係 `expected` 時改，RETURNING 同一句回改好嘅行；改唔到 → null。撞歌號會 throw */
 export const updateTrackFields = (
     db: D1Database,
     id: string,
@@ -158,34 +179,8 @@ export const updateTrackFields = (
         .first<TrackRow>();
 };
 
-/** 負數歌號按次序（-1 先）編返 1..n */
-const COMPACT_SQL = `
-    UPDATE tracks SET "no" = ranked.position
-    FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY "no" DESC) AS position
-          FROM tracks WHERE album_id = ?1 AND "no" < 0) AS ranked
-    WHERE tracks.id = ranked.id`;
-
-/** API-022：刪歌（歌詞 ON DELETE CASCADE），其餘歌號收埋個窿；已經唔存在 → false */
-export const deleteTrack = async (db: D1Database, id: string, albumId: string) => {
-    const [deleted] = await db.batch([
-        db.prepare('DELETE FROM tracks WHERE id = ?').bind(id),
-        db.prepare('UPDATE tracks SET "no" = -"no" WHERE album_id = ? AND "no" > 0').bind(albumId),
-        db.prepare(COMPACT_SQL).bind(albumId),
-    ]);
-    return (deleted?.meta.changes ?? 0) > 0;
-};
-
-/**
- * API-023：歌號 = `ids` 嘅次序。先將成張碟轉做 -(no + n)（一定細過 -n），再逐首設 -(位置)，
- * 最後 COMPACT。唔喺 `ids` 嘅歌（檢查之後先加）排最尾。唔郁 updated_at（開住嘅表單唔會過時）
- */
-export const writeTrackOrder = async (db: D1Database, albumId: string, ids: readonly string[]) => {
-    const place = db.prepare('UPDATE tracks SET "no" = ? WHERE id = ? AND album_id = ?');
-    await db.batch([
-        db
-            .prepare('UPDATE tracks SET "no" = -("no" + ?2) WHERE album_id = ?1')
-            .bind(albumId, ids.length),
-        ...ids.map((id, index) => place.bind(-(index + 1), id, albumId)),
-        db.prepare(COMPACT_SQL).bind(albumId),
-    ]);
+/** API-022：刪歌（歌詞 ON DELETE CASCADE）；其他歌嘅歌號唔郁（D60）。已經唔存在 → false */
+export const deleteTrack = async (db: D1Database, id: string) => {
+    const deleted = await db.prepare('DELETE FROM tracks WHERE id = ?').bind(id).run();
+    return deleted.meta.changes > 0;
 };

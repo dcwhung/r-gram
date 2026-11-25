@@ -69,7 +69,8 @@ export const zhHant = {
             TOO_LONG: '字數超出上限。',
             INVALID_WHEEL_KEY:
                 '必須為一至兩個字，前後不可有空白，亦不可包含控制字元或不可見的格式字元。',
-            INVALID_DATE: '日期必須為 YYYY-MM-DD 格式的有效日期。',
+            /** `{min}`、`{max}` = YEAR_MIN、YEAR_MAX（errors.ts 填入；CR-006：專輯只有年份） */
+            INVALID_YEAR: '年份必須為 {min} 至 {max} 的整數。',
             INVALID_COLOUR: '顏色必須為 #rrggbb 格式。',
             INVALID_FOLDER:
                 '資料夾名稱不可為空白或「.」，不可包含「..」，不可以「_」開頭（保留給非專輯資料夾），亦不可包含斜線、反斜線、?、#、%、換行、控制字元或不可見的格式字元。',
@@ -94,7 +95,8 @@ export const zhHant = {
             notFound: '找不到指定的歌曲。',
             albumNotFound: '找不到指定的專輯。',
             stale: '歌曲資料已被其他操作更新，請重新載入後再修改。',
-            orderChanged: '歌曲列表已變更，請重新載入後再排序。',
+            /** 409 CONFLICT：同一張碟已有歌用呢個歌號（CR-006，Functional Spec D60） */
+            numberTaken: '歌號已被使用，請改用其他歌號。',
             idRemoved:
                 '刪除後，播放端會即時移除此歌曲，聽眾本機對此歌曲的收藏及續播亦會失效。確認後請再次刪除。',
             lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
@@ -116,7 +118,11 @@ export const zhHant = {
             INVALID_MEDIA_KEY:
                 '檔案路徑不可為空白、不可以「/」開頭、不可包含「..」、控制字元或不可見的格式字元，長度亦有上限。',
             MEDIA_NOT_FOUND: '媒體庫中找不到此檔案。',
-            INVALID_LIST: '必須為不重複的歌曲 ID 列表。',
+            /** `{min}`、`{max}` = TRACK_NO_MIN、TRACK_NO_MAX（CR-006：歌號跟檔名，可以跳號） */
+            INVALID_NUMBER: '歌號必須為 {min} 至 {max} 的整數。',
+            NUMBER_TAKEN: '同一張專輯內已有歌曲使用此歌號，請改用其他歌號。',
+            /** `{max}` = TRACK_NO_MAX：冇指定歌號時用「最大歌號 + 1」，已經到上限 */
+            NUMBER_EXHAUSTED: '自動編號已超出上限 {max}，請自行指定歌號。',
             /** 以下係歌曲文字（path = text）逐行嘅錯誤；`{max}` 由 tracks/errors.ts 按 packages/catalog 嘅上限填入 */
             TOO_LARGE: '歌曲文字超出大小上限。',
             TOO_MANY_LINES: '歌曲文字最多 {max} 行。',

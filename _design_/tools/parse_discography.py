@@ -17,10 +17,10 @@ twice gives the same bytes. Rules (Functional Spec CR-004, Technical Spec "內�
   the table stops the script.
 - `order` follows D47 (proposal): by category in the order of the source file, then
   by ordinal.
-- `type` is the Chinese name of the category (D44, until the user decides).
-- A release date that is not a full YYYY-MM-DD (e.g. "2016-06") gives releaseDate and
-  year null, the same as the Backend (year follows the release date); the original line
-  stays in `sourceMeta`.
+- Albums carry a year only (CR-006, D63): `year` is the first four digits of the date
+  part, so "2008-09-26", "2016-06" and "2016" all give a year (review S-119); a date part
+  that does not start with four digits gives null. There is no release date and no `type`
+  (D44: the display name comes from `category`); the original line stays in `sourceMeta`.
 """
 import argparse
 import html
@@ -76,7 +76,7 @@ ALBUM_IDS: Final[dict[str, str]] = {
 
 WHEEL_KEY_FALLBACK: Final = '?'
 SEPARATOR: Final = ' · '
-FULL_DATE: Final = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+LEADING_YEAR: Final = re.compile(r'^(\d{4})(?!\d)')
 BLOCK: Final = re.compile(
     r'<h2 class="cat-title">(?P<category>.*?)</h2>'
     r'|<section class="album" id="[^"]*">(?P<album>.*?)</section>',
@@ -100,9 +100,7 @@ class SeedTrack(TypedDict):
 
 
 class ReleaseFields(TypedDict):
-    releaseDate: str | None
     year: int | None
-    type: str
     label: str
 
 
@@ -176,19 +174,16 @@ def parse_track(item: str) -> SeedTrack:
     }
 
 
-def release_fields(meta: str, category: str) -> ReleaseFields:
-    """`2008-09-26 · 錄音室專輯 · 金牌娛樂` -> release date, year, type, label.
+def release_fields(meta: str) -> ReleaseFields:
+    """`2008-09-26 · 錄音室專輯 · 金牌娛樂` -> year, label.
 
-    The middle part of the line is the source's own wording ("EP", "演唱會專輯"); `type`
-    is the category name instead (D44) and the line itself is kept in `sourceMeta`.
+    The middle part of the line is the source's own wording ("EP", "演唱會專輯"); it is not
+    kept as a field (D44: the type comes from `category`), only in `sourceMeta`.
     """
     parts = meta.split(SEPARATOR, 2)
-    date = parts[0].strip()
-    full = FULL_DATE.match(date) is not None
+    year = LEADING_YEAR.match(parts[0].strip())
     return {
-        'releaseDate': date if full else None,
-        'year': int(date[:4]) if full else None,
-        'type': category,
+        'year': int(year.group(1)) if year else None,
         'label': parts[2].strip() if len(parts) > 2 else '',
     }
 
@@ -225,7 +220,7 @@ def parse_album(section: str, category: str) -> ParsedAlbum:
         'categoryNo': ordinal_of(section, category),
         'wheelKey': wheel_key(title),
         'title': title,
-        **release_fields(meta, category),
+        **release_fields(meta),
         'coverUrl': html.unescape(cover.group(1)) if cover else None,
         'trackCount': len(tracks),
         'tracksWithVideo': check_counts(section, tracks, title),

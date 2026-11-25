@@ -1,12 +1,19 @@
 /*
  * API-021 PATCH /api/tracks/:id：只喺管理端用嘅參考欄（歌詞參考連結、備註）同手動指定音檔 / MV（D37）。
- * 歌名、副題、credit 經歌曲文字（API-041），歌號經排序（API-023），所以呢度唔收。
+ * 歌名、副題、credit 經歌曲文字（API-041），所以呢度唔收。CR-006（D60）：歌號（`no`）喺呢度改，id 唔跟住變。
  * 手動指定嘅 key：唔可以有 `..`、唔可以 `/` 開頭，儲存前 MEDIA.head() 確認存在（Technical Spec「安全設計」）
  */
 import { env } from 'cloudflare:test';
 import { zhHant } from '../src/i18n/zh-Hant';
 import { NOW, api, dbWithHook, json } from './albumFixtures';
-import { detailsOf, ifMatch, seedAlbum, trackRow, type ErrorBody } from './trackFixtures';
+import {
+    detailsOf,
+    ifMatch,
+    numbersOf,
+    seedAlbum,
+    trackRow,
+    type ErrorBody,
+} from './trackFixtures';
 
 const AUDIO_KEY = 'apollo-18/01 一早地下鐵.m4a';
 const MV_KEY = 'beaming/05 Hero.mp4';
@@ -110,15 +117,60 @@ describe('PATCH /api/tracks/:id', () => {
         expect((await trackRow('apollo-18-01'))?.mv_key).toBeNull();
     });
 
-    it('should refuse the fields that go through the song text or the order', async () => {
-        const response = await patch({ title: 'x', no: 9, credits: {}, enabled: true, id: 'y' });
+    it('should refuse the fields that go through the song text, and the id', async () => {
+        const response = await patch({ title: 'x', credits: {}, enabled: true, id: 'y' });
         expect(await reasonsOf(response)).toEqual([
             'title:NOT_EDITABLE',
-            'no:NOT_EDITABLE',
             'credits:NOT_EDITABLE',
             'enabled:NOT_EDITABLE',
             'id:NOT_EDITABLE',
         ]);
+    });
+
+    it('should change the number, gaps allowed, and keep the id', async () => {
+        const response = await patch({ no: 12 });
+        expect(response.status).toBe(200);
+        expect(await json(response)).toMatchObject({ id: 'apollo-18-01', no: 12 });
+        expect(await numbersOf('apollo-18')).toEqual([
+            '2:apollo-18-02',
+            '3:apollo-18-03',
+            '12:apollo-18-01',
+        ]);
+    });
+
+    it('should answer 409 CONFLICT NUMBER_TAKEN for a number another track has', async () => {
+        const response = await patch({ no: 2, note: '改咗' });
+        expect(response.status).toBe(409);
+        expect((await json<ErrorBody>(response)).error).toEqual({
+            code: 'CONFLICT',
+            message: zhHant.tracks.errors.numberTaken,
+            details: [
+                { path: 'no', reason: 'NUMBER_TAKEN', message: zhHant.tracks.reasons.NUMBER_TAKEN },
+            ],
+        });
+        expect(await trackRow('apollo-18-01')).toMatchObject({
+            no: 1,
+            note: null,
+            updated_at: NOW,
+        });
+    });
+
+    it('should accept the number the track already has', async () => {
+        expect(await json(await patch({ no: 1 }))).toMatchObject({ id: 'apollo-18-01', no: 1 });
+    });
+
+    it('should refuse a number out of 1..999 or not an integer', async () => {
+        for (const no of [0, -3, 1000, 2.5, '4', null]) {
+            expect(await reasonsOf(await patch({ no })), JSON.stringify(no)).toEqual([
+                'no:INVALID_NUMBER',
+            ]);
+        }
+    });
+
+    it('should answer 409 STALE, not NUMBER_TAKEN, for an old If-Match', async () => {
+        await patch({ note: 'x' });
+        const response = await patch({ no: 2 });
+        expect((await json<ErrorBody>(response)).error.code).toBe('STALE');
     });
 
     it('should refuse a note with line breaks or one that is too long', async () => {

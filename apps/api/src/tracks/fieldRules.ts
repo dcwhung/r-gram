@@ -1,9 +1,10 @@
 /*
- * API-021 可以改嘅歌曲欄位（Functional Spec D37）：只喺管理端用嘅參考欄（歌詞參考連結、備註）
- * 同手動指定音檔 / MV。歌名、副題、credit 經歌曲文字（API-041），歌號經排序（API-023）。
+ * API-021 可以改嘅歌曲欄位（Functional Spec D37）：只喺管理端用嘅參考欄（歌詞參考連結、備註）、
+ * 手動指定音檔 / MV 同歌號（CR-006，D60：跟檔名、可以跳號；改歌號唔改 id）。歌名、副題、credit 經歌曲文字（API-041）。
  * 手動指定嘅 R2 key（Technical Spec「安全設計 → R2 key 驗證」）：唔可以有 `..`、唔可以 `/` 開頭；
  * 存唔存在要問 R2，喺 validate.ts 做
  */
+import { isTrackNo } from '@r-gram/catalog';
 import type { zhHant } from '../i18n/zh-Hant';
 import {
     charCount,
@@ -74,7 +75,14 @@ const mediaKey: Rule = (value) => {
     return valid ? ok(value) : fail('INVALID_MEDIA_KEY');
 };
 
+/** 歌號：1 至 999 嘅整數（唔收字串數字）；同碟唔重覆由 D1 UNIQUE index 把關 */
+const trackNo: Rule = (value) => (isTrackNo(value) ? ok(value) : fail('INVALID_NUMBER'));
+
+/** API-020 新增歌時 body 除咗 `text` 之外可以帶嘅欄 */
+export const CREATE_FIELD_RULES = { no: trackNo } satisfies Record<string, Rule>;
+
 export const TRACK_FIELD_RULES = {
+    no: trackNo,
     lyricsSourceUrl: nullable(blankAsNull(lyricsSourceUrl)),
     note: nullable(blankAsNull(text(false, NOTE_MAX_CHARS))),
     audio: nullable(mediaKey),

@@ -21,7 +21,15 @@ export {
     type ScanTrack,
     type UnmatchedReason,
 } from './scan/matchMediaFiles';
-export { FAVOURITES_ALBUM_ID, isAlbumId, isTrackId } from './schema/ids';
+export {
+    FAVOURITES_ALBUM_ID,
+    isAlbumId,
+    isTrackId,
+    isTrackNo,
+    TRACK_NO_MAX,
+    TRACK_NO_MIN,
+    trackIdFor,
+} from './schema/ids';
 export type { CatalogError, CatalogErrorCode } from './schema/issues';
 export { mediaUrl } from './schema/mediaUrl';
 export {
@@ -31,6 +39,7 @@ export {
     type ReleaseCategory,
 } from './schema/releaseCategory';
 export { parseCatalogDocument, type CatalogParseResult } from './schema/parseCatalogDocument';
+export { isAlbumYear, YEAR_MAX, YEAR_MIN } from './schema/year';
 export {
     CATALOG_VERSION,
     CREDIT_FIELDS,
@@ -42,7 +51,6 @@ export {
 } from './schema/types';
 export { matchCredits, type CreditMatchResult, type MatchedCredits } from './seed/matchCredits';
 export { seedToCatalog, type SeedCatalogOptions } from './seed/seedToCatalog';
-export { trackIdFor } from './seed/trackId';
 export type {
     SeedAlbum,
     SeedCreditAlbum,

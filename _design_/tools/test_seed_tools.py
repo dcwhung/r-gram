@@ -69,9 +69,16 @@ class ParseDiscographyTest(unittest.TestCase):
         self.assertEqual(document['source'], 'rubberband-discography.html (updated 2026-11-25)')
         album = document['albums'][0]
         self.assertEqual(
-            {k: album[k] for k in ('order', 'id', 'category', 'categoryNo', 'type', 'label', 'year')},
+            {k: album[k] for k in ('order', 'id', 'category', 'categoryNo', 'label', 'year')},
             {'order': 0, 'id': 'hours', 'category': 'album', 'categoryNo': 8,
-             'type': '錄音室專輯', 'label': 'R Flat', 'year': 2008})
+             'label': 'R Flat', 'year': 2008})
+
+    def test_writes_no_release_date_or_type(self):
+        # CR-006 (D63, D44): albums carry a year only; the type comes from the category
+        blocks = page(category('錄音室專輯'), release('Hours', '第 8 張錄音室專輯'))
+        album = parse_discography.build(blocks)['albums'][0]
+        self.assertNotIn('releaseDate', album)
+        self.assertNotIn('type', album)
 
     def test_orders_by_category_then_ordinal(self):
         blocks = page(category('錄音室專輯'), release('Hours', '第 8 張錄音室專輯'),
@@ -80,11 +87,20 @@ class ParseDiscographyTest(unittest.TestCase):
         ids = [a['id'] for a in parse_discography.build(blocks)['albums']]
         self.assertEqual(ids, ['apollo-18', 'hours', 'ni-dou'])
 
-    def test_a_month_only_date_gives_no_release_date_or_year(self):
+    def test_a_month_only_date_still_gives_the_year(self):
+        # review S-119: 終於好天氣 only has 2016-06 in the source
         blocks = page(category('單曲'), release('讓世界都懂', '第 2 首單曲', '2016-06 · 合唱單曲'))
         album = parse_discography.build(blocks)['albums'][0]
-        self.assertEqual((album['releaseDate'], album['year'], album['label']), (None, None, ''))
+        self.assertEqual((album['year'], album['label']), (2016, ''))
         self.assertEqual(album['sourceMeta'], '2016-06 · 合唱單曲')
+
+    def test_a_year_alone_gives_the_year(self):
+        blocks = page(category('單曲'), release('讓世界都懂', '第 2 首單曲', '2016 · 合唱單曲'))
+        self.assertEqual(parse_discography.build(blocks)['albums'][0]['year'], 2016)
+
+    def test_a_line_without_four_leading_digits_gives_no_year(self):
+        blocks = page(category('單曲'), release('讓世界都懂', '第 2 首單曲', '未公佈 · 合唱單曲'))
+        self.assertIsNone(parse_discography.build(blocks)['albums'][0]['year'])
 
     def test_refuses_a_release_without_an_id(self):
         with self.assertRaisesRegex(SourceError, 'ALBUM_IDS'):

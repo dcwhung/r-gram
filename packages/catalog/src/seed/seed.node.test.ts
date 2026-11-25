@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseCatalogDocument } from '../schema/parseCatalogDocument';
+import { trackIdFor } from '../schema/ids';
 import { expectedFolder, RELEASE_CATEGORIES } from '../schema/releaseCategory';
 import { wheelKeyFor } from '../wheel/wheelKeyFor';
 import { matchCredits } from './matchCredits';
 import { seedToCatalog } from './seedToCatalog';
-import { trackIdFor } from './trackId';
 import type { SeedCredits, SeedDiscography } from './types';
 
 // 真實初始資料（apps/api/seed/，由 _design_/tools/ 嘅 script 由 2026-11-25 版來源檔生成；CR-004、T-097）
@@ -61,6 +61,17 @@ const tracksById = new Map(
 );
 
 describe('seed data: releases', () => {
+    // CR-006（Functional Spec D63、D44；review S-119）：只有年份，「終於好天氣」由 `2016-06` 攞 2016
+    it('should give every release a year and no release date or free-text type', () => {
+        for (const album of discography.albums) {
+            expect(Object.keys(album), album.id).not.toContain('releaseDate');
+            expect(Object.keys(album), album.id).not.toContain('type');
+            expect(album.year, album.id).toEqual(expect.any(Number));
+        }
+        const single = discography.albums.find((album) => album.id === 'zung-jyu-hou-tin-hei');
+        expect(single?.year).toBe(2016);
+    });
+
     it('should give every release the folder name the user was given, in D47 order', () => {
         const folders = byOrder.map((album) =>
             expectedFolder(album.category, album.categoryNo, album.id),

@@ -23,7 +23,7 @@ import {
     trackValidationError,
     type TrackDetail,
 } from './errors';
-import { readTextBody } from './validate';
+import { NO_RULES, readTextBody, type TextBodyRules, type TrackFields } from './validate';
 
 /** 每個字都可以寫成 `\uXXXX`（6 個字元）；加 `{"text":""}` 同空白嘅位。超過一定係太大 */
 const JSON_ESCAPE_CHARS = 6;
@@ -44,6 +44,8 @@ export interface Hint {
 export interface ReadSong {
     song: SongText;
     hints: Hint[];
+    /** body 入面 `text` 以外、`rules` 收咗嘅欄（API-020 嘅 `no`） */
+    fields: TrackFields;
 }
 
 /** backlog B-038：歌名之後隔咗空行嘅標籤樣行會當歌詞儲存；照存，但係話畀管理員知 */
@@ -56,7 +58,7 @@ const hintsOf = (text: string): Hint[] =>
     }));
 
 /** 解析；太大 → 'tooLarge'（parser 第 0 行嘅 TOO_LARGE 轉 413，backlog B-040）；有錯 → details */
-const parseText = (text: string): ReadSong | TrackDetail[] | 'tooLarge' => {
+const parseText = (text: string): Omit<ReadSong, 'fields'> | TrackDetail[] | 'tooLarge' => {
     // UTF-16 code unit 數大過 byte 上限 = UTF-8 byte 數一定更大：唔使逐字計（20 MB 貼上即刻回）
     if (text.length > SONG_TEXT_MAX_BYTES) return 'tooLarge';
     const result = parseSongText(text);
@@ -66,16 +68,21 @@ const parseText = (text: string): ReadSong | TrackDetail[] | 'tooLarge' => {
     return { song: result, hints: hintsOf(text) };
 };
 
-/** 請求 body → 歌曲；唔得就回錯誤回應（400 / 413） */
-export const songFromRequest = async (c: Context<AppEnv>): Promise<ReadSong | Response> => {
+/** 請求 body → 歌曲；唔得就回錯誤回應（400 / 413）。欄位錯誤同逐行錯誤一次過列晒 */
+export const songFromRequest = async (
+    c: Context<AppEnv>,
+    rules: TextBodyRules = NO_RULES,
+): Promise<ReadSong | Response> => {
     const body = await readBoundedJsonObject(c, SONG_TEXT_BODY_MAX_CHARS);
     if (body === BODY_TOO_LARGE) return trackError(c, 'tooLarge');
     if (!body) return trackNotAnObject(c);
-    const { text, issues } = readTextBody(body);
-    if (text === undefined || issues.length > 0) return trackValidationError(c, issues);
+    const { text, fields, issues } = readTextBody(body, rules);
+    if (text === undefined) return trackValidationError(c, issues);
     const parsed = parseText(text);
     if (parsed === 'tooLarge') return trackError(c, 'tooLarge');
-    return Array.isArray(parsed) ? trackValidationError(c, parsed) : parsed;
+    const details = [...issues, ...(Array.isArray(parsed) ? parsed : [])];
+    if (Array.isArray(parsed) || details.length > 0) return trackValidationError(c, details);
+    return { ...parsed, fields };
 };
 
 /** 已寫入 R2 嘅歌詞：D1 `lyrics` 一行嘅內容 */

@@ -1,6 +1,6 @@
 /* 專輯 API 嘅錯誤回應：Technical Spec 錯誤格式 + i18n 書面語（zhHant.albums） */
 import type { Context } from 'hono';
-import { RELEASE_CATEGORIES } from '@r-gram/catalog';
+import { RELEASE_CATEGORIES, YEAR_MAX, YEAR_MIN } from '@r-gram/catalog';
 import { ERROR_CODE, HTTP_STATUS } from '../config';
 import { errorResponder, messageBuilder, withMessages, type ErrorKind } from '../api/errors';
 import { zhHant } from '../i18n/zh-Hant';
@@ -26,6 +26,7 @@ const REASON_PARAMS: Partial<Record<Reason, MessageParams>> = {
     INVALID_ID: { max: ALBUM_ID_MAX_CHARS },
     INVALID_CATEGORY: { list: RELEASE_CATEGORIES.join('、') },
     INVALID_ORDINAL: { max: CATEGORY_NO_MAX },
+    INVALID_YEAR: { min: YEAR_MIN, max: YEAR_MAX },
     TOO_MANY_UNKNOWN_FIELDS: { max: UNKNOWN_FIELDS_MAX },
 };
 

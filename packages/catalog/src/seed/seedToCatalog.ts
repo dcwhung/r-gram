@@ -6,10 +6,8 @@ import {
     type CatalogTrack,
 } from '../schema/types';
 import { matchCredits, type CreditMatchResult } from './matchCredits';
-import { trackIdFor } from './trackId';
+import { trackIdFor } from '../schema/ids';
 import type { SeedAlbum, SeedCredits, SeedDiscography, SeedTrack } from './types';
-
-export { trackIdFor };
 
 export interface SeedCatalogOptions {
     generatedAt: string;
@@ -56,9 +54,7 @@ const toAlbum = (
     id: album.id,
     title: album.title,
     wheelKey: album.wheelKey,
-    releaseDate: album.releaseDate,
     year: album.year,
-    type: album.type,
     category: album.category,
     categoryNo: album.categoryNo,
     label: album.label,
