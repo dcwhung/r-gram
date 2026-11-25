@@ -1,0 +1,43 @@
+# r-gram-api：內容管理 Backend（Technical Spec「部署架構」）。
+# 有「TODO(U-x)」嘅值係 placeholder：部署之前由用戶填返真值（Implementation Plan「用戶要做嘅事」）。
+name = "r-gram-api"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+# Admin SPA（apps/admin）由 static assets 出：apps/admin 未有（T-051），有咗先開返下面呢段
+#（資料夾唔存在 wrangler 會報錯）。/api、/auth、/catalog 一律先行 Worker
+# [assets]
+# directory = "../admin/dist"
+# not_found_handling = "single-page-application"
+# run_worker_first = ["/api/*", "/auth/*", "/catalog/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "r-gram"
+# TODO(U-3)：`wrangler d1 create r-gram` 印出嚟嘅 database_id（全 0 = 未填）
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+# private bucket（冇公開網址）：catalog.json、封面圖、歌詞 JSON 都經 Worker 出
+[[r2_buckets]]
+binding = "CATALOG"
+bucket_name = "r-gram-catalog"
+
+# 音檔 / MV bucket（公開網址直出）：Worker 只會 list / head（掃描），唔寫
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "r-gram-media"
+
+# 非 secret 設定；GOOGLE_CLIENT_SECRET、SESSION_SECRET 用 `wrangler secret put`（本機：.dev.vars）。
+# 只改呢個檔：每次 deploy 會蓋走 dashboard 嘅改動
+[vars]
+# TODO(U-4)：Google Cloud OAuth client id
+GOOGLE_CLIENT_ID = "REPLACE-WITH-GOOGLE-CLIENT-ID.apps.googleusercontent.com"
+# TODO(U-4)：管理員 Google 帳戶，逗號分隔（example.com 係保留網域：未填之前冇人登入到）
+ADMIN_EMAILS = "admin@example.com"
+# TODO(U-7)：播放端網址，逗號分隔（CORS 只回呢度 match 到嘅 origin）
+PLAYER_ORIGINS = "https://r-gram-player.example.com"
+# TODO(T-028)：Worker 自己嘅 origin，唔好 / 結尾（OAuth redirect、CSRF Origin 檢查、catalog 圖 URL）
+WORKER_ORIGIN = "https://r-gram-api.example.workers.dev"
+# TODO(U-1)：r-gram-media 嘅公開網址（要 / 結尾）
+MEDIA_BASE = "https://r-gram-media.example.com/"
