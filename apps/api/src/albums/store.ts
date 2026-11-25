@@ -53,23 +53,25 @@ const assignments = (fields: AlbumFields): { sql: string[]; values: unknown[] } 
     return { sql, values };
 };
 
-/** 只喺 updated_at 仲係 `expected` 時改；回新嘅 updated_at，唔啱（或者冇呢張碟）→ undefined */
-export const updateAlbum = async (
+/**
+ * 只喺 updated_at 仲係 `expected` 時改；`RETURNING` 喺同一句回改好嘅行（backlog B-043 ①：
+ * 寫入之後再讀，中間被刪就會誤報 404）。改唔到（過時或者冇呢張碟）→ null
+ */
+export const updateAlbum = (
     db: D1Database,
     id: string,
     fields: AlbumFields,
     expected: string,
-): Promise<string | undefined> => {
-    const updatedAt = nextUpdatedAt(expected);
+): Promise<AlbumRow | null> => {
     const { sql, values } = assignments(fields);
-    const result = await db
+    return db
         .prepare(
             `UPDATE albums SET ${[...sql, 'updated_at = ?'].join(', ')}
-             WHERE id = ? AND updated_at = ?`,
+             WHERE id = ? AND updated_at = ?
+             RETURNING ${ALBUM_COLUMNS}`,
         )
-        .bind(...values, updatedAt, id, expected)
-        .run();
-    return result.meta.changes > 0 ? updatedAt : undefined;
+        .bind(...values, nextUpdatedAt(expected), id, expected)
+        .first<AlbumRow>();
 };
 
 export const allAlbumIds = async (db: D1Database): Promise<string[]> => {

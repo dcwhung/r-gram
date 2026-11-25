@@ -61,12 +61,11 @@ albumRoutes.patch('/:id', async (c) => {
     const { fields, issues } = parseFields(body);
     issues.push(...(await unknownAssetIssues(c.env.DB, fields)));
     if (issues.length > 0) return validationError(c, issues);
-    const updatedAt = await store.updateAlbum(c.env.DB, id, fields, expected);
-    const row = await store.findAlbum(c.env.DB, id);
-    if (!row) return albumError(c, 'notFound');
+    const updated = await store.updateAlbum(c.env.DB, id, fields, expected);
+    if (updated) return c.json(toAlbum(updated));
     // 改唔到但張碟仲喺度 = If-Match 過時（包括同時另一個請求先改咗）
-    if (updatedAt === undefined) return albumError(c, 'stale');
-    return c.json(toAlbum(row));
+    if (!(await store.findAlbum(c.env.DB, id))) return albumError(c, 'notFound');
+    return albumError(c, 'stale');
 });
 
 albumRoutes.delete('/:id', async (c) => {

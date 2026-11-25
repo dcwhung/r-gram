@@ -2,7 +2,7 @@
 import { env } from 'cloudflare:test';
 import { deleteAlbum } from '../src/albums/store';
 import { nextUpdatedAt } from '../src/lib/updatedAt';
-import { NOW, api, insertAlbum, json } from './albumFixtures';
+import { NOW, albumRow, api, dbWithHook, insertAlbum, json } from './albumFixtures';
 
 interface ErrorBody {
     error: { details?: { path: string; reason: string }[] };
@@ -52,5 +52,23 @@ describe('album edge cases', () => {
 
     it('should report an album deleted by another request as gone', async () => {
         expect(await deleteAlbum(env.DB, 'never-there')).toBeUndefined();
+    });
+
+    // backlog B-043 ①：寫入之後再讀之間另一個請求刪咗張碟，唔可以回 404（寫入其實已經成功）
+    it('should answer 200 with the written album even if it is deleted right after the update', async () => {
+        await insertAlbum('a', 1);
+        const DB = dbWithHook('UPDATE albums', () =>
+            env.DB.prepare('DELETE FROM albums WHERE id = ?').bind('a').run(),
+        );
+        const response = await api(
+            'PATCH',
+            '/api/albums/a',
+            { label: '金牌娛樂' },
+            { 'if-match': `"${NOW}"` },
+            { ...env, DB },
+        );
+        expect(response.status).toBe(200);
+        expect(await json(response)).toMatchObject({ id: 'a', label: '金牌娛樂' });
+        expect(await albumRow('a')).toBeNull();
     });
 });
