@@ -36,9 +36,7 @@ const seedTwo = async () => {
     await insertAsset('fedcba9876543210.webp');
     await insertAlbum('b', 1, {
         title: 'Beaming',
-        release_date: '2008-09-26',
         year: 2008,
-        type: '錄音室專輯',
         category: 'ep',
         category_no: 3,
         label: '金牌娛樂',
@@ -90,9 +88,8 @@ describe('rebuildCatalog: document', () => {
             id: 'b',
             title: 'Beaming',
             wheelKey: 'A',
-            releaseDate: '2008-09-26',
             year: 2008,
-            type: '錄音室專輯',
+            // CR-006（D63、D44）：只有年份；冇發行日期、冇自由文字類型
             // CR-004：類別同序號入 catalog；folder、封面來源 ETag 係管理用，唔入
             category: 'ep',
             categoryNo: 3,
@@ -105,8 +102,9 @@ describe('rebuildCatalog: document', () => {
             thumb2: null,
             tracks: expect.any(Array),
         });
-        expect(apollo).toMatchObject({ releaseDate: null, year: null, cover: null, thumb: null });
-        expect(apollo).toMatchObject({ type: '', label: '' });
+        expect(apollo).toMatchObject({ year: null, cover: null, thumb: null, label: '' });
+        expect(apollo).not.toHaveProperty('releaseDate');
+        expect(apollo).not.toHaveProperty('type');
     });
 
     // CR-005（D55）：第二張封面入 catalog；來源 ETag 係管理用，唔入
@@ -160,16 +158,29 @@ describe('rebuildCatalog: document', () => {
         });
     });
 
-    // 年份跟發行日期：冇日期就冇年份（review W-022）
-    it('should give no year when there is no release date, whatever the stored year', async () => {
-        await insertAlbum('a', 1, { release_date: null, year: 2008 });
+    // CR-006（D63）：年份係直接輸入嘅值，同其他欄冇關係
+    it('should carry the stored year as it is', async () => {
+        await insertAlbum('a', 1, { year: 2016 });
         await rebuild();
-        expect((await liveDocument())?.albums[0]).toMatchObject({ releaseDate: null, year: null });
+        expect((await liveDocument())?.albums[0]).toMatchObject({ year: 2016 });
     });
 
-    // backlog B-005：validator 唔收空字串（type / label 除外）
+    // CR-006（D60）：歌號跟檔名、可以跳號；catalog 帶真嘅歌號，唔係位置
+    it('should carry the real track numbers, gaps allowed', async () => {
+        await insertAlbum('a', 1);
+        await insertTrack('a-07', 'a', 7);
+        await insertTrack('a-02', 'a', 2);
+        await rebuild();
+        const tracks = (await liveDocument())?.albums[0]?.tracks ?? [];
+        expect(tracks.map((track) => [track.id, track.no])).toEqual([
+            ['a-02', 2],
+            ['a-07', 7],
+        ]);
+    });
+
+    // backlog B-005：validator 唔收空字串（label 除外）
     it('should turn empty and blank strings into null', async () => {
-        await insertAlbum('a', 1, { release_date: '', type: '', label: '' });
+        await insertAlbum('a', 1, { label: '' });
         await insertTrack('a-01', 'a', 1, {
             subtitle: '',
             composer: ' ',
@@ -180,7 +191,7 @@ describe('rebuildCatalog: document', () => {
         const result = await rebuild();
         expect(result.ok).toBe(true);
         const album = (await liveDocument())?.albums[0];
-        expect(album).toMatchObject({ releaseDate: null, type: '', label: '' });
+        expect(album).toMatchObject({ label: '' });
         expect(album?.tracks[0]).toMatchObject({
             subtitle: null,
             credits: null,

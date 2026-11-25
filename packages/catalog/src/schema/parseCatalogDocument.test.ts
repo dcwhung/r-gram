@@ -18,9 +18,7 @@ const album = (overrides: Partial<CatalogAlbum> = {}): CatalogAlbum => ({
     id: 'apollo-18',
     title: 'Apollo 18',
     wheelKey: 'A',
-    releaseDate: '2008-09-26',
     year: 2008,
-    type: '錄音室專輯',
     category: 'album',
     categoryNo: 1,
     label: '金牌娛樂',
@@ -64,7 +62,6 @@ describe('parseCatalogDocument', () => {
         const input = document({
             albums: [
                 album({
-                    releaseDate: null,
                     year: null,
                     cover: null,
                     thumb: null,
@@ -120,10 +117,23 @@ describe('parseCatalogDocument', () => {
         ]);
     });
 
-    it('should reject a malformed release date', () => {
-        expect(errorPaths(document({ albums: [album({ releaseDate: '26/09/2008' })] }))).toEqual([
-            'albums[0].releaseDate',
-        ]);
+    // CR-006（Functional Spec D63、D44）：專輯只有年份（可選），冇發行日期、冇自由文字類型
+    it.each([1899, 2101, 0, -2008, 2008.5, '2008', Number.NaN])(
+        'should reject the year %j',
+        (year) => {
+            expect(errorPaths(document({ albums: [album({ year: year as number })] }))).toEqual([
+                'albums[0].year',
+            ]);
+        },
+    );
+
+    it.each([1900, 2016, 2100])('should accept the year %j', (year) => {
+        expect(parseCatalogDocument(document({ albums: [album({ year })] })).ok).toBe(true);
+    });
+
+    it('should not look at a release date or a free-text type any more', () => {
+        const old = { ...album(), releaseDate: '26/09/2008', type: 42 };
+        expect(errorPaths(document({ albums: [old as CatalogAlbum] }))).toEqual([]);
     });
 
     it('should point at the track field that is wrong', () => {
@@ -193,21 +203,6 @@ describe('parseCatalogDocument', () => {
         expect(errorPaths(document({ albums: [album({ wheelKey })] }))).toEqual([
             'albums[0].wheelKey',
         ]);
-    });
-
-    it.each(['2008-13-45', '2008-02-30', '2008-00-10'])(
-        'should reject the impossible release date %j',
-        (releaseDate) => {
-            expect(errorPaths(document({ albums: [album({ releaseDate })] }))).toEqual([
-                'albums[0].releaseDate',
-            ]);
-        },
-    );
-
-    it('should accept a leap day', () => {
-        expect(
-            parseCatalogDocument(document({ albums: [album({ releaseDate: '2024-02-29' })] })).ok,
-        ).toBe(true);
     });
 
     it.each(['1', 'Nov 24 2026', '2026-11-24', '2026-11-24T16:50:00'])(

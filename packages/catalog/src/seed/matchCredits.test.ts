@@ -24,9 +24,7 @@ const DISCOGRAPHY: SeedDiscography = {
             categoryNo: 1,
             wheelKey: 'A',
             title: 'Apollo 18',
-            releaseDate: '2008-09-26',
             year: 2008,
-            type: '錄音室專輯',
             label: '金牌娛樂',
             tracks: [
                 { no: 1, title: 'Hero', subtitle: null },
@@ -40,9 +38,7 @@ const DISCOGRAPHY: SeedDiscography = {
             categoryNo: 2,
             wheelKey: 'B',
             title: 'Beaming',
-            releaseDate: null,
             year: null,
-            type: '精選',
             label: '',
             tracks: [
                 { no: 5, title: 'Hero', subtitle: null },

@@ -33,9 +33,7 @@ describe('POST /api/albums', () => {
             id: 'apollo-18',
             title: 'Apollo 18',
             wheelKey: 'A',
-            releaseDate: null,
             year: null,
-            type: '',
             category: 'album',
             categoryNo: 1,
             label: '',
@@ -48,6 +46,8 @@ describe('POST /api/albums', () => {
         });
         expect(Date.parse(body.updatedAt as string)).not.toBeNaN();
         expect(body).not.toHaveProperty('enabled');
+        expect(body).not.toHaveProperty('releaseDate');
+        expect(body).not.toHaveProperty('type');
     });
 
     it('should take the wheel key of a Chinese title from its first character', async () => {
@@ -55,7 +55,7 @@ describe('POST /api/albums', () => {
         expect(body.wheelKey).toBe('中');
     });
 
-    it('should store every optional field and derive the year from the release date', async () => {
+    it('should store every optional field, the year as given', async () => {
         await insertAsset('c0ffee0000000000.webp');
         const body = await json(
             await create({
@@ -65,8 +65,7 @@ describe('POST /api/albums', () => {
                 categoryNo: 2,
                 coverSourceEtag: '"9b2c1a"',
                 wheelKey: 'Be',
-                releaseDate: '2005-03-08',
-                type: '錄音室專輯',
+                year: 2005,
                 label: '金牌娛樂',
                 accent: '#C8442B',
                 cover: 'c0ffee0000000000.webp',
@@ -76,9 +75,7 @@ describe('POST /api/albums', () => {
         );
         expect(body).toMatchObject({
             wheelKey: 'Be',
-            releaseDate: '2005-03-08',
             year: 2005,
-            type: '錄音室專輯',
             label: '金牌娛樂',
             accent: '#c8442b',
             cover: 'c0ffee0000000000.webp',
@@ -109,7 +106,7 @@ describe('POST /api/albums', () => {
             id: 'Bad Id',
             title: '   ',
             wheelKey: 'ABC',
-            releaseDate: '2008-02-30',
+            year: 1899,
             accent: 'red',
             cover: 'missing.webp',
             folder: 'a/b',
@@ -134,9 +131,9 @@ describe('POST /api/albums', () => {
             'enabled:NOT_EDITABLE',
             'folder:INVALID_FOLDER',
             'id:INVALID_ID',
-            'releaseDate:INVALID_DATE',
             'title:REQUIRED',
             'wheelKey:INVALID_WHEEL_KEY',
+            'year:INVALID_YEAR',
         ]);
     });
 
@@ -172,20 +169,22 @@ describe('POST /api/albums', () => {
                 id: 'x',
                 title: 'a'.repeat(201),
                 category: 'album',
-                type: 3,
+                type: '錄音室專輯',
                 label: 'line\nbreak',
                 wheelKey: ' A',
-                releaseDate: 20080926,
+                releaseDate: '2008-09-26',
+                year: '2008',
                 folder: '',
             }),
         );
         expect(reasons?.sort()).toEqual([
             'folder:INVALID_FOLDER',
             'label:INVALID_TEXT',
-            'releaseDate:INVALID_DATE',
+            'releaseDate:NOT_EDITABLE',
             'title:TOO_LONG',
-            'type:INVALID_TEXT',
+            'type:NOT_EDITABLE',
             'wheelKey:INVALID_WHEEL_KEY',
+            'year:INVALID_YEAR',
         ]);
     });
 
@@ -194,7 +193,7 @@ describe('POST /api/albums', () => {
             id: 'x',
             title: 'X',
             category: 'album',
-            releaseDate: null,
+            year: null,
             cover: null,
             coverSourceEtag: null,
             thumb: null,

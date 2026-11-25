@@ -16,9 +16,7 @@ describe('PATCH /api/albums/:id', () => {
     beforeEach(async () => {
         await insertAlbum('apollo-18', 1, {
             title: 'Apollo 18',
-            release_date: '2008-09-26',
             year: 2008,
-            type: '錄音室專輯',
             category: 'album',
             category_no: 1,
         });
@@ -31,9 +29,7 @@ describe('PATCH /api/albums/:id', () => {
         expect(body).toMatchObject({
             id: 'apollo-18',
             title: 'Apollo 18',
-            releaseDate: '2008-09-26',
             year: 2008,
-            type: '錄音室專輯',
             label: '金牌娛樂',
             accent: '#aabbcc',
         });
@@ -46,13 +42,45 @@ describe('PATCH /api/albums/:id', () => {
         expect(body).toMatchObject({ title: '阿波羅', wheelKey: 'A' });
     });
 
-    it('should follow the release date with the year, and clear both together', async () => {
-        expect(await json(await patch('apollo-18', { releaseDate: '2009-01-02' }))).toMatchObject({
-            year: 2009,
-        });
+    // CR-006（Functional Spec D63）：年份直接改，冇發行日期
+    it('should change the year directly and clear it with null', async () => {
+        expect(await json(await patch('apollo-18', { year: 2009 }))).toMatchObject({ year: 2009 });
         const row = await albumRow('apollo-18');
-        const cleared = await patch('apollo-18', { releaseDate: null }, `"${row?.updated_at}"`);
-        expect(await json(cleared)).toMatchObject({ releaseDate: null, year: null });
+        expect(row).toMatchObject({ year: 2009 });
+        const cleared = await patch('apollo-18', { year: null }, `"${row?.updated_at}"`);
+        expect(await json(cleared)).toMatchObject({ year: null });
+    });
+
+    it('should refuse a year outside 1900..2100 or not an integer', async () => {
+        for (const year of [1899, 2101, 0, 2008.5, '2008', true]) {
+            const response = await patch('apollo-18', { year });
+            expect(response.status, JSON.stringify(year)).toBe(400);
+            expect((await json<ErrorBody>(response)).error.details, String(year)).toEqual([
+                {
+                    path: 'year',
+                    reason: 'INVALID_YEAR',
+                    message: zhHant.albums.reasons.INVALID_YEAR,
+                },
+            ]);
+        }
+        expect(await albumRow('apollo-18')).toMatchObject({ year: 2008, updated_at: NOW });
+    });
+
+    // CR-006（D63、D44）：發行日期同自由文字類型冇咗；類型嘅中文名由類別帶出（管理端語言檔）
+    it('should refuse releaseDate and type as fields that do not exist', async () => {
+        const response = await patch('apollo-18', { releaseDate: '2009-01-02', type: 'EP' });
+        expect(response.status).toBe(400);
+        const details = (await json<ErrorBody>(response)).error.details;
+        expect(details?.map((d) => `${d.path}:${d.reason}`)).toEqual([
+            'releaseDate:NOT_EDITABLE',
+            'type:NOT_EDITABLE',
+        ]);
+    });
+
+    it('should answer the album without releaseDate or type', async () => {
+        const body = await json(await patch('apollo-18', { label: 'x' }));
+        expect(body).not.toHaveProperty('releaseDate');
+        expect(body).not.toHaveProperty('type');
     });
 
     it('should set and clear the cover, folder and thumb', async () => {

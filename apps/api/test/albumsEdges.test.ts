@@ -37,17 +37,17 @@ describe('album edge cases', () => {
         expect(await reasonsOf(response)).toEqual(['$:NOT_AN_OBJECT']);
     });
 
-    it('should tell an over-long folder from a bad one, and refuse a malformed date string', async () => {
+    it('should tell an over-long folder from a bad one, and refuse a year given as text', async () => {
         const response = await api('POST', '/api/albums', {
             id: 'x',
             title: 'X',
             category: 'album',
             folder: 'f'.repeat(201),
-            releaseDate: '26/09/2008',
+            year: '2008',
         });
         expect((await reasonsOf(response))?.sort()).toEqual([
             'folder:TOO_LONG',
-            'releaseDate:INVALID_DATE',
+            'year:INVALID_YEAR',
         ]);
     });
 
