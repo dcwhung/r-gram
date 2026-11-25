@@ -32,6 +32,8 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-032 | Review T-032 / T-033（Observation） | Technical Spec「轉動嘅碟用獨立合成層」喺單一 SVG 入面保證唔到：真機預覽（Implementation Plan R-005）順手量轉碟時嘅 fps；唔夠就將隻碟抽出嚟做獨立一層 | 真機預覽（T-038 之前） |
 | B-033 | Re-review T-032 / T-033（Observation） | W-011 之後封面角度只會喺 `Disc` unmount 時歸零：同一個 `Disc` 換封面，新封面會停喺上一隻碟嘅角度。以專輯 id 做 `key`（Implementation Plan v1.1 已寫入 T-035） | T-035、T-036 |
 | B-034 | QA S1 player-core（Observation） | App 一開就停喺 Favourites 碟而又冇 `previousAlbumId` 時，㩒 ♥ 冇反應（spec 只寫「再㩒返回之前嗰隻碟」）。續播要決定：還原上一隻碟，定係用一隻預設碟 | T-038（續播 T-062） |
+| B-035 | Review T-031（S-045） | 播放端（Vercel）同 Worker（Cloudflare）唔同 origin：`ETag` 唔係 CORS 預設可讀嘅 response header，播放端讀到嘅永遠係 null（而家冇嘢用佢，行為冇影響）。對外 catalog 要加 `Access-Control-Expose-Headers: ETag` 同 `Vary: Origin`；播放端唔會自己帶 `If-None-Match`（避免 preflight），Worker 唔可以靠佢 | T-026（`serve.ts`） |
+| B-036 | Review T-031（S-047） | 未有 `apps/player/.env.example` 列出 `VITE_CATALOG_URL`；production build 漏咗呢個變數時，第一次開 app 嘅用戶會見到一粒永遠唔成功嘅重試掣。加 `.env.example`；`vite.config.ts` 喺 production build 冇設定時警告，或者 Preload 將 `notConfigured` 分開處理 | T-034（Preload）、T-041（部署） |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 
