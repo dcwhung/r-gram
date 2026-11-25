@@ -9,7 +9,7 @@ import type { AppEnv } from '../app';
 import { FORCE_CONFIRMED } from '../config';
 import { readIfMatch, readJsonObject } from '../lib/http';
 import { ifMatchRequired, trackError, trackNotAnObject, trackValidationError } from './errors';
-import { dropUnusedLyrics } from './lyricsCleanup';
+import { dropLyricsLater, dropUnusedLyrics } from './lyricsCleanup';
 import { toTrack } from './rows';
 import { savedResponse, songFieldsOf } from './saved';
 import { putLyrics, songFromRequest, type ReadSong } from './songText';
@@ -31,7 +31,7 @@ trackRoutes.get('/:id/text', async (c) => {
     return c.json({ trackId: row.id, text, updatedAt: row.updated_at });
 });
 
-/** 歌詞 JSON 先寫 R2，再寫 D1（Technical Spec API-041 嘅次序）；寫唔到就收返啱啱寫嘅檔 */
+/** 歌詞 JSON 先寫 R2，再寫 D1（Technical Spec API-041 嘅次序）；寫唔到就即刻收返啱啱寫嘅檔（未入過 catalog） */
 const saveSong = async (c: Context<AppEnv>, current: store.TrackTextRow, read: ReadSong) => {
     const { id, updated_at: expected } = current;
     const lyrics = read.song.lyrics ? await putLyrics(c.env.CATALOG, read.song.lyrics) : null;
@@ -40,7 +40,8 @@ const saveSong = async (c: Context<AppEnv>, current: store.TrackTextRow, read: R
         await dropUnusedLyrics(c.env, [lyrics?.jsonName]);
         return notWritten(c, id);
     }
-    await dropUnusedLyrics(c.env, [current.json_name]);
+    // 舊檔等 catalog 生成成功先刪（W-021）
+    dropLyricsLater(c, [current.json_name]);
     return c.json(savedResponse(row, read, lyrics));
 };
 
@@ -81,6 +82,6 @@ trackRoutes.delete('/:id', async (c) => {
     if (!track) return trackError(c, 'notFound');
     if (!isConfirmed(c)) return trackError(c, 'idRemoved', [{ type: 'track', id }]);
     if (!(await store.deleteTrack(c.env.DB, id, track.album_id))) return trackError(c, 'notFound');
-    await dropUnusedLyrics(c.env, [track.json_name]);
+    dropLyricsLater(c, [track.json_name]);
     return c.json({ deleted: { trackId: id, albumId: track.album_id } });
 });

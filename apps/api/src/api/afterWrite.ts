@@ -3,12 +3,14 @@
  * 每個成功（2xx）嘅 /api 寫入請求之後行一次 hook，各 route 唔使自己叫。
  * hook 有結果就加入回應 JSON 做 `catalog`（CatalogStatus：同 GET /api/albums 嘅 `catalog` 同一個形狀，backlog B-046 ②；
  * `ok: false` = 已儲存但生成失敗）。api/routes.ts 用 catalog/rebuildRoute.ts 嘅 rebuildAfterWrite（T-026）。
+ * 生成成功（catalog.ok）之後先刪 route 記低嘅歌詞檔（tracks/lyricsCleanup.ts，review W-021）。
  * 唔改 catalog 內容嘅寫入 route 加 skipPostWrite（T-024：上載圖；T-026：重新生成 endpoint 自己，backlog B-043 ③）
  */
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../app';
 import { internalFailure, type CatalogStatus } from '../catalog/state';
+import { dropReleasedLyrics } from '../tracks/lyricsCleanup';
 import { isJsonObject, type JsonObject } from '../lib/http';
 
 export type PostWriteHook = (c: Context<AppEnv>) => Promise<CatalogStatus | undefined>;
@@ -54,6 +56,8 @@ export const afterWrite = (hook: PostWriteHook) =>
         if (!WRITE_METHODS.includes(c.req.method) || !c.res.ok) return;
         if (c.get('skipPostWrite') === true) return;
         const catalog = await runHook(hook, c);
+        // 生成成功先刪冇人用嘅歌詞檔：失敗時播放端嘅上一份 catalog 仲指住佢哋（W-021）
+        if (catalog?.ok === true) await dropReleasedLyrics(c);
         if (catalog === undefined) return;
         const body = await jsonBodyOf(c.res);
         if (!body) return;
