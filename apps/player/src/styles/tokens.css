@@ -38,6 +38,9 @@
     /* 場景類（Functional Spec D1 已接受超過 300ms） */
     --motion-scene-disc-change: 500ms;
     --motion-scene-dial-key: 260ms;
+    --motion-scene-dial-key-fade: 180ms;
+    --motion-scene-dial-plate-fade: 220ms;
+    --motion-scene-chrome-fade: 320ms;
     --motion-scene-disc-rotation: 5400ms;
     --motion-scene-tonearm: 650ms;
     --motion-scene-needle-drop: 160ms;

@@ -24,6 +24,15 @@ export const MOTION = {
         dialKeyOpenStepMs: 14,
         /** 收返時每個字母遲幾耐（由最尾一格先收） */
         dialKeyCloseStepMs: 8,
+        /** 字母（同細點）淡入淡出（設計稿第 18 版 dialkey 嘅 opacity） */
+        dialKeyFadeMs: 180,
+        /** 字母盤底盤淡入淡出（設計稿 dialplate 嘅 opacity） */
+        dialPlateFadeMs: 220,
+        /**
+         * 揀碟時唱臂、三粒細掣、左上歌名嗰部分淡出淡入；其他碟同旋鈕光圈嘅淡入淡出
+         *（設計稿第 18 版 SWAP_FADE_MS；Functional Spec D52）
+         */
+        chromeFadeMs: 320,
         /** 碟轉一圈 */
         discRotationMs: 5400,
         /** 唱臂轉入碟上面 / 返泊位（由泊位開始播嘅第一段：升高住轉入） */
