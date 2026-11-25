@@ -56,6 +56,10 @@ describe('tokens.css', () => {
         ['--motion-scene-crt-on', MOTION.scene.crtOnMs],
         ['--motion-scene-crt-off', MOTION.scene.crtOffMs],
         ['--motion-scene-tv-drop', MOTION.scene.tvDropMs],
+        ['--motion-scene-flag-fade', MOTION.scene.flagFadeMs],
+        ['--motion-scene-preload-step', MOTION.scene.preloadStepMs],
+        ['--motion-scene-preload-bar-delay', MOTION.scene.preloadBarDelayMs],
+        ['--motion-scene-preload-bar-in', MOTION.scene.preloadBarInMs],
     ])('should define %s with the same duration as config/motion.ts', (name, ms) => {
         expect(token(name)).toBe(`${ms}ms`);
     });

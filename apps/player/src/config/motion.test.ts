@@ -21,6 +21,21 @@ describe('motion tokens', () => {
         });
     });
 
+    // T-034：Preload 旗幟嘅時間線（設計稿 r-gram v16 anim.js 嘅 T：loadStart 0.25 → loadEnd 1.85 → flagFade 2.05–2.8）
+    it('should use the preload timings of the v16 flag mockup', () => {
+        expect(MOTION.scene).toMatchObject({
+            flagFadeMs: 750,
+            preloadHoldMs: 200,
+            flagGustMs: 1000,
+            preloadBarDelayMs: 200,
+            preloadBarInMs: 300,
+        });
+        // v16 進度線由 0 行到 100 用 1.6 秒；真實進度有三項，每一步行三分之一
+        const V16_FILL_MS = 1600;
+        const ITEMS = 3;
+        expect(MOTION.scene.preloadStepMs).toBe(Math.round(V16_FILL_MS / ITEMS / 10) * 10);
+    });
+
     it('should fit the staggered dial letters inside the disc-change duration', () => {
         const { dialKeyMs, dialKeyOpenStepMs, discChangeMs } = MOTION.scene;
         const DIAL_POSITIONS = 18;

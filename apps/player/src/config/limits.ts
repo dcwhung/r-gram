@@ -25,3 +25,7 @@ export const CATALOG_IMAGE_CACHE_MAX_ENTRIES = 200;
 
 /** Service Worker 留低幾多份歌詞（B-071 ③）：291 首歌，每首最多一份，留位畀改歌詞同加歌 */
 export const LYRICS_CACHE_MAX_ENTRIES = 400;
+
+/** 未實作（TDD 紅燈） */
+export const FONT_LOAD_TIMEOUT_MS = 1;
+export const COVER_PRELOAD_TIMEOUT_MS = 1;

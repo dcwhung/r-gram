@@ -29,6 +29,27 @@ describe('useHome', () => {
     });
 });
 
+/* Review S-078：catalog 遲過 Preload 開始先到，都要離開得 Preload（T-034） */
+describe('useHome finishPreload', () => {
+    it('should open the first disc when Preload finishes after a late catalog', () => {
+        const { result, rerender } = renderHook(({ catalog }) => useHome(catalog), {
+            initialProps: { catalog: null as CatalogDocument | null },
+        });
+        expect(result.current.stage.scene).toBe('preload');
+        rerender({ catalog: sampleDocument() });
+        expect(result.current.stage.scene).toBe('preload');
+        act(() => result.current.finishPreload());
+        expect(result.current.stage.scene).toBe('home');
+        expect(result.current.stage.viewAlbumId).toBe('apollo-18');
+    });
+
+    it('should stay on Preload when there is still no catalog', () => {
+        const { result } = renderHook(() => useHome(null));
+        act(() => result.current.finishPreload());
+        expect(result.current.stage.scene).toBe('preload');
+    });
+});
+
 /* CR-005 D56：主頁用開 app 時揀中嘅封面；catalog 更新都唔變 */
 describe('useHome cover pick', () => {
     const catalogWithTwoCovers = (): CatalogDocument => {

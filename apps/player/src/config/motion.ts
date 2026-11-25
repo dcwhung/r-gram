@@ -39,5 +39,11 @@ export const MOTION = {
         crtOffMs: 150,
         /** 電視向下收埋（熄機之後） */
         tvDropMs: 450,
+        flagFadeMs: 1,
+        preloadHoldMs: 1,
+        preloadStepMs: 1,
+        flagGustMs: 1,
+        preloadBarDelayMs: 1,
+        preloadBarInMs: 1,
     },
 } as const;

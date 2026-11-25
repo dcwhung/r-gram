@@ -88,6 +88,7 @@ export interface Home {
     /** 未有 catalog = null */
     view: HomeView | null;
     handlers: HomeHandlers | null;
+    finishPreload: () => void;
 }
 
 /**
@@ -99,7 +100,8 @@ export const useHome = (catalog: CatalogDocument | null, random?: () => number):
     const [playback, play] = useReducer(playbackReducer, IDLE_PLAYBACK);
     const covers = useCoverVariants(catalog, random);
     usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
-    if (!catalog) return { stage, playback, covers, view: null, handlers: null };
+    if (!catalog)
+        return { stage, playback, covers, view: null, handlers: null, finishPreload: () => {} };
     const view = homeView(catalog, stage, playback, covers);
     return {
         stage,
@@ -107,5 +109,6 @@ export const useHome = (catalog: CatalogDocument | null, random?: () => number):
         covers,
         view,
         handlers: handlersFor({ catalog, stage, view, dispatch, play }),
+        finishPreload: () => {},
     };
 };
