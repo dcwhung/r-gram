@@ -5,3 +5,6 @@ SESSION_SECRET=paste-a-random-32-byte-secret
 # 本機要用 https（__Host- cookie 要 Secure）：wrangler dev --local-protocol https
 WORKER_ORIGIN=https://localhost:8787
 PLAYER_ORIGINS=http://localhost:5173
+# wrangler.toml [vars] 仲係 placeholder 嗰陣，本機可以喺呢度蓋過（.dev.vars 優先）：
+# GOOGLE_CLIENT_ID=paste-from-google-cloud-console
+# ADMIN_EMAILS=your-google-account
