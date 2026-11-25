@@ -31,15 +31,14 @@ const hitsIn = (node: ts.Node, file: ts.SourceFile): HardCodedHit[] => {
     }));
 };
 
-/** TypeScript / TSX source 入面寫死嘅中文字（按出現次序） */
-export const findHardCodedText = (source: string): HardCodedHit[] => {
-    const file = ts.createSourceFile(
-        'source.tsx',
-        source,
-        ts.ScriptTarget.Latest,
-        true,
-        ts.ScriptKind.TSX,
-    );
+/** `.ts` 當 TypeScript parse（`<T>(x: T) => x` 唔係 JSX）；其他（`.tsx`、冇講明）當 TSX */
+const scriptKindFor = (fileName: string): ts.ScriptKind =>
+    fileName.endsWith('.ts') ? ts.ScriptKind.TS : ts.ScriptKind.TSX;
+
+/** TypeScript / TSX source 入面寫死嘅中文字（按出現次序）。`fileName` 只用嚟決定點 parse */
+export const findHardCodedText = (source: string, fileName = 'source.tsx'): HardCodedHit[] => {
+    const kind = scriptKindFor(fileName);
+    const file = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, kind);
     const hits: HardCodedHit[] = [];
     const visit = (node: ts.Node): void => {
         if (isTextNode(node)) hits.push(...hitsIn(node, file));

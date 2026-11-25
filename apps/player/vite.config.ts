@@ -15,6 +15,15 @@ const { version: APP_VERSION } = JSON.parse(readFileSync(PACKAGE_JSON, 'utf8')) 
 const APP_NAME = zhHant.app.name;
 const APP_DESCRIPTION = zhHant.app.description;
 
+const HTML_ESCAPES: Readonly<Record<string, string>> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+};
+/** 佔位符會落入 HTML 屬性：文字入面有 `"` 或者 `&` 都唔可以整爛個屬性 */
+const escapeHtml = (text: string) => text.replace(/[&<>"]/g, (char) => HTML_ESCAPES[char] ?? char);
+
 // index.html 入面嘅佔位符（JS 未跑都要有，所以喺 HTML 層換）
 const HTML_PLACEHOLDERS: Readonly<Record<string, string>> = {
     '%APP_VERSION%': APP_VERSION,
@@ -24,7 +33,7 @@ const injectAppText = (): Plugin => ({
     name: 'inject-app-text',
     transformIndexHtml: (html) =>
         Object.entries(HTML_PLACEHOLDERS).reduce(
-            (text, [placeholder, value]) => text.replaceAll(placeholder, value),
+            (text, [placeholder, value]) => text.replaceAll(placeholder, escapeHtml(value)),
             html,
         ),
 });

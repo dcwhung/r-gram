@@ -66,6 +66,15 @@ describe('findHardCodedText', () => {
         ]);
     });
 
+    // S-023：.ts 檔嘅 `<T>(x: T) => x` 唔係 JSX；當 TSX parse 會將後面嘅註解誤報
+    it('should parse a .ts source as TypeScript, not TSX', () => {
+        const source = 'const id = <T>(x: T): T => x;\n// 註解一\nexport const a = id(1);\n';
+        expect(findHardCodedText(source, 'util.ts')).toEqual([]);
+        expect(findHardCodedText("export const a = '播放';\n", 'util.ts')).toEqual([
+            { line: 1, text: '播放' },
+        ]);
+    });
+
     it('should not treat // inside a string as a comment', () => {
         expect(findHardCodedText(`const url = 'https://example.com/歌';\n`)).toEqual([
             { line: 1, text: '歌' },
@@ -80,7 +89,7 @@ describe('player shell files', () => {
     const read = (name: string) => readFileSync(join(APP_ROOT, name), 'utf8');
 
     it('should not hard-code UI text in vite.config.ts', () => {
-        expect(findHardCodedText(read('vite.config.ts'))).toEqual([]);
+        expect(findHardCodedText(read('vite.config.ts'), 'vite.config.ts')).toEqual([]);
     });
 
     it('should not hard-code UI text in index.html', () => {
@@ -100,7 +109,7 @@ describe('player source', () => {
         // 路徑一錯就會掃唔到任何檔而空過：先確認真係掃到 source
         expect(sourceFiles().some((file) => file.endsWith(join('app', 'App.tsx')))).toBe(true);
         const offenders = sourceFiles().flatMap((file) =>
-            findHardCodedText(readFileSync(file, 'utf8')).map((hit) => ({ file, ...hit })),
+            findHardCodedText(readFileSync(file, 'utf8'), file).map((hit) => ({ file, ...hit })),
         );
         expect(offenders).toEqual([]);
     });
