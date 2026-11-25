@@ -10,7 +10,6 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-004 | Re-review（Observation） | `generatedAt` 仍然收 `2026-02-30T…`（V8 `Date.parse` 寬鬆）。只係資訊欄，播放端唔靠佢做判斷 | 有需要先做 |
 | B-005 | Review T-001 / T-002（Observation） | 發佈 builder 要將草稿入面嘅空字串轉做 `null`（validator 唔收空字串） | T-026 |
 | B-006 | QA S1 catalog-core（Observation） | 字串長度上限未做（Technical Spec「安全設計」：`CREDIT_MAX_CHARS`、`LRC_MAX_BYTES` 等）。常數放 `packages/catalog`（管理端同 API 共用），API 入口驗 | T-023、T-080 |
-| B-007 | QA S1 catalog-core（Observation） | 根設定檔（`package.json`、`tsconfig.json`、`vitest.config.ts`、`ci.yml`）而家喺 `catalog-core` 鏈，每加一個 app 都會令佢 REVERIFY。下次 QA 將佢哋分去新鏈 `repo-scaffold` | T-020 嘅 QA |
 | B-008 | T-030（`npm audit`） | `vite-plugin-pwa ^2.0.0` → `workbox-build` → `glob` / `minimatch` 有 4 個 moderate 警告（GHSA-3g3m-2fjr-6pw4、GHSA-g3hv-75wg-m249）。只喺 build 時用，glob pattern 係自己寫死嘅設定，唔食外來輸入；`npm audit fix` 會降去 `vite-plugin-pwa@1.1.0`（breaking）。同 903-player 用緊嘅版本一樣。等上游出修正版再升 | 上游有修正時 |
 | B-009 | T-030（設計問題，要用戶決定） | 設計稿係 9:16（1080 × 1920），但 iPhone 係約 9:19.5。舞台只用安全區入面嘅位（扣走狀態列 / 動態島同底部指示條）：iPhone 15 闊度填滿之後，可用高度比設計稿多約 166 單位（約 9%）；舞台已經計出 `--stage-extra`。預設做法：左上資訊同頂部螺絲貼頂，唱片機（碟、轉盤、唱臂、控件）成組貼底，多出嚟嘅空位喺中間。要喺真機 / 預覽睇過先定 | T-033、T-035 |
 | B-010 | Review T-030（W-006；設計問題，要用戶決定） | 刻度格數 = 已上架專輯數 + 1。而家嘅幾何（每格固定 11.25°，♥ 喺最尾一格）只有 8–10 同 15–18 格過到「感應範圍互不重疊」：例如只上架 3–4 張碟時 ♥ 會疊住播放模式掣；19 格（多一張碟）♥ 會疊住旋鈕，字母盤過場亦超過 0.5 秒。建議：刻度弧固定（185° 至 376.25°），♥ 永遠喺弧嘅最尾（同設計稿 18 格時一樣位置），專輯喺弧上面平均分佈。要改 spec（CR）同設計稿 | T-036 之前 |
@@ -23,3 +22,7 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-017 | Review T-020 / T-021（S-033） | Technical Spec 同步：API-003（登出）認證欄改做「None（要 same-origin）」；組件圖加新檔（`lib/validateEnv.ts`、`auth/pages.ts` 等）；Header 行加 `Referrer-Policy`、`X-Content-Type-Options` | 下次 Change Request |
 | B-018 | Review T-020 / T-021（S-030） | 測試名同內容唔完全對應：`oauthCallback.test.ts`「use the state cookie once」只驗 Set-Cookie 有清；replay 測試同「Google rejects the code」實際一樣；`session.test.ts`「requested size」只試 32 | 下次改呢幾個檔時 |
 | B-019 | Review T-020 / T-021（Observation） | 之後 Backend 任務要留意：① `/api` 守門靠註冊次序，新 route 一定要加喺 `use('*')` 之後；② `tracks (album_id, no)` UNIQUE 逐句檢查，重編歌號要分兩步；③ 重新登入唔會收返同一個瀏覽器之前嘅 session；④ `/auth/google/start` 同 callback 冇 rate limit；⑤ 自訂網域要加 HSTS；CI 未有 Worker bundle 檢查 | T-022、T-023、T-028 |
+| B-020 | QA S1 api-auth（Minor） | `safeNext` 嘅長度上限按輸入嘅 UTF-8 byte 計，但放入 state cookie 嘅係編碼後嘅字串（每個中文字 9 個字元）再加 base64：`next` 有約 330 個中文字時 cookie 超過 4096 byte，瀏覽器唔收，callback 出「登入逾時」（再登入一次就得，冇安全影響）。上限改為按回傳嘅字串計；加測試「長中文 `next` → 當冇」 | T-022（下次改 `apps/api`） |
+| B-021 | QA S1 player-foundation | `robots.txt`：FR-011 同 Technical Spec「安全設計」有要求，但 Implementation Plan 冇任何一行寫明；而家 `/robots.txt` 回嘅係 `index.html`。播放端同 Worker 都要有 | T-039（播放端）、T-028（Worker） |
+| B-022 | QA S1 api-auth（補測） | `test/oauthHelpers.ts` 嘅 `encodeJson` 用 `btoa`，非 Latin-1 字元會 throw，所以 W-008 只有 unit test。改做 UTF-8 安全，加一個經 callback 嘅 Kelvin 符號測試 | T-022（下次改 `apps/api`） |
+| B-023 | QA S1 player-foundation | 加 E2E 時，將 QA 嘅播放端 browser check（三個尺寸：舞台位置、`--u`、`lang`、robots、版本、manifest、冇 console error、頁面唔捲動）寫成 smoke spec | T-040 |

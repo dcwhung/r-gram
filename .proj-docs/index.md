@@ -30,6 +30,9 @@
 | 日期 | 文件 | 結果 | 範圍 |
 | --- | --- | --- | --- |
 | 2026-11-25 | [qa/2026-11-25_00-40_qa_catalog-core.md](qa/2026-11-25_00-40_qa_catalog-core.md) | S1 pass（AC-1–AC-9） | 鏈 `catalog-core`：T-001、T-002。Frozen plan：[qa/plans/catalog-core.md](qa/plans/catalog-core.md)；ledger：`qa/verification-ledger.tsv` |
+| 2026-11-25 | [qa/2026-11-25_03-25_qa_player-foundation.md](qa/2026-11-25_03-25_qa_player-foundation.md) | S1 pass（AC-1–AC-6） | 鏈 `player-foundation`：T-030。Frozen plan：[qa/plans/player-foundation.md](qa/plans/player-foundation.md) |
+| 2026-11-25 | [qa/2026-11-25_03-25_qa_api-auth.md](qa/2026-11-25_03-25_qa_api-auth.md) | S1 pass（AC-1–AC-9；一條 Minor 入 backlog B-020） | 鏈 `api-auth`：T-020、T-021。Frozen plan：[qa/plans/api-auth.md](qa/plans/api-auth.md) |
+| 2026-11-25 | [qa/2026-11-25_03-25_qa_repo-scaffold_catalog-core.md](qa/2026-11-25_03-25_qa_repo-scaffold_catalog-core.md) | S1 pass | 新鏈 `repo-scaffold`（根設定檔、CI）；`catalog-core` 重驗。Frozen plans：[qa/plans/repo-scaffold.md](qa/plans/repo-scaffold.md) |
 
 Backlog：[backlog.md](backlog.md)
 
