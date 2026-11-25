@@ -1,5 +1,6 @@
-/* 專輯欄位規則（fieldRules.ts）：資料夾名做 R2 key prefix 嘅安全限制（review W-013） */
+/* 專輯欄位規則（fieldRules.ts、validate.ts）：資料夾名做 R2 key prefix 嘅安全限制（W-013）、未知欄位名長度（S-053） */
 import { FIELD_RULES } from '../src/albums/fieldRules';
+import { UNKNOWN_KEY_MAX_CHARS, parseFields } from '../src/albums/validate';
 import { api, json } from './albumFixtures';
 
 const reasonOf = (field: keyof typeof FIELD_RULES, value: unknown) => {
@@ -34,5 +35,21 @@ describe('folder rule', () => {
             response,
         );
         expect(body.error.details).toMatchObject([{ path: 'folder', reason: 'INVALID_FOLDER' }]);
+    });
+});
+
+describe('unknown field names in validation details (S-053)', () => {
+    it('should cut a huge unknown key down before echoing it as the path', () => {
+        const key = '鍵'.repeat(100_000);
+        const { issues } = parseFields({ [key]: 1 });
+        expect(issues).toHaveLength(1);
+        expect(issues[0]?.reason).toBe('NOT_EDITABLE');
+        expect(issues[0]?.path).toBe('鍵'.repeat(UNKNOWN_KEY_MAX_CHARS));
+    });
+
+    it('should echo a short unknown key unchanged', () => {
+        expect(parseFields({ enabled: true }).issues).toEqual([
+            { path: 'enabled', reason: 'NOT_EDITABLE' },
+        ]);
     });
 });

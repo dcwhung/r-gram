@@ -21,6 +21,11 @@ export interface ParsedFields {
 /** 專輯 id 上限：歌 id 係 `<albumId>-<6 位>`，亦會出現喺 R2 key 同網址；64 已經好鬆 */
 const ALBUM_ID_MAX_CHARS = 64;
 const ID_KEY = 'id';
+/** 未知欄位名原樣回傳做 details[].path 時嘅上限：100 KB 嘅 key 唔可以變成 100 KB 嘅錯誤回應 */
+export const UNKNOWN_KEY_MAX_CHARS = 64;
+
+/** 按字（code point）截短，唔會切開 emoji / 罕見字嘅 surrogate pair */
+const boundedPath = (key: string): string => [...key].slice(0, UNKNOWN_KEY_MAX_CHARS).join('');
 
 /** body 入面除咗 `skip` 之外嘅 key：可以改嘅就驗，其他（包括 `enabled`）一律 NOT_EDITABLE */
 export const parseFields = (body: JsonObject, skip: readonly string[] = []): ParsedFields => {
@@ -29,7 +34,7 @@ export const parseFields = (body: JsonObject, skip: readonly string[] = []): Par
     for (const [key, value] of Object.entries(body)) {
         if (skip.includes(key)) continue;
         if (!isEditableField(key)) {
-            issues.push({ path: key, reason: 'NOT_EDITABLE' });
+            issues.push({ path: boundedPath(key), reason: 'NOT_EDITABLE' });
             continue;
         }
         const result = FIELD_RULES[key](value);
