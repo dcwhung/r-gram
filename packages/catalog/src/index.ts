@@ -50,6 +50,12 @@ export {
     type TrackCredits,
 } from './schema/types';
 export { matchCredits, type CreditMatchResult, type MatchedCredits } from './seed/matchCredits';
+export {
+    planAlbumSeed,
+    type AlbumSeedPlan,
+    type ExistingAlbum,
+    type OrdinalTaken,
+} from './seed/planAlbumSeed';
 export { seedToCatalog, type SeedCatalogOptions } from './seed/seedToCatalog';
 export type {
     SeedAlbum,

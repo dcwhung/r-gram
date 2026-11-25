@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "wrangler dev --local-protocol https",
         "migrate:local": "wrangler d1 migrations apply r-gram --local",
+        "seed": "node scripts/seed.mjs",
         "test": "vitest run",
         "typecheck": "tsc -b"
     },
