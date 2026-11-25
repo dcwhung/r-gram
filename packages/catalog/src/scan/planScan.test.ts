@@ -189,6 +189,14 @@ describe('planScan: existing tracks', () => {
             { trackId: 'komorebi-04', no: 4, title: 'Song 4' },
         ]);
     });
+
+    it('should not match an MV to an existing track whose number has no audio', () => {
+        const result = plan(['04 a.mp4'], [track(4)]);
+        expect(result.matched).toEqual([]);
+        expect(result.skipped).toEqual([
+            { key: key('04 a.mp4'), no: 4, kind: 'mv', reason: 'NO_AUDIO' },
+        ]);
+    });
 });
 
 describe('planScan: covers', () => {
