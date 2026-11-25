@@ -29,6 +29,12 @@ describe('Disc', () => {
         );
     });
 
+    // W-036：封面要用 CORS 攞，Service Worker 先會留低（佢只留 status 200，唔留 opaque 回應）
+    it('should request the cover with CORS so the service worker can keep it for offline use', () => {
+        const container = renderDisc({ coverUrl: 'https://api.example/img/abc.webp' });
+        expect(container.querySelector('image')).toHaveAttribute('crossorigin', 'anonymous');
+    });
+
     it('should fall back to the album colour when there is no cover', () => {
         const container = renderDisc();
         expect(container.querySelector('image')).toBeNull();
