@@ -17,6 +17,7 @@ CREATE TABLE assets (
 -- albums：一隻碟一行
 --   id：^[a-z0-9]+(-[a-z0-9]+)*$（同 packages/catalog isAlbumId），建立後不變；
 --       'favourites' 係播放端虛擬專輯嘅保留字
+--   year：年份（可選，NULL = 冇）；CR-006 之後直接輸入，冇發行日期、冇自由文字類型（範圍由 API 驗）
 --   category：發行類別短名（packages/catalog RELEASE_CATEGORIES；串法待用戶確認，Functional Spec D43）
 --   category_no：類別內序號，由 1 起；同類別唔可以重覆由 API 驗（唔加 UNIQUE：兩張碟對調序號要分兩步改）
 --   cover_source_etag：上次由掃描套用嘅封面來源（cover.jpg｜png）嘅 R2 ETag；NULL = 未套用過
@@ -37,9 +38,7 @@ CREATE TABLE albums (
     ),
     title TEXT NOT NULL,
     wheel_key TEXT NOT NULL,
-    release_date TEXT,
     year INTEGER,
-    type TEXT NOT NULL DEFAULT '',
     category TEXT NOT NULL CHECK (category IN ('album', 'ep', 'best', 'live', 'ost', 'single')),
     category_no INTEGER NOT NULL CHECK (category_no >= 1),
     label TEXT NOT NULL DEFAULT '',

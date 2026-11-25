@@ -69,7 +69,8 @@ export const zhHant = {
             TOO_LONG: '字數超出上限。',
             INVALID_WHEEL_KEY:
                 '必須為一至兩個字，前後不可有空白，亦不可包含控制字元或不可見的格式字元。',
-            INVALID_DATE: '日期必須為 YYYY-MM-DD 格式的有效日期。',
+            /** `{min}`、`{max}` = YEAR_MIN、YEAR_MAX（errors.ts 填入；CR-006：專輯只有年份） */
+            INVALID_YEAR: '年份必須為 {min} 至 {max} 的整數。',
             INVALID_COLOUR: '顏色必須為 #rrggbb 格式。',
             INVALID_FOLDER:
                 '資料夾名稱不可為空白或「.」，不可包含「..」，不可以「_」開頭（保留給非專輯資料夾），亦不可包含斜線、反斜線、?、#、%、換行、控制字元或不可見的格式字元。',

@@ -164,7 +164,6 @@ describe('shared character rule for text fields and wheelKey (S-054)', () => {
     const IDEOGRAPHIC_SPACE = String.fromCodePoint(0x3000);
     const TEXT_FIELDS = {
         title: 'INVALID_TEXT',
-        type: 'INVALID_TEXT',
         label: 'INVALID_TEXT',
         folder: 'INVALID_FOLDER',
     } as const;

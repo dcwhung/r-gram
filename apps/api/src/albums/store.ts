@@ -6,42 +6,40 @@
 import { NEUTRAL_ACCENT, wheelKeyFor } from '@r-gram/catalog';
 import { nextUpdatedAt } from '../lib/updatedAt';
 import type { AlbumFields } from './validate';
-import { ALBUM_COLUMNS, COLUMN_OF, yearOf, type AlbumRow } from './rows';
+import { ALBUM_COLUMNS, COLUMN_OF, type AlbumRow } from './rows';
 import { CATEGORY_NO_MAX, type EditableField } from './fieldRules';
 
 export const findAlbum = (db: D1Database, id: string) =>
     db.prepare(`SELECT ${ALBUM_COLUMNS} FROM albums WHERE id = ?`).bind(id).first<AlbumRow>();
 
 /**
- * ?7 = 類別、?8 = 序號（NULL = 嗰個類別最大序號 + 1，喺 `next` 計）、?18 = 時間、?19 = CATEGORY_NO_MAX。
+ * ?5 = 類別、?6 = 序號（NULL = 嗰個類別最大序號 + 1，喺 `next` 計）、?16 = 時間、?17 = CATEGORY_NO_MAX。
  * 序號已有人用（`NOT EXISTS` 唔成立）或者自動序號超過上限（S-118）→ 乜都唔寫；兩樣都喺同一句判斷，
  * 兩個請求同時新增都唔會撞號或者過上限。SELECT 一定要有 WHERE，SQLite 先唔會將 ON CONFLICT 當成 join 嘅一部分
  */
 const INSERT_SQL = `
     WITH next AS (
-        SELECT COALESCE(?8, (SELECT COALESCE(MAX(category_no), 0) + 1 FROM albums WHERE category = ?7))
+        SELECT COALESCE(?6, (SELECT COALESCE(MAX(category_no), 0) + 1 FROM albums WHERE category = ?5))
             AS no
     )
-    INSERT INTO albums (id, title, wheel_key, release_date, year, type, category, category_no,
+    INSERT INTO albums (id, title, wheel_key, year, category, category_no,
         label, accent, cover, cover_source_etag, thumb, cover2, thumb2, cover2_source_etag, folder,
         sort_order, created_at, updated_at)
-    SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, next.no, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17,
-        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM albums), ?18, ?18
+    SELECT ?1, ?2, ?3, ?4, ?5, next.no, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15,
+        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM albums), ?16, ?16
     FROM next
-    WHERE next.no <= ?19
-        AND NOT EXISTS (SELECT 1 FROM albums WHERE category = ?7 AND category_no = next.no)
+    WHERE next.no <= ?17
+        AND NOT EXISTS (SELECT 1 FROM albums WHERE category = ?5 AND category_no = next.no)
     ON CONFLICT (id) DO NOTHING`;
 
-/** INSERT_SQL ?1–?17 嘅值；冇畀嘅欄用預設 */
+/** INSERT_SQL ?1–?15 嘅值；冇畀嘅欄用預設 */
 const insertValues = (id: string, fields: AlbumFields): unknown[] => {
     const title = fields.title as string;
     return [
         id,
         title,
         fields.wheelKey ?? wheelKeyFor(title),
-        fields.releaseDate ?? null,
-        yearOf(fields.releaseDate),
-        fields.type ?? '',
+        fields.year ?? null,
         fields.category,
         fields.categoryNo ?? null,
         fields.label ?? '',
@@ -78,16 +76,13 @@ export const insertAlbum = async (
     return (fields.categoryNo ?? null) === null ? 'ordinalFull' : 'ordinalTaken';
 };
 
-/** SET 子句同佢嘅值：有畀 releaseDate 就連 year 一齊改 */
+/** SET 子句同佢嘅值 */
 const assignments = (fields: AlbumFields): { sql: string[]; values: unknown[] } => {
     const keys = Object.keys(fields) as EditableField[];
-    const sql = keys.map((key) => `${COLUMN_OF[key]} = ?`);
-    const values = keys.map((key) => fields[key]);
-    if ('releaseDate' in fields) {
-        sql.push('year = ?');
-        values.push(yearOf(fields.releaseDate));
-    }
-    return { sql, values };
+    return {
+        sql: keys.map((key) => `${COLUMN_OF[key]} = ?`),
+        values: keys.map((key) => fields[key]),
+    };
 };
 
 /**

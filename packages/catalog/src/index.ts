@@ -39,6 +39,7 @@ export {
     type ReleaseCategory,
 } from './schema/releaseCategory';
 export { parseCatalogDocument, type CatalogParseResult } from './schema/parseCatalogDocument';
+export { isAlbumYear, YEAR_MAX, YEAR_MIN } from './schema/year';
 export {
     CATALOG_VERSION,
     CREDIT_FIELDS,

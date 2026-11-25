@@ -1,5 +1,6 @@
 import { isAlbumId, isTrackId } from './ids';
 import { isReleaseCategory } from './releaseCategory';
+import { isAlbumYear } from './year';
 import { type CatalogError, type Fields, Issues, isRecord } from './issues';
 import { CATALOG_VERSION, CREDIT_FIELDS, type CatalogDocument } from './types';
 
@@ -7,7 +8,6 @@ export type CatalogParseResult =
     { ok: true; document: CatalogDocument } | { ok: false; errors: CatalogError[] };
 
 const ACCENT = /^#[0-9a-f]{6}$/i;
-const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 /** 完整嘅 ISO 8601 時刻（有時間同時區），例如 `2026-11-24T16:50:00.000Z` */
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/;
 /** `https://host/` 或者 `https://host/path/`：之後會直接駁 R2 key，所以唔可以有 query、fragment、userinfo、空格 */
@@ -17,19 +17,6 @@ const BASE_FIELDS = ['mediaBase', 'imageBase', 'lyricsBase'] as const;
 
 const isPositiveInteger = (value: unknown): value is number =>
     typeof value === 'number' && Number.isInteger(value) && value > 0;
-
-/** `YYYY-MM-DD` 而且係真有其日（`2008-02-30` 唔收） */
-const isCalendarDate = (value: unknown): boolean => {
-    const match = typeof value === 'string' ? CALENDAR_DATE.exec(value) : null;
-    if (!match) return false;
-    const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return (
-        date.getUTCFullYear() === year &&
-        date.getUTCMonth() === month - 1 &&
-        date.getUTCDate() === day
-    );
-};
 
 const isIsoInstant = (value: unknown): boolean =>
     typeof value === 'string' && ISO_INSTANT.test(value) && !Number.isNaN(Date.parse(value));
@@ -116,14 +103,8 @@ const checkSecondCover = (issues: Issues, album: Fields, path: string): void => 
 const checkAlbumFields = (issues: Issues, album: Fields, path: string): void => {
     issues.text(album.title, `${path}.title`);
     issues.check(isWheelKey(album.wheelKey), `${path}.wheelKey`, 'INVALID_WHEEL_KEY');
-    const validDate = album.releaseDate === null || isCalendarDate(album.releaseDate);
-    issues.check(validDate, `${path}.releaseDate`, 'INVALID_DATE');
-    issues.check(
-        album.year === null || isPositiveInteger(album.year),
-        `${path}.year`,
-        'INVALID_NUMBER',
-    );
-    issues.text(album.type, `${path}.type`, { allowEmpty: true });
+    // CR-006（D63）：只有年份；舊 document 嘅 releaseDate、type 唔再睇
+    issues.check(album.year === null || isAlbumYear(album.year), `${path}.year`, 'INVALID_NUMBER');
     checkCategory(issues, album, path);
     issues.text(album.label, `${path}.label`, { allowEmpty: true });
     const validAccent = typeof album.accent === 'string' && ACCENT.test(album.accent);

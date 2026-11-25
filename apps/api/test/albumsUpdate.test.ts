@@ -2,6 +2,7 @@
  * API-013 PATCH /api/albums/:id：只改有畀嘅欄位；If-Match 樂觀鎖（409 STALE）；id 唔可以改。
  * CR-004：發行類別、序號（同類別唔重覆）、封面來源 ETag；expectedFolder 跟住類別同序號計
  */
+import { reasonMessage } from '../src/albums/errors';
 import { zhHant } from '../src/i18n/zh-Hant';
 import { NOW, albumRow, api, insertAlbum, insertAsset, json } from './albumFixtures';
 
@@ -59,7 +60,7 @@ describe('PATCH /api/albums/:id', () => {
                 {
                     path: 'year',
                     reason: 'INVALID_YEAR',
-                    message: zhHant.albums.reasons.INVALID_YEAR,
+                    message: reasonMessage('INVALID_YEAR'),
                 },
             ]);
         }

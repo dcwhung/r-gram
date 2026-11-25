@@ -6,9 +6,7 @@ export interface AlbumRow {
     id: string;
     title: string;
     wheel_key: string;
-    release_date: string | null;
     year: number | null;
-    type: string;
     category: ReleaseCategory;
     category_no: number;
     label: string;
@@ -23,12 +21,11 @@ export interface AlbumRow {
     updated_at: string;
 }
 
-/** API-013 欄位 → D1 欄位（`year` 唔喺度：跟 releaseDate 計） */
+/** API-013 欄位 → D1 欄位 */
 export const COLUMN_OF: Record<EditableField, string> = {
     title: 'title',
     wheelKey: 'wheel_key',
-    releaseDate: 'release_date',
-    type: 'type',
+    year: 'year',
     category: 'category',
     categoryNo: 'category_no',
     coverSourceEtag: 'cover_source_etag',
@@ -43,23 +40,16 @@ export const COLUMN_OF: Record<EditableField, string> = {
 };
 
 export const ALBUM_COLUMNS = [
-    'id, title, wheel_key, release_date, year, type, category, category_no',
+    'id, title, wheel_key, year, category, category_no',
     'label, accent, cover, cover_source_etag, thumb, cover2, thumb2, cover2_source_etag',
     'folder, updated_at',
 ].join(', ');
-
-/** 顯示用年份 = 發行日期嘅年；冇日期就冇年份 */
-const YEAR_DIGITS = 4;
-export const yearOf = (releaseDate: unknown): number | null =>
-    typeof releaseDate === 'string' ? Number(releaseDate.slice(0, YEAR_DIGITS)) : null;
 
 export const toAlbum = (row: AlbumRow) => ({
     id: row.id,
     title: row.title,
     wheelKey: row.wheel_key,
-    releaseDate: row.release_date,
     year: row.year,
-    type: row.type,
     category: row.category,
     categoryNo: row.category_no,
     label: row.label,
