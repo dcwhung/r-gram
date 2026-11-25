@@ -41,6 +41,10 @@ export const validationError = (c: Context, issues: readonly FieldIssue[]) =>
 export const ordinalTaken = (c: Context) =>
     validationError(c, [{ path: 'categoryNo', reason: 'ORDINAL_TAKEN' }]);
 
+/** 冇畀序號，而嗰個類別已經用到 CATEGORY_NO_MAX（S-118）：同畀咗超上限嘅序號一樣報 INVALID_ORDINAL */
+export const ordinalFull = (c: Context) =>
+    validationError(c, [{ path: 'categoryNo', reason: 'INVALID_ORDINAL' }]);
+
 /** body 唔係 JSON object */
 export const notAnObject = (c: Context) =>
     validationError(c, [{ path: BODY_PATH, reason: 'NOT_AN_OBJECT' }]);

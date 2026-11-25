@@ -89,9 +89,8 @@ const checkTrack = (
     );
 };
 
-/** 類別同序號：兩個都冇 = 舊格式，收；有其中一個就兩個都要啱 */
+/** 類別同序號：兩個都必填（API-072） */
 const checkCategory = (issues: Issues, album: Fields, path: string): void => {
-    if (album.category === undefined && album.categoryNo === undefined) return;
     issues.check(isReleaseCategory(album.category), `${path}.category`, 'INVALID_CATEGORY');
     issues.check(isPositiveInteger(album.categoryNo), `${path}.categoryNo`, 'INVALID_NUMBER');
 };

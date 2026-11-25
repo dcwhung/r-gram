@@ -6,8 +6,10 @@ import {
     FIXTURE_CATALOG_URL,
     jsonResponse,
     memoryStorage,
+    preCategoryDocument,
     sampleDocument,
 } from './testing/catalogFixtures';
+import { CATALOG_STORAGE_KEY } from '../config/storageKeys';
 
 const CACHED_AT = '2026-11-20T00:00:00.000Z';
 const FRESH_AT = '2026-11-25T08:00:00.000Z';
@@ -125,6 +127,39 @@ describe('loadCatalog', () => {
             failure: 'notConfigured',
         });
         expect(deps.fetch).not.toHaveBeenCalled();
+    });
+
+    // 舊版 app 留低嘅副本（CR-004 之前、冇類別）驗唔過：當冇，唔可以 throw
+    describe('a stored copy from before release categories', () => {
+        const oldStore = () =>
+            createCatalogStore(
+                memoryStorage({
+                    [CATALOG_STORAGE_KEY]: JSON.stringify({
+                        etag: '"old"',
+                        document: preCategoryDocument(CACHED_AT),
+                    }),
+                }),
+            );
+
+        it('should report unavailable instead of using it when the fetch fails', async () => {
+            const { deps } = setup(() => Promise.reject(new TypeError('offline')));
+            await expect(loadCatalog({ ...deps, store: oldStore() })).resolves.toEqual({
+                status: 'unavailable',
+                failure: 'network',
+            });
+        });
+
+        it('should replace it with the fetched document', async () => {
+            const fresh = sampleDocument(FRESH_AT);
+            const store = oldStore();
+            const { deps } = setup(() => Promise.resolve(jsonResponse(fresh)));
+            await expect(loadCatalog({ ...deps, store })).resolves.toEqual({
+                status: 'ready',
+                source: 'network',
+                document: fresh,
+            });
+            expect(store.read()?.document).toEqual(fresh);
+        });
     });
 
     describe('timeout', () => {

@@ -1,6 +1,6 @@
 import { CATALOG_STORAGE_KEY } from '../config/storageKeys';
 import { createCatalogStore } from './catalogStore';
-import { memoryStorage, sampleDocument } from './testing/catalogFixtures';
+import { memoryStorage, preCategoryDocument, sampleDocument } from './testing/catalogFixtures';
 
 describe('createCatalogStore', () => {
     it('should use the storage key from the Technical Spec', () => {
@@ -34,6 +34,10 @@ describe('createCatalogStore', () => {
         [
             'a document that fails the validator',
             JSON.stringify({ etag: null, document: { ...sampleDocument(), version: 2 } }),
+        ],
+        [
+            'a catalog saved before release categories existed',
+            JSON.stringify({ etag: '"old"', document: preCategoryDocument() }),
         ],
     ])('should treat %s as nothing stored', (_label, raw) => {
         const store = createCatalogStore(memoryStorage({ [CATALOG_STORAGE_KEY]: raw }));

@@ -98,6 +98,12 @@ class ParseDiscographyTest(unittest.TestCase):
         with self.assertRaisesRegex(SourceError, 'does not name the category'):
             parse_discography.build(page(category('錄音室專輯'), release('Hours', '第 1 張精選')))
 
+    def test_refuses_two_releases_with_the_same_category_and_ordinal(self):
+        blocks = page(category('錄音室專輯'), release('Hours', '第 1 張錄音室專輯'),
+                      release('Apollo 18', '第 1 張錄音室專輯'), totals=(2, 2))
+        with self.assertRaisesRegex(SourceError, 'share a category and ordinal'):
+            parse_discography.build(blocks)
+
     def test_refuses_totals_that_do_not_add_up(self):
         blocks = page(category('錄音室專輯'), release('Hours', '第 8 張錄音室專輯'), totals=(2, 1))
         with self.assertRaisesRegex(SourceError, 'page says otherwise'):
@@ -115,7 +121,8 @@ class ParseCreditsTest(unittest.TestCase):
                                     'albums': []})
 
     def test_refuses_a_page_without_a_date(self):
-        with self.assertRaises(SystemExit):
+        # S-120: build() raises like parse_discography; only main() exits
+        with self.assertRaisesRegex(parse_credits.SourceError, 'YYYY-MM-DD'):
             parse_credits.build('<p>no date</p>', {'albums': []})
 
 

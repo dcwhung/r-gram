@@ -7,24 +7,28 @@ import { NEUTRAL_ACCENT, wheelKeyFor } from '@r-gram/catalog';
 import { nextUpdatedAt } from '../lib/updatedAt';
 import type { AlbumFields } from './validate';
 import { ALBUM_COLUMNS, COLUMN_OF, yearOf, type AlbumRow } from './rows';
-import type { EditableField } from './fieldRules';
+import { CATEGORY_NO_MAX, type EditableField } from './fieldRules';
 
 export const findAlbum = (db: D1Database, id: string) =>
     db.prepare(`SELECT ${ALBUM_COLUMNS} FROM albums WHERE id = ?`).bind(id).first<AlbumRow>();
 
 /**
- * ?7 = 類別、?8 = 序號（NULL = 嗰個類別最大序號 + 1）。序號已有人用 → `NOT EXISTS` 唔成立，乜都唔寫；
- * `category_no = NULL` 永遠唔成立，所以冇畀序號時一定寫得入。SELECT 一定要有 WHERE，SQLite 先唔會將
- * ON CONFLICT 當成 join 嘅一部分
+ * ?7 = 類別、?8 = 序號（NULL = 嗰個類別最大序號 + 1，喺 `next` 計）、?16 = CATEGORY_NO_MAX。
+ * 序號已有人用（`NOT EXISTS` 唔成立）或者自動序號超過上限（S-118）→ 乜都唔寫；兩樣都喺同一句判斷，
+ * 兩個請求同時新增都唔會撞號或者過上限。SELECT 一定要有 WHERE，SQLite 先唔會將 ON CONFLICT 當成 join 嘅一部分
  */
 const INSERT_SQL = `
+    WITH next AS (
+        SELECT COALESCE(?8, (SELECT COALESCE(MAX(category_no), 0) + 1 FROM albums WHERE category = ?7))
+            AS no
+    )
     INSERT INTO albums (id, title, wheel_key, release_date, year, type, category, category_no,
         label, accent, cover, cover_source_etag, thumb, folder, sort_order, created_at, updated_at)
-    SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7,
-        COALESCE(?8, (SELECT COALESCE(MAX(category_no), 0) + 1 FROM albums WHERE category = ?7)),
-        ?9, ?10, ?11, ?12, ?13, ?14,
+    SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, next.no, ?9, ?10, ?11, ?12, ?13, ?14,
         (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM albums), ?15, ?15
-    WHERE NOT EXISTS (SELECT 1 FROM albums WHERE category = ?7 AND category_no = ?8)
+    FROM next
+    WHERE next.no <= ?16
+        AND NOT EXISTS (SELECT 1 FROM albums WHERE category = ?7 AND category_no = next.no)
     ON CONFLICT (id) DO NOTHING`;
 
 /** INSERT_SQL ?1–?14 嘅值；冇畀嘅欄用預設 */
@@ -48,11 +52,12 @@ const insertValues = (id: string, fields: AlbumFields): unknown[] => {
     ];
 };
 
-export type InsertOutcome = 'inserted' | 'idTaken' | 'ordinalTaken';
+/** `ordinalFull`：冇畀序號，而嗰個類別已經用到 CATEGORY_NO_MAX */
+export type InsertOutcome = 'inserted' | 'idTaken' | 'ordinalTaken' | 'ordinalFull';
 
 /**
  * 新增：預設字母盤標記按碟名、專輯色用中性灰（上載封面後抽色）、序號接住同類別最大嗰個；排喺最尾。
- * 寫唔入：id 已存在優先報（409），否則係序號已有人用（400）
+ * 寫唔入：id 已存在優先報（409）；否則有畀序號 = 已有人用（畀嘅序號已驗過唔超上限），冇畀 = 自動序號超上限
  */
 export const insertAlbum = async (
     db: D1Database,
@@ -62,10 +67,11 @@ export const insertAlbum = async (
     const now = new Date().toISOString();
     const result = await db
         .prepare(INSERT_SQL)
-        .bind(...insertValues(id, fields), now)
+        .bind(...insertValues(id, fields), now, CATEGORY_NO_MAX)
         .run();
     if (result.meta.changes > 0) return 'inserted';
-    return (await findAlbum(db, id)) ? 'idTaken' : 'ordinalTaken';
+    if (await findAlbum(db, id)) return 'idTaken';
+    return (fields.categoryNo ?? null) === null ? 'ordinalFull' : 'ordinalTaken';
 };
 
 /** SET 子句同佢嘅值：有畀 releaseDate 就連 year 一齊改 */

@@ -7,7 +7,7 @@ import { Hono, type Context } from 'hono';
 import type { AppEnv } from '../app';
 import { FORCE_CONFIRMED, HTTP_STATUS } from '../config';
 import { readIfMatch, readJsonObject } from '../lib/http';
-import { albumError, notAnObject, ordinalTaken, validationError } from './errors';
+import { albumError, notAnObject, ordinalFull, ordinalTaken, validationError } from './errors';
 import { albumOverview } from './overview';
 import { readOrder } from './order';
 import { toAlbum } from './rows';
@@ -51,6 +51,7 @@ albumRoutes.post('/', async (c) => {
     const outcome = await store.insertAlbum(c.env.DB, id, fields);
     if (outcome === 'idTaken') return albumError(c, 'idTaken');
     if (outcome === 'ordinalTaken') return ordinalTaken(c);
+    if (outcome === 'ordinalFull') return ordinalFull(c);
     const row = await store.findAlbum(c.env.DB, id);
     return c.json(row && toAlbum(row), HTTP_STATUS.created);
 });
