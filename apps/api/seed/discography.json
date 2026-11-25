@@ -1,9 +1,11 @@
 {
-  "source": "rubberband-discography.html (updated 2026-11-20)",
+  "source": "rubberband-discography.html (updated 2026-11-25)",
   "albums": [
     {
       "order": 0,
       "id": "apollo-18",
+      "category": "album",
+      "categoryNo": 1,
       "wheelKey": "A",
       "title": "Apollo 18",
       "releaseDate": "2008-09-26",
@@ -22,6 +24,7 @@
           "videoKind": "MV",
           "alsoOn": [
             "Beaming",
+            "橡芽",
             "RubberBand Ciao 2021 (Live)"
           ]
         },
@@ -44,7 +47,8 @@
           "videoKind": "MV",
           "alsoOn": [
             "Beaming",
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -80,6 +84,7 @@
           "alsoOn": [
             "Beaming",
             "RubberBand Concert #1",
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -92,7 +97,8 @@
           "videoKind": "MV",
           "alsoOn": [
             "Beaming",
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -180,11 +186,14 @@
           ]
         }
       ],
+      "sourceMeta": "2008-09-26 · 錄音室專輯 · 金牌娛樂 (Gold Label Entertainment)",
       "sourceNotes": "Release date 2008-09-26 per Spotify/Discogs/last.fm; Douban/littleoslo/mulanci list 2008-09-30. Label at the time was 金牌娛樂 (Gold Label), predecessor of 金牌大風. CD+DVD edition; bonus DVD: 'RubberBand: Ruff! Ruff! Ruff!' (花絮), 遊車河 MV, Tears MV, 一早地下鐵 MV. Track 15 認錯 is a bonus track. Apple Music does not carry this album; Spotify 640px cover used (no 1200px variant available). Alt cover: https://img9.doubanio.com/view/subject/m/public/s3271454.jpg. MV lookup could not be performed: shared WebSearch budget was exhausted before per-song searches, so all video fields are null (not 'no MV exists')."
     },
     {
       "order": 1,
       "id": "beaming",
+      "category": "album",
+      "categoryNo": 2,
       "wheelKey": "B",
       "title": "Beaming",
       "releaseDate": "2009-07-24",
@@ -203,6 +212,7 @@
           "videoKind": "MV",
           "alsoOn": [
             "RubberBand Concert #1",
+            "橡芽",
             "RubberBand Ciao 2021 (Live)"
           ]
         },
@@ -214,6 +224,7 @@
           "videoKind": "MV",
           "alsoOn": [
             "RubberBand Concert #1",
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -244,6 +255,7 @@
           "videoKind": "MV",
           "alsoOn": [
             "RubberBand Concert #1",
+            "橡芽",
             "RubberBand Ciao 2021 (Live)"
           ]
         },
@@ -254,7 +266,8 @@
           "youtubeId": "4uHz35BHsiA",
           "videoKind": "MV",
           "alsoOn": [
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -290,6 +303,7 @@
           "alsoOn": [
             "Apollo 18",
             "RubberBand Concert #1",
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -325,6 +339,7 @@
           "videoKind": "MV",
           "alsoOn": [
             "Apollo 18",
+            "橡芽",
             "RubberBand Ciao 2021 (Live)"
           ]
         },
@@ -348,7 +363,8 @@
           "videoKind": "MV",
           "alsoOn": [
             "Apollo 18",
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -370,7 +386,8 @@
           "videoKind": "MV",
           "alsoOn": [
             "Apollo 18",
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -385,291 +402,14 @@
           ]
         }
       ],
+      "sourceMeta": "2009-07-24 · 錄音室專輯 · 金牌大風 (Gold Typhoon)",
       "sourceNotes": "Second album; tracks 7-17 are the 11 Apollo 18 songs re-issued/remixed (mixed by Jeremy Cheng & Naruse Tatsuhito). Producers 雷頌德 & RubberBand. Discogs lists CD only, no DVD. Apple Music does not carry this album; Spotify 640px cover used. MV lookup could not be performed: shared WebSearch budget was exhausted before per-song searches, so all video fields are null."
     },
     {
       "order": 2,
-      "id": "rubberband-concert-1",
-      "wheelKey": "R",
-      "title": "RubberBand Concert #1",
-      "releaseDate": "2009-12-30",
-      "year": 2009,
-      "type": "演唱會專輯",
-      "label": "金牌大風",
-      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music5/v4/be/43/a6/be43a6d2-b097-4159-aebf-78da2c63454b/825646226825.jpg/1200x1200bb.jpg",
-      "trackCount": 25,
-      "tracksWithVideo": 20,
-      "tracks": [
-        {
-          "no": 1,
-          "title": "認錯",
-          "subtitle": "Live",
-          "youtubeId": "z9OIKyK_QGg",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Apollo 18"
-          ]
-        },
-        {
-          "no": 2,
-          "title": "電玩男",
-          "subtitle": "Live",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "We Are RubberBand"
-          ]
-        },
-        {
-          "no": 3,
-          "title": "潛",
-          "subtitle": "Live",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming"
-          ]
-        },
-        {
-          "no": 4,
-          "title": "在森林和原野",
-          "subtitle": "Live",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Apollo 18"
-          ]
-        },
-        {
-          "no": 5,
-          "title": "夜不眠",
-          "subtitle": "Live",
-          "youtubeId": "kUzjNnbPBiA",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "We Are RubberBand"
-          ]
-        },
-        {
-          "no": 6,
-          "title": "零度聖誕",
-          "subtitle": "Live",
-          "youtubeId": "fRw3RoHXWcI",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming"
-          ]
-        },
-        {
-          "no": 7,
-          "title": "Secret",
-          "subtitle": "Live",
-          "youtubeId": "NGBNdKVi5ZA",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18"
-          ]
-        },
-        {
-          "no": 8,
-          "title": "I'm Yours",
-          "subtitle": "Live",
-          "youtubeId": "GpGx1MqWO9c",
-          "videoKind": "Live",
-          "alsoOn": []
-        },
-        {
-          "no": 9,
-          "title": "遊車河",
-          "subtitle": "Live",
-          "youtubeId": "COHpEt-1Kag",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming"
-          ]
-        },
-        {
-          "no": 10,
-          "title": "一早地下鐵 / 幾分鐘的約會",
-          "subtitle": "Live (medley)",
-          "youtubeId": "SGXjFTwEKrg",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 11,
-          "title": "Come Together",
-          "subtitle": "Live",
-          "youtubeId": "DTLqLCdb5JE",
-          "videoKind": "Live",
-          "alsoOn": []
-        },
-        {
-          "no": 12,
-          "title": "脫逃 / 沙灘",
-          "subtitle": "Live (medley)",
-          "youtubeId": "LVkx7gVDUkY",
-          "videoKind": "Live",
-          "alsoOn": []
-        },
-        {
-          "no": 13,
-          "title": "夏令時間",
-          "subtitle": "Live",
-          "youtubeId": "YicXgZmylQU",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Beaming",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 14,
-          "title": "Here We Are",
-          "subtitle": "Live",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "We Are RubberBand"
-          ]
-        },
-        {
-          "no": 15,
-          "title": "Hero",
-          "subtitle": "Live",
-          "youtubeId": "a1ZlozJmLqc",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming"
-          ]
-        },
-        {
-          "no": 16,
-          "title": "夾硬泥",
-          "subtitle": "Live (featuring 林海峰)",
-          "youtubeId": "SWj04DJebgY",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Beaming"
-          ]
-        },
-        {
-          "no": 17,
-          "title": "最後…那",
-          "subtitle": "Live",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "We Are RubberBand"
-          ]
-        },
-        {
-          "no": 18,
-          "title": "城記",
-          "subtitle": "Live",
-          "youtubeId": "cd5Tn3ttqj4",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming"
-          ]
-        },
-        {
-          "no": 19,
-          "title": "Tears",
-          "subtitle": "Live",
-          "youtubeId": "PQp8LIOMwhE",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "We Are RubberBand"
-          ]
-        },
-        {
-          "no": 20,
-          "title": "發現號",
-          "subtitle": "Live",
-          "youtubeId": "wZD_qQ81l3Q",
-          "videoKind": "MV",
-          "alsoOn": [
-            "We Are RubberBand",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 21,
-          "title": "衝",
-          "subtitle": "Live",
-          "youtubeId": "4uHz35BHsiA",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Beaming"
-          ]
-        },
-        {
-          "no": 22,
-          "title": "天台飛人",
-          "subtitle": "Live",
-          "youtubeId": "6apkv59CU9k",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Beaming",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 23,
-          "title": "小涼伴",
-          "subtitle": "Live",
-          "youtubeId": "VIo_DYikYFE",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "We Are RubberBand",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 24,
-          "title": "阿波羅",
-          "subtitle": "Live",
-          "youtubeId": "1NwoCEZsJII",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Beaming",
-            "We Are RubberBand",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 25,
-          "title": "發現號",
-          "subtitle": "Bonus Track (studio)",
-          "youtubeId": "wZD_qQ81l3Q",
-          "videoKind": "MV",
-          "alsoOn": [
-            "We Are RubberBand",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        }
-      ],
-      "sourceNotes": "2CD live album recorded at 2009 RubberBand Concert #1. Tracklist from Douban (music.douban.com/subject/4227658) and 2000fun forum, cross-checked with Shazam/Apple Music (25 tracks). CD1 = tracks 1-14, CD2 = tracks 15-25; track 25 (發現號) is a studio bonus track. Apple Music lists CD2 track 4 as 城堡 but Douban/2000fun give 城記 (the Apollo 18 song) — 城記 used. Apple Music shows release date 2009-01-01 (placeholder) and copyright 'Gold Typhoon Taiwan'; Douban/2000fun give 2009-12-30 and 金牌大風. All tracks are live versions; the MVs recorded below are the studio/official MVs of the same songs (except 阿波羅, whose official MV is cut from this concert). Many tracks lack MVs; search budget ran out before every track could be searched individually, so unsearched tracks are null."
-    },
-    {
-      "order": 3,
       "id": "connected",
+      "category": "album",
+      "categoryNo": 3,
       "wheelKey": "C",
       "title": "Connected",
       "releaseDate": "2010-09-03",
@@ -687,6 +427,7 @@
           "youtubeId": "HCh93_HbZys",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -705,6 +446,7 @@
           "youtubeId": "T8OxSGvY0cU",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -735,6 +477,7 @@
           "youtubeId": "KK1UVbmr7AQ",
           "videoKind": "影片",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -745,6 +488,7 @@
           "youtubeId": "E_mpTGPMZkk",
           "videoKind": "影片",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -756,6 +500,7 @@
           "youtubeId": "M8umlz0vHnk",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -799,11 +544,14 @@
           "alsoOn": []
         }
       ],
+      "sourceMeta": "2010-09-03 · 錄音室專輯 · 金牌大風",
       "sourceNotes": "CD+DVD release. Tracklist from Douban (music.douban.com/subject/5268915) and Discogs (release 15879987), consistent with zh.wikipedia Connected_(專輯). Producers: 雷頌德, RubberBand. DVD-only content (excluded from tracks): 1. 細街盃 MV (dir. 泥鯭), 2. SimpleLoveSong MV (dir. 阿正), 3. La grande aventure de Rubberband: la recherche du Lennoon (dir. 莊少榮), 4. 天連地 MV (dir. 阿正/泥鯭/6號). Track 9 title is written 'hello ?' on Douban/Wikipedia and 'Hello?' on Discogs. Singles per Wikipedia charts: 細街盃, 天連地, SimpleLoveSong (四台冠軍歌), 囍宴樂隊. MV searches for tracks 2,4,5,6,7,9,10,11,12 could not be completed (search budget exhausted) — null does not mean confirmed absent. Official MVs found are on the 'Timeless Music Hong Kong天碟' channel (Gold Typhoon/Warner catalogue channel), not the RubberBand channel."
     },
     {
-      "order": 4,
+      "order": 3,
       "id": "dedicated-to",
+      "category": "album",
+      "categoryNo": 4,
       "wheelKey": "D",
       "title": "Dedicated To…",
       "releaseDate": "2011-03-18",
@@ -867,6 +615,7 @@
           "youtubeId": "yrziAUyBvNI",
           "videoKind": "Audio",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -903,6 +652,7 @@
           "youtubeId": "m1pUtRcX0sA",
           "videoKind": "Live",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -916,11 +666,14 @@
           "alsoOn": []
         }
       ],
+      "sourceMeta": "2011-03-18 · 錄音室專輯 · 金牌大風",
       "sourceNotes": "Cover album (9 covers + 2 originals). Tracklist from Discogs (release 18001729) / AE Records LP listing; Apple Music confirms 11 tracks, release 2011-03-18, ℗ Gold Typhoon Hong Kong. Tracks 4, 5, 11 are 國語 (Mandarin). No DVD listing found. Chinese Wikipedia album page could not be located via search. MV lookup not performed: shared WebSearch budget was exhausted before per-song searches could run, so all video fields are null (not 'no MV exists')."
     },
     {
-      "order": 5,
+      "order": 4,
       "id": "easy",
+      "category": "album",
+      "categoryNo": 5,
       "wheelKey": "E",
       "title": "Easy",
       "releaseDate": "2012-08-08",
@@ -938,6 +691,7 @@
           "youtubeId": "SLEaUzsONgA",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -977,6 +731,7 @@
           "youtubeId": "pfI585IT1lk",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
@@ -988,6 +743,7 @@
           "youtubeId": "MYJC1xniRAw",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -1006,6 +762,7 @@
           "youtubeId": "qn_Oh1z8pV4",
           "videoKind": "Live",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -1035,16 +792,20 @@
           "youtubeId": "pfI585IT1lk",
           "videoKind": "MV",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand",
             "RubberBand Ciao 2021 (Live)"
           ]
         }
       ],
+      "sourceMeta": "2012-08-08 · 錄音室專輯 · 金牌大風",
       "sourceNotes": "Tracklist from Chinese Wikipedia (Easy (專輯)), cross-checked with Medium @cantopopfans review and Apple Music (11 tracks, 2012-08-08). Last original album before leaving 金牌大風. Track 11 title styled '(Simple, but not) Easy' on zh.wikipedia; '(SIMPLE BUT NOT) EASY' on physical sleeve per Medium; Apple Music slug 'simple-but-not-easy'. Singles charted: Easy, 睜開眼, Slow & Easy, 豬籠墟事變. No DVD listing found. MV lookup not performed: shared WebSearch budget was exhausted before per-song searches could run, so all video fields are null (not 'no MV exists')."
     },
     {
-      "order": 6,
+      "order": 5,
       "id": "frank",
+      "category": "album",
+      "categoryNo": 6,
       "wheelKey": "F",
       "title": "Frank",
       "releaseDate": "2014-04-10",
@@ -1154,405 +915,14 @@
           ]
         }
       ],
+      "sourceMeta": "2014-04-10 · 錄音室專輯 · 寰亞唱片",
       "sourceNotes": "Recorded 2013–2014, runtime 54:45. Track 12 心照一生 is a hidden track (theme song of film 《掃毒》). Apple Music lists only 11 tracks (hidden track excluded). Bonus DVD: 成長說明書 MV, 是時候 MV, We are One MV. Album preview medley on 寰亞音樂 channel: https://www.youtube.com/watch?v=0NzoZmes0Mw. No MV/video found after two searches for 前面尚有一萬里, 大話西遊, 放, 黑雞, 把酒當歌, 人生有個真正朋友, 童稚萬歲; We are One MV not found via search even though it exists on the bonus DVD."
     },
     {
-      "order": 7,
-      "id": "frank-ep",
-      "wheelKey": "F",
-      "title": "¿Frank?",
-      "releaseDate": "2014-10-23",
-      "year": 2014,
-      "type": "EP",
-      "label": "寰亞唱片",
-      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music5/v4/3d/ae/55/3dae559c-f7a9-1d4f-7551-c8539de22bbd/825646194407.jpg/1200x1200bb.jpg",
-      "trackCount": 5,
-      "tracksWithVideo": 4,
-      "tracks": [
-        {
-          "no": 1,
-          "title": "寂寞島嶼",
-          "subtitle": null,
-          "youtubeId": "EWel1xzApwc",
-          "videoKind": "Lyric Video",
-          "alsoOn": []
-        },
-        {
-          "no": 2,
-          "title": "怪物",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": []
-        },
-        {
-          "no": 3,
-          "title": "語言藝術",
-          "subtitle": null,
-          "youtubeId": "_X45l1Mi294",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 4,
-          "title": "瞬間看地球",
-          "subtitle": null,
-          "youtubeId": "mitpDtZbO1E",
-          "videoKind": "Audio",
-          "alsoOn": []
-        },
-        {
-          "no": 5,
-          "title": "你和我",
-          "subtitle": null,
-          "youtubeId": "bouituBm_7g",
-          "videoKind": "MV",
-          "alsoOn": [
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        }
-      ],
-      "sourceNotes": "Continuation of Frank. Arranged/produced by RubberBand and Terry Chan. Infobox runtime 22:04 (track times sum to 22:40). Bonus DVD: 語言藝術 MV and making-of 'The Birth of ¿Frank?'. No video found for 怪物 after two searches. 瞬間看地球 only found as fan audio/live uploads. 你和我 Official MV ID taken from a search result title; a fetch of that ID returned unrelated metadata (possible bot page), so verify."
-    },
-    {
-      "order": 8,
-      "id": "we-are-rubberband",
-      "wheelKey": "W",
-      "title": "We Are RubberBand",
-      "releaseDate": "2015-10-30",
-      "year": 2015,
-      "type": "精選",
-      "label": "金牌大風 (Gold Typhoon) / Warner Music Hong Kong",
-      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music62/v4/cb/0d/03/cb0d0355-62eb-419a-ba9d-225fa496519d/mzm.wcpdyxhg.jpg/1200x1200bb.jpg",
-      "trackCount": 30,
-      "tracksWithVideo": 24,
-      "tracks": [
-        {
-          "no": 1,
-          "title": "發現號",
-          "subtitle": null,
-          "youtubeId": "wZD_qQ81l3Q",
-          "videoKind": "MV",
-          "alsoOn": [
-            "RubberBand Concert #1",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 2,
-          "title": "Slow & Easy",
-          "subtitle": null,
-          "youtubeId": "MYJC1xniRAw",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Easy"
-          ]
-        },
-        {
-          "no": 3,
-          "title": "陪著你走",
-          "subtitle": null,
-          "youtubeId": "yrziAUyBvNI",
-          "videoKind": "Audio",
-          "alsoOn": [
-            "Dedicated To…"
-          ]
-        },
-        {
-          "no": 4,
-          "title": "小涼伴 (Live)",
-          "subtitle": null,
-          "youtubeId": "qpucFHeFNOM",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "RubberBand Concert #1",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 5,
-          "title": "睜開眼",
-          "subtitle": null,
-          "youtubeId": "9v3rXGoEcW4",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Easy",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 6,
-          "title": "夜不眠 (Live)",
-          "subtitle": null,
-          "youtubeId": "kUzjNnbPBiA",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "RubberBand Concert #1"
-          ]
-        },
-        {
-          "no": 7,
-          "title": "一轉身卻天亮了",
-          "subtitle": null,
-          "youtubeId": "KK1UVbmr7AQ",
-          "videoKind": "影片",
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 8,
-          "title": "長夜 My Love Goodnight",
-          "subtitle": null,
-          "youtubeId": "fQJlFgI1jCw",
-          "videoKind": "Audio",
-          "alsoOn": [
-            "Dedicated To…"
-          ]
-        },
-        {
-          "no": 9,
-          "title": "3字頭",
-          "subtitle": null,
-          "youtubeId": "0HZmHzjwR5Q",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 10,
-          "title": "囍宴樂隊",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 11,
-          "title": "夥伙",
-          "subtitle": null,
-          "youtubeId": "flgYGkm1bN4",
-          "videoKind": "Live",
-          "alsoOn": [
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 12,
-          "title": "Tears (Live)",
-          "subtitle": null,
-          "youtubeId": "7JiRCjKFp4I",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "RubberBand Concert #1"
-          ]
-        },
-        {
-          "no": 13,
-          "title": "進化論",
-          "subtitle": null,
-          "youtubeId": "qn_Oh1z8pV4",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Easy"
-          ]
-        },
-        {
-          "no": 14,
-          "title": "Easy",
-          "subtitle": null,
-          "youtubeId": "pfI585IT1lk",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Easy",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 15,
-          "title": "田鼠論壇",
-          "subtitle": null,
-          "youtubeId": "E_mpTGPMZkk",
-          "videoKind": "影片",
-          "alsoOn": [
-            "Connected",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 16,
-          "title": "SimpleLoveSong",
-          "subtitle": null,
-          "youtubeId": "M8umlz0vHnk",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Connected",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 17,
-          "title": "More Than A Woman",
-          "subtitle": null,
-          "youtubeId": "HbXPjesEdYk",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Dedicated To…"
-          ]
-        },
-        {
-          "no": 18,
-          "title": "電玩男 (Live)",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "RubberBand Concert #1"
-          ]
-        },
-        {
-          "no": 19,
-          "title": "細街盃",
-          "subtitle": null,
-          "youtubeId": "T8OxSGvY0cU",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 20,
-          "title": "擦身情緣",
-          "subtitle": null,
-          "youtubeId": "ZbRrFKW2jUU",
-          "videoKind": "Audio",
-          "alsoOn": [
-            "Dedicated To…"
-          ]
-        },
-        {
-          "no": 21,
-          "title": "阿藍的故事",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 22,
-          "title": "天連地",
-          "subtitle": null,
-          "youtubeId": "HCh93_HbZys",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 23,
-          "title": "阿波羅 (Live)",
-          "subtitle": null,
-          "youtubeId": "xYPjNKSdgiU",
-          "videoKind": "MV",
-          "alsoOn": [
-            "Beaming",
-            "RubberBand Concert #1",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 24,
-          "title": "Here We Are (Live)",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "RubberBand Concert #1"
-          ]
-        },
-        {
-          "no": 25,
-          "title": "倒行詩",
-          "subtitle": null,
-          "youtubeId": "REegvxPa4-I",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Easy",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 26,
-          "title": "畫出彩虹",
-          "subtitle": null,
-          "youtubeId": "xqNwq8i6ZSU",
-          "videoKind": "Audio",
-          "alsoOn": [
-            "Dedicated To…"
-          ]
-        },
-        {
-          "no": 27,
-          "title": "海．地",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Connected"
-          ]
-        },
-        {
-          "no": 28,
-          "title": "最後... 那",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": [
-            "Apollo 18",
-            "Beaming",
-            "RubberBand Concert #1"
-          ]
-        },
-        {
-          "no": 29,
-          "title": "Dedicated To...",
-          "subtitle": null,
-          "youtubeId": "m1pUtRcX0sA",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Dedicated To…",
-            "RubberBand Ciao 2021 (Live)"
-          ]
-        },
-        {
-          "no": 30,
-          "title": "無名英雄進行曲",
-          "subtitle": null,
-          "youtubeId": "Z48HKC3bZRQ",
-          "videoKind": "Live",
-          "alsoOn": [
-            "Easy"
-          ]
-        }
-      ],
-      "sourceNotes": "2CD Greatest Hits compilation (Apple Music title: 'We Are RubberBand (Greatest Hits)'; Discogs: 'We Are Rubberband -2CD Greatest Hits-', cat# 5054196871529). Physical release 2015-10-29 per Discogs; digital 2015-10-30 per Apple Music/mulanci. Tracklist order follows the Discogs 2CD CD listing (15 tracks per disc, 'disc' field given). Digital/streaming order differs (single 30-track disc starting 發現號, 阿波羅(Live), SimpleLoveSong ... ending 無名英雄進行曲). Six tracks are live versions. No new studio songs identified. No zh.wikipedia article found. MV lookups not performed: shared WebSearch budget was exhausted; the only video found is a fan-shot live clip of 睜開眼 (Gotta Go Tour 2016-01-10) via chordu.com, channel unknown."
-    },
-    {
-      "order": 9,
+      "order": 6,
       "id": "gotta-go",
+      "category": "album",
+      "categoryNo": 7,
       "wheelKey": "G",
       "title": "Gotta Go",
       "releaseDate": "2016-01-08",
@@ -1658,11 +1028,14 @@
           ]
         }
       ],
+      "sourceMeta": "2016-01-08 · 錄音室專輯 · 寰亞音樂 (Media Asia Music Ltd.)",
       "sourceNotes": "11 tracks, ~46 min (Apple Music HK/TW id 1067048300). Tracklist from littleoslo.com lyrics page; Apple Music confirmed 11 tracks and track 11 slug 'g-i'. No zh.wikipedia article reached. MV lookups not performed: shared WebSearch budget was exhausted before per-song searches; all video fields null."
     },
     {
-      "order": 10,
+      "order": 7,
       "id": "hours",
+      "category": "album",
+      "categoryNo": 8,
       "wheelKey": "H",
       "title": "Hours",
       "releaseDate": "2018-09-26",
@@ -1753,11 +1126,14 @@
           ]
         }
       ],
+      "sourceMeta": "2018-09-26 · 錄音室專輯 · R Flat",
       "sourceNotes": "RubberBand's 8th album and first self-produced release after going independent (label R Flat, per Apple Music ℗ line). Apple Music (HK) lists 26 Sep 2018; Bandcamp lists 28 Sep 2018 (physical CD date per cmusichart thread title). Tracklist taken from official Bandcamp page (rubberbandhk.bandcamp.com/album/hours); zh.wikipedia page 'Hours (專輯)' exists but could not be fetched. English titles per Bandcamp: Lose Track / City Band / Glamorous Days / Another Side / Vicious Animal / Numbness / - / See You Soon / Men On the Dragon. MV lookup NOT completed: per-track YouTube searches could not be run (shared WebSearch budget exhausted); only one lyric video surfaced incidentally. Needs a follow-up pass for MVs."
     },
     {
-      "order": 11,
+      "order": 8,
       "id": "i",
+      "category": "album",
+      "categoryNo": 9,
       "wheelKey": "I",
       "title": "i",
       "releaseDate": "2020-12-01",
@@ -1853,16 +1229,1296 @@
           ]
         }
       ],
+      "sourceMeta": "2020-12-01 · 錄音室專輯 · R Flat",
       "sourceNotes": "RubberBand's 9th album; produced/arranged with Patrick Lui (雷柏熹) and the Kyoto Composers Jazz Orchestra (13-piece Japanese big band). Apple Music (HK), Bandcamp and zh.wikipedia all give 1 Dec 2020; Douban lists 2020-11-23 (likely digital/pre-release). Topped HKRIA weekly sales chart week 48 of 2020 (zh.wikipedia). Tracklist taken from official Bandcamp page (rubberbandhk.bandcamp.com/album/i); zh.wikipedia 'I (RubberBand專輯)' fetch returned no tracklist. English titles per Bandcamp: ¿Wake up? / Islander / Every Little Thing / Love is Flowing / First Date / Endless / Drowning in Poison / au au aue ha / Hello, Goodbye…. Track 1 title uses inverted question mark exactly as '¿醒未?'. MV lookup NOT completed: per-track YouTube searches could not be run (shared WebSearch budget exhausted). Needs a follow-up pass for MVs."
     },
     {
+      "order": 9,
+      "id": "juntos",
+      "category": "album",
+      "categoryNo": 10,
+      "wheelKey": "J",
+      "title": "JUNTOS",
+      "releaseDate": "2023-12-20",
+      "year": 2023,
+      "type": "錄音室專輯",
+      "label": "R Flat（發行：Golden Dynamic）",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/3a/9f/67/3a9f6792-e1b5-fb85-ca37-c171f3585a23/0608011721480.jpg/1200x1200bb.jpg",
+      "trackCount": 9,
+      "tracksWithVideo": 8,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "Juntos",
+          "subtitle": null,
+          "youtubeId": "UGgEXqH5F7Y",
+          "videoKind": "Audio",
+          "alsoOn": []
+        },
+        {
+          "no": 2,
+          "title": "戀人日常（的直線抽擊）",
+          "subtitle": null,
+          "youtubeId": "r0XsutvUeU0",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 3,
+          "title": "不如散步",
+          "subtitle": null,
+          "youtubeId": "VobB6ENl7VM",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 4,
+          "title": "主僕關係",
+          "subtitle": null,
+          "youtubeId": "FJcYyFwye_I",
+          "videoKind": "Audio",
+          "alsoOn": []
+        },
+        {
+          "no": 5,
+          "title": "過度關注組",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": []
+        },
+        {
+          "no": 6,
+          "title": "宇宙大王",
+          "subtitle": null,
+          "youtubeId": "_fHAo4NykVc",
+          "videoKind": "Lyric Video",
+          "alsoOn": []
+        },
+        {
+          "no": 7,
+          "title": "只能給你奏著",
+          "subtitle": null,
+          "youtubeId": "V9ECx-AIYpg",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 8,
+          "title": "晚了",
+          "subtitle": null,
+          "youtubeId": "xsUOPYIVcEc",
+          "videoKind": "Audio",
+          "alsoOn": []
+        },
+        {
+          "no": 9,
+          "title": "Be Right Back",
+          "subtitle": null,
+          "youtubeId": "JFVjPy2N-Nk",
+          "videoKind": "MV",
+          "alsoOn": []
+        }
+      ],
+      "sourceMeta": "2023-12-20 · 錄音室專輯 · R Flat（發行：Golden Dynamic）",
+      "sourceNotes": "Tracklist from rubberbandhk.bandcamp.com/album/juntos (9 tracks, 39 min) and mycdshop.com vinyl listing; Apple Music confirms 9 tracks, ℗ R Flat, 2023-12-20. Album credits name RubberBand with 雷柏熹 and Jason Kui. Also issued as a limited orange vinyl (1,000 copies). Title track 'Juntos' and '主僕關係' have only auto-generated 'RubberBand - Topic' audio uploads (Provided to YouTube by Golden Dynamic). No MV found for 過度關注組 within two searches. Chinese Wikipedia page for JUNTOS was not found via search."
+    },
+    {
+      "order": 10,
+      "id": "komorebi",
+      "category": "album",
+      "categoryNo": 11,
+      "wheelKey": "K",
+      "title": "KOMOREBI",
+      "releaseDate": "2026-11-27",
+      "year": 2026,
+      "type": "錄音室專輯",
+      "label": "R Flat",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/c4/6c/c0/c46cc056-2e1a-ce6d-3659-2e2a89e400c7/0742761980817_1x1.jpg/1200x1200bb.jpg",
+      "trackCount": 12,
+      "tracksWithVideo": 8,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "下一位參賽者",
+          "subtitle": "派台 2025-05-12",
+          "youtubeId": "PfP7MjLR1H4",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 2,
+          "title": "跟住去邊度",
+          "subtitle": "派台 2026-01-05",
+          "youtubeId": "-8bMlWlis0k",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 3,
+          "title": "搲撈HK",
+          "subtitle": "派台 2025-08-18",
+          "youtubeId": "6uuDjn4f9KA",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 4,
+          "title": "毒蟲圖鑑",
+          "subtitle": "新曲（11-27 上架）",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": []
+        },
+        {
+          "no": 5,
+          "title": "太平門",
+          "subtitle": "派台 2026-06-15",
+          "youtubeId": "iSkOvW-ZDAc",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 6,
+          "title": "理想的下午",
+          "subtitle": "新曲（11-27 上架）",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": []
+        },
+        {
+          "no": 7,
+          "title": "我永遠記得",
+          "subtitle": "派台 2026-04-01",
+          "youtubeId": "NHPWcRXfdHc",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 8,
+          "title": "揀睇誌",
+          "subtitle": "新曲（11-27 上架）",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": []
+        },
+        {
+          "no": 9,
+          "title": "一杯",
+          "subtitle": "派台 2026-08-17",
+          "youtubeId": "NWBSnHmKK_I",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 10,
+          "title": "想寫好的功課",
+          "subtitle": "派台 2025-02-10",
+          "youtubeId": "xjQRaQYpL0s",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 11,
+          "title": "G’night",
+          "subtitle": "新曲（11-27 上架）",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": []
+        },
+        {
+          "no": 12,
+          "title": "木漏日",
+          "subtitle": "派台 2026-11-10",
+          "youtubeId": "c8vRa0ZZFPw",
+          "videoKind": "MV",
+          "alsoOn": []
+        }
+      ],
+      "sourceMeta": "2026-11-27 · 錄音室專輯（預購中） · R Flat",
+      "sourceNotes": "第 11 張錄音室專輯（K 字母企劃），東京 Victor Studio 錄音，℗ R Flat。2026-11-20 起 iTunes / Apple Music / Spotify 預購，11-27 各大平台全線上架，11-28 全港唱片店有售。曲序為官方公佈全碟曲目；8 首已派台單曲有 MV，4 首新曲（毒蟲圖鑑、理想的下午、揀睇誌、G’night）出碟後補 MV。"
+    },
+    {
+      "order": 11,
+      "id": "frank-ep",
+      "category": "ep",
+      "categoryNo": 1,
+      "wheelKey": "F",
+      "title": "¿Frank?",
+      "releaseDate": "2014-10-23",
+      "year": 2014,
+      "type": "迷你專輯",
+      "label": "寰亞唱片",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music5/v4/3d/ae/55/3dae559c-f7a9-1d4f-7551-c8539de22bbd/825646194407.jpg/1200x1200bb.jpg",
+      "trackCount": 5,
+      "tracksWithVideo": 4,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "寂寞島嶼",
+          "subtitle": null,
+          "youtubeId": "EWel1xzApwc",
+          "videoKind": "Lyric Video",
+          "alsoOn": []
+        },
+        {
+          "no": 2,
+          "title": "怪物",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": []
+        },
+        {
+          "no": 3,
+          "title": "語言藝術",
+          "subtitle": null,
+          "youtubeId": "_X45l1Mi294",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 4,
+          "title": "瞬間看地球",
+          "subtitle": null,
+          "youtubeId": "mitpDtZbO1E",
+          "videoKind": "Audio",
+          "alsoOn": []
+        },
+        {
+          "no": 5,
+          "title": "你和我",
+          "subtitle": null,
+          "youtubeId": "bouituBm_7g",
+          "videoKind": "MV",
+          "alsoOn": [
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        }
+      ],
+      "sourceMeta": "2014-10-23 · EP · 寰亞唱片",
+      "sourceNotes": "Continuation of Frank. Arranged/produced by RubberBand and Terry Chan. Infobox runtime 22:04 (track times sum to 22:40). Bonus DVD: 語言藝術 MV and making-of 'The Birth of ¿Frank?'. No video found for 怪物 after two searches. 瞬間看地球 only found as fan audio/live uploads. 你和我 Official MV ID taken from a search result title; a fetch of that ID returned unrelated metadata (possible bot page), so verify."
+    },
+    {
       "order": 12,
+      "id": "ni-dou",
+      "category": "ep",
+      "categoryNo": 2,
+      "wheelKey": "呢",
+      "title": "呢度",
+      "releaseDate": "2016-12-17",
+      "year": 2016,
+      "type": "迷你專輯",
+      "label": "R Flat",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music111/v4/25/19/bd/2519bd4c-dcad-47e0-a178-dd232fb7f885/649870667663.jpg/1200x1200bb.jpg",
+      "trackCount": 3,
+      "tracksWithVideo": 3,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "山河故人",
+          "subtitle": null,
+          "youtubeId": "PhL9Fe7RxMk",
+          "videoKind": "影片",
+          "alsoOn": [
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 2,
+          "title": "老人與海",
+          "subtitle": null,
+          "youtubeId": "A1gewshzFDI",
+          "videoKind": "Audio",
+          "alsoOn": []
+        },
+        {
+          "no": 3,
+          "title": "飛天",
+          "subtitle": null,
+          "youtubeId": "nemK5Qz7ZDE",
+          "videoKind": "Lyric Video",
+          "alsoOn": []
+        }
+      ],
+      "sourceMeta": "2016-12-17 · EP · R Flat",
+      "sourceNotes": "Apple Music lists 2016-12-16, ℗ R Flat; Bandcamp lists 2017-12-16. Wikipedia date 2016-12-17 kept. YouTube watch pages were unfetchable (rate-limit/client_error); channel inferred from 'RubberBand - … MV' title format used by @RubberBandHK, not directly verified."
+    },
+    {
+      "order": 13,
+      "id": "zoi-jat-hei",
+      "category": "ep",
+      "categoryNo": 3,
+      "wheelKey": "在",
+      "title": "在一起",
+      "releaseDate": "2023-01-06",
+      "year": 2023,
+      "type": "迷你專輯",
+      "label": "R Flat",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/3e/60/6d/3e606d26-d175-a0c7-f21d-177ae41b77ce/0608011721428.jpg/1200x1200bb.jpg",
+      "trackCount": 3,
+      "tracksWithVideo": 3,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "Ciao",
+          "subtitle": null,
+          "youtubeId": "fpjJmMDyjvM",
+          "videoKind": "MV",
+          "alsoOn": [
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 2,
+          "title": "好好地過",
+          "subtitle": "OneDegree 新時代保險廣告歌",
+          "youtubeId": "Ts4IWDUHdgU",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 3,
+          "title": "這刻我們",
+          "subtitle": "豐澤廣告歌",
+          "youtubeId": "LVBtk6ZdD-U",
+          "videoKind": "MV",
+          "alsoOn": []
+        }
+      ],
+      "sourceMeta": "2023-01-06 · EP · R Flat",
+      "sourceNotes": "Apple Music: 2023-01-06, ℗ R Flat. 好好地過 first released as single 2021-12-20; 這刻我們 single 2022-08-27 (Bandcamp). YouTube watch pages were unfetchable (rate-limit/client_error); channel inferred from 'RubberBand - … MV' title format used by @RubberBandHK, not directly verified."
+    },
+    {
+      "order": 14,
+      "id": "zoeng-ngaa",
+      "category": "best",
+      "categoryNo": 1,
+      "wheelKey": "橡",
+      "title": "橡芽",
+      "releaseDate": "2012-12-06",
+      "year": 2012,
+      "type": "精選",
+      "label": "金牌大風",
+      "coverUrl": "https://i.scdn.co/image/ab67616d0000b27317793d7b2aba4361fb7ee5f4",
+      "trackCount": 22,
+      "tracksWithVideo": 22,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "夥伙",
+          "subtitle": "新曲",
+          "youtubeId": "flgYGkm1bN4",
+          "videoKind": "Live",
+          "alsoOn": [
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 2,
+          "title": "Dedicated to…",
+          "subtitle": null,
+          "youtubeId": "m1pUtRcX0sA",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Dedicated To…",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 3,
+          "title": "進化論",
+          "subtitle": null,
+          "youtubeId": "qn_Oh1z8pV4",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Easy",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 4,
+          "title": "衝",
+          "subtitle": null,
+          "youtubeId": "4uHz35BHsiA",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 5,
+          "title": "田鼠論壇",
+          "subtitle": null,
+          "youtubeId": "E_mpTGPMZkk",
+          "videoKind": "影片",
+          "alsoOn": [
+            "Connected",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 6,
+          "title": "細街盃",
+          "subtitle": null,
+          "youtubeId": "T8OxSGvY0cU",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Connected",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 7,
+          "title": "天台飛人",
+          "subtitle": null,
+          "youtubeId": "a0FkohsyiRM",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Beaming",
+            "RubberBand Concert #1",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 8,
+          "title": "Slow & Easy",
+          "subtitle": null,
+          "youtubeId": "MYJC1xniRAw",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Easy",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 9,
+          "title": "一轉身卻天亮了",
+          "subtitle": null,
+          "youtubeId": "KK1UVbmr7AQ",
+          "videoKind": "影片",
+          "alsoOn": [
+            "Connected",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 10,
+          "title": "一早地下鐵",
+          "subtitle": null,
+          "youtubeId": "SGXjFTwEKrg",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 11,
+          "title": "遊車河",
+          "subtitle": null,
+          "youtubeId": "COHpEt-1Kag",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 12,
+          "title": "小涼伴",
+          "subtitle": "CD2",
+          "youtubeId": "qpucFHeFNOM",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 13,
+          "title": "阿波羅",
+          "subtitle": "CD2",
+          "youtubeId": "xYPjNKSdgiU",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Beaming",
+            "RubberBand Concert #1",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 14,
+          "title": "Easy",
+          "subtitle": "CD2",
+          "youtubeId": "pfI585IT1lk",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Easy",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 15,
+          "title": "夏令時間",
+          "subtitle": "CD2",
+          "youtubeId": "YicXgZmylQU",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Beaming",
+            "RubberBand Concert #1",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 16,
+          "title": "陪著你走",
+          "subtitle": "CD2",
+          "youtubeId": "yrziAUyBvNI",
+          "videoKind": "Audio",
+          "alsoOn": [
+            "Dedicated To…",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 17,
+          "title": "零度聖誕",
+          "subtitle": "CD2",
+          "youtubeId": "fRw3RoHXWcI",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 18,
+          "title": "SimpleLoveSong",
+          "subtitle": "CD2",
+          "youtubeId": "M8umlz0vHnk",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Connected",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 19,
+          "title": "睜開眼",
+          "subtitle": "CD2",
+          "youtubeId": "SLEaUzsONgA",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Easy",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 20,
+          "title": "天連地",
+          "subtitle": "CD2",
+          "youtubeId": "HCh93_HbZys",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Connected",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 21,
+          "title": "發現號",
+          "subtitle": "CD2",
+          "youtubeId": "wZD_qQ81l3Q",
+          "videoKind": "MV",
+          "alsoOn": [
+            "RubberBand Concert #1",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 22,
+          "title": "鬼叫你窮",
+          "subtitle": "新曲",
+          "youtubeId": "ffG_SbHtboM",
+          "videoKind": "MV",
+          "alsoOn": []
+        }
+      ],
+      "sourceMeta": "2012-12-06 · 新曲+精選 · 金牌大風",
+      "sourceNotes": "2CD. Spotify lists 21 tracks vs 22 on Wikipedia (one track likely missing from streaming). YesAsia also lists a 限量紀念版 2CD (item 1032071986)."
+    },
+    {
+      "order": 15,
+      "id": "we-are-rubberband",
+      "category": "best",
+      "categoryNo": 2,
+      "wheelKey": "W",
+      "title": "We Are RubberBand",
+      "releaseDate": "2015-10-30",
+      "year": 2015,
+      "type": "精選",
+      "label": "金牌大風 (Gold Typhoon) / Warner Music Hong Kong",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music62/v4/cb/0d/03/cb0d0355-62eb-419a-ba9d-225fa496519d/mzm.wcpdyxhg.jpg/1200x1200bb.jpg",
+      "trackCount": 30,
+      "tracksWithVideo": 24,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "發現號",
+          "subtitle": null,
+          "youtubeId": "wZD_qQ81l3Q",
+          "videoKind": "MV",
+          "alsoOn": [
+            "RubberBand Concert #1",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 2,
+          "title": "Slow & Easy",
+          "subtitle": null,
+          "youtubeId": "MYJC1xniRAw",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Easy",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 3,
+          "title": "陪著你走",
+          "subtitle": null,
+          "youtubeId": "yrziAUyBvNI",
+          "videoKind": "Audio",
+          "alsoOn": [
+            "Dedicated To…",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 4,
+          "title": "小涼伴 (Live)",
+          "subtitle": null,
+          "youtubeId": "qpucFHeFNOM",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 5,
+          "title": "睜開眼",
+          "subtitle": null,
+          "youtubeId": "9v3rXGoEcW4",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Easy",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 6,
+          "title": "夜不眠 (Live)",
+          "subtitle": null,
+          "youtubeId": "kUzjNnbPBiA",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 7,
+          "title": "一轉身卻天亮了",
+          "subtitle": null,
+          "youtubeId": "KK1UVbmr7AQ",
+          "videoKind": "影片",
+          "alsoOn": [
+            "Connected",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 8,
+          "title": "長夜 My Love Goodnight",
+          "subtitle": null,
+          "youtubeId": "fQJlFgI1jCw",
+          "videoKind": "Audio",
+          "alsoOn": [
+            "Dedicated To…"
+          ]
+        },
+        {
+          "no": 9,
+          "title": "3字頭",
+          "subtitle": null,
+          "youtubeId": "0HZmHzjwR5Q",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Connected"
+          ]
+        },
+        {
+          "no": 10,
+          "title": "囍宴樂隊",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Connected"
+          ]
+        },
+        {
+          "no": 11,
+          "title": "夥伙",
+          "subtitle": null,
+          "youtubeId": "flgYGkm1bN4",
+          "videoKind": "Live",
+          "alsoOn": [
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 12,
+          "title": "Tears (Live)",
+          "subtitle": null,
+          "youtubeId": "7JiRCjKFp4I",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 13,
+          "title": "進化論",
+          "subtitle": null,
+          "youtubeId": "qn_Oh1z8pV4",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Easy",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 14,
+          "title": "Easy",
+          "subtitle": null,
+          "youtubeId": "pfI585IT1lk",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Easy",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 15,
+          "title": "田鼠論壇",
+          "subtitle": null,
+          "youtubeId": "E_mpTGPMZkk",
+          "videoKind": "影片",
+          "alsoOn": [
+            "Connected",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 16,
+          "title": "SimpleLoveSong",
+          "subtitle": null,
+          "youtubeId": "M8umlz0vHnk",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Connected",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 17,
+          "title": "More Than A Woman",
+          "subtitle": null,
+          "youtubeId": "HbXPjesEdYk",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Dedicated To…"
+          ]
+        },
+        {
+          "no": 18,
+          "title": "電玩男 (Live)",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 19,
+          "title": "細街盃",
+          "subtitle": null,
+          "youtubeId": "T8OxSGvY0cU",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Connected",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 20,
+          "title": "擦身情緣",
+          "subtitle": null,
+          "youtubeId": "ZbRrFKW2jUU",
+          "videoKind": "Audio",
+          "alsoOn": [
+            "Dedicated To…"
+          ]
+        },
+        {
+          "no": 21,
+          "title": "阿藍的故事",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Connected"
+          ]
+        },
+        {
+          "no": 22,
+          "title": "天連地",
+          "subtitle": null,
+          "youtubeId": "HCh93_HbZys",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Connected",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 23,
+          "title": "阿波羅 (Live)",
+          "subtitle": null,
+          "youtubeId": "xYPjNKSdgiU",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Beaming",
+            "RubberBand Concert #1",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 24,
+          "title": "Here We Are (Live)",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 25,
+          "title": "倒行詩",
+          "subtitle": null,
+          "youtubeId": "REegvxPa4-I",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Easy",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 26,
+          "title": "畫出彩虹",
+          "subtitle": null,
+          "youtubeId": "xqNwq8i6ZSU",
+          "videoKind": "Audio",
+          "alsoOn": [
+            "Dedicated To…"
+          ]
+        },
+        {
+          "no": 27,
+          "title": "海．地",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Connected"
+          ]
+        },
+        {
+          "no": 28,
+          "title": "最後... 那",
+          "subtitle": null,
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "RubberBand Concert #1"
+          ]
+        },
+        {
+          "no": 29,
+          "title": "Dedicated To...",
+          "subtitle": null,
+          "youtubeId": "m1pUtRcX0sA",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Dedicated To…",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 30,
+          "title": "無名英雄進行曲",
+          "subtitle": null,
+          "youtubeId": "Z48HKC3bZRQ",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Easy"
+          ]
+        }
+      ],
+      "sourceMeta": "2015-10-30 · 精選 · 金牌大風 (Gold Typhoon) / Warner Music Hong Kong",
+      "sourceNotes": "2CD Greatest Hits compilation (Apple Music title: 'We Are RubberBand (Greatest Hits)'; Discogs: 'We Are Rubberband -2CD Greatest Hits-', cat# 5054196871529). Physical release 2015-10-29 per Discogs; digital 2015-10-30 per Apple Music/mulanci. Tracklist order follows the Discogs 2CD CD listing (15 tracks per disc, 'disc' field given). Digital/streaming order differs (single 30-track disc starting 發現號, 阿波羅(Live), SimpleLoveSong ... ending 無名英雄進行曲). Six tracks are live versions. No new studio songs identified. No zh.wikipedia article found. MV lookups not performed: shared WebSearch budget was exhausted; the only video found is a fan-shot live clip of 睜開眼 (Gotta Go Tour 2016-01-10) via chordu.com, channel unknown."
+    },
+    {
+      "order": 16,
+      "id": "rubberband-concert-1",
+      "category": "live",
+      "categoryNo": 1,
+      "wheelKey": "R",
+      "title": "RubberBand Concert #1",
+      "releaseDate": "2009-12-30",
+      "year": 2009,
+      "type": "現場專輯",
+      "label": "金牌大風",
+      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music5/v4/be/43/a6/be43a6d2-b097-4159-aebf-78da2c63454b/825646226825.jpg/1200x1200bb.jpg",
+      "trackCount": 25,
+      "tracksWithVideo": 20,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "認錯",
+          "subtitle": "Live",
+          "youtubeId": "z9OIKyK_QGg",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18"
+          ]
+        },
+        {
+          "no": 2,
+          "title": "電玩男",
+          "subtitle": "Live",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 3,
+          "title": "潛",
+          "subtitle": "Live",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming"
+          ]
+        },
+        {
+          "no": 4,
+          "title": "在森林和原野",
+          "subtitle": "Live",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Apollo 18"
+          ]
+        },
+        {
+          "no": 5,
+          "title": "夜不眠",
+          "subtitle": "Live",
+          "youtubeId": "kUzjNnbPBiA",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 6,
+          "title": "零度聖誕",
+          "subtitle": "Live",
+          "youtubeId": "fRw3RoHXWcI",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 7,
+          "title": "Secret",
+          "subtitle": "Live",
+          "youtubeId": "NGBNdKVi5ZA",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18"
+          ]
+        },
+        {
+          "no": 8,
+          "title": "I'm Yours",
+          "subtitle": "Live",
+          "youtubeId": "GpGx1MqWO9c",
+          "videoKind": "Live",
+          "alsoOn": []
+        },
+        {
+          "no": 9,
+          "title": "遊車河",
+          "subtitle": "Live",
+          "youtubeId": "COHpEt-1Kag",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 10,
+          "title": "一早地下鐵 / 幾分鐘的約會",
+          "subtitle": "Live (medley)",
+          "youtubeId": "SGXjFTwEKrg",
+          "videoKind": "MV",
+          "alsoOn": []
+        },
+        {
+          "no": 11,
+          "title": "Come Together",
+          "subtitle": "Live",
+          "youtubeId": "DTLqLCdb5JE",
+          "videoKind": "Live",
+          "alsoOn": []
+        },
+        {
+          "no": 12,
+          "title": "脫逃 / 沙灘",
+          "subtitle": "Live (medley)",
+          "youtubeId": "LVkx7gVDUkY",
+          "videoKind": "Live",
+          "alsoOn": []
+        },
+        {
+          "no": 13,
+          "title": "夏令時間",
+          "subtitle": "Live",
+          "youtubeId": "YicXgZmylQU",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Beaming",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 14,
+          "title": "Here We Are",
+          "subtitle": "Live",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 15,
+          "title": "Hero",
+          "subtitle": "Live",
+          "youtubeId": "a1ZlozJmLqc",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming"
+          ]
+        },
+        {
+          "no": 16,
+          "title": "夾硬泥",
+          "subtitle": "Live (featuring 林海峰)",
+          "youtubeId": "SWj04DJebgY",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Beaming"
+          ]
+        },
+        {
+          "no": 17,
+          "title": "最後…那",
+          "subtitle": "Live",
+          "youtubeId": null,
+          "videoKind": null,
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 18,
+          "title": "城記",
+          "subtitle": "Live",
+          "youtubeId": "cd5Tn3ttqj4",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming"
+          ]
+        },
+        {
+          "no": 19,
+          "title": "Tears",
+          "subtitle": "Live",
+          "youtubeId": "PQp8LIOMwhE",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "We Are RubberBand"
+          ]
+        },
+        {
+          "no": 20,
+          "title": "發現號",
+          "subtitle": "Live",
+          "youtubeId": "wZD_qQ81l3Q",
+          "videoKind": "MV",
+          "alsoOn": [
+            "橡芽",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 21,
+          "title": "衝",
+          "subtitle": "Live",
+          "youtubeId": "4uHz35BHsiA",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Beaming",
+            "橡芽"
+          ]
+        },
+        {
+          "no": 22,
+          "title": "天台飛人",
+          "subtitle": "Live",
+          "youtubeId": "6apkv59CU9k",
+          "videoKind": "MV",
+          "alsoOn": [
+            "Beaming",
+            "橡芽",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 23,
+          "title": "小涼伴",
+          "subtitle": "Live",
+          "youtubeId": "VIo_DYikYFE",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Apollo 18",
+            "Beaming",
+            "橡芽",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 24,
+          "title": "阿波羅",
+          "subtitle": "Live",
+          "youtubeId": "1NwoCEZsJII",
+          "videoKind": "Live",
+          "alsoOn": [
+            "Beaming",
+            "橡芽",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        },
+        {
+          "no": 25,
+          "title": "發現號",
+          "subtitle": "Bonus Track (studio)",
+          "youtubeId": "wZD_qQ81l3Q",
+          "videoKind": "MV",
+          "alsoOn": [
+            "橡芽",
+            "We Are RubberBand",
+            "RubberBand Ciao 2021 (Live)"
+          ]
+        }
+      ],
+      "sourceMeta": "2009-12-30 · 演唱會專輯 · 金牌大風",
+      "sourceNotes": "2CD live album recorded at 2009 RubberBand Concert #1. Tracklist from Douban (music.douban.com/subject/4227658) and 2000fun forum, cross-checked with Shazam/Apple Music (25 tracks). CD1 = tracks 1-14, CD2 = tracks 15-25; track 25 (發現號) is a studio bonus track. Apple Music lists CD2 track 4 as 城堡 but Douban/2000fun give 城記 (the Apollo 18 song) — 城記 used. Apple Music shows release date 2009-01-01 (placeholder) and copyright 'Gold Typhoon Taiwan'; Douban/2000fun give 2009-12-30 and 金牌大風. All tracks are live versions; the MVs recorded below are the studio/official MVs of the same songs (except 阿波羅, whose official MV is cut from this concert). Many tracks lack MVs; search budget ran out before every track could be searched individually, so unsearched tracks are null."
+    },
+    {
+      "order": 17,
       "id": "rubberband-ciao-2021-live",
+      "category": "live",
+      "categoryNo": 2,
       "wheelKey": "R",
       "title": "RubberBand Ciao 2021 (Live)",
       "releaseDate": "2022-05-10",
       "year": 2022,
-      "type": "演唱會專輯",
+      "type": "現場專輯",
       "label": "R Flat (distributed by Golden Dynamic / 金牌大風)",
       "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/4f/8d/dd/4f8ddda1-9142-8418-b7c9-44f3bce6da15/0608011721404.jpg/1200x1200bb.jpg",
       "trackCount": 32,
@@ -1884,6 +2540,7 @@
           "videoKind": "Live",
           "alsoOn": [
             "Dedicated To…",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -1915,7 +2572,8 @@
           "videoKind": "MV",
           "alsoOn": [
             "Apollo 18",
-            "Beaming"
+            "Beaming",
+            "橡芽"
           ]
         },
         {
@@ -1928,6 +2586,7 @@
             "Apollo 18",
             "Beaming",
             "RubberBand Concert #1",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -1940,6 +2599,7 @@
           "alsoOn": [
             "Beaming",
             "RubberBand Concert #1",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -1951,7 +2611,8 @@
           "videoKind": "Live",
           "alsoOn": [
             "Beaming",
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -1992,6 +2653,7 @@
           "videoKind": "Live",
           "alsoOn": [
             "Easy",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -2011,7 +2673,9 @@
           "subtitle": null,
           "youtubeId": "603AJlTA5NY",
           "videoKind": "Live",
-          "alsoOn": []
+          "alsoOn": [
+            "呢度"
+          ]
         },
         {
           "no": 15,
@@ -2071,6 +2735,7 @@
           "youtubeId": "flgYGkm1bN4",
           "videoKind": "Live",
           "alsoOn": [
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -2093,6 +2758,7 @@
           "videoKind": "Live",
           "alsoOn": [
             "RubberBand Concert #1",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -2124,7 +2790,8 @@
           "videoKind": "Live",
           "alsoOn": [
             "Beaming",
-            "RubberBand Concert #1"
+            "RubberBand Concert #1",
+            "橡芽"
           ]
         },
         {
@@ -2135,6 +2802,7 @@
           "videoKind": "Live",
           "alsoOn": [
             "Easy",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -2146,6 +2814,7 @@
           "videoKind": "MV",
           "alsoOn": [
             "Connected",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -2156,7 +2825,7 @@
           "youtubeId": "UOOJeyS4nxU",
           "videoKind": "Live",
           "alsoOn": [
-            "單曲（未收錄於專輯）"
+            "在一起"
           ]
         },
         {
@@ -2167,6 +2836,7 @@
           "videoKind": "Audio",
           "alsoOn": [
             "Connected",
+            "橡芽",
             "We Are RubberBand"
           ]
         },
@@ -2201,11 +2871,14 @@
           ]
         }
       ],
+      "sourceMeta": "2022-05-10 · 演唱會專輯 · R Flat (distributed by Golden Dynamic / 金牌大風)",
       "sourceNotes": "Recorded live 3-6 April 2021 at Hong Kong Coliseum. Physical boxset = 3 CD + 2 Blu-ray (Discogs 29496049, barcode 608011721404): CD1 = tracks 1-15, CD2 = tracks 16-28, CD3 = tracks 29-32; BD1 video = tracks 1-15, BD2 video = tracks 16-32 (same titles, no extra DVD-only content). Streaming/Bandcamp lists all 32 as one continuous album. Tracklist from Bandcamp + Discogs (Chinese Wikipedia page could not be fetched). Discogs writes track 18 as 'Hello?'; Bandcamp as 'hello?'. Videos: the official RubberBand channel (UCDBjzWyYeU1CtdFqNlQot_g) carries auto-generated '(Live)' art-track uploads ('Provided to YouTube by Golden Dynamic', uploaded 2022-05-09) for album tracks; only the ones that literally appeared in search results are recorded. Fan-shot concert clips (channel 'MooMoo Wang') are recorded where no official video surfaced and are flagged in the channel field. Search budget ran out before every track could be queried individually; tracks marked null were not searched."
     },
     {
-      "order": 13,
+      "order": 18,
       "id": "men-on-the-dragon-ost",
+      "category": "ost",
+      "categoryNo": 1,
       "wheelKey": "電",
       "title": "電影《逆流大叔》原聲大碟",
       "releaseDate": "2022-08-02",
@@ -2548,233 +3221,62 @@
           "alsoOn": []
         }
       ],
+      "sourceMeta": "2022-08-02 · 電影原聲 · One Cool Music (HK) Limited",
       "sourceNotes": "Digital/streaming-only release (Apple Music id 1711485626; Qobuz; JioSaavn lists it as 電影《逆流大叔》原聲帶). 41 tracks, 53:27. Tracks 1-39 are instrumental film score cues (no MVs exist; not searched individually, so null). Tracks 40-41 are the film's songs, originally released 2018 (逆流之歌 single 2018-05-31, also on the 2018 album Hours). Tracklist from Qobuz and JioSaavn; Apple Music page confirmed track 41 = 大叔情歌 4:03 and label. Chinese Wikipedia could not be fetched. Durations from Qobuz. Track 31 and 36 contain a comma: '我與你,兩個人的事' and '英雄本色,是永恆的'."
     },
     {
-      "order": 14,
-      "id": "juntos",
-      "wheelKey": "J",
-      "title": "JUNTOS",
-      "releaseDate": "2023-12-20",
-      "year": 2023,
-      "type": "錄音室專輯",
-      "label": "R Flat（發行：Golden Dynamic）",
-      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/3a/9f/67/3a9f6792-e1b5-fb85-ca37-c171f3585a23/0608011721480.jpg/1200x1200bb.jpg",
-      "trackCount": 9,
-      "tracksWithVideo": 8,
-      "tracks": [
-        {
-          "no": 1,
-          "title": "Juntos",
-          "subtitle": null,
-          "youtubeId": "UGgEXqH5F7Y",
-          "videoKind": "Audio",
-          "alsoOn": []
-        },
-        {
-          "no": 2,
-          "title": "戀人日常（的直線抽擊）",
-          "subtitle": null,
-          "youtubeId": "r0XsutvUeU0",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 3,
-          "title": "不如散步",
-          "subtitle": null,
-          "youtubeId": "VobB6ENl7VM",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 4,
-          "title": "主僕關係",
-          "subtitle": null,
-          "youtubeId": "FJcYyFwye_I",
-          "videoKind": "Audio",
-          "alsoOn": []
-        },
-        {
-          "no": 5,
-          "title": "過度關注組",
-          "subtitle": null,
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": []
-        },
-        {
-          "no": 6,
-          "title": "宇宙大王",
-          "subtitle": null,
-          "youtubeId": "_fHAo4NykVc",
-          "videoKind": "Lyric Video",
-          "alsoOn": []
-        },
-        {
-          "no": 7,
-          "title": "只能給你奏著",
-          "subtitle": null,
-          "youtubeId": "V9ECx-AIYpg",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 8,
-          "title": "晚了",
-          "subtitle": null,
-          "youtubeId": "xsUOPYIVcEc",
-          "videoKind": "Audio",
-          "alsoOn": []
-        },
-        {
-          "no": 9,
-          "title": "Be Right Back",
-          "subtitle": null,
-          "youtubeId": "JFVjPy2N-Nk",
-          "videoKind": "MV",
-          "alsoOn": []
-        }
-      ],
-      "sourceNotes": "Tracklist from rubberbandhk.bandcamp.com/album/juntos (9 tracks, 39 min) and mycdshop.com vinyl listing; Apple Music confirms 9 tracks, ℗ R Flat, 2023-12-20. Album credits name RubberBand with 雷柏熹 and Jason Kui. Also issued as a limited orange vinyl (1,000 copies). Title track 'Juntos' and '主僕關係' have only auto-generated 'RubberBand - Topic' audio uploads (Provided to YouTube by Golden Dynamic). No MV found for 過度關注組 within two searches. Chinese Wikipedia page for JUNTOS was not found via search."
-    },
-    {
-      "order": 15,
-      "id": "komorebi",
-      "wheelKey": "K",
-      "title": "KOMOREBI",
-      "releaseDate": "2026-11-27",
-      "year": 2026,
-      "type": "錄音室專輯（預購中）",
-      "label": "R Flat",
-      "coverUrl": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/c4/6c/c0/c46cc056-2e1a-ce6d-3659-2e2a89e400c7/0742761980817_1x1.jpg/1200x1200bb.jpg",
-      "trackCount": 12,
-      "tracksWithVideo": 8,
-      "tracks": [
-        {
-          "no": 1,
-          "title": "下一位參賽者",
-          "subtitle": "派台 2025-05-12",
-          "youtubeId": "PfP7MjLR1H4",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 2,
-          "title": "跟住去邊度",
-          "subtitle": "派台 2026-01-05",
-          "youtubeId": "-8bMlWlis0k",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 3,
-          "title": "搲撈HK",
-          "subtitle": "派台 2025-08-18",
-          "youtubeId": "6uuDjn4f9KA",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 4,
-          "title": "毒蟲圖鑑",
-          "subtitle": "新曲（11-27 上架）",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": []
-        },
-        {
-          "no": 5,
-          "title": "太平門",
-          "subtitle": "派台 2026-06-15",
-          "youtubeId": "iSkOvW-ZDAc",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 6,
-          "title": "理想的下午",
-          "subtitle": "新曲（11-27 上架）",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": []
-        },
-        {
-          "no": 7,
-          "title": "我永遠記得",
-          "subtitle": "派台 2026-04-01",
-          "youtubeId": "NHPWcRXfdHc",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 8,
-          "title": "揀睇誌",
-          "subtitle": "新曲（11-27 上架）",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": []
-        },
-        {
-          "no": 9,
-          "title": "一杯",
-          "subtitle": "派台 2026-08-17",
-          "youtubeId": "NWBSnHmKK_I",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 10,
-          "title": "想寫好的功課",
-          "subtitle": "派台 2025-02-10",
-          "youtubeId": "xjQRaQYpL0s",
-          "videoKind": "MV",
-          "alsoOn": []
-        },
-        {
-          "no": 11,
-          "title": "G’night",
-          "subtitle": "新曲（11-27 上架）",
-          "youtubeId": null,
-          "videoKind": null,
-          "alsoOn": []
-        },
-        {
-          "no": 12,
-          "title": "木漏日",
-          "subtitle": "派台 2026-11-10",
-          "youtubeId": "c8vRa0ZZFPw",
-          "videoKind": "MV",
-          "alsoOn": []
-        }
-      ],
-      "sourceNotes": "第 11 張錄音室專輯（K 字母企劃），東京 Victor Studio 錄音，℗ R Flat。2026-11-20 起 iTunes / Apple Music / Spotify 預購，11-27 各大平台全線上架，11-28 全港唱片店有售。曲序為官方公佈全碟曲目；8 首已派台單曲有 MV，4 首新曲（毒蟲圖鑑、理想的下午、揀睇誌、G’night）出碟後補 MV。"
-    },
-    {
-      "order": 16,
-      "id": "singles",
-      "wheelKey": "單",
-      "title": "單曲（未收錄於專輯）",
+      "order": 19,
+      "id": "zung-jyu-hou-tin-hei",
+      "category": "single",
+      "categoryNo": 1,
+      "wheelKey": "終",
+      "title": "終於好天氣（方皓玟 × RubberBand）",
       "releaseDate": null,
       "year": null,
-      "type": "精選",
-      "label": "R Flat",
-      "coverUrl": null,
+      "type": "單曲",
+      "label": "",
+      "coverUrl": "https://i.ytimg.com/vi/pAmVSbYHfAM/hqdefault.jpg",
       "trackCount": 1,
       "tracksWithVideo": 1,
       "tracks": [
         {
           "no": 1,
-          "title": "Ciao",
-          "subtitle": "單曲 2021-06-17",
-          "youtubeId": "fpjJmMDyjvM",
+          "title": "終於好天氣",
+          "subtitle": "方皓玟 × RubberBand",
+          "youtubeId": "pAmVSbYHfAM",
           "videoKind": "MV",
-          "alsoOn": [
-            "RubberBand Ciao 2021 (Live)"
-          ]
+          "alsoOn": []
         }
       ],
-      "sourceNotes": "Pseudo-album of standalone singles between i (2020-12-01) and JUNTOS (2023-12-20). Only Ciao (MV 2021-06-17) is confidently standalone: it is not on JUNTOS and post-dates i. Be Right Back, 只能給你奏著 and 不如散步 are on JUNTOS and are therefore excluded. 讓世界都懂 (2024) could not be verified (not on Apple Music artist page, no MV found) and is excluded. First Date (MV 2020-06-05) and 漫長 (2019) pre-date the album i and are very likely on i; the i tracklist could not be fetched (zh.wikipedia returned not-found) so they are omitted here rather than risk duplication - the agent handling album i should confirm. Search budget for this turn was exhausted before this could be double-checked."
+      "sourceMeta": "2016-06 · 合唱單曲",
+      "sourceNotes": "方皓玟 × RubberBand 合唱單曲，2016 年中派台（Apple Music 單曲 id 1123051085）；其後收錄於方皓玟 EP《My Spiritual Life》（2017-10-09）。未收錄於任何 RubberBand 專輯。"
+    },
+    {
+      "order": 20,
+      "id": "joeng-sai-gaai-dou-dung",
+      "category": "single",
+      "categoryNo": 2,
+      "wheelKey": "讓",
+      "title": "讓世界都懂",
+      "releaseDate": "2024-06-26",
+      "year": 2024,
+      "type": "單曲",
+      "label": "R Flat",
+      "coverUrl": "https://f4.bcbits.com/img/a0148663735_10.jpg",
+      "trackCount": 1,
+      "tracksWithVideo": 1,
+      "tracks": [
+        {
+          "no": 1,
+          "title": "讓世界都懂",
+          "subtitle": "宣明會「守護脆弱孩子」主題曲",
+          "youtubeId": "1bkSLziyJ0A",
+          "videoKind": "MV",
+          "alsoOn": []
+        }
+      ],
+      "sourceMeta": "2024-06-26 · 數碼單曲 · R Flat",
+      "sourceNotes": "宣明會「守護脆弱孩子計劃」主題曲；RubberBand 走訪索馬里蘭後創作，2024-06-01 啟德 AIRSIDE 音樂分享會首唱。未收錄於 JUNTOS 或 KOMOREBI。"
     }
   ]
 }
