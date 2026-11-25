@@ -6,11 +6,19 @@ import { call, cookiePair } from './helpers';
 export const OAUTH_COOKIE_NAME = '__Host-oauth';
 export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
+/** UTF-8 安全（backlog B-022）：btoa / atob 只識 Latin-1，中文或者 Kelvin 符號會 throw / 變亂碼 */
 const toBase64Url = (text: string): string =>
-    btoa(text).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+    btoa(String.fromCharCode(...new TextEncoder().encode(text)))
+        .replaceAll('+', '-')
+        .replaceAll('/', '_')
+        .replace(/=+$/, '');
 
 const fromBase64Url = (text: string): string =>
-    atob(text.replaceAll('-', '+').replaceAll('_', '/'));
+    new TextDecoder().decode(
+        Uint8Array.from(atob(text.replaceAll('-', '+').replaceAll('_', '/')), (ch) =>
+            ch.charCodeAt(0),
+        ),
+    );
 
 export const encodeJson = (value: unknown): string => toBase64Url(JSON.stringify(value));
 

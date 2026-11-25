@@ -191,6 +191,26 @@ describe('GET /auth/google/callback: accounts without access', () => {
         expect(page).toContain('&lt;b&gt;x@y.z');
     });
 
+    // backlog B-022：W-008 之前只有 unit test；經 callback 再行一次（id_token 入面嘅非 ASCII 字元）
+    it('should refuse an address that only matches the allowlist after Unicode case folding', async () => {
+        const KELVIN_SIGN = String.fromCharCode(0x212a);
+        const bindings = { ...env, ADMIN_EMAILS: 'kate@example.com' };
+        const lookalike = `${KELVIN_SIGN}ate@example.com`;
+        const { response } = await login(googleClaims(lookalike), '', bindings);
+        expect(response.status).toBe(403);
+        expect(await response.text()).toContain(lookalike);
+        await expectNoSession(response);
+        vi.restoreAllMocks();
+        const genuine = await login(googleClaims('kate@example.com'), '', bindings);
+        expect(genuine.response.status).toBe(302);
+    });
+
+    it('should log in an allowlisted admin whose token carries a non-ASCII name', async () => {
+        const { response } = await login(googleClaims(ADMIN, { name: '陳大文 ✓' }));
+        expect(response.status).toBe(302);
+        expect(await sessionCount()).toBe(1);
+    });
+
     it('should refuse an unverified email even if it is on the allowlist', async () => {
         const { response } = await login(googleClaims(ADMIN, { email_verified: false }));
         expect(response.status).toBe(403);
