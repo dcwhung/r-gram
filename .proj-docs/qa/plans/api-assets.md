@@ -1,0 +1,25 @@
+# Test Plan — api-assets
+
+- Chain: 封面圖（`apps/api`）：`PUT /api/assets` 上載（Content-Type + magic bytes、2 MB 上限、結構 + 尺寸、內容 hash 檔名、先 R2 後 D1）同公開 `GET|HEAD /catalog/v1/img/:name`（CORS 只限 `PLAYER_ORIGINS`、immutable）。任務 T-024
+- AC（L1 來源：TS = Technical Spec v1.2、FS = Functional Spec v1.4）:
+    - AC-1 守門（TS API-050「session + same-origin」、「安全設計」授權 / CSRF）：冇 session 401；Origin ≠ `WORKER_ORIGIN` 403；R2 同 `assets` 不變；回應有 `/api` 嘅 header、唔設 cookie
+    - AC-2 上載（TS API-050、「assets」、「R2 key layout」、「核心原則 2」；FS US-103 第 1 點、FR-103）：WebP（VP8 / VP8L / VP8X）、JPEG（baseline / progressive）、PNG，1200 × 1200 或 320 × 320 → 200 `{ name, bytes }`；R2 `catalog/v1/img/<sha256 頭 16 hex>.<webp|jpg|png>`、一行 `assets`；同內容 → 同名、一行（並發都係）；唔用客戶端檔名
+    - AC-3 類型（TS API-050 415、「安全設計 → 上載」）：Content-Type 唔係三種之一、冇 type、檔頭唔係三種之一、宣告同檔頭唔一致 → 415 `UNSUPPORTED_TYPE`，乜都唔寫
+    - AC-4 尺寸 / 結構（TS「albums」cover 1200、thumb 320；review 決定 4，spec 回寫見 backlog B-052 ②）：其他尺寸、非正方形 → 400 `$:INVALID_DIMENSIONS`；截短、壞 chunk / segment → 400 `$:INVALID_IMAGE`（只驗檔頭級，backlog B-050）
+    - AC-5 上限（TS「安全設計 → 上載」`IMAGE_MAX_BYTES` 2 MB）：> 2 MB 有 / 冇 `Content-Length` → 413 `TOO_LARGE`（先於 magic 檢查）；啱啱 2 MB 收
+    - AC-6 設定封面（TS API-013「`cover` 唔喺 `assets`」400；FS US-103 第 2 點）：兩個尺寸上載後 `PATCH` `cover`、`thumb`、`accent` → 專輯讀到；未知名 400；`accent` 照改得；`null` 清走
+    - AC-7 公開圖（TS API-071、「安全設計」公開路由、「性能 → 圖片」）：唔使 session、唔設 cookie；`GET` / `HEAD` → content type 跟副檔名、`public, max-age=31536000, immutable`、`nosniff`、ETag；唔合規 / 唔存在 / 大楷 / 其他副檔名 / traversal（連編碼）→ 404；CORS 只回 `PLAYER_ORIGINS`（`Vary: Origin`），外來 / 冇 Origin 冇 ACAO；preflight 只開 GET / HEAD
+    - AC-8 後置步驟（backlog B-043 ③；TS API-061）：上載唔行 hook、唔加 `catalog`；其他寫入照行一次
+    - AC-9 訊息（CLAUDE.md 介面文字）：全部 `message` / `details[].message` 係中文書面語，冇未填 `{…}`
+- Scope files:
+    - `apps/api/src/assets/**`、`src/catalog/**`
+    - `apps/api/test/{webp,png,jpeg,assetsUpload,catalogImage}.test.ts`、`test/imageFixtures.ts`
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/i18n/zh-Hant.ts`、`src/lib/{env,http}.ts`（屬 `api-auth`）；`src/api/{afterWrite,errors}.ts`、`src/lib/fields.ts`、`src/i18n/fillMessage.ts`、`src/albums/validate.ts`（屬 `api-albums`）；`test/messageParams.test.ts`（屬 `api-tracks`）
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie；本機 R2 / D1。圖由 QA 自己用 Pillow 生成（漸變 / 雜訊，唔用下載或者真封面），截短 / 改 byte 喺 probe 做。後置步驟：scratch app 照 `src/api/routes.ts` 接線，hook 換做計數器。預期由 spec 寫，唔抄 developer 嘅 test
+- HTTP smoke：唔使（route 經 workerd 打 `src/index.ts`；只喺改到 `wrangler.toml` 或者 middleware 次序先做）
+- PWA gate: no。Performance gate: no（parser 只行檔頭，一個 R2 put + 一句 D1）。Security / Data gate: yes（AC-1、AC-3、AC-5、AC-7）
+- Out of scope: 管理端裁切 / 轉 WebP / 抽色（T-052）；`catalog.json`、歌詞公開讀取（T-026）；seed 封面（T-027、B-053）；`assets` 冇尺寸欄（B-052 ①）；HEAD 用 `get()`、CSP sandbox（B-051）；完整結構檢查（B-050）

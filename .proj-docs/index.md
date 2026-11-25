@@ -46,6 +46,7 @@
 | 2026-11-25 | [qa/2026-11-25_09-09_qa_catalog-song-text_catalog-core_api-auth.md](qa/2026-11-25_09-09_qa_catalog-song-text_catalog-core_api-auth.md) | S1 pass（冇阻擋性問題；一條 Minor 入 backlog B-042） | 新鏈 `catalog-song-text`：T-029；`catalog-core`（`parseLrc`）同 `api-auth`（schema，T-096）重驗。Frozen plan：[qa/plans/catalog-song-text.md](qa/plans/catalog-song-text.md) |
 | 2026-11-25 | [qa/2026-11-25_09-50_qa_api-albums.md](qa/2026-11-25_09-50_qa_api-albums.md) | S1 pass（AC-1–AC-9；冇阻擋性問題，兩條 Observation 入 backlog B-046） | 新鏈 `api-albums`：T-022；`api-auth`（共用檔）同 `repo-scaffold`（lock file）重驗。Frozen plan：[qa/plans/api-albums.md](qa/plans/api-albums.md) |
 | 2026-11-25 | [qa/2026-11-25_11-32_qa_api-tracks.md](qa/2026-11-25_11-32_qa_api-tracks.md) | S1 pass（AC-1–AC-9；冇阻擋性問題，一條 Observation） | 新鏈 `api-tracks`：T-023；`api-albums`、`api-auth`、`catalog-song-text`、`catalog-core` 重驗。Frozen plan：[qa/plans/api-tracks.md](qa/plans/api-tracks.md) |
+| 2026-11-25 | [qa/2026-11-25_12-02_qa_api-assets.md](qa/2026-11-25_12-02_qa_api-assets.md) | S1 pass（AC-1–AC-9；冇阻擋性問題） | 新鏈 `api-assets`：T-024（封面上載、公開圖片 route）；`api-auth`、`api-albums`、`api-tracks` 重驗。Frozen plan：[qa/plans/api-assets.md](qa/plans/api-assets.md) |
 
 Backlog：[backlog.md](backlog.md)
 
