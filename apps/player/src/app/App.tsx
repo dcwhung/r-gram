@@ -1,8 +1,7 @@
 import type { CatalogDocument } from '@r-gram/catalog';
-import { useState } from 'react';
 import { Stage } from '../stage/Stage';
 import { backdropFor, useStageBackdrop } from '../stage/useStageBackdrop';
-import { createTextMeasure } from '../utils/textMeasure';
+import { useTextMeasure } from '../utils/useFontsVersion';
 import './app.css';
 import { HomeScene } from './HomeScene';
 import { PreloadPlaceholder } from './PreloadPlaceholder';
@@ -19,7 +18,8 @@ interface AppProps {
 /** 舞台 + 場景：Preload（暫時畫面）→ 主頁。歌單、轉碟、歌書、MV 喺之後嘅任務加畫面 */
 export const App = ({ catalog = null }: AppProps) => {
     const home = useHome(catalog);
-    const [measure] = useState(createTextMeasure);
+    // 字體載入完會換新嘅量字函數，左上資訊用真字體重新 fit（W-017）
+    const measure = useTextMeasure();
     useStageBackdrop(backdropFor(home.stage.scene));
     const { view, handlers } = home;
     return (

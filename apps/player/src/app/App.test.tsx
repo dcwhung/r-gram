@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import packageJson from '../../package.json';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { MOTION } from '../config/motion';
+import { installFakeFonts, removeFakeFonts } from '../utils/testing/fakeFonts';
 import { App } from './App';
 
 const stubReducedMotion = (reduce: boolean) =>
@@ -197,5 +198,50 @@ describe('App home scene with motion', () => {
         expect(part('cover')).toHaveAttribute('data-spinning', 'false');
         act(() => vi.advanceTimersByTime(MOTION.scene.needleDropMs));
         expect(part('cover')).toHaveAttribute('data-spinning', 'true');
+    });
+});
+
+/** canvas 量字（每個字 = 字級 × 比例）：真字體（載入完）比後備字體闊 */
+const FALLBACK_EM = 0.45;
+const LOADED_EM = 0.7;
+const stubCanvas = (isLoaded: () => boolean) =>
+    vi.stubGlobal(
+        'OffscreenCanvas',
+        class {
+            getContext() {
+                return {
+                    font: '',
+                    measureText(this: { font: string }, text: string) {
+                        const size = Number(/([\d.]+)px/.exec(this.font)?.[1] ?? 0);
+                        return {
+                            width: text.length * size * (isLoaded() ? LOADED_EM : FALLBACK_EM),
+                        };
+                    },
+                };
+            }
+        },
+    );
+
+// W-017：用後備字體量完放得落，真字體載入完闊咗：要重新 fit，唔可以出界
+describe('App when the fonts finish loading', () => {
+    beforeEach(() => stubReducedMotion(true));
+    afterEach(removeFakeFonts);
+
+    it('should fit the album title again with the loaded font', async () => {
+        let loaded = false;
+        stubCanvas(() => loaded);
+        const fonts = installFakeFonts();
+        const catalog = sampleDocument();
+        const first = catalog.albums[0];
+        if (first) first.title = 'GREATEST HITS 1999';
+        const { part } = renderHome(catalog);
+        const sizeBefore = Number(part('album-title')?.getAttribute('font-size'));
+        loaded = true;
+        await act(() => fonts.resolveReady());
+        const sizeAfter = Number(part('album-title')?.getAttribute('font-size'));
+        expect(sizeAfter).toBeLessThan(sizeBefore);
+        loaded = false;
+        act(() => fonts.finishLoading());
+        expect(Number(part('album-title')?.getAttribute('font-size'))).toBe(sizeBefore);
     });
 });
