@@ -18,6 +18,8 @@ describe('session guard', () => {
         for (const path of [
             '/api/me',
             '/api/albums',
+            '/api/albums/apollo-18',
+            '/api/albums/order',
             '/api/catalog/rebuild',
             '/api/health/x',
             '/api',
@@ -123,11 +125,13 @@ describe('CSRF Origin check', () => {
     });
 
     it('should let a same-origin mutating request through to the router', async () => {
-        // 未有 POST /api/albums（T-022）：過咗兩道守門先會去到 404
-        expect((await send('POST', { origin: ORIGIN })).status).toBe(404);
+        // 過咗兩道守門先去到 POST /api/albums（T-022）：冇 body → 400 VALIDATION_ERROR
+        const response = await send('POST', { origin: ORIGIN });
+        expect(response.status).toBe(400);
+        expect(await response.json()).toMatchObject({ error: { code: 'VALIDATION_ERROR' } });
     });
 
     it('should not ask read-only requests for an Origin', async () => {
-        expect((await send('GET', {})).status).toBe(404);
+        expect((await send('GET', {})).status).toBe(200);
     });
 });
