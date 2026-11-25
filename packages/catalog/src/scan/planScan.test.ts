@@ -253,6 +253,16 @@ describe('planScan: covers', () => {
         const album = { ...NO_COVERS, hasCover: true };
         expect(plan(['cover2.jpg'], [], { album }).cover2?.key).toBe(key('cover2.jpg'));
     });
+
+    it('should tell for each cover whether the album already has that cover', () => {
+        const onlyFirst = { ...NO_COVERS, hasCover: true };
+        const both = { ...NO_COVERS, hasCover: true, hasCover2: true };
+        const files = ['cover.jpg', 'cover2.jpg'];
+        const first = plan(files, [], { album: onlyFirst });
+        expect([first.cover?.hasCover, first.cover2?.hasCover]).toEqual([true, false]);
+        const second = plan(files, [], { album: both });
+        expect([second.cover?.hasCover, second.cover2?.hasCover]).toEqual([true, true]);
+    });
 });
 
 describe('planScan: other files', () => {

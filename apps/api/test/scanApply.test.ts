@@ -102,6 +102,26 @@ describe('POST /api/albums/:id/scan/apply: request shape', () => {
     });
 });
 
+describe('POST /api/albums/:id/scan/apply: duplicate items', () => {
+    it('should reject the same track twice in media, songTexts or clearAudio', async () => {
+        await insertScanTrack(1);
+        const audio = { trackId: 'komorebi-01', kind: 'audio', key: mediaKey('01 a.m4a') };
+        const text = { trackId: 'komorebi-01', key: mediaKey('01 a.txt'), etag: '"x"' };
+        const clear = { trackId: 'komorebi-01', audioKey: mediaKey('01 a.m4a') };
+        const { status, body } = await apply({
+            media: [audio, { ...audio, kind: 'mv', key: mediaKey('01 a.mp4') }, audio],
+            songTexts: [text, text],
+            clearAudio: [clear, clear],
+        });
+        expect(status).toBe(400);
+        expect(detailsOf(body).map(({ path, reason }) => `${path}:${reason}`)).toEqual([
+            'media[2].trackId:DUPLICATE_ITEM',
+            'songTexts[1].trackId:DUPLICATE_ITEM',
+            'clearAudio[1].trackId:DUPLICATE_ITEM',
+        ]);
+    });
+});
+
 describe('POST /api/albums/:id/scan/apply: create', () => {
     it('should create the track from its audio, MV and song text and rebuild the catalog', async () => {
         await putMediaFiles(['05 太平門.m4a', '05 太平門.mp4']);
