@@ -8,8 +8,9 @@
     - AC-4 歌單暗層（D25；S-074）：開歌單時細掣唔喺 Tab 次序、`aria-hidden`；㩒暗位收返、focus 返唱片夾
     - AC-6 左上歌名兩行（T-047；FS D51、FR-036、CR-005「第 18 版確認」第 2 點；設計稿第 18 版 `SONG_FIT`、`fitSong()`、格「歌名較長（縮字）」「歌名好長（斷兩行）」「歌名好長 + 唱臂喺泊位」）：放得落 44；放唔落每次縮 2，最細 32（連心形右邊 ≤ 772）；32 都放唔落 = 兩行、32 號、第一行基線 296、第二行 334（行距 38）、「第 nn 首」行 368 唔郁、第二行右邊 ≤ 470、心形中心 = 最後一行尾 + 46、基線 − 0.364 × 字級、色棒跟第一行；英文字、數字唔喺中間斷；兩行都唔夠先喺第二行尾「…」；字體遲到載入之後結果一樣；泊位唱臂唔遮歌名同心形
     - AC-5 版面（FR-039）：高身手機左上資訊、頂部螺絲、版本號貼頂，唱片機成組貼底；闊屏置中；碟以專輯 id 做 key；頁面冇重覆 id、冇指空嘅 `url(#…)`；console 冇錯；介面文字全部經語言檔、書面語
+    - AC-7 開 app 之後（T-034）：`useHome.finishPreload()` 喺 Preload 載入完先開第一隻碟（catalog 遲過 Preload 開始先到都得）；歌名兩行嘅 `aria-label` = 成個歌名（B-072 ①）；`breakAt` 註解同設計稿規則一致（B-070）
 - Scope files:
-    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`ListVeil.tsx`、`PreloadPlaceholder.tsx`、`Turntable.tsx`、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`
+    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`ListVeil.tsx`、`Turntable.tsx`、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
     - `apps/player/src/components/info-block/**`（連 `songFit.ts`）、`apps/player/src/components/small-buttons/**`
     - `apps/player/src/components/tonearm/armPose.ts`、`armPose.test.ts`、`useArmLeadIn.ts`、`useArmLeadIn.test.ts`
     - `apps/player/src/stage/useStageBackdrop.ts`、`useStageBackdrop.test.ts`
@@ -23,4 +24,4 @@
     - 唱臂：每格取樣（computed transform、小燈、`data-spinning`）量 AC-1 時間線；`reducedMotion: 'reduce'` 再行一次
     - 超長碟名量字級、「…」、右邊界；AC-6 五種歌名（放得落、縮字、兩行中文 + 括號、兩行英文、兩行 +「…」）量字級、基線、右邊、心形中心、色棒；MV 開完收返（泊位）用 `isPointInFill` 逐點驗唱臂唔掂歌名同心形；字體 woff2 遲 2.5 秒對比
 - PWA gate: no（呢條鏈冇 build 設定、manifest、Service Worker）。Security / Data gate: no。Performance gate: no
-- Out of scope（已知、已接受）：旋鈕、刻度、♥（T-036）；心形係佔位（T-070）；歌單、歌書、MV 畫面（T-037、T-072、T-060）；時間 0:00（冇播放，T-038）；production build 只有 Preload 佔位（T-034）；W-031（括號斷位：spec 同設計稿講法唔同，等用戶）；S-127、S-130 – S-132；backlog B-055、B-056、B-063、B-064、B-070 – B-072
+- Out of scope（已知、已接受）：旋鈕、刻度、♥（T-036）；心形係佔位（T-070）；歌單、歌書、MV 畫面（T-037、T-072、T-060）；時間 0:00（冇播放，T-038）；production build 未揀得歌（T-037），歌名 `aria-label` 只由單元測試驗；W-031（括號斷位：spec 同設計稿講法唔同，等用戶）；S-127、S-130 – S-132；backlog B-055、B-056、B-063、B-064、B-070 – B-072

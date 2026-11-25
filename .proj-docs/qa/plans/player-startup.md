@@ -1,0 +1,25 @@
+# Test Plan — player-startup
+
+- Chain: 播放端開 app 載入（`apps/player`）：Preload 旗幟畫面（布料旗、logo、進度線、百分比、App 名、非官方聲明、版本號、錯誤同重試掣）同開 app 嘅三項載入（catalog、當前專輯封面、字體）、逾時、重試、離開 Preload（淡出）。任務 T-034
+- AC（L1 來源：FS = Functional Spec v1.8、TS = Technical Spec、設計稿 = `_mockups_/home-turntable/src/template.html` `preloadCard()`（第 18 版）同 `_mockups_/r-gram/`（v16 旗幟））:
+    - AC-1 畫面（US-001 頭一條；FR-001、FR-034；設計稿 `preloadCard()`）：全畫面黑底布料旗 + 白色 logo（中心 540 / 860、闊 560；高身手機跟畫面中間落 `extra / 2`）；進度線 340 → 740、y 1640、粗 4、底線 25%；百分比三位數 540 / 1696、30 號、字距 6；「R Gram」540 / 1802、34 號、字距 2；「歌迷自製　非官方  ·  v版本」540 / 1846、22 號、字距 3、灰色；底部嘅嘢貼底（FR-039）
+    - AC-2 真實進度（US-001「進度反映真實載入」；TS「性能考量：首次載入」）：三項並行，每完成一項 + 1/3（000 → 033 → 067 → 100）；catalog 到咗先預載第一隻碟今次揀中嘅大封面（CR-005 D56、FR-042）；主頁出嘅封面 = Preload 攞嗰張
+    - AC-3 永遠唔卡（US-001；FR-041；TS「字體」Preload 一行）：catalog 8 秒、封面 5 秒、字體 3 秒逾時（`config/limits.ts`）；封面或者字體失敗 / 逾時都當完成；catalog 攞唔到有本機副本 = 用副本入主頁；冇副本或者空 catalog = 錯誤訊息 + 重試掣，重試可以連續用
+    - AC-4 離開（US-001「成塊旗淡出，露出主頁」；設計稿 v16 時間線；`config/motion.ts`）：100 之後等進度線行完 + 停一停（530 + 200 ms）→ 淡出 750 ms（放大 5%）→ 拆走；淡出期間主頁已經喺下面
+    - AC-5 減少動態效果（FS「過場動畫」；TS 實現注意事項 11）：旗靜止一格、冇淡入淡出、冇等
+    - AC-6 無障礙（FR-037；FR-010）：錯誤 `role="alert"`；重試係 `role="button"`、Tab 得到、Enter / 空白鍵、感應範圍 124 單位（390pt 基準 = 44.8pt）；canvas `aria-hidden`；進度 `role="progressbar"` + `aria-valuenow`；文字全部經語言檔、書面語
+    - AC-7 儲存（FR-042「唔記低」）：只有 `rgram.catalog.v1` 同 Service Worker 嘅 cache；揀中嘅封面唔寫任何儲存
+- Scope files:
+    - `apps/player/src/app/startup/**`（`startupDeps`、`startupState`、`startupTasks`、`useBoot`、`usePreloadExit`、`useStartup` 同 `*.test.ts`）
+    - `apps/player/src/components/flag/**`（`FlagCanvas`、`PreloadInfo`、`PreloadScreen`、`flagMesh`、`flagRenderer`、`flagScene`、`useFlagAnimation`、`preload.css` 同 `*.test.ts(x)`）
+    - `apps/player/src/assets/logo-full.png`
+    - 1-hop（屬其他鏈，唔喺呢度凍結）：`app/App.tsx`（`player-core`）、`app/useHome.ts`（`player-home`）、`catalog/fetchImage.ts`、`catalog/loader.ts`、`config/limits.ts`（`player-catalog`）、`stage/layouts/phone.ts`、`config/motion.ts`、`i18n/zh-Hant.ts`（`player-foundation`）
+- Commands:
+    - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
+- Browser（未有 e2e spec；T-040 加咗之後改跑 e2e）：production build（`VITE_CATALOG_URL` 指去本機假 Worker），scratchpad harness：
+    - `127.0.0.1` 靜態 server 出 `dist`；`https://127.0.0.1:<port>` 假 catalog（示範 `catalog.json`、PNG 封面；CORS 同真 Worker 一樣：播放端 origin 先有 `Access-Control-Allow-Origin`，一律 `Vary: Origin`；`Cache-Control` 同 Worker 一樣）；可以切換：斷線、hang、空 catalog、延遲、封面 hang、圖片冇 CORS
+    - Chromium（`/opt/pw-browsers/chromium`）`--no-proxy-server`、`--host-resolver-rules`（只解析 127.0.0.1）、`--ignore-certificate-errors`；非本機請求 abort 兼計數
+    - 360 × 640、393 × 852、1280 × 800：AC-1 座標（經 `getScreenCTM()` 換返設計單位）、logo 白色像素範圍、AC-2 進度序列、主頁封面；`reducedMotion: 'reduce'` 驗 AC-5
+    - 393 × 852：AC-3 每種失敗量「去到主頁 / 錯誤」嘅時間；重試連續兩次（滑鼠 + Enter）；AC-6、AC-7
+- PWA gate: yes（同 `player-catalog` 一齊做：第一次上網開、離線重新載入、Cache Storage）。Security / Data gate: no（外來輸入由 `player-catalog` 驗）。Performance gate: no（冇 backend 改動；旗幟 fps 要真機，見 backlog B-075 ②）
+- Out of scope：重開 app 回復上次嘅碟同歌（D12）；由背景返嚟唔再出 Preload（US-001，冇背景載入）；旗幟真機 fps；backlog B-075（S-141 – S-147）

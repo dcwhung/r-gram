@@ -8,9 +8,10 @@
     - AC-4 碟轉動（TS 繪圖方式「CD」；設計稿 `.spin` 5.4 秒；US-004「再㩒由原位繼續」）：播緊先轉、暫停停喺原位、再播由原位繼續
     - AC-5 無障礙（TS 實現注意事項 14；FS 用詞表；FR-037；FR-010）：`role="button"`；`aria-label` 係語言檔嘅書面語；停用掣 `aria-disabled` 而且 focus 得到；`aria-pressed` 只喺開關掣（歌書）；Tab 去到全部控件、有 focus 圈；Enter／空白鍵 = 㩒，㩒住唔放只計一下；感應範圍 ≥ 44pt（390pt 闊做基準）
     - AC-6 減少動態（FS「過場動畫」最尾一行；TS 實現注意事項 11）：`prefers-reduced-motion: reduce` 下碟唔轉、唱臂冇過場，狀態照樣切換
+    - AC-7 App 同碟面（T-034；review W-036）：`App` = Preload → 主頁（Preload 淡出期間主頁已經喺下面）；碟面封面 `<image crossOrigin="anonymous">`，令 Service Worker 可以 cache 顯示中嗰張（FR-042 離線；瀏覽器驗喺 `player-catalog` AC-9）
 - Scope files:
-    - `apps/player/src/app/`：`App.tsx`、`App.test.tsx`、`app.css`、`stageReducer.ts`、`stageReducer.test.ts`（`TurntableShell.tsx` 已刪；主頁嘅其他檔屬 `player-home`，見 `plans/player-home.md`）
-    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`
+    - `apps/player/src/app/`：`App.tsx`、`App.test.tsx`、`stageReducer.ts`、`stageReducer.test.ts`（`TurntableShell.tsx`、`app.css` 已刪；主頁嘅其他檔屬 `player-home`，見 `plans/player-home.md`；`app/startup/**` 屬 `player-startup`）
+    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`，亦唔包 `player-startup` 嘅 `flag/**`（見 `plans/player-startup.md`）
     - `apps/player/src/stage/StageSvg.tsx`、`apps/player/src/stage/StageContext.ts`
 - Commands:
     - `npm run lint`
@@ -23,5 +24,5 @@
     - 零件位置（設計單位，經 `getScreenCTM()`）同設計稿「未揀歌」「播緊」兩格逐項比；1080 × 1920 @1x 同設計稿做分區像素比對（封面、左上文字、旋鈕唔比：未接／未做）
     - 真滑鼠㩒唱片夾行 AC-3；取樣封面角度驗 AC-4；真鍵盤事件驗 AC-5；`reducedMotion: 'reduce'` 驗 AC-6
     - console 冇 error／warning；頁面冇重覆 id、冇指去唔存在 id 嘅 `url(#…)`
-- PWA gate: no（`vite.config.ts`、`index.html`、manifest、`package.json` 冇改）。Security / Data gate: no（冇外來輸入）。Performance gate: no
+- PWA gate: no（`vite.config.ts`、`index.html`、manifest、`package.json` 冇改；T-034 嘅 PWA 驗收喺 `player-catalog`）。Security / Data gate: no（冇外來輸入）。Performance gate: no
 - Out of scope（已知、已接受）：所有零件係同一個 SVG 畫布入面嘅 React 元件（Technical Spec 由 CR-003 同步）；`TurntableShell` 係暫時外殼（封面未接、左上係 App 名、冇旋鈕；T-035 取代）；設計稿第 16 版嘅暫停（唱針升起、唱臂留喺碟上）、歌書暫停時唔收、固定刻度弧（T-035／T-038）；backlog S-035、S-039 – S-042；高身手機多出嘅高度點對位（B-009）
