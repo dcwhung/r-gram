@@ -45,8 +45,14 @@ const controlledDeps = () => {
     return { deps, catalog, fonts, image };
 };
 
-/** 減少動態效果：離開 Preload 冇停留、冇淡出（計時器 0 毫秒） */
-const settle = () => act(() => vi.advanceTimersByTimeAsync(0));
+/** 行晒排緊嘅 promise 同 effect（每一輪 effect 可能再排一個 promise 或者 0 毫秒計時器） */
+const FLUSH_ROUNDS = 4;
+const settle = async () => {
+    for (let round = 0; round < FLUSH_ROUNDS; round += 1) {
+        // fake timers 喺計時器入面再排嘅 0 毫秒計時器會當 1 毫秒
+        await act(() => vi.advanceTimersByTimeAsync(1));
+    }
+};
 
 describe('useBoot', () => {
     beforeEach(() => {
@@ -122,6 +128,9 @@ describe('useBoot leaving Preload with motion', () => {
         };
         const { result } = renderHook(() => useBoot(deps));
         const { preloadStepMs, preloadHoldMs, flagFadeMs } = MOTION.scene;
+        // 三項即刻完成（計時器由嗰一刻開始計）：淨係行 promise，唔郁時間
+        for (let round = 0; round < FLUSH_ROUNDS; round += 1) await act(async () => {});
+        expect(result.current.preload.progress).toBe(1);
         await act(() => vi.advanceTimersByTimeAsync(preloadStepMs + preloadHoldMs - 1));
         expect(result.current.home.stage.scene).toBe('preload');
         expect(result.current.preload.exit).toBe('shown');

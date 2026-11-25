@@ -26,6 +26,14 @@ export const CATALOG_IMAGE_CACHE_MAX_ENTRIES = 200;
 /** Service Worker 留低幾多份歌詞（B-071 ③）：291 首歌，每首最多一份，留位畀改歌詞同加歌 */
 export const LYRICS_CACHE_MAX_ENTRIES = 400;
 
-/** 未實作（TDD 紅燈） */
-export const FONT_LOAD_TIMEOUT_MS = 1;
-export const COVER_PRELOAD_TIMEOUT_MS = 1;
+/**
+ * Preload 等 slab 字體最多幾耐（Technical Spec「字體」：逾時係常數；CR-004：bucket 字體失敗唔卡住）。
+ * Spec 冇定數值：內建 Rokkitt 喺 precache，好快；慢嘅係 bucket 字體。3 秒之後照入主頁，字體遲到會重新量字（W-017）。
+ */
+export const FONT_LOAD_TIMEOUT_MS = 3000;
+
+/**
+ * Preload 等當前專輯封面最多幾耐。Spec 冇定數值：一張 1200 嘅 WebP 約 100–200 KB；
+ * 慢網絡唔好令用戶對住旗幟等，攞唔到主頁照開（碟面先用專輯色，圖到咗再出）。
+ */
+export const COVER_PRELOAD_TIMEOUT_MS = 5000;

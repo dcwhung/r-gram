@@ -47,4 +47,9 @@
     --motion-scene-crt-on: 220ms;
     --motion-scene-crt-off: 150ms;
     --motion-scene-tv-drop: 450ms;
+    /* Preload（T-034；設計稿 r-gram v16） */
+    --motion-scene-flag-fade: 750ms;
+    --motion-scene-preload-step: 530ms;
+    --motion-scene-preload-bar-delay: 200ms;
+    --motion-scene-preload-bar-in: 300ms;
 }

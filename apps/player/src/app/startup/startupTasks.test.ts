@@ -48,7 +48,7 @@ describe('loadSlabFonts', () => {
     afterEach(() => vi.useRealTimers());
 
     it('should wait for both slab faces', async () => {
-        const load = vi.fn(() => Promise.resolve([]));
+        const load = vi.fn((_spec: string) => Promise.resolve([]));
         await loadSlabFonts({ load }, TIMEOUT_MS);
         expect(load.mock.calls.map(([spec]) => spec)).toEqual([...SLAB_FONT_SPECS]);
     });
