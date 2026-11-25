@@ -26,6 +26,16 @@ describe('response headers', () => {
         }
     });
 
+    // callback 嘅網址有 OAuth code + state：由嗰頁撳連結走唔可以帶住 Referer；JSON 唔畀瀏覽器估 type
+    it('should send no referrer and forbid content sniffing on /api and /auth responses', async () => {
+        const paths = ['/api/health', '/api/me', '/auth/google/callback?code=x&state=y'];
+        for (const path of paths) {
+            const response = await call(path);
+            expect(response.headers.get('referrer-policy'), path).toBe('no-referrer');
+            expect(response.headers.get('x-content-type-options'), path).toBe('nosniff');
+        }
+    });
+
     it('should keep every Worker response out of search engines', async () => {
         for (const path of ['/api/health', '/auth/unknown', '/catalog/v1/unknown', '/']) {
             expect((await call(path)).headers.get('x-robots-tag'), path).toBe('noindex');
