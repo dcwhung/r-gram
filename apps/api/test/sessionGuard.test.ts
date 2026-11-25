@@ -23,8 +23,13 @@ describe('session guard', () => {
     });
 
     it('should answer 401 for every method without a session, with or without an Origin', async () => {
+        const origins: Record<string, string>[] = [
+            {},
+            { origin: ORIGIN },
+            { origin: 'https://evil.example' },
+        ];
         for (const method of MUTATING_METHODS) {
-            for (const headers of [{}, { origin: ORIGIN }, { origin: 'https://evil.example' }]) {
+            for (const headers of origins) {
                 const response = await call('/api/albums', { method, headers });
                 expect(response.status, method).toBe(401);
             }
