@@ -47,6 +47,11 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-047 | Review T-023（S-064、S-065） | ① `readBoundedJsonObject` 先讀晒成個 body 先檢查長度：上限喺 parse 之前生效，但唔係喺 buffer 之前（只有已登入、同源嘅請求先到到呢度，影響低）；先睇 `Content-Length` 或者邊讀邊計。② 兩處守衛冇測試守住：歌詞 DELETE 嘅 `changes() > 0`、body 上限（mutant 冇被捉到；行為本身正確） | 下次改 `apps/api/src/tracks` 或 `lib/http.ts` |
 | B-048 | Review T-023（S-066） | R2 會留低冇人引用嘅歌詞檔（只係浪費空間，唔會有壞連結）：強制刪專輯之後、R2 寫入後 D1 出錯、三次 id 都撞。刪專輯時重用 `dropUnusedLyrics()`，或者喺生成 catalog 時清走冇引用嘅歌詞檔 | T-026 |
 | B-049 | Review T-023（S-069、S-071） | ① Technical Spec 同步（下次 CR）：409 `LYRICS_REMOVED` 同佢嘅 details；400 details 形狀；200／201 回應連 `track` 同 `hints`；API-021 嘅欄位同上限；API-022、API-023 回應；body 上限同 parse 前回 413；歌曲 id 格式；歌詞檔 key 格式；共用錯誤碼加 `LYRICS_REMOVED`、`TOO_LARGE`。② 專輯 folder 仲收 `a..b`，但手動指定嘅媒體 key 拒絕任何 `..`：兩條規則要一致（同 B-045 ①） | ① 下次 Change Request；② T-025 之前 |
+| B-050 | Review T-024（S-082、S-083、S-084、S-091） | 圖片結構檢查只睇檔頭：只有簽名同 IHDR 嘅 PNG、只有 SOI 同 SOF 嘅 JPEG、尾部有多餘資料嘅檔都會收（存低後以 `image/*` 加 `nosniff` 回，唔會當 HTML；只有已登入管理員上載到，唔係漏洞）。VP8X 宣稱嘅畫布大細冇同入面嘅圖對；動畫 WebP 都收。要嘛行勻 chunk 檢查到尾，要嘛寫明只檢查檔頭。另有 6 個 mutant 冇被測試捉到、R2／D1 失敗路徑冇測試 | 下次改 `apps/api/src/assets` |
+| B-051 | Review T-024（S-085、S-086） | 圖片 route：`HEAD` 用咗 `get()`（會下載成個檔），改用 `head()`；加 `Content-Security-Policy: default-src 'none'; sandbox`（圖片同管理端同一個 origin） | T-026（同其他 `/catalog/v1/*` 一齊） |
+| B-052 | Review T-024（S-087、S-088、S-090） | ① `assets` 冇尺寸欄，PATCH 專輯分唔到 1200 封面同 320 縮圖，兩個可以調亂；加欄（要 CR）或者由管理端保證。② Spec／Plan 同步：API-050 加 400 錯誤、宣稱類型要同內容一致、指定尺寸、`.jpg` 副檔名；API-071 列出 header；Plan T-024 嗰句「兩個尺寸 WebP、抽專輯色」搬去 T-052（呢啲喺管理端瀏覽器做，Worker 冇圖片編解碼） | ① T-052；② 下次 Change Request |
+| B-053 | Review T-024（S-089；要用戶／PM 決定） | 初始封面唔全部啱「只收 1200×1200 同 320×320」：14 張係 1200×1200 JPEG、2 張得 640×640、1 張冇封面。匯入初始資料時要決定：320 縮圖喺 Node 入面生成；兩張 640 嘅放大定係放寬規則；上載 JPEG 定係轉 WebP | T-027 之前 |
+| B-054 | T-035 比對設計稿（主 session 發現） | 播放端未打包 slab 字體：設計稿用「RB Slab」，app 嘅 token 寫住 Rokkitt 但冇載入，專輯名同版本號而家用後備襯線字，同設計稿明顯唔同。要加字體檔（woff2，連 precache 同字體載入後重新量字闊）；Implementation Plan 冇一行寫明呢件事 | T-039 之前（建議同 T-034 Preload 一齊做） |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 
