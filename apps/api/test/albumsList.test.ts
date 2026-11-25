@@ -168,7 +168,8 @@ describe('GET /api/albums', () => {
 describe('GET /api/albums/:id', () => {
     it('should return the album with its tracks in track order', async () => {
         await seedTwoAlbums();
-        await insertTrack('b-00', 'b', 0);
+        // 歌號可以跳號（D60）：按歌號排，唔係按 id
+        await insertTrack('b-00', 'b', 9);
         const body = await json<{ tracks: Record<string, unknown>[] }>(
             await api('GET', '/api/albums/b'),
         );
@@ -181,7 +182,7 @@ describe('GET /api/albums/:id', () => {
             expectedFolder: 'album-03-b',
         });
         expect(body).not.toHaveProperty('completeness');
-        expect(body.tracks.map((track) => track.id)).toEqual(['b-00', 'b-01', 'b-02', 'b-03']);
+        expect(body.tracks.map((track) => track.id)).toEqual(['b-01', 'b-02', 'b-03', 'b-00']);
     });
 
     it('should describe each track without the lyrics text', async () => {

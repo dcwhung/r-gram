@@ -1,4 +1,4 @@
-/* 管理端新增嘅歌 id（Technical Spec「數據庫設計 → tracks」）：`<albumId>-<6 位隨機細楷英數>` */
+/* 後備歌 id（Technical Spec「數據庫設計 → tracks」；CR-006 D61）：`<albumId>-<NN>` 已經有人用先用 `<albumId>-<6 位隨機細楷英數>` */
 const ALPHABET = 'abcdefghijklmnopqrstuvwxyz0123456789';
 export const TRACK_ID_SUFFIX_CHARS = 6;
 

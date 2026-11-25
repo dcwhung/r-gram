@@ -1,13 +1,21 @@
-/* 歌曲 API 嘅 body 驗證：API-021 欄位（連 R2 存在檢查）、API-020 / API-041 嘅 `{ text }` */
+/* 歌曲 API 嘅 body 驗證：API-021 欄位（連 R2 存在檢查）、API-020 嘅 `{ no?, text }`、API-041 嘅 `{ text }` */
 import type { JsonObject } from '../lib/http';
-import { parseFieldsWith, type FieldIssue, type ParsedFields } from '../lib/fields';
+import { parseFieldsWith, type FieldIssue, type ParsedFields, type Rule } from '../lib/fields';
 import { MEDIA_FIELDS, TRACK_FIELD_RULES, type TrackField, type TrackReason } from './fieldRules';
 
 export type TrackIssue = FieldIssue<TrackReason>;
 export type TrackFields = Partial<Record<TrackField, unknown>>;
 
 const TEXT_KEY = 'text';
-const NO_RULES: Readonly<Record<never, never>> = {};
+/** `text` 以外可以帶嘅欄（API-041：冇；API-020：`no`） */
+export type TextBodyRules = Readonly<Partial<Record<TrackField, Rule<TrackReason>>>>;
+export const NO_RULES: TextBodyRules = {};
+
+export interface TextBody {
+    text?: string;
+    fields: TrackFields;
+    issues: TrackIssue[];
+}
 
 export const parseTrackFields = (body: JsonObject): ParsedFields<TrackField, TrackReason> =>
     parseFieldsWith(TRACK_FIELD_RULES, body);
@@ -24,11 +32,15 @@ export const missingMediaIssues = async (
         .map((field) => ({ path: field, reason: 'MEDIA_NOT_FOUND' }));
 };
 
-/** `{ text: string }`；其他 key 一律 NOT_EDITABLE（歌曲文字以外嘅欄位經 API-021） */
-export const readTextBody = (body: JsonObject): { text?: string; issues: TrackIssue[] } => {
-    const { issues } = parseFieldsWith<never, TrackReason>(NO_RULES, body, [TEXT_KEY]);
+/** `{ text: string }` + `rules` 嘅欄；其他 key 一律 NOT_EDITABLE（歌曲文字以外嘅欄位經 API-021） */
+export const readTextBody = (body: JsonObject, rules: TextBodyRules = NO_RULES): TextBody => {
+    const { fields, issues } = parseFieldsWith(
+        rules as Readonly<Record<TrackField, Rule<TrackReason>>>,
+        body,
+        [TEXT_KEY],
+    );
     const value = body[TEXT_KEY];
-    if (typeof value === 'string') return { text: value, issues };
+    if (typeof value === 'string') return { text: value, fields, issues };
     const reason = value === undefined ? 'REQUIRED' : 'NOT_TEXT';
-    return { issues: [{ path: TEXT_KEY, reason }, ...issues] };
+    return { fields, issues: [{ path: TEXT_KEY, reason }, ...issues] };
 };

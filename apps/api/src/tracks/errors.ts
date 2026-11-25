@@ -8,6 +8,8 @@ import {
     SONG_TEXT_MAX_BYTES,
     SONG_TEXT_MAX_LINES,
     TITLE_MAX_CHARS,
+    TRACK_NO_MAX,
+    TRACK_NO_MIN,
 } from '@r-gram/catalog';
 import type { Context } from 'hono';
 import { errorResponder, messageBuilder, withMessages, type ErrorKind } from '../api/errors';
@@ -22,13 +24,14 @@ export type TrackSituation = keyof typeof zhHant.tracks.errors;
 export type HintReason = keyof typeof zhHant.tracks.hints;
 
 const BYTES_PER_KB = 1024;
+const NUMBER_PATH = 'no';
 
 const SITUATIONS: Record<TrackSituation, ErrorKind> = {
     invalid: { status: HTTP_STATUS.badRequest, code: ERROR_CODE.validation },
     notFound: { status: HTTP_STATUS.notFound, code: ERROR_CODE.notFound },
     albumNotFound: { status: HTTP_STATUS.notFound, code: ERROR_CODE.notFound },
     stale: { status: HTTP_STATUS.conflict, code: ERROR_CODE.stale },
-    orderChanged: { status: HTTP_STATUS.conflict, code: ERROR_CODE.conflict },
+    numberTaken: { status: HTTP_STATUS.conflict, code: ERROR_CODE.conflict },
     idRemoved: { status: HTTP_STATUS.conflict, code: ERROR_CODE.idRemoved },
     lyricsRemoved: { status: HTTP_STATUS.conflict, code: ERROR_CODE.lyricsRemoved },
     tooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
@@ -46,6 +49,8 @@ const REASON_PARAMS: Partial<Record<TrackReason, MessageParams>> = {
     TITLE_TOO_LONG: { max: TITLE_MAX_CHARS },
     CREDIT_TOO_LONG: { max: CREDIT_MAX_CHARS },
     LINE_TOO_LONG: { max: LYRIC_LINE_MAX_CHARS },
+    INVALID_NUMBER: { min: TRACK_NO_MIN, max: TRACK_NO_MAX },
+    NUMBER_EXHAUSTED: { max: TRACK_NO_MAX },
 };
 
 export const trackErrorMessage = messageBuilder(zhHant.tracks.errors, ERROR_PARAMS);
@@ -67,6 +72,14 @@ export const trackValidationError = (c: Context, issues: readonly TrackDetail[])
 
 export const trackNotAnObject = (c: Context) =>
     trackValidationError(c, [{ path: BODY_PATH, reason: 'NOT_AN_OBJECT' }]);
+
+/** 409 CONFLICT：同一張碟已有歌用呢個歌號（API-020、API-021） */
+export const numberTaken = (c: Context) =>
+    trackError(
+        c,
+        'numberTaken',
+        withMessages([{ path: NUMBER_PATH, reason: 'NUMBER_TAKEN' as const }], trackReasonMessage),
+    );
 
 export const ifMatchRequired = (c: Context) =>
     trackValidationError(c, [{ path: 'If-Match', reason: 'REQUIRED' }]);

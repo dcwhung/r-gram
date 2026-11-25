@@ -1,5 +1,5 @@
 import { CREDIT_FIELDS, type TrackCredits } from '../schema/types';
-import { trackIdFor } from './trackId';
+import { trackIdFor } from '../schema/ids';
 import type { SeedCreditTrack, SeedCredits, SeedDiscography } from './types';
 
 /** 原始資料用「—」表示冇 */

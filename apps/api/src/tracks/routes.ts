@@ -8,7 +8,13 @@ import { Hono, type Context } from 'hono';
 import type { AppEnv } from '../app';
 import { FORCE_CONFIRMED } from '../config';
 import { readIfMatch, readJsonObject } from '../lib/http';
-import { ifMatchRequired, trackError, trackNotAnObject, trackValidationError } from './errors';
+import {
+    ifMatchRequired,
+    numberTaken,
+    trackError,
+    trackNotAnObject,
+    trackValidationError,
+} from './errors';
 import { dropLyricsLater, dropUnusedLyrics } from './lyricsCleanup';
 import { toTrack } from './rows';
 import { savedResponse, songFieldsOf } from './saved';
@@ -62,6 +68,16 @@ trackRoutes.put('/:id/text', async (c) => {
     return saveSong(c, current, read);
 });
 
+/** 改歌號撞咗同碟另一首歌（D1 UNIQUE）→ 'numberTaken'；其他錯誤照拋 */
+const updateFields = async (...args: Parameters<typeof store.updateTrackFields>) => {
+    try {
+        return await store.updateTrackFields(...args);
+    } catch (error) {
+        if (store.isNumberTaken(error)) return 'numberTaken' as const;
+        throw error;
+    }
+};
+
 trackRoutes.patch('/:id', async (c) => {
     const id = c.req.param('id');
     const expected = readIfMatch(c);
@@ -72,7 +88,8 @@ trackRoutes.patch('/:id', async (c) => {
     // 格式啱晒先問 R2：唔會為咗一個 `../x` 去 head
     if (issues.length === 0) issues.push(...(await missingMediaIssues(c.env.MEDIA, fields)));
     if (issues.length > 0) return trackValidationError(c, issues);
-    const row = await store.updateTrackFields(c.env.DB, id, fields, expected);
+    const row = await updateFields(c.env.DB, id, fields, expected);
+    if (row === 'numberTaken') return numberTaken(c);
     return row ? c.json(toTrack(row)) : notWritten(c, id);
 });
 
@@ -81,7 +98,7 @@ trackRoutes.delete('/:id', async (c) => {
     const track = await store.findTrackText(c.env.DB, id);
     if (!track) return trackError(c, 'notFound');
     if (!isConfirmed(c)) return trackError(c, 'idRemoved', [{ type: 'track', id }]);
-    if (!(await store.deleteTrack(c.env.DB, id, track.album_id))) return trackError(c, 'notFound');
+    if (!(await store.deleteTrack(c.env.DB, id))) return trackError(c, 'notFound');
     dropLyricsLater(c, [track.json_name]);
     return c.json({ deleted: { trackId: id, albumId: track.album_id } });
 });

@@ -6,10 +6,8 @@ import {
     type CatalogTrack,
 } from '../schema/types';
 import { matchCredits, type CreditMatchResult } from './matchCredits';
-import { trackIdFor } from './trackId';
+import { trackIdFor } from '../schema/ids';
 import type { SeedAlbum, SeedCredits, SeedDiscography, SeedTrack } from './types';
-
-export { trackIdFor };
 
 export interface SeedCatalogOptions {
     generatedAt: string;
