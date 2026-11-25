@@ -5,6 +5,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
     test: {
         projects: [
+            'apps/player',
             'packages/catalog',
             // repo 根 scripts/（CI 用嘅 shell script）：喺 Node 入面對臨時 git repo 真係跑一次
             {

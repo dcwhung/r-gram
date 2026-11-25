@@ -11,3 +11,4 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-005 | Review T-001 / T-002（Observation） | 發佈 builder 要將草稿入面嘅空字串轉做 `null`（validator 唔收空字串） | T-026 |
 | B-006 | QA S1 catalog-core（Observation） | 字串長度上限未做（Technical Spec「安全設計」：`CREDIT_MAX_CHARS`、`LRC_MAX_BYTES` 等）。常數放 `packages/catalog`（管理端同 API 共用），API 入口驗 | T-023、T-080 |
 | B-007 | QA S1 catalog-core（Observation） | 根設定檔（`package.json`、`tsconfig.json`、`vitest.config.ts`、`ci.yml`）而家喺 `catalog-core` 鏈，每加一個 app 都會令佢 REVERIFY。下次 QA 將佢哋分去新鏈 `repo-scaffold` | T-020 嘅 QA |
+| B-008 | T-030（`npm audit`） | `vite-plugin-pwa ^2.0.0` → `workbox-build` → `glob` / `minimatch` 有 4 個 moderate 警告（GHSA-3g3m-2fjr-6pw4、GHSA-g3hv-75wg-m249）。只喺 build 時用，glob pattern 係自己寫死嘅設定，唔食外來輸入；`npm audit fix` 會降去 `vite-plugin-pwa@1.1.0`（breaking）。同 903-player 用緊嘅版本一樣。等上游出修正版再升 | 上游有修正時 |
