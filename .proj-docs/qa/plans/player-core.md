@@ -1,0 +1,27 @@
+# Test Plan — player-core
+
+- Chain: 播放端核心（`apps/player`）：場景狀態機 `stageReducer`（純函數）、唱片機基本元件（金屬面、螺絲、金屬掣同 icon、轉盤、空心碟、固定唱片夾、唱臂）、舞台 SVG 畫布、暫時外殼 `TurntableShell` 同 `App`。任務 T-032、T-033
+- AC（L1 來源：FS = Functional Spec、TS = Technical Spec、Plan = Implementation Plan、設計稿 = `_mockups_/home-turntable/index.html`）:
+    - AC-1 場景狀態機（TS「CR-002 對技術設計嘅影響」場景狀態機；FS CR-002 D24、D25、D27、「Favourites」；US-004；Plan T-032）：`preload → home ⇄ discChange`、`home ⇄ list`、`discChange → list`；overlay `mv`｜`booklet` 只喺 `home`，兩個唔會同時出現；D24 冇歌開唔到歌書；D25 `closeList` 之後碟同揀中嘅歌唔變；D27 收返轉碟留喺揀咗嗰隻碟；♥ 去 Favourites 碟、再㩒返之前嗰隻；換碟清走揀中嘅歌；唔合規嘅動作回傳同一個 state；冇「過場中」狀態（冇動畫路徑）
+    - AC-2 零件同設計稿一致（FS CR-002「版面」「控件」「唱片夾同碟」；設計稿「未揀歌」「播緊」；Plan T-033）：轉盤、空心碟、唱片夾、唱臂、三粒細掣、螺絲嘅位置、大細同外觀；層次 = 轉盤 → 碟 → 唱片夾 → 唱臂 → 細掣
+    - AC-3 唱片夾狀態（FS「唱片夾四個狀態」）：未揀歌冇 icon／播緊 = 進度圈 + pause／暫停 = 進度圈 + play；㩒落去 未揀歌 → 播緊 ⇄ 暫停
+    - AC-4 碟轉動（TS 繪圖方式「CD」；設計稿 `.spin` 5.4 秒；US-004「再㩒由原位繼續」）：播緊先轉、暫停停喺原位、再播由原位繼續
+    - AC-5 無障礙（TS 實現注意事項 14；FS 用詞表；FR-037；FR-010）：`role="button"`；`aria-label` 係語言檔嘅書面語；停用掣 `aria-disabled` 而且 focus 得到；`aria-pressed` 只喺開關掣（歌書）；Tab 去到全部控件、有 focus 圈；Enter／空白鍵 = 㩒，㩒住唔放只計一下；感應範圍 ≥ 44pt（390pt 闊做基準）
+    - AC-6 減少動態（FS「過場動畫」最尾一行；TS 實現注意事項 11）：`prefers-reduced-motion: reduce` 下碟唔轉、唱臂冇過場，狀態照樣切換
+- Scope files:
+    - `apps/player/src/app/**`（`App.tsx`、`App.test.tsx`、`app.css`、`TurntableShell.tsx`、`stageReducer.ts`、`stageReducer.test.ts`）
+    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`）
+    - `apps/player/src/stage/StageSvg.tsx`、`apps/player/src/stage/StageContext.ts`
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npm run coverage`（全部 workspace 一次；門檻 80%）
+    - `npm run build -w apps/player`
+- Reducer probe（scratchpad，唔入 repo）：用 esbuild 將 `stageReducer.ts` bundle 出嚟，Node 入面對住由 spec 寫出嚟嘅轉換表逐項驗，再行勻所有去得到嘅狀態驗 AC-1 嘅不變量
+- Browser check（未有 e2e spec；T-040 加咗之後改跑 e2e）：`npx vite preview --port 4173 --strictPort --host 127.0.0.1`，Chromium（`/opt/pw-browsers/chromium`）開 360 × 640 同 393 × 852：
+    - 每個 context 加 route 封晒 `localhost`／`127.0.0.1` 以外嘅 host 並記低封咗幾多個；`serviceWorkers: 'block'`；Chromium 加 `--no-proxy-server` 同 `--host-resolver-rules`
+    - 零件位置（設計單位，經 `getScreenCTM()`）同設計稿「未揀歌」「播緊」兩格逐項比；1080 × 1920 @1x 同設計稿做分區像素比對（封面、左上文字、旋鈕唔比：未接／未做）
+    - 真滑鼠㩒唱片夾行 AC-3；取樣封面角度驗 AC-4；真鍵盤事件驗 AC-5；`reducedMotion: 'reduce'` 驗 AC-6
+    - console 冇 error／warning；頁面冇重覆 id、冇指去唔存在 id 嘅 `url(#…)`
+- PWA gate: no（`vite.config.ts`、`index.html`、manifest、`package.json` 冇改）。Security / Data gate: no（冇外來輸入）。Performance gate: no
+- Out of scope（已知、已接受）：所有零件係同一個 SVG 畫布入面嘅 React 元件（Technical Spec 由 CR-003 同步）；`TurntableShell` 係暫時外殼（封面未接、左上係 App 名、冇旋鈕；T-035 取代）；設計稿第 16 版嘅暫停（唱針升起、唱臂留喺碟上）、歌書暫停時唔收、固定刻度弧（T-035／T-038）；backlog S-035、S-039 – S-042；高身手機多出嘅高度點對位（B-009）
