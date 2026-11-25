@@ -155,6 +155,15 @@ describe('stageReducer', () => {
             expect(state.selectedTrackId).toBe('komorebi-03');
         });
 
+        // S-037：捲動歌單時同一首歌會重覆報：冇變就回傳同一個物件，唔使 re-render
+        it('should return the same state when the focused track does not change', () => {
+            const state = after(
+                { type: 'openList' },
+                { type: 'focusTrack', trackId: 'komorebi-03' },
+            );
+            expect(stageReducer(state, { type: 'focusTrack', trackId: 'komorebi-03' })).toBe(state);
+        });
+
         it('should go home when the focused track is played', () => {
             const state = after(
                 { type: 'openList' },
@@ -311,6 +320,15 @@ describe('stageReducer', () => {
         });
     });
 
+    // S-037：型別以外嘅動作（由 JS 發出、打錯 type）當唔合規，唔可以 throw
+    it.each(['somethingElse', 'toString', 'constructor', '__proto__'])(
+        'should ignore the unknown action type %j',
+        (type) => {
+            const state = home();
+            expect(stageReducer(state, { type } as unknown as StageAction)).toBe(state);
+        },
+    );
+
     /*
      * 窮舉（S-036）：由 INITIAL_STAGE 開始，用下面每一個動作做 BFS，行晒所有可到達嘅狀態，
      * 逐個驗不變量。取代之前只行一條固定次序嘅測試。
@@ -383,6 +401,17 @@ describe('stageReducer', () => {
             );
             expect(preload).toEqual([INITIAL_STAGE]);
             expect(albumless).toEqual([]);
+        });
+
+        // S-037：動作冇改到任何嘢就回傳同一個物件（reference 相同），元件唔會白白 re-render
+        it('should return the very same state whenever an action changes nothing', () => {
+            const copies = states.flatMap((state) =>
+                ACTIONS.filter((action) => {
+                    const next = stageReducer(state, action);
+                    return next !== state && key(next) === key(state);
+                }).map((action) => ({ state, action })),
+            );
+            expect(copies).toEqual([]);
         });
 
         // 冇卡死嘅狀態：每個狀態最多一個動作就返到淨主頁（冇 overlay 嘅 home）

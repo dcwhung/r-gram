@@ -105,8 +105,11 @@ const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
     closeDiscChange: (state) =>
         state.scene === 'discChange' ? { ...state, scene: 'home' } : state,
     openList,
+    // 捲動歌單時同一首歌會重覆報：冇變就原樣回傳，唔使 re-render
     focusTrack: (state, { trackId }) =>
-        state.scene === 'list' ? { ...state, selectedTrackId: trackId } : state,
+        state.scene === 'list' && trackId !== state.selectedTrackId
+            ? { ...state, selectedTrackId: trackId }
+            : state,
     // 播揀中嗰首：返主頁（實際播放由發出動作嗰邊做）
     playSelected: (state) =>
         state.scene === 'list' && state.selectedTrackId ? { ...state, scene: 'home' } : state,
@@ -121,6 +124,9 @@ const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
 };
 
 export const stageReducer = (state: StageState, action: StageAction): StageState => {
+    // 型別以外嘅動作（由 JS 發出、打錯 type）當唔合規：原樣回傳，唔 throw。
+    // 用 hasOwn：`toString` 呢類繼承返嚟嘅名唔係 handler
+    if (!Object.hasOwn(HANDLERS, action.type)) return state;
     const handler = HANDLERS[action.type] as Handler<StageAction['type']>;
     return handler(state, action);
 };
