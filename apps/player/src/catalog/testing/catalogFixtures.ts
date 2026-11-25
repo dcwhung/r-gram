@@ -42,6 +42,18 @@ export const makeAlbum = (id: string, audio: readonly (string | null)[]): Catalo
     tracks: audio.map((key, index) => makeTrack(id, index + 1, key)),
 });
 
+/**
+ * CR-005（D55）：加第二張封面同縮圖（`<id>-cover2.webp`、`<id>-thumb2.webp`）。validator 要有第一張先收第二張，
+ * 所以冇第一張就順手補 `<id>-cover.webp`、`<id>-thumb.webp`；已有嘅第一張唔郁
+ */
+export const withSecondCover = (album: CatalogAlbum): CatalogAlbum => ({
+    ...album,
+    cover: album.cover ?? `${album.id}-cover.webp`,
+    thumb: album.thumb ?? `${album.id}-thumb.webp`,
+    cover2: `${album.id}-cover2.webp`,
+    thumb2: `${album.id}-thumb2.webp`,
+});
+
 export const makeDocument = (
     albums: readonly CatalogAlbum[],
     generatedAt = '2026-11-25T00:00:00.000Z',

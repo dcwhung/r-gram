@@ -16,6 +16,9 @@ export interface AlbumRow {
     cover: string | null;
     cover_source_etag: string | null;
     thumb: string | null;
+    cover2: string | null;
+    thumb2: string | null;
+    cover2_source_etag: string | null;
     folder: string | null;
     updated_at: string;
 }
@@ -33,12 +36,16 @@ export const COLUMN_OF: Record<EditableField, string> = {
     accent: 'accent',
     cover: 'cover',
     thumb: 'thumb',
+    cover2: 'cover2',
+    thumb2: 'thumb2',
+    cover2SourceEtag: 'cover2_source_etag',
     folder: 'folder',
 };
 
 export const ALBUM_COLUMNS = [
     'id, title, wheel_key, release_date, year, type, category, category_no',
-    'label, accent, cover, cover_source_etag, thumb, folder, updated_at',
+    'label, accent, cover, cover_source_etag, thumb, cover2, thumb2, cover2_source_etag',
+    'folder, updated_at',
 ].join(', ');
 
 /** 顯示用年份 = 發行日期嘅年；冇日期就冇年份 */
@@ -60,6 +67,10 @@ export const toAlbum = (row: AlbumRow) => ({
     cover: row.cover,
     coverSourceEtag: row.cover_source_etag,
     thumb: row.thumb,
+    // CR-005（D55）：第二張封面；專輯色只跟第一張，冇第二張專輯色
+    cover2: row.cover2,
+    thumb2: row.thumb2,
+    cover2SourceEtag: row.cover2_source_etag,
     // folder：手動改綁嘅名（NULL = 用預期資料夾名）；expectedFolder：計出嚟，唔可以改（CR-004）
     folder: row.folder,
     expectedFolder: expectedFolder(row.category, row.category_no, row.id),

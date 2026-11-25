@@ -100,10 +100,33 @@ describe('rebuildCatalog: document', () => {
             accent: '#c8442b',
             cover: '0123456789abcdef.webp',
             thumb: 'fedcba9876543210.webp',
+            // CR-005：冇第二張封面 = null（同第一張一樣嘅寫法）
+            cover2: null,
+            thumb2: null,
             tracks: expect.any(Array),
         });
         expect(apollo).toMatchObject({ releaseDate: null, year: null, cover: null, thumb: null });
         expect(apollo).toMatchObject({ type: '', label: '' });
+    });
+
+    // CR-005（D55）：第二張封面入 catalog；來源 ETag 係管理用，唔入
+    it('should carry the second cover and its thumb but not its source ETag', async () => {
+        await seedTwo();
+        await insertAsset('c2c2c2c2c2c2c2c2.webp');
+        await env.DB.prepare(
+            `UPDATE albums SET cover2 = ?1, thumb2 = ?1, cover2_source_etag = '"e2"' WHERE id = 'b'`,
+        )
+            .bind('c2c2c2c2c2c2c2c2.webp')
+            .run();
+        await rebuild();
+        const document = await liveDocument();
+        expect(parseCatalogDocument(document).ok).toBe(true);
+        const beaming = document?.albums[0];
+        expect(beaming).toMatchObject({
+            cover2: 'c2c2c2c2c2c2c2c2.webp',
+            thumb2: 'c2c2c2c2c2c2c2c2.webp',
+        });
+        expect(Object.keys(beaming ?? {}).filter((key) => /etag/i.test(key))).toEqual([]);
     });
 
     it('should map track fields, null credits when all four are empty, and null audio (D11)', async () => {

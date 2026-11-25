@@ -87,6 +87,24 @@ describe('release category, ordinal and cover source rules (CR-004)', () => {
         expect(reasonOf('coverSourceEtag', 'e'.repeat(SOURCE_ETAG_MAX_CHARS + 1))).toBe('TOO_LONG');
     });
 
+    it('should accept an ETag string or null for the second cover source, like the first', () => {
+        expect(reasonOf('cover2SourceEtag', '"9b2c1a"')).toBe('OK');
+        expect(reasonOf('cover2SourceEtag', null)).toBe('OK');
+        expect(reasonOf('cover2SourceEtag', '')).toBe('REQUIRED');
+        expect(reasonOf('cover2SourceEtag', 'e'.repeat(SOURCE_ETAG_MAX_CHARS + 1))).toBe(
+            'TOO_LONG',
+        );
+    });
+
+    it('should accept an uploaded image name or null for the second cover and thumb', () => {
+        for (const field of ['cover2', 'thumb2'] as const) {
+            expect(reasonOf(field, 'c2c2c2c2c2c2c2c2.webp')).toBe('OK');
+            expect(reasonOf(field, null)).toBe('OK');
+            expect(reasonOf(field, '')).toBe('UNKNOWN_ASSET');
+            expect(reasonOf(field, 3)).toBe('UNKNOWN_ASSET');
+        }
+    });
+
     it('should word the ordinal limit with CATEGORY_NO_MAX and list the six categories', () => {
         expect(reasonMessage('INVALID_ORDINAL')).toContain(String(CATEGORY_NO_MAX));
         expect(reasonMessage('INVALID_CATEGORY')).toContain('album、ep、best、live、ost、single');

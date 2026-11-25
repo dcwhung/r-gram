@@ -3,6 +3,7 @@
  * - 全部專輯同歌（CR-003：冇上下架）；冇歌嘅專輯照出（D39）；冇音檔嘅歌照出，audio = null（D11）
  * - 空字串 / 空白轉 null（validator 唔收空字串；type、label 例外，backlog B-005）
  * - audio / mv 係媒體 bucket（rb-discography）嘅 key 原文，cover / thumb / lyrics 係檔名：播放端用 mediaUrl(base, key) 逐段 encode
+ * - CR-005（D55）：第二張封面 cover2 / thumb2 一律出（冇 = null，同第一張一樣嘅寫法；validator 亦收冇呢兩個欄嘅舊 document）
  * 呢度唔驗證：rebuild.ts 寫入之前一定行 parseCatalogDocument()
  */
 import {
@@ -66,6 +67,8 @@ const toAlbum = (album: AlbumSnapshot, tracks: readonly TrackSnapshot[]): Catalo
         accent: album.accent,
         cover: orNull(album.cover),
         thumb: orNull(album.thumb),
+        cover2: orNull(album.cover2),
+        thumb2: orNull(album.thumb2),
         tracks: tracks.map(toTrack),
     };
 };

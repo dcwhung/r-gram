@@ -18,6 +18,9 @@ export interface AlbumSnapshot {
     accent: string;
     cover: string | null;
     thumb: string | null;
+    /** CR-005（D55）：第二張封面；佢嘅來源 ETag（cover2_source_etag）同第一張嗰個一樣唔讀 */
+    cover2: string | null;
+    thumb2: string | null;
 }
 
 export interface TrackSnapshot extends Record<(typeof CREDIT_FIELDS)[number], string | null> {
@@ -38,7 +41,7 @@ export interface CatalogSnapshot {
 
 const ALBUMS_SQL = `
     SELECT id, title, wheel_key, release_date, year, type, category, category_no, label, accent,
-        cover, thumb
+        cover, thumb, cover2, thumb2
     FROM albums
     ORDER BY sort_order, id`;
 

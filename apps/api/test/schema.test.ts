@@ -56,6 +56,15 @@ const insertAlbum = (id: string, extra: Record<string, unknown> = {}) => {
     );
 };
 
+const insertAssetRow = (name: string) =>
+    run(
+        'INSERT INTO assets (name, content_type, bytes, created_at) VALUES (?, ?, ?, ?)',
+        name,
+        'image/webp',
+        1,
+        NOW,
+    );
+
 const insertTrack = (id: string, albumId: string, no: number, extra = {}) => {
     const row = { id, album_id: albumId, no, title: '發現號', created_at: NOW, updated_at: NOW };
     const merged: Record<string, unknown> = { ...row, ...extra };
@@ -126,6 +135,9 @@ describe('D1 schema (0001_init)', () => {
             'cover TEXT',
             'cover_source_etag TEXT',
             'thumb TEXT',
+            'cover2 TEXT',
+            'thumb2 TEXT',
+            'cover2_source_etag TEXT',
             'folder TEXT',
             'sort_order INTEGER NOT NULL',
             'created_at TEXT NOT NULL',
@@ -262,6 +274,28 @@ describe('D1 constraints (0001_init)', () => {
         expect(await count('albums')).toBe(1);
     });
 
+    // CR-005（D55）：第二張封面同縮圖一樣要喺 assets；冇第一張唔可以有第二張（成對由 API 驗）
+    it('should only accept a second cover and thumb that exist in assets', async () => {
+        const name = '9f2c1a7b3d4e5f60.webp';
+        await expect(insertAlbum('apollo-18', { cover2: name })).rejects.toThrow();
+        await expect(insertAlbum('apollo-18', { thumb2: name })).rejects.toThrow();
+        await insertAssetRow(name);
+        await insertAlbum('apollo-18', { cover: name, thumb: name, cover2: name, thumb2: name });
+        expect(await count('albums')).toBe(1);
+    });
+
+    it('should refuse a second cover on an album without a first cover', async () => {
+        const name = '9f2c1a7b3d4e5f60.webp';
+        await insertAssetRow(name);
+        await expect(insertAlbum('apollo-18', { cover2: name })).rejects.toThrow(/CHECK/);
+        await insertAlbum('apollo-18', { cover: name, cover2: name });
+        await expect(run("UPDATE albums SET cover = NULL WHERE id = 'apollo-18'")).rejects.toThrow(
+            /CHECK/,
+        );
+        await run("UPDATE albums SET cover = NULL, cover2 = NULL WHERE id = 'apollo-18'");
+        expect(await count('albums')).toBe(1);
+    });
+
     // CR-004（FR-124）：發行類別係六個短名之一；序號由 1 起。同類別序號唔重覆由 API 驗（DB 唔加 UNIQUE）
     it('should require a release category of the six short names', async () => {
         for (const category of ['album', 'ep', 'best', 'live', 'ost', 'single']) {
@@ -283,7 +317,14 @@ describe('D1 constraints (0001_init)', () => {
     });
 
     it('should keep the source ETags of the cover and the song text, empty by default', async () => {
-        await insertAlbum('apollo-18', { cover_source_etag: '"9b2c"' });
+        await insertAlbum('apollo-18', {
+            cover_source_etag: '"9b2c"',
+            cover2_source_etag: '"9b2d"',
+        });
+        const album = await env.DB.prepare(
+            'SELECT cover_source_etag, cover2_source_etag FROM albums',
+        ).first();
+        expect(album).toEqual({ cover_source_etag: '"9b2c"', cover2_source_etag: '"9b2d"' });
         await insertTrack('apollo-18-01', 'apollo-18', 1, { text_source_etag: '"77aa"' });
         await insertTrack('apollo-18-02', 'apollo-18', 2);
         const tracks = await env.DB.prepare(

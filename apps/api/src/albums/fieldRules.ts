@@ -110,7 +110,9 @@ const categoryNo: Rule = (value) =>
 
 /**
  * 管理端可以改嘅欄位（API-013）；冇 `enabled`（CR-003）、`id` 建立後不變、`year` 跟 releaseDate。
- * CR-004：`coverSourceEtag` 由管理端喺掃描套用封面之後帶（Functional Spec D41），null = 清走
+ * CR-004：`coverSourceEtag` 由管理端喺掃描套用封面之後帶（Functional Spec D41），null = 清走。
+ * CR-005（D55）：第二張封面 `cover2` / `thumb2` / `cover2SourceEtag`，逐個欄嘅規則同第一張一樣；
+ * 成對、要有第一張要睇改完之後嘅狀態，喺 validate.ts 嘅 secondCoverIssues() 驗
  */
 export const FIELD_RULES = {
     title: text(true),
@@ -124,6 +126,9 @@ export const FIELD_RULES = {
     accent,
     cover: nullable(assetName),
     thumb: nullable(assetName),
+    cover2: nullable(assetName),
+    thumb2: nullable(assetName),
+    cover2SourceEtag: nullable(textRule(true, SOURCE_ETAG_MAX_CHARS)),
     folder: nullable(folder),
 } satisfies Record<string, Rule>;
 

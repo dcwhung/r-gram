@@ -14,7 +14,15 @@ import { toAlbum } from './rows';
 import * as store from './store';
 import { dropLyricsLater } from '../tracks/lyricsCleanup';
 import { tracksOf } from '../tracks/rows';
-import { parseCreate, parseFields, unknownAssetIssues } from './validate';
+import {
+    NO_COVERS,
+    parseCreate,
+    parseFields,
+    secondCoverIssues,
+    touchesCovers,
+    unknownAssetIssues,
+    type AlbumFields,
+} from './validate';
 
 export const albumRoutes = new Hono<AppEnv>();
 
@@ -26,6 +34,25 @@ const whyNotUpdated = async (c: Context<AppEnv>, id: string, expected: string) =
     const current = await store.findAlbum(c.env.DB, id);
     if (!current) return albumError(c, 'notFound');
     return current.updated_at === expected ? ordinalTaken(c) : albumError(c, 'stale');
+};
+
+/**
+ * 第二張封面（CR-005）要睇改完之後嘅狀態，所以先讀而家嘅值：冇呢張碟 → 404；If-Match 過時 → 409 STALE
+ *（過時就唔判斷封面）。之後 updateAlbum 嘅 `WHERE updated_at = If-Match` 保證寫入嗰刻嘅值同呢度讀到嘅一樣；
+ * DB 嘅 CHECK（cover2 要有 cover）係最後一道防線。冇問題 → undefined
+ */
+const coverConflict = async (
+    c: Context<AppEnv>,
+    id: string,
+    expected: string,
+    fields: AlbumFields,
+) => {
+    if (!touchesCovers(fields)) return undefined;
+    const current = await store.findAlbum(c.env.DB, id);
+    if (!current) return albumError(c, 'notFound');
+    if (current.updated_at !== expected) return albumError(c, 'stale');
+    const issues = secondCoverIssues(fields, current);
+    return issues.length > 0 ? validationError(c, issues) : undefined;
 };
 
 albumRoutes.get('/', async (c) => c.json(await albumOverview(c.env.DB)));
@@ -47,6 +74,8 @@ albumRoutes.post('/', async (c) => {
     if (!body) return notAnObject(c);
     const { id, fields, issues } = parseCreate(body);
     issues.push(...(await unknownAssetIssues(c.env.DB, fields)));
+    // 逐個欄都啱先睇第二張封面（欄位錯嘅時候唔再加「唔成對」嘅連帶錯誤）
+    if (issues.length === 0) issues.push(...secondCoverIssues(fields, NO_COVERS));
     if (issues.length > 0) return validationError(c, issues);
     const outcome = await store.insertAlbum(c.env.DB, id, fields);
     if (outcome === 'idTaken') return albumError(c, 'idTaken');
@@ -72,6 +101,8 @@ albumRoutes.patch('/:id', async (c) => {
     const { fields, issues } = parseFields(body);
     issues.push(...(await unknownAssetIssues(c.env.DB, fields)));
     if (issues.length > 0) return validationError(c, issues);
+    const conflict = await coverConflict(c, id, expected, fields);
+    if (conflict) return conflict;
     const updated = await store.updateAlbum(c.env.DB, id, fields, expected);
     if (updated) return c.json(toAlbum(updated));
     return whyNotUpdated(c, id, expected);

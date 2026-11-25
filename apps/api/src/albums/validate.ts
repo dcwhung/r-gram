@@ -10,6 +10,7 @@ import {
     type ParsedFields as Parsed,
 } from '../lib/fields';
 import { FIELD_RULES, type EditableField, type Reason } from './fieldRules';
+import type { AlbumRow } from './rows';
 
 export type FieldIssue = Issue<Reason>;
 
@@ -41,12 +42,15 @@ export const parseCreate = (body: JsonObject): ParsedFields & { id: string } => 
     return { id: body[ID_KEY] as string, fields: parsed.fields, issues };
 };
 
+/** 要係已上載嘅圖（assets 表）嘅欄位：第一、第二張封面同各自嘅縮圖（CR-005） */
+const IMAGE_FIELDS = ['cover', 'thumb', 'cover2', 'thumb2'] as const;
+
 /** 封面 / 縮圖要係已上載嘅圖（assets 表）；回唔存在嘅欄位 */
 export const unknownAssetIssues = async (
     db: D1Database,
     fields: AlbumFields,
 ): Promise<FieldIssue[]> => {
-    const named = (['cover', 'thumb'] as const).filter((key) => typeof fields[key] === 'string');
+    const named = IMAGE_FIELDS.filter((key) => typeof fields[key] === 'string');
     if (named.length === 0) return [];
     const names = named.map((key) => fields[key] as string);
     const found = await db
@@ -57,4 +61,36 @@ export const unknownAssetIssues = async (
     return named
         .filter((key) => !existing.has(fields[key] as string))
         .map((key) => ({ path: key, reason: 'UNKNOWN_ASSET' }));
+};
+
+/** 判斷第二張封面要睇嘅三個欄（改完之後嘅值） */
+export type CoverState = Pick<AlbumRow, 'cover' | 'cover2' | 'thumb2'>;
+
+const COVER_STATE_FIELDS = ['cover', 'cover2', 'thumb2'] as const;
+
+/** 新增專輯：之前乜都冇 */
+export const NO_COVERS: CoverState = { cover: null, cover2: null, thumb2: null };
+
+/** body 有冇郁到第一張封面或者第二張封面嘅欄（冇就唔使讀而家嘅值） */
+export const touchesCovers = (fields: AlbumFields): boolean =>
+    COVER_STATE_FIELDS.some((key) => key in fields);
+
+/**
+ * CR-005（Functional Spec D55；Technical Spec API-013）：改完之後（body 有畀就用 body，冇就用而家嘅值）
+ * `cover2` 同 `thumb2` 一齊有或者一齊冇（冇嗰個報 UNPAIRED_COVER2）；有第二張就一定有第一張
+ *（COVER2_WITHOUT_COVER：body 有改第二張就報喺 `cover2`，否則係清走第一張，報喺 `cover`）
+ */
+export const secondCoverIssues = (fields: AlbumFields, current: CoverState): FieldIssue[] => {
+    const after = (key: keyof CoverState) =>
+        ((key in fields ? fields[key] : current[key]) ?? null) as string | null;
+    const [cover, cover2, thumb2] = COVER_STATE_FIELDS.map(after);
+    const issues: FieldIssue[] = [];
+    if ((cover2 === null) !== (thumb2 === null))
+        issues.push({ path: cover2 === null ? 'cover2' : 'thumb2', reason: 'UNPAIRED_COVER2' });
+    if (cover2 !== null && cover === null)
+        issues.push({
+            path: 'cover2' in fields ? 'cover2' : 'cover',
+            reason: 'COVER2_WITHOUT_COVER',
+        });
+    return issues;
 };
