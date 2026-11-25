@@ -962,11 +962,11 @@ tr:last-child td { border-bottom: 0; }
     const PLAIN_SAMPLE = [4, 2, 4, 2, 2, 4, 4].flatMap((count, i) => [...Array(count).fill([PH_VERSE, PH_BRIDGE, PH_CHORUS][[0, 1, 2, 0, 1, 2, 2][i]]), '']).slice(0, -1);
     const plainSource = () => (ui.plainText.length ? ui.plainText : PLAIN_SAMPLE);
     /** 一行歌詞斷成幾列：[文字, 縮入]；優先喺空格（全形／半形）斷，一句都放唔落先逐字斷 */
-    const wrapLine = (line, size, width) => {
+    const wrapLine = (line, size, width, indentEm = PLAIN.indent) => {
         const rows = [];
         let row = '';
         let indent = 0;
-        const push = () => { rows.push([row.trim(), indent]); row = ''; indent = size * PLAIN.indent; };
+        const push = () => { rows.push([row.trim(), indent]); row = ''; indent = size * indentEm; };
         line.split(/(?<=[　 ])/).forEach((word) => {
             if (row && textWidth((row + word).trimEnd(), size) > width - indent) push();
             [...word].forEach((ch) => {
@@ -1015,14 +1015,15 @@ tr:last-child td { border-bottom: 0; }
      * 一行有兩三句嘅歌，幾乎每行都會變跑馬燈，所以建議：一列放得落就照 D22；放唔落就喺框入面斷成幾列（優先喺空格位斷），
      * 框跟住變高；上下其他行各佔一列，放唔落嘅部分喺右邊淡出（唔用「…」）。唱到下一行時，成組沿弧線移上去。
      */
-    const LONG = { size: 32, pitch: 44, pad: 34, inset: 24, gap: 14, other: 28, otherPitch: 50, around: 3, fade: 110, edge: W - 40 };
+    const LONG = { size: 32, pitch: 44, pad: 34, inset: 24, rim: 10, gap: 14, other: 28, otherPitch: 50, around: 3, fade: 110, edge: W - 40 };
     const CLAMP_BAND = DISC.r * HUB.clear + 20; // 呢個高度範圍內嘅行，右邊去到唱片夾就要停
     let longSeq = 0;
     const longLyrics = (st) => {
         const lines = plainSource().filter(Boolean);
         const now = Math.min(lines.length - 1, Math.round((st.longAt ?? 0.3) * (lines.length - 1)));
         const left = DISC.x - ARC.r;
-        const rows = wrapLine(lines[now], LONG.size, PLAIN_RIGHT - left - LONG.inset).map(([text]) => text);
+        // 框入面可以用到唱片夾窿邊；續列唔縮入（幾列左邊對齊）
+        const rows = wrapLine(lines[now], LONG.size, DISC.x - DISC.r * HUB.clear - LONG.rim - left - LONG.inset, 0).map(([text]) => text);
         const height = rows.length * LONG.pitch + LONG.pad;
         let out = focusFrame(ARC.r, height, 'book-frame');
         rows.forEach((text, i) => {
