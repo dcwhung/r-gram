@@ -12,9 +12,9 @@
     - AC-8 寫入後置步驟（TS API-061、「CR-003 對技術設計嘅影響」內容流程 / 生成失敗）：只喺成功寫入之後行；hook throw → 照回成功 status，加 `catalog: { ok: false }`，錯誤內容唔入回應同 log；預設 no-op 唔改回應
     - AC-9 訊息（CLAUDE.md 介面文字規則；`zh-Hant.ts`）：專輯 API 嘅 `message` 同 `details[].message` 係中文書面語，冇未填 `{placeholder}`
 - Scope files:
-    - `apps/api/src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`
+    - `apps/api/src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`；內容 API 共用（T-023 由專輯 code 抽出，歌曲 API 都用）：`src/api/errors.ts`、`src/lib/fields.ts`
     - `apps/api/test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`
-    - 1-hop 依賴（屬 `api-auth`，唔喺呢條鏈 freeze）：`src/api/routes.ts`、`src/config.ts`、`src/lib/http.ts`、`src/i18n/zh-Hant.ts`、`src/auth/middleware.ts`；`@r-gram/catalog`（屬 `catalog-core`）
+    - 1-hop 依賴（屬 `api-auth`，唔喺呢條鏈 freeze）：`src/api/routes.ts`、`src/config.ts`、`src/lib/http.ts`、`src/i18n/zh-Hant.ts`、`src/auth/middleware.ts`；`src/tracks/rows.ts`（屬 `api-tracks`；舊 `src/albums/tracks.ts`）；`@r-gram/catalog`（屬 `catalog-core`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
