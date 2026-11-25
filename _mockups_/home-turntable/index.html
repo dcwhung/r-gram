@@ -160,6 +160,13 @@ tr:last-child td { border-bottom: 0; }
     </div>
 
     <h2 style="margin-top:0">可以㩒嘅主頁</h2>
+    <p class="lede"><b>第 18 版第 ③ 點（播緊時揀碟）試法：</b></p>
+    <ol class="lede" style="margin: 0 0 16px; padding-left: 1.4em; color: var(--muted)">
+        <li>㩒碟面打開歌單，再㩒中間嘅唱片夾：唱針落碟，開始播。</li>
+        <li>㩒左下大旋鈕（= 開始揀碟）：唱臂同三粒細掣淡出，隻碟停轉；聲當照播。</li>
+        <li>再㩒大旋鈕（= 轉返播緊嗰隻碟鬆手）：唱臂同細掣淡入返，碟再轉。</li>
+        <li>播緊時㩒刻度最尾嘅 ♥（= 鬆手喺另一隻碟）：換做「我的收藏」碟，唱臂喺泊位、左上冇歌名；聲當照播。再㩒 ♥ 返去 KOMOREBI，見返落針同歌名。</li>
+    </ol>
     <div class="hero">
         <article class="card"><svg class="stage live" id="live" viewBox="0 0 1080 1920" role="group" aria-label="可以㩒嘅主頁"></svg></article>
         <div>
@@ -1655,7 +1662,7 @@ tr:last-child td { border-bottom: 0; }
             liveSvg.dataset.armInstant = 'true';
             live.album = album;
             renderLive(); // 只重畫互動格：成頁重畫太慢，淡入會遲
-            setTimeout(() => { delete liveSvg.dataset.armInstant; live.swapping = false; render(); }, 60);
+            setTimeout(() => { delete liveSvg.dataset.armInstant; live.swapping = false; renderLive(); }, 60);
         }, reducedMotion() ? 0 : SWAP_FADE_MS));
     };
     const ACTIONS = {
@@ -1685,7 +1692,7 @@ tr:last-child td { border-bottom: 0; }
             if (!atHome() || !liveView().song || live.bookClosing) return;
             if (!live.booklet) { Object.assign(live, { booklet: true, bookFresh: true }); return; }
             Object.assign(live, { bookClosing: true, bookFresh: false });
-            setTimeout(() => { Object.assign(live, { booklet: false, bookClosing: false }); render(); }, reducedMotion() ? 0 : BOOK_CLOSE_MS);
+            setTimeout(() => { Object.assign(live, { booklet: false, bookClosing: false }); renderLive(); }, reducedMotion() ? 0 : BOOK_CLOSE_MS);
         },
         mv: () => { if (atHome() && liveView().song) Object.assign(live, { mv: true, mvPaused: false, mvFresh: true, mvClosing: false, booklet: false }); },
         tvplay: () => { if (!live.mvClosing) Object.assign(live, { mvPaused: false, mvFresh: false }); },
@@ -1694,7 +1701,7 @@ tr:last-child td { border-bottom: 0; }
         tvstop: () => {
             if (live.mvClosing) return;
             live.mvClosing = true;
-            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true, parked: true }); render(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
+            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true, parked: true }); renderLive(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
         },
     };
     const LIVE_ONLY = new Set(['wheel', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
@@ -1705,7 +1712,8 @@ tr:last-child td { border-bottom: 0; }
         if (!name || !ACTIONS[name]) return;
         if (LIVE_ONLY.has(name) && !target.closest('#live')) return;
         ACTIONS[name]();
-        render();
+        if (LIVE_ONLY.has(name)) renderLive(); // 只影響互動格嘅動作唔使成頁重畫（手機會慢）
+        else render();
     });
     document.getElementById('showHit').addEventListener('change', (event) => { ui.showHit = event.target.checked; render(); });
     document.getElementById('showGap').addEventListener('change', (event) => { ui.showGap = event.target.checked; render(); });
