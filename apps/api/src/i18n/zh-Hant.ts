@@ -8,6 +8,7 @@
  *   `{name}` 係參數，由 fillMessage() 填入
  * - tracks：歌曲 API（T-023）：同上，另加歌曲文字逐行錯誤（reason = packages/catalog 嘅錯誤碼）同唔擋儲存嘅提示
  * - assets：封面上載（API-050）同公開圖（API-071）嘅錯誤（T-024）
+ * - catalog：生成 catalog（API-061）同公開內容（API-070、API-072）嘅錯誤（T-026）
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
@@ -139,6 +140,19 @@ export const zhHant = {
             INVALID_IMAGE: '無法讀取圖片的格式資料，檔案可能已損壞。',
             /** `{cover}`、`{thumb}` = 兩個封面尺寸（像素） */
             INVALID_DIMENSIONS: '圖片必須為 {cover} × {cover} 或 {thumb} × {thumb} 像素的正方形。',
+        },
+    },
+    catalog: {
+        /** error.message（按情況） */
+        errors: {
+            /** 404 NOT_READY：未生成過 catalog.json */
+            notReady: '播放端內容尚未生成，請稍後再試。',
+            /** 404 NOT_FOUND：歌詞檔 */
+            notFound: '找不到指定的檔案。',
+            /** 422 INVALID_DOCUMENT */
+            invalidDocument: '內容檔未能通過驗證，播放端會繼續使用上一份內容。',
+            /** 502 CATALOG_WRITE_FAILED */
+            writeFailed: '內容檔未能寫入，播放端會繼續使用上一份內容，請稍後重試。',
         },
     },
 } as const;

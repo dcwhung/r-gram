@@ -8,20 +8,22 @@ import { albumRoutes } from '../albums/routes';
 import type { AppEnv } from '../app';
 import { assetRoutes } from '../assets/routes';
 import { requireSameOrigin, requireSession } from '../auth/middleware';
+import { catalogAdminRoutes, rebuildAfterWrite } from '../catalog/rebuildRoute';
 import { albumTrackRoutes } from '../tracks/albumTrackRoutes';
 import { trackRoutes } from '../tracks/routes';
-import { afterWrite, noPostWrite } from './afterWrite';
+import { afterWrite } from './afterWrite';
 
 export const apiRoutes = new Hono<AppEnv>();
 
 apiRoutes.get('/health', (c) => c.json({ ok: true, version: pkg.version }));
 
 apiRoutes.use('*', requireSession, requireSameOrigin);
-// T-026：noPostWrite 換做 rebuildCatalog()
-apiRoutes.use('*', afterWrite(noPostWrite));
+// 儲存即生效（T-026）：每個成功嘅寫入之後生成 catalog.json
+apiRoutes.use('*', afterWrite(rebuildAfterWrite));
 
 apiRoutes.get('/me', (c) => c.json({ email: c.get('email') }));
 apiRoutes.route('/albums/:albumId/tracks', albumTrackRoutes);
 apiRoutes.route('/albums', albumRoutes);
 apiRoutes.route('/tracks', trackRoutes);
 apiRoutes.route('/assets', assetRoutes);
+apiRoutes.route('/catalog', catalogAdminRoutes);

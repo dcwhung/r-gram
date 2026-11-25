@@ -1,7 +1,9 @@
 /*
  * API-010 嘅讀取：每張專輯嘅完整度（一條 GROUP BY，Technical Spec「性能考量 → D1」）、
  * 全站統計（FR-114；項目照 Functional Spec D35 嘅建議，等管理端設計稿第 2 版確認）、catalog 生成狀態
+ *（同寫入回應嘅 `catalog` 同一個形狀，backlog B-046 ②；未生成過係 null）
  */
+import { readCatalogStatus } from '../catalog/state';
 import { ALBUM_COLUMNS, toAlbum, type AlbumRow } from './rows';
 
 interface OverviewRow extends AlbumRow {
@@ -54,25 +56,8 @@ export const siteStats = (items: readonly ListItem[]) => ({
     albumsWithCover: items.filter((item) => item.cover !== null && item.cover !== '').length,
 });
 
-interface CatalogStateRow {
-    status: 'ok' | 'failed';
-    generated_at: string | null;
-    updated_at: string;
-    error: string | null;
-}
-
-/** catalog_state（T-026 寫）；未生成過 → null */
-const catalogState = async (db: D1Database) => {
-    const row = await db
-        .prepare('SELECT status, generated_at, updated_at, error FROM catalog_state WHERE id = 1')
-        .first<CatalogStateRow>();
-    if (!row) return null;
-    const { status, generated_at: generatedAt, updated_at: updatedAt, error } = row;
-    return { status, generatedAt, updatedAt, error };
-};
-
 export const albumOverview = async (db: D1Database) => {
     const rows = await db.prepare(OVERVIEW_SQL).all<OverviewRow>();
     const albums = rows.results.map(toListItem);
-    return { albums, stats: siteStats(albums), catalog: await catalogState(db) };
+    return { albums, stats: siteStats(albums), catalog: await readCatalogStatus(db) };
 };

@@ -1,21 +1,17 @@
 /*
  * 寫入之後嘅後置步驟（Technical Spec API-061、「CR-003 對技術設計嘅影響 → 內容流程」）：
  * 每個成功（2xx）嘅 /api 寫入請求之後行一次 hook，各 route 唔使自己叫。
- * hook 有結果就加入回應 JSON 做 `catalog`（例如 `{ ok: false }` = 已儲存但生成失敗）。
- * T-022 只做接口：預設 noPostWrite（乜都唔做）；T-026 喺 api/routes.ts 換做 rebuildCatalog()。
- * 唔改 catalog 內容嘅寫入 route 加 skipPostWrite（T-024：上載圖；T-026 嘅重新生成 endpoint 都應該用，backlog B-043 ③）
+ * hook 有結果就加入回應 JSON 做 `catalog`（CatalogStatus：同 GET /api/albums 嘅 `catalog` 同一個形狀，backlog B-046 ②；
+ * `ok: false` = 已儲存但生成失敗）。api/routes.ts 用 catalog/rebuildRoute.ts 嘅 rebuildAfterWrite（T-026）。
+ * 唔改 catalog 內容嘅寫入 route 加 skipPostWrite（T-024：上載圖；T-026：重新生成 endpoint 自己，backlog B-043 ③）
  */
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../app';
+import { internalFailure, type CatalogStatus } from '../catalog/state';
 import { isJsonObject, type JsonObject } from '../lib/http';
 
-/** 回應入面嘅 `catalog`；細節由 T-026 定案 */
-export interface CatalogWriteResult {
-    ok: boolean;
-}
-
-export type PostWriteHook = (c: Context<AppEnv>) => Promise<CatalogWriteResult | undefined>;
+export type PostWriteHook = (c: Context<AppEnv>) => Promise<CatalogStatus | undefined>;
 
 export const noPostWrite: PostWriteHook = async () => undefined;
 
@@ -35,22 +31,20 @@ const jsonBodyOf = async (response: Response): Promise<JsonObject | undefined> =
     return isJsonObject(body) ? body : undefined;
 };
 
-/** 生成失敗 = D1 已儲存但 catalog.json 未更新（API-061、D30）：寫入照回成功，`catalog.ok = false` */
-const CATALOG_FAILED: CatalogWriteResult = { ok: false };
-
 /**
- * hook throw 都唔可以令已儲存嘅寫入變 500。log 只寫錯誤名：message / stack 可能帶 R2 key 或內部細節
+ * hook throw 都唔可以令已儲存嘅寫入變 500：D1 已儲存但 catalog.json 未更新（API-061、D30），寫入照回成功，
+ * `catalog.ok = false`（error INTERNAL）。log 只寫錯誤名：message / stack 可能帶 R2 key 或內部細節
  */
 const runHook = async (
     hook: PostWriteHook,
     c: Context<AppEnv>,
-): Promise<CatalogWriteResult | undefined> => {
+): Promise<CatalogStatus | undefined> => {
     try {
         return await hook(c);
     } catch (error) {
         const name = error instanceof Error ? error.name : typeof error;
         console.error('[api] post-write step failed', name);
-        return CATALOG_FAILED;
+        return internalFailure(new Date().toISOString());
     }
 };
 

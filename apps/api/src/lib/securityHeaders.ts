@@ -6,6 +6,7 @@ import {
     NO_REFERRER,
     NO_SNIFF,
     NO_STORE,
+    PUBLIC_CONTENT_POLICY,
     ROBOTS_HEADER_VALUE,
 } from '../config';
 
@@ -29,4 +30,18 @@ export const privateResponse: MiddlewareHandler = async (c, next) => {
     if (!c.res.headers.has('content-security-policy')) {
         c.header('content-security-policy', FRAME_ANCESTORS_POLICY);
     }
+};
+
+/** 錯誤回應（4xx / 5xx）由呢個 status 開始 */
+const FIRST_ERROR_STATUS = 400;
+
+/**
+ * /catalog/v1/*（公開內容）：唔畀瀏覽器估 content type；就算直接開都唔行 script、唔載入任何嘢（backlog B-051）；
+ * 錯誤（例如 NOT_READY）唔 cache，生成咗之後播放端即刻攞到
+ */
+export const publicContent: MiddlewareHandler = async (c, next) => {
+    await next();
+    c.header('x-content-type-options', NO_SNIFF);
+    c.header('content-security-policy', PUBLIC_CONTENT_POLICY);
+    if (c.res.status >= FIRST_ERROR_STATUS) c.header('cache-control', NO_STORE);
 };

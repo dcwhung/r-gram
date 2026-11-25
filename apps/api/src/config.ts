@@ -37,6 +37,7 @@ export const HTTP_STATUS = {
     created: 201,
     noContent: 204,
     found: 302,
+    notModified: 304,
     badRequest: 400,
     unauthorized: 401,
     forbidden: 403,
@@ -44,6 +45,7 @@ export const HTTP_STATUS = {
     conflict: 409,
     payloadTooLarge: 413,
     unsupportedMediaType: 415,
+    unprocessable: 422,
     internalError: 500,
     badGateway: 502,
 } as const;
@@ -65,6 +67,12 @@ export const ERROR_CODE = {
     tooLarge: 'TOO_LARGE',
     /** 上載嘅圖唔係 WebP / JPEG / PNG（Content-Type 或者檔頭 magic bytes） */
     unsupportedType: 'UNSUPPORTED_TYPE',
+    /** catalog.json 未生成過（API-070） */
+    notReady: 'NOT_READY',
+    /** 砌出嚟嘅 catalog document 過唔到 validator（API-061） */
+    invalidDocument: 'INVALID_DOCUMENT',
+    /** catalog.json 寫唔到 R2（API-061） */
+    catalogWriteFailed: 'CATALOG_WRITE_FAILED',
     internal: 'INTERNAL',
 } as const;
 
@@ -93,6 +101,25 @@ export const THUMB_SIDE_PX = 320;
 const YEAR_SECONDS = 365 * DAY_SECONDS;
 /** hash 檔名 = 內容不變：永久 cache（Technical Spec「核心原則 2」） */
 export const IMMUTABLE_CACHE = `public, max-age=${YEAR_SECONDS}, immutable`;
+
+/** 而家生效嘅 catalog.json（Technical Spec「R2 key layout」） */
+export const CATALOG_JSON_KEY = 'catalog/v1/catalog.json';
+/** 公開路由（API-070–072）；圖同歌詞嘅網址前綴寫入 catalog.json 嘅 imageBase / lyricsBase */
+export const CATALOG_PUBLIC_PATH = '/catalog/v1';
+export const IMAGE_PUBLIC_PATH = `${CATALOG_PUBLIC_PATH}/img/`;
+export const LYRICS_PUBLIC_PATH = `${CATALOG_PUBLIC_PATH}/lyrics/`;
+/** catalog.json：播放端返回前景時重新驗證，「儲存即生效」最遲約 60 秒（Technical Spec「性能考量」） */
+export const CATALOG_MAX_AGE_SECONDS = MINUTE_SECONDS;
+export const CATALOG_CACHE = `public, max-age=${CATALOG_MAX_AGE_SECONDS}`;
+/**
+ * 生成 catalog 時，寫 R2 之前另一個請求已經寫咗新嘅一份（條件寫入唔成功）：由讀 D1 重新嚟過嘅次數上限
+ *（單一管理員，撞三次已經極少；用完就當寫入失敗，管理端出重試）
+ */
+export const CATALOG_WRITE_ATTEMPTS = 3;
+/** /catalog/v1/*：唔准行 script、唔准載入任何嘢（圖同管理端同一個 origin，backlog B-051） */
+export const PUBLIC_CONTENT_POLICY = "default-src 'none'; sandbox";
+/** 播放端（另一個 origin）要讀到 ETag（backlog B-035） */
+export const ETAG_HEADER = 'ETag';
 
 /** Worker 所有回應：唔畀搜尋引擎收錄 */
 export const ROBOTS_HEADER_VALUE = 'noindex';

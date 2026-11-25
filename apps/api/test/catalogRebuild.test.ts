@@ -333,18 +333,20 @@ describe('rebuildCatalog: concurrent writes', () => {
     it('should only write catalog.json when it is still the one read before D1', async () => {
         await insertAlbum('a', 1);
         await rebuild();
-        const before = await liveObject();
+        let others = 0;
         const { bucket } = bucketWith({
             put: async (args, original) => {
-                // 模擬期間另一個請求寫咗：直接改 R2，條件寫入應該唔成功
-                await env.CATALOG.put(CATALOG_KEY, '{"other":true}');
+                // 模擬期間另一個請求寫咗：直接改 R2，條件寫入應該唔成功。
+                // 每次內容唔同：R2 嘅 etag 係內容 MD5，一模一樣嘅內容 etag 都一樣
+                others += 1;
+                await env.CATALOG.put(CATALOG_KEY, JSON.stringify({ other: others }));
                 return original(...args);
             },
         });
         await env.DB.prepare("UPDATE albums SET title = 'X' WHERE id = 'a'").run();
-        await rebuild({ ...env, CATALOG: bucket });
-        expect((await liveObject())?.etag).not.toBe(before?.etag);
+        const result = await rebuild({ ...env, CATALOG: bucket });
+        expect(result).toMatchObject({ ok: false, error: 'CATALOG_WRITE_FAILED' });
         // 每次重試都會被「另一個請求」蓋過，最後一份係佢嘅；冇一份過時嘅 document 蓋咗佢
-        expect(await liveDocument()).toEqual({ other: true });
+        expect(await liveDocument()).toEqual({ other: 3 });
     });
 });
