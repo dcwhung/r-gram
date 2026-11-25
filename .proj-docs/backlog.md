@@ -53,6 +53,9 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-057 | CR-004（PM 發現） | `.claude/CLAUDE.md` 要跟上：QA chain 表冇 `api-tracks`、`api-assets`（frozen plan 已有；T-024 review S-090）；CR-004 之後要加掃描嘅 chain（`apps/api/src/media`，T-025 完成時）同 seed 生成指令（T-097）；媒體 bucket 名 `rb-discography` | T-097、T-025 完成時（主 session 改） |
 | B-058 | CR-004（PM 發現） | T-026 嘅 code 已交但未 review：佢帶入嘅做法（`/catalog/v1/*` 嘅 CSP `default-src 'none'; sandbox`、`HEAD` 用 `head()`、`If-None-Match` 回 304、`Access-Control-Expose-Headers: ETag`、`afterWrite` 排除邊啲 route、`catalog` 欄嘅形狀）未回寫 Technical Spec（API-061、API-070–072）。Review 之後回寫；連 B-041（`parseSongText()` 細節）同 B-037（`CATALOG_FETCH_TIMEOUT_MS`）一齊 | T-026 review 之後（下次改 Technical Spec） |
 | B-059 | CR-004（PM 發現） | 播放端設計稿「刻度格數」冇 21 張（22 格）嘅示範；實際資料由第一日起就係 22 格。規則已確認，唔阻開發；想截圖比對有得直接對，可以補一格（改 `src/template.html` 再跑 `python3 src/build.py`） | T-036（Frontend 決定要唔要） |
+| B-060 | Review T-026（S-093、S-095、S-096、S-097）、re-review（S-100） | ① `6ef24f9` 測試同修正放同一個 commit（測試本身有效）。② 第一次寫入用嘅 `If-None-Match: *` 只喺 miniflare 驗過，production R2 未驗：匯入初始資料之後加一個 smoke check。③ `.claude/CLAUDE.md` 未有 `api-catalog` 鏈（`src/catalog` 而家喺 `api-assets`）。④ Technical Spec 同步：hash 唔計 `generatedAt`、第一次生成之前回 404 `NOT_READY`（唔即場生成）、502 嘅範圍、`catalog` 回應形狀、並發演算法、歌詞檔幾時刪。⑤ `afterWrite.ts` 有一段 JSDoc 放錯咗位 | ①⑤ 下次改 `apps/api/src/catalog`；② T-027；③ T-026 QA 時；④ 下次 Change Request |
+| B-061 | Re-review T-026（S-098、S-099；剩低嘅空隙） | 要幾個請求同時撞先會發生，一個管理員好難遇到：① D1 寫入失敗時即時清理，有機會刪走一個本來已經存在、而且內容檔仲指住嘅歌詞檔（歌詞檔以內容 hash 命名；要「生成失敗中」加「另一個分頁同時儲存相同歌詞」）；`putLyrics` 用 `onlyIf` 只刪今次新寫嘅檔。② 重試次數用盡之後，另一個請求遲到嘅「冇變」成功可以將狀態改返做 ok，但內容檔其實未更新；改註解同 spec 字眼，或者喺「冇變」路徑再對一次 R2。③ Worker 喺舊寫入同第二次讀 D1 之間被終止，舊內容會留到下一次儲存或者重試 | 下次改 `apps/api/src/catalog`、`src/tracks` |
+| B-062 | Re-review T-026（剩低嘅空隙 4；播放端） | 播放端快取住舊內容檔時（60 秒內，或者用緊本機備份），有機會請求一個啱啱被刪嘅歌詞檔而收到 404。歌書要將歌詞 404 當做「未有歌詞」，並重新攞一次內容檔 | T-082（歌書歌詞）、T-072 |
 
 ## CR-004 同 2026-11-25 review 關閉或者轉咗去任務嘅項目（下次整理可以刪走呢段）
 

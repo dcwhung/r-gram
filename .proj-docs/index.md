@@ -33,6 +33,8 @@
 | 2026-11-25 | [reviews/2026-11-25_11-10_review_T-023.md](reviews/2026-11-25_11-10_review_T-023.md) | pass 95 / 100 | T-023 歌曲 API（連 backlog 修正 B-020、B-022、B-038、B-040、B-042–B-046）。冇 Critical；一條 Warning W-016（歌曲 route 冇測試守住 401）已補；S-067 已修；其餘建議入咗 backlog（B-047–B-049） |
 | 2026-11-25 | [reviews/2026-11-25_11-47_review_T-024.md](reviews/2026-11-25_11-47_review_T-024.md) | pass 100 / 100 | T-024 封面上載同公開圖片 route。冇 Critical／Warning；縮圖、轉 WebP、抽色照 Technical Spec 喺管理端做（Worker 冇圖片編解碼）；S-082–S-091 入咗 backlog（B-050–B-053） |
 | 2026-11-25 | [reviews/2026-11-25_12-18_review_T-042_T-035.md](reviews/2026-11-25_12-18_review_T-042_T-035.md) | pass 90 / 100 | T-042 唱臂三個姿勢同刻度弧跟進、T-035 主頁（`9d0c9d6..7dc6543`，`apps/player`）。冇 Critical；兩條 Warning：W-017（字體遲咗載入之後唔會重新量字，碟名會出界）同 S-072–S-075 而家同 T-044 一齊修；W-018（左上歌名放唔落時截短，同 D23 相反）要用戶決定（backlog B-055；Implementation Plan U-15）。S-076–S-081 入咗 backlog（B-056）。QA 等 W-017 修完先做 |
+| 2026-11-25 | [reviews/2026-11-25_12-30_review_T-026.md](reviews/2026-11-25_12-30_review_T-026.md) | warn 85 / 100 | T-026 catalog 生成同對外 route。冇 Critical；W-020（並發時舊內容蓋走新內容）、W-021（歌詞檔刪得太早）、W-022（測試漏洞）已修，連 S-092、S-094 |
+| 2026-11-25 | [reviews/2026-11-25_15-48_review_T-026_re-review.md](reviews/2026-11-25_15-48_review_T-026_re-review.md) | pass 100 / 100 | 同上（修正後）。五項全部關閉，18 個 mutant 全部被捉到；剩低嘅空隙同新建議 S-098–S-100 入咗 backlog（B-060–B-062） |
 
 ## QA
 
