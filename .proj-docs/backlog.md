@@ -5,24 +5,41 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | # | 來源 | 項目 | 幾時做 |
 | --- | --- | --- | --- |
 | B-001 | Re-review T-001 / T-002（Observation） | Catalog validator 嘅 base URL 一定要 `https://`。播放端 E2E 嘅「假 catalog + 本機模擬媒體 server」唔可以用 `http://localhost`：用 Playwright 攔截 `https://` 請求，或者本機起 https | T-031、T-040 |
-| B-002 | Review T-001 / T-002（Observation） | `_design_/HANDOFF.md` 同 Functional Spec（US-109 等）仲寫 `data/…` 舊路徑；實際已搬去 `apps/api/seed/`（Technical Spec 有寫） | 下次 Change Request |
+| B-002 | Review T-001 / T-002（Observation） | `_design_/HANDOFF.md` 仲寫 `data/…` 舊路徑；實際已搬去 `apps/api/seed/`。Functional Spec 嗰部分已喺 v1.4（CR-003）改咗 | 下次改 `_design_/` 時 |
 | B-003 | Review T-001 / T-002（Observation） | 加 `vercel.json` 時一齊加 `.vercelignore`（`_mockups_/`、`_design_/`、`.proj-docs/`） | T-041 |
 | B-004 | Re-review（Observation） | `generatedAt` 仍然收 `2026-02-30T…`（V8 `Date.parse` 寬鬆）。只係資訊欄，播放端唔靠佢做判斷 | 有需要先做 |
-| B-005 | Review T-001 / T-002（Observation） | 發佈 builder 要將草稿入面嘅空字串轉做 `null`（validator 唔收空字串） | T-026 |
-| B-006 | QA S1 catalog-core（Observation） | 字串長度上限未做（Technical Spec「安全設計」：`CREDIT_MAX_CHARS`、`LRC_MAX_BYTES` 等）。常數放 `packages/catalog`（管理端同 API 共用），API 入口驗 | T-023、T-080 |
+| B-005 | Review T-001 / T-002（Observation） | Catalog builder（`rebuildCatalog()`）要將 D1 入面嘅空字串轉做 `null`（validator 唔收空字串）。CR-003：冇草稿同發佈，每次寫入之後生成 | T-026 |
+| B-006 | QA S1 catalog-core（Observation） | 字串長度上限未做（Technical Spec「安全設計」：`CREDIT_MAX_CHARS`、`LRC_MAX_BYTES` 等）。常數放 `packages/catalog`（管理端同 API 共用），API 入口驗。CR-003：`LRC_MAX_BYTES` 改做 `SONG_TEXT_MAX_BYTES` | T-029、T-023 |
 | B-008 | T-030（`npm audit`） | `vite-plugin-pwa ^2.0.0` → `workbox-build` → `glob` / `minimatch` 有 4 個 moderate 警告（GHSA-3g3m-2fjr-6pw4、GHSA-g3hv-75wg-m249）。只喺 build 時用，glob pattern 係自己寫死嘅設定，唔食外來輸入；`npm audit fix` 會降去 `vite-plugin-pwa@1.1.0`（breaking）。同 903-player 用緊嘅版本一樣。等上游出修正版再升 | 上游有修正時 |
-| B-009 | T-030（設計問題，要用戶決定） | 設計稿係 9:16（1080 × 1920），但 iPhone 係約 9:19.5。舞台只用安全區入面嘅位（扣走狀態列 / 動態島同底部指示條）：iPhone 15 闊度填滿之後，可用高度比設計稿多約 166 單位（約 9%）；舞台已經計出 `--stage-extra`。預設做法：左上資訊同頂部螺絲貼頂，唱片機（碟、轉盤、唱臂、控件）成組貼底，多出嚟嘅空位喺中間。要喺真機 / 預覽睇過先定 | T-033、T-035 |
-| B-010 | Review T-030（W-006；設計問題，要用戶決定） | 刻度格數 = 已上架專輯數 + 1。而家嘅幾何（每格固定 11.25°，♥ 喺最尾一格）只有 8–10 同 15–18 格過到「感應範圍互不重疊」：例如只上架 3–4 張碟時 ♥ 會疊住播放模式掣；19 格（多一張碟）♥ 會疊住旋鈕，字母盤過場亦超過 0.5 秒。建議：刻度弧固定（185° 至 376.25°），♥ 永遠喺弧嘅最尾（同設計稿 18 格時一樣位置），專輯喺弧上面平均分佈。要改 spec（CR）同設計稿 | T-036 之前 |
 | B-011 | Review T-030（S-020、S-024） | `useStageFit` 量 `innerWidth` / `innerHeight`，但 CSS 容器係 `100dvh`；iOS 轉向後 `innerHeight` 有機會未更新。安全區亦只喺 `resize` / `orientationchange` 時重讀（stylesheet 遲載入就要等下一個 resize 先修正）。做法：對 `#root` 同安全區 probe 加 `ResizeObserver`，或者加聽 `visualViewport`；順手將 probe element 存起。要真機先重現到 | T-039（真機測試時） |
-| B-012 | Review T-030（Observation） | 感應範圍以 390pt 闊做基準：375pt 手機得 42.3pt、360pt 得 40.6pt。要唔要為細屏手機放大感應範圍（同 B-009 一齊問用戶） | T-033、T-035 |
 | B-013 | Review T-030（Observation） | T-039 要處理：`registerType: 'prompt'` 而家已經會自動註冊 Service Worker（未有 update manager）；`clientsClaim` 令第一次安裝都有 `controllerchange`，update manager 要「之前有 controller」先 reload；`orientation: 'portrait'` 同之後嘅橫向版面（Duo 打開、電腦）有衝突；加字體後 `woff2` 分片會全部 precache | T-039 |
 | B-014 | Re-review T-030（S-025） | 安全區外面（狀態列、底部指示條後面，同闊畫面兩邊）由 `#root` 嘅 `--stage-backdrop` 填。每個場景要設返：Preload 黑底、歌單 / 歌書暗層、MV 淡白層。`black-translucent` 嘅狀態列字係白色，淺色主頁上面可能睇唔到，要真機確認再定 `apple-mobile-web-app-status-bar-style` | T-034、T-035 |
-| B-015 | Re-review T-030（Observation） | B-010 定方案時，格數掃描要加埋「♥ 感應方格唔可以出界」（23–26 格方格底邊超出畫面） | 同 B-010 |
 | B-016 | Review T-020 / T-021（S-031） | Env 驗證而家收 `wrangler.toml` 嘅 placeholder（`admin@example.com`、全 0 嘅 `database_id`）：安全（部署唔到、冇人登入到）但唔會即刻提示。部署前嘅檢查要擋 placeholder；`MEDIA_BASE` 唔應該收有 userinfo 嘅網址 | T-028 |
-| B-017 | Review T-020 / T-021（S-033） | Technical Spec 同步：API-003（登出）認證欄改做「None（要 same-origin）」；組件圖加新檔（`lib/validateEnv.ts`、`auth/pages.ts` 等）；Header 行加 `Referrer-Policy`、`X-Content-Type-Options` | 下次 Change Request |
 | B-018 | Review T-020 / T-021（S-030） | 測試名同內容唔完全對應：`oauthCallback.test.ts`「use the state cookie once」只驗 Set-Cookie 有清；replay 測試同「Google rejects the code」實際一樣；`session.test.ts`「requested size」只試 32 | 下次改呢幾個檔時 |
 | B-019 | Review T-020 / T-021（Observation） | 之後 Backend 任務要留意：① `/api` 守門靠註冊次序，新 route 一定要加喺 `use('*')` 之後；② `tracks (album_id, no)` UNIQUE 逐句檢查，重編歌號要分兩步；③ 重新登入唔會收返同一個瀏覽器之前嘅 session；④ `/auth/google/start` 同 callback 冇 rate limit；⑤ 自訂網域要加 HSTS；CI 未有 Worker bundle 檢查 | T-022、T-023、T-028 |
 | B-020 | QA S1 api-auth（Minor） | `safeNext` 嘅長度上限按輸入嘅 UTF-8 byte 計，但放入 state cookie 嘅係編碼後嘅字串（每個中文字 9 個字元）再加 base64：`next` 有約 330 個中文字時 cookie 超過 4096 byte，瀏覽器唔收，callback 出「登入逾時」（再登入一次就得，冇安全影響）。上限改為按回傳嘅字串計；加測試「長中文 `next` → 當冇」 | T-022（下次改 `apps/api`） |
-| B-021 | QA S1 player-foundation | `robots.txt`：FR-011 同 Technical Spec「安全設計」有要求，但 Implementation Plan 冇任何一行寫明；而家 `/robots.txt` 回嘅係 `index.html`。播放端同 Worker 都要有 | T-039（播放端）、T-028（Worker） |
+| B-021 | QA S1 player-foundation | `robots.txt`：FR-011 同 Technical Spec「安全設計」有要求（Implementation Plan v1.1 已寫入 T-039、T-028）；而家 `/robots.txt` 回嘅係 `index.html`。播放端同 Worker 都要有 | T-039（播放端）、T-028（Worker） |
 | B-022 | QA S1 api-auth（補測） | `test/oauthHelpers.ts` 嘅 `encodeJson` 用 `btoa`，非 Latin-1 字元會 throw，所以 W-008 只有 unit test。改做 UTF-8 安全，加一個經 callback 嘅 Kelvin 符號測試 | T-022（下次改 `apps/api`） |
 | B-023 | QA S1 player-foundation | 加 E2E 時，將 QA 嘅播放端 browser check（三個尺寸：舞台位置、`--u`、`lang`、robots、版本、manifest、冇 console error、頁面唔捲動）寫成 smoke spec | T-040 |
+| B-024 | Review T-032 / T-033（S-035） | `metal/SvgDefs.tsx`：`latheWedges()` 每次 re-render 重砌 96 格車床紋；T-038 進度每秒更新幾次就每次重砌。改做 module 常數，`SvgDefs` 包 `memo` | T-038 之前 |
+| B-025 | Review T-032 / T-033（S-039） | 測試名實不符：`MetalButton.test.tsx`「44pt rule」只驗 prop 原樣出返（真正嘅 44pt 喺 `TurntableShell.tsx`，冇測試）；`Icon.test.tsx` 只驗「有 path」，兩個 icon 對調都過；`Disc.test.tsx` 只驗 class 名（W-011 修正之後要再核對）。Platter、Screws、Metal、StageSvg 冇自己嘅測試（靠 `App.test.tsx`） | T-035（取代暫時外殼時） |
+| B-026 | Review T-032 / T-033（S-040） | Focus 圈粗 3 單位 = 390pt 上約 1 px；唱片夾嗰個同唱片夾邊同一個半徑，一半被遮。另畫一個喺零件上面嘅圈，`vector-effect: non-scaling-stroke` + 2px | T-039（無障礙檢查） |
+| B-027 | Review T-032 / T-033（S-041） | CSS / token：`MetalButton.tsx` 嘅 `ICON_COLOR` 重覆咗 `--color-icon`；`.stage-svg`（`app/app.css`）應該跟 `stage/StageSvg.tsx`；`--motion-feedback-toggle`、`--motion-feedback-swap` 冇人用（光圈同 icon 係即時切換），要定用定刪；`disc/disc.css` 嘅 `transform-box: fill-box` 以封面 bbox 中心做軸，內容唔對稱（Favourites 碟面）會偏心，刪走就同設計稿一樣用原點 | T-035；`transform-box` 要喺 T-070 之前 |
+| B-028 | Review T-032 / T-033（S-042；Technical Spec 嗰部分已喺 v1.2 做咗） | TDD：`App.test.tsx` 4 個外殼測試同實作喺同一個 commit；`lathe.test.ts` 嘅期望值喺 feat commit 改過（146 → 142，係測試計錯）。之後嘅任務留意「先 commit 會 fail 嘅測試」。命名：`px()` 回傳嘅唔係 px（四捨五入到一位小數），`rot` 建議寫全 | 下次改呢幾個檔時 |
+| B-029 | Review T-032 / T-033（Observation） | 主頁上冇任何動作改到 `selectedTrackId`：自動播下一首（US-006）之後左上要換歌名，要加一個動作，或者左上改由播放 store 計 | T-035、T-038 |
+| B-030 | Review T-032 / T-033（Observation） | `closeList` 之後 `selectedTrackId` 係最後捲到嗰首，可以同播緊嗰首唔同：唱片夾同「第 nn 首」要跟 `currentTrackId` | T-035、T-038 |
+| B-031 | Review T-032 / T-033（Observation） | 感應範圍係圓形（設計稿 `hitRect` 係方形）：外框 44 × 44 px 合規，方形四角㩒唔中。停用嘅掣仍然喺 Tab 次序入面（刻意，有註解）。進度 0 時進度圈喺 12 點有一點（設計稿一樣）。三樣都係記錄，真機試過有問題先改 | T-039（真機 / 無障礙檢查） |
+| B-032 | Review T-032 / T-033（Observation） | Technical Spec「轉動嘅碟用獨立合成層」喺單一 SVG 入面保證唔到：真機預覽（Implementation Plan R-005）順手量轉碟時嘅 fps；唔夠就將隻碟抽出嚟做獨立一層 | 真機預覽（T-038 之前） |
+| B-033 | Re-review T-032 / T-033（Observation） | W-011 之後封面角度只會喺 `Disc` unmount 時歸零：同一個 `Disc` 換封面，新封面會停喺上一隻碟嘅角度。以專輯 id 做 `key`（Implementation Plan v1.1 已寫入 T-035） | T-035、T-036 |
+| B-034 | QA S1 player-core（Observation） | App 一開就停喺 Favourites 碟而又冇 `previousAlbumId` 時，㩒 ♥ 冇反應（spec 只寫「再㩒返回之前嗰隻碟」）。續播要決定：還原上一隻碟，定係用一隻預設碟 | T-038（續播 T-062） |
+
+## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
+
+| # | 結果 |
+| --- | --- |
+| B-002（Functional Spec 部分） | Functional Spec v1.4 已改做 `apps/api/seed/…`；`_design_/HANDOFF.md` 嗰部分留喺上表 |
+| B-009 | 決定 1：左上資訊同頂部螺絲貼頂，唱片機成組貼底，多出嚟嘅高度喺中間（FR-039）。`StageSvg` 已經咁做；註解喺 T-042 改 |
+| B-010、B-015 | 決定 2：刻度弧固定（185° 至 376.25°）、♥ 喺弧尾、專輯平均分佈；感應範圍唔再受專輯數影響，♥ 嘅感應方格唔會出界。Spec 已改；設計稿第 16 版等確認；code 喺 T-042、T-036 |
+| B-012 | 決定 3：細屏按比例縮，375pt 闊 42.3pt、360pt 闊 40.6pt 已接受；唔使做嘢 |
+| B-017 | Technical Spec v1.2 已同步（API-003 認證欄、`apps/api` 組件圖、Header 行） |
+| Review T-032 / T-033 Observation：暫停時唱臂位置，US-004 同 Technical Spec／設計稿有衝突 | 決定 11：唱針升起、唱臂留喺碟上面（FR-040）。Spec 已改；code 喺 T-042、T-038 |
