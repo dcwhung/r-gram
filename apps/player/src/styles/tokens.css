@@ -30,6 +30,7 @@
     --motion-scene-dial-key: 260ms;
     --motion-scene-disc-rotation: 5400ms;
     --motion-scene-tonearm: 650ms;
+    --motion-scene-needle-drop: 160ms;
     --motion-scene-booklet-open: 400ms;
     --motion-scene-booklet-close: 240ms;
     --motion-scene-tv-rise: 800ms;

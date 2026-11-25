@@ -46,10 +46,10 @@ export interface StageLayout {
     };
     /** 轉碟旋鈕；`heartHitGap` = ♥ 嘅感應方格離旋鈕邊幾遠（方格由旋鈕邊向外伸，唔同旋鈕重疊） */
     knob: Point & { r: number; heartHitGap: number };
-    /** 刻度弧：每格一隻碟，最尾一格係 ♥ */
+    /** 刻度弧：固定由 fromDeg 去到 toDeg；每張專輯一格平均分佈，最尾一格（toDeg）係 ♥ */
     scale: {
         fromDeg: number;
-        stepDeg: number;
+        toDeg: number;
         inner: number;
         outer: number;
         long: number;

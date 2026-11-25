@@ -89,7 +89,7 @@ export const TurntableShell = () => {
                         accent={DEMO_ACCENT}
                         onPress={() => setMode(NEXT_MODE[mode])}
                     />
-                    <Tonearm arm={LAYOUT.arm} playing={playing} glow={glow} />
+                    <Tonearm arm={LAYOUT.arm} pose={playing ? 'playing' : 'parked'} glow={glow} />
                     <Buttons mode={mode} glow={glow} />
                 </>
             }

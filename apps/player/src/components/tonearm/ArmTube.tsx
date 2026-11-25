@@ -30,20 +30,35 @@ const Counterweight = ({ base, tube }: { base: number; tube: number }) => {
     );
 };
 
-/** 臂管：落影、暗邊、管身、頂部反光，同一條路徑畫四次 */
-const Tube = ({ d, width }: { d: string; width: number }) => {
-    const { body, highlight, highlightLift, shadow } = ARM_SHAPE.tube;
-    const stroke = { d, fill: 'none', strokeLinecap: 'round' } as const;
+/** 臂管落影：升針時移遠。位移寫喺 style 嘅 transform，等 CSS 做過場 */
+const TubeShadow = ({ d, width, lifted }: { d: string; width: number; lifted: boolean }) => {
+    const { dx, dy } = lifted ? ARM_SHAPE.lift.shadow : ARM_SHAPE.tube.shadow;
     return (
-        <>
+        <g
+            data-part="arm-shadow"
+            className="tonearm-shadow"
+            style={{ transform: `translate(${dx}px, ${dy}px)` }}
+        >
             <path
-                {...stroke}
+                d={d}
+                fill="none"
+                strokeLinecap="round"
                 stroke="#000"
                 strokeOpacity=".22"
                 strokeWidth={px(width)}
-                transform={`translate(${shadow.dx} ${shadow.dy})`}
                 filter={ref(DEF.shadow)}
             />
+        </g>
+    );
+};
+
+/** 臂管：落影、暗邊、管身、頂部反光，同一條路徑畫四次 */
+const Tube = ({ d, width, lifted }: { d: string; width: number; lifted: boolean }) => {
+    const { body, highlight, highlightLift } = ARM_SHAPE.tube;
+    const stroke = { d, fill: 'none', strokeLinecap: 'round' } as const;
+    return (
+        <>
+            <TubeShadow d={d} width={width} lifted={lifted} />
             <path {...stroke} stroke="#6d6d6d" strokeWidth={px(width)} />
             <path {...stroke} stroke="#d2d2d2" strokeWidth={px(width * body)} />
             <path
@@ -58,12 +73,14 @@ const Tube = ({ d, width }: { d: string; width: number }) => {
 };
 
 interface ArmTubeProps extends Pick<StageLayout['arm'], 'length' | 'base' | 'bend'> {
+    /** 唱針升起：落影移遠 */
+    lifted: boolean;
     /** 針頭殼（畫喺臂尾嘅座標入面） */
     children: ReactNode;
 }
 
 /** 配重 + 臂管（直身，近針頭先順滑彎入）+ 針頭殼位置。以軸心為原點，向右伸出 */
-export const ArmTube = ({ length, base, bend, children }: ArmTubeProps) => {
+export const ArmTube = ({ length, base, bend, lifted, children }: ArmTubeProps) => {
     const { tube, path, collar, head } = ARM_SHAPE;
     const width = Math.max(tube.minWidth, base * tube.width);
     const headX = length - head.inset;
@@ -73,7 +90,7 @@ export const ArmTube = ({ length, base, bend, children }: ArmTubeProps) => {
     return (
         <>
             <Counterweight base={base} tube={width} />
-            <Tube d={d} width={width} />
+            <Tube d={d} width={width} lifted={lifted} />
             <rect
                 x={px(length * collar.at)}
                 y={px(width * collar.y)}

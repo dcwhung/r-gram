@@ -3,7 +3,7 @@ import { circleLeftAt } from '../geometry';
 import type { StageLayout } from './types';
 
 /*
- * 手機直度。數值以已確認嘅設計稿做準：_mockups_/home-turntable/src/template.html（第 15 版）嘅常數
+ * 手機直度。數值以已確認嘅設計稿做準：_mockups_/home-turntable/src/template.html（第 17 版，用戶 2026-11-25 確認）嘅常數
  *（DISC、PLATTER、HUB、ARM、ORBIT、BTN、BUTTONS、KNOB、SCALE、DIAL、SCREWS、LIST / ARC）。
  * 改數值之前先改設計稿並取得確認；clearance.test.ts 會驗淨空規則同設計稿嘅量度值。
  */
@@ -41,7 +41,7 @@ export const PHONE_LAYOUT: StageLayout = {
     },
     scale: {
         fromDeg: 185,
-        stepDeg: 11.25,
+        toDeg: 376.25,
         inner: 92,
         outer: 104,
         long: 112,

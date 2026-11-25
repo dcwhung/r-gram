@@ -3,6 +3,7 @@ import type { StageLayout } from '../../stage/layouts';
 import { DEF, ref } from '../metal/defIds';
 import { Metal } from '../metal/Metal';
 import { px } from '../svgNumber';
+import { type ArmLeadIn, type ArmPose, armLook } from './armPose';
 import { ARM_SHAPE } from './armShape';
 import { ArmTube } from './ArmTube';
 import './tonearm.css';
@@ -11,8 +12,10 @@ const LED_OFF = '#5a5a5a';
 
 interface TonearmProps {
     arm: StageLayout['arm'];
-    /** 落咗針（播緊）；否則喺泊位 */
-    playing: boolean;
+    /** 泊位｜落針（播緊）｜升針（暫停） */
+    pose: ArmPose;
+    /** 由泊位開始播嘅開場進行緊邊段（`useArmLeadIn`）；唔傳 = 冇開場 */
+    leadIn?: ArmLeadIn;
     glow: string;
 }
 
@@ -25,10 +28,11 @@ interface Box {
 }
 const box = ({ x, y, width, height, corner }: Box) => ({ x, y, width, height, rx: corner });
 
-type HeadshellProps = Pick<TonearmProps, 'playing' | 'glow'> & Pick<StageLayout['arm'], 'bend'>;
+type HeadshellProps = { lit: boolean } & Pick<TonearmProps, 'glow'> &
+    Pick<StageLayout['arm'], 'bend'>;
 
-/** 針頭殼連小燈：喺臂管尾，播緊時燈著 */
-const Headshell = ({ playing, glow, bend }: HeadshellProps) => {
+/** 針頭殼連小燈：喺臂管尾，落咗針播緊時燈著 */
+const Headshell = ({ lit, glow, bend }: HeadshellProps) => {
     const { wire, shell, cartridge, led, outline } = ARM_SHAPE;
     const wirePath = `M${wire.x1} ${px(-bend * wire.y1)}L${wire.x2} ${px(-bend * wire.y2)}`;
     return (
@@ -36,9 +40,10 @@ const Headshell = ({ playing, glow, bend }: HeadshellProps) => {
             <path d={wirePath} stroke="#9a9a9a" strokeWidth={wire.width} strokeLinecap="round" />
             <rect {...box(shell)} fill={ref(DEF.cylinder)} stroke="#5c5c5c" strokeWidth={outline} />
             <rect {...box(cartridge)} fill="#2a2a2a" />
-            {playing && (
+            {lit && (
                 <circle
                     data-part="led-glow"
+                    className="tonearm-led-glow"
                     cx={led.x}
                     cy={led.y}
                     r={led.glowR}
@@ -47,13 +52,7 @@ const Headshell = ({ playing, glow, bend }: HeadshellProps) => {
                     filter={ref(DEF.glow)}
                 />
             )}
-            <circle
-                data-part="led"
-                cx={led.x}
-                cy={led.y}
-                r={led.r}
-                fill={playing ? glow : LED_OFF}
-            />
+            <circle data-part="led" cx={led.x} cy={led.y} r={led.r} fill={lit ? glow : LED_OFF} />
         </>
     );
 };
@@ -75,11 +74,15 @@ const BaseScrews = ({ arm }: Pick<TonearmProps, 'arm'>) => {
     });
 };
 
-/** 唱臂（設計稿 tonearm()）：底座固定；臂以軸心轉動，泊位 ↔ 落針 */
-export const Tonearm = ({ arm, playing, glow }: TonearmProps) => {
+/**
+ * 唱臂（設計稿 tonearm()）：底座固定；臂以軸心轉動（泊位 ↔ 碟上面）；升針 = 成支臂以軸心放大少少、落影移遠。
+ * 角度同升降寫喺 inline style 嘅 transform，過場由 tonearm.css 做（減少動態效果時冇過場）。
+ */
+export const Tonearm = ({ arm, pose, leadIn = null, glow }: TonearmProps) => {
     const { x, y, base } = arm;
-    const { pivot } = ARM_SHAPE;
-    const deg = playing ? arm.playDeg : arm.parkDeg;
+    const { pivot, lift } = ARM_SHAPE;
+    const look = armLook(pose, leadIn);
+    const deg = look.onDisc ? arm.playDeg : arm.parkDeg;
     return (
         <>
             <Metal cx={x} cy={y} r={base} {...ARM_SHAPE.base} />
@@ -89,9 +92,15 @@ export const Tonearm = ({ arm, playing, glow }: TonearmProps) => {
                 className="tonearm-arm"
                 style={{ transform: `translate(${x}px, ${y}px) rotate(${deg}deg)` }}
             >
-                <ArmTube length={arm.length} base={base} bend={arm.bend}>
-                    <Headshell playing={playing} glow={glow} bend={arm.bend} />
-                </ArmTube>
+                <g
+                    data-part="arm-lift"
+                    className="tonearm-lift"
+                    style={{ transform: `scale(${look.lifted ? lift.scale : 1})` }}
+                >
+                    <ArmTube length={arm.length} base={base} bend={arm.bend} lifted={look.lifted}>
+                        <Headshell lit={look.lit} glow={glow} bend={arm.bend} />
+                    </ArmTube>
+                </g>
             </g>
             <Metal
                 cx={x}

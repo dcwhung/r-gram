@@ -1,6 +1,26 @@
-/* 唱臂以軸心轉動：位置同角度寫喺 inline transform，CSS 只負責過場 */
+/*
+ * 唱臂以軸心轉動，升針 = 以軸心放大少少、落影移遠：位置、角度同升降寫喺 inline transform，CSS 只負責過場。
+ * 由泊位開始播時 useArmLeadIn 分兩段改 transform（轉入 → 放低），每段嘅時長同呢度嘅過場一樣。
+ * 減少動態效果時冇過場：直接去終點。
+ */
 @media (prefers-reduced-motion: no-preference) {
     .tonearm-arm {
         transition: transform var(--motion-scene-tonearm) cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tonearm-lift,
+    .tonearm-shadow {
+        transition: transform var(--motion-scene-needle-drop) ease-out;
+    }
+
+    /* 唱針放低之後小燈先著：光暈淡入（設計稿 ledOn） */
+    .tonearm-led-glow {
+        animation: tonearm-led-on var(--motion-feedback-swap) ease both;
+    }
+}
+
+@keyframes tonearm-led-on {
+    from {
+        opacity: 0;
     }
 }

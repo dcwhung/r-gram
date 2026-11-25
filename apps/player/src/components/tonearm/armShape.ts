@@ -13,7 +13,7 @@ export const ARM_SHAPE = {
     counterweight: { x: -1.62, y: -0.4, width: 1.05, height: 0.8, corner: 7 },
     /** 配重連去軸心嗰一截：長（× base）；頂邊同高（× tube） */
     stub: { length: 0.62, y: -0.45, height: 0.9 },
-    /** 臂管：粗（× base，最少 minWidth）；管身、頂部反光嘅粗同反光向上移幾多（× tube）；落影偏移 */
+    /** 臂管：粗（× base，最少 minWidth）；管身、頂部反光嘅粗同反光向上移幾多（× tube）；落影偏移（唱針放低時） */
     tube: {
         width: 0.2,
         minWidth: 16,
@@ -22,6 +22,8 @@ export const ARM_SHAPE = {
         highlightLift: 0.16,
         shadow: { dx: 5, dy: 9 },
     },
+    /** 升針（設計稿 ARM_LIFT）：成支臂以軸心放大幾多；落影移去幾遠（似離開碟面） */
+    lift: { scale: 1.018, shadow: { dx: 14, dy: 25 } },
     /** 臂管路徑：直身去到 straight（× length）；彎位嘅控制點喺針頭殼前面 curveLead 咁遠 */
     path: { straight: 0.76, curveLead: 20 },
     /** 臂管上面嘅套環：位置（× length）、闊；頂邊同高（× tube）；圓角 */
