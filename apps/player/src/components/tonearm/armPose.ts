@@ -36,6 +36,15 @@ export const armLook = (pose: ArmPose, leadIn: ArmLeadIn = null): ArmLook =>
 export const leadInStart = (from: ArmPose, to: ArmPose): ArmLeadIn =>
     from === 'parked' && to === 'playing' ? 'swing' : null;
 
-/** 一段做完之後嘅下一段 */
-export const leadInAfter = (leadIn: Exclude<ArmLeadIn, null>): ArmLeadIn =>
-    leadIn === 'swing' ? 'drop' : null;
+/**
+ * 姿勢變咗之後嘅開場。轉入（swing）途中暫停或者再播：唱臂仲轉緊（暫停嘅樣同 swing 一樣），
+ * 所以 swing 照行到完，唔可以即刻著燈轉碟（S-072、FR-040）。返泊位就即刻停。
+ */
+export const leadInOnPose = (current: ArmLeadIn, from: ArmPose, to: ArmPose): ArmLeadIn =>
+    current === 'swing' && to !== 'parked' ? 'swing' : leadInStart(from, to);
+
+/** 一段做完之後嘅下一段。轉入完嗰陣係暫停緊：唔放低唱針，停喺升針（之後繼續 = 一般嘅繼續） */
+export const leadInAfter = (
+    leadIn: Exclude<ArmLeadIn, null>,
+    pose: ArmPose = 'playing',
+): ArmLeadIn => (leadIn === 'swing' && pose === 'playing' ? 'drop' : null);

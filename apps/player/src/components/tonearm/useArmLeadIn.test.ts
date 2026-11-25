@@ -59,4 +59,34 @@ describe('useArmLeadIn', () => {
         rerender({ pose: 'playing' });
         expect(result.current).toBeNull();
     });
+
+    // S-072：轉入途中暫停再播，唱臂仲轉緊：小燈同碟照樣要等唱針放低（FR-040）
+    it('should keep swinging when paused and played again during the swing', () => {
+        mockReducedMotion(false);
+        const early = tonearmMs / 4;
+        const { result, rerender } = renderLeadIn('parked');
+        rerender({ pose: 'playing' });
+        act(() => vi.advanceTimersByTime(early));
+        rerender({ pose: 'lifted' });
+        rerender({ pose: 'playing' });
+        expect(result.current).toBe('swing');
+        act(() => vi.advanceTimersByTime(tonearmMs - early - 1));
+        expect(result.current).toBe('swing');
+        act(() => vi.advanceTimersByTime(1));
+        expect(result.current).toBe('drop');
+        act(() => vi.advanceTimersByTime(needleDropMs));
+        expect(result.current).toBeNull();
+    });
+
+    // 暫停住等轉入完：唱針唔可以自己放低；之後繼續就係一般嘅繼續（冇開場）
+    it('should not drop the needle while paused when the swing ends', () => {
+        mockReducedMotion(false);
+        const { result, rerender } = renderLeadIn('parked');
+        rerender({ pose: 'playing' });
+        rerender({ pose: 'lifted' });
+        act(() => vi.advanceTimersByTime(tonearmMs + needleDropMs));
+        expect(result.current).not.toBe('drop');
+        rerender({ pose: 'playing' });
+        expect(result.current).toBeNull();
+    });
 });

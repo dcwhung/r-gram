@@ -20,6 +20,8 @@ interface MetalButtonProps {
     pressed?: boolean;
     /** 停用：變灰、㩒唔到，但仍然 focus 得到（讀屏會講「已停用」） */
     disabled?: boolean;
+    /** 俾其他嘢蓋住（歌單嘅暗層）：Tab 唔到、㩒唔到；讀屏由外面嘅 `aria-hidden` 收埋 */
+    covered?: boolean;
     glow: string;
     metrics: StageLayout['buttons'];
     /** 感應範圍半徑（由 44pt 規則計出嚟，大過掣本身） */
@@ -66,7 +68,8 @@ const GlowRing = ({
 
 /** 圓形拉絲鋁掣（設計稿 button()） */
 export const MetalButton = (props: MetalButtonProps) => {
-    const { x, y, icon, label, lit = false, disabled = false, glow, metrics, hitRadius } = props;
+    const { x, y, icon, label, lit = false, disabled = false, covered = false } = props;
+    const { glow, metrics, hitRadius } = props;
     const ringRadius = metrics.r + metrics.ringGap + metrics.ringWidth / 2;
     return (
         <g
@@ -74,7 +77,7 @@ export const MetalButton = (props: MetalButtonProps) => {
             aria-label={label}
             aria-pressed={props.pressed}
             aria-disabled={disabled}
-            {...pressable(props.onPress, disabled)}
+            {...pressable(props.onPress, disabled || covered, !covered)}
         >
             <circle data-part="hit" cx={x} cy={y} r={hitRadius} fill="transparent" />
             {lit && <GlowRing x={x} y={y} r={ringRadius} width={metrics.ringWidth} glow={glow} />}

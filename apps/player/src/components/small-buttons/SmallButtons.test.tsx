@@ -85,4 +85,36 @@ describe('SmallButtons', () => {
             );
         });
     });
+
+    // S-074：歌單嘅暗層蓋住時：Tab 唔到、讀屏唔讀、㩒唔到
+    it('should take the buttons out of the Tab order and the accessibility tree when covered', () => {
+        const onMode = vi.fn();
+        const { container } = render(
+            <svg>
+                <SmallButtons
+                    layout={PHONE_LAYOUT}
+                    glow="#24f96f"
+                    hasSong
+                    hasMv
+                    bookletOpen={false}
+                    mvOpen={false}
+                    playing={false}
+                    covered
+                    onBooklet={vi.fn()}
+                    onMv={vi.fn()}
+                    onMode={onMode}
+                />
+            </svg>,
+        );
+        expect(container.querySelector('[data-part="small-buttons"]')).toHaveAttribute(
+            'aria-hidden',
+            'true',
+        );
+        const buttons = container.querySelectorAll('.metal-button');
+        expect(buttons).toHaveLength(3);
+        buttons.forEach((button) => expect(button).toHaveAttribute('tabindex', '-1'));
+        expect(screen.queryAllByRole('button')).toHaveLength(0);
+        (buttons[2] as SVGGElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        expect(onMode).not.toHaveBeenCalled();
+    });
 });

@@ -1,0 +1,36 @@
+/*
+ * slab 字體（T-044；設計稿 _mockups_/home-turntable/src/fonts.css 嘅兩個 family）。
+ * 來源次序：
+ * 1. 本機有裝 ITC Lubalin Graph（設計原字）就用佢
+ * 2. build 變數 VITE_FONT_URL（媒體 bucket 嘅字體檔）：build 時由 vite.config.ts 換入 remote-font 標記；
+ *    冇設定就乜都唔加。唔同網域：載入唔到瀏覽器就試下一項
+ * 3. 隨 app 嘅 Rokkitt（SIL OFL 1.1，見 assets/fonts/OFL.txt；Service Worker 有 precache）
+ * 用戶嘅商業字體檔永遠唔入 repo。
+ * 呢個檔要由 main.tsx 直接 import（唔好喺 global.css 用 @import）：@import 會 inline，vite.config.ts 嘅轉換就睇唔到。
+ */
+
+/* 碟名、歌號、MV 字（設計稿 SLAB）：Rokkitt ExtraBold */
+@font-face {
+    font-family: 'RB Slab';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src:
+        local('ITC Lubalin Graph Std Book'),
+        local('LubalinGraphStd-Book'),
+        local('ITC Lubalin Graph Std'),
+        /* remote-font */ url('../assets/fonts/rokkitt-extrabold-latin1.woff2') format('woff2');
+}
+
+/* 版本號、年份、「第 nn 首 · m:ss」、混排（設計稿 SLAB_LIGHT、MIXED）：Rokkitt Light */
+@font-face {
+    font-family: 'RB Slab Light';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src:
+        local('ITC Lubalin Graph Std Book'),
+        local('LubalinGraphStd-Book'),
+        local('ITC Lubalin Graph Std'),
+        /* remote-font */ url('../assets/fonts/rokkitt-light-latin1.woff2') format('woff2');
+}

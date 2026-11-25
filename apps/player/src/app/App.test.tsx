@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import packageJson from '../../package.json';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { MOTION } from '../config/motion';
+import { installFakeFonts, removeFakeFonts } from '../utils/testing/fakeFonts';
 import { App } from './App';
 
 const stubReducedMotion = (reduce: boolean) =>
@@ -89,6 +90,23 @@ describe('App home scene', () => {
         expect(armLook()).toEqual(PARKED);
     });
 
+    // S-074：歌單開住時，暗層下面嘅三粒細掣 Tab 唔到、讀屏唔讀；用鍵盤收返歌單之後 focus 返唱片夾
+    it('should keep Tab off the buttons under the list and refocus the clamp when it closes', async () => {
+        const { button } = renderHome();
+        await userEvent.click(button('開啟歌單'));
+        const stops = new Set<string | null | undefined>();
+        for (let step = 0; step < 6; step += 1) {
+            await userEvent.tab();
+            stops.add(document.activeElement?.getAttribute('aria-label'));
+        }
+        expect([...stops].filter(Boolean).sort()).toEqual(['播放', '關閉歌單'].sort());
+        expect(screen.queryByRole('button', { name: '觀看 MV' })).toBeNull();
+        button('關閉歌單').focus();
+        await userEvent.keyboard('{Enter}');
+        expect(document.activeElement).toBe(button('開啟歌單'));
+        expect(button('觀看 MV')).toHaveAttribute('tabindex', '0');
+    });
+
     it('should light the mode button only while playing', async () => {
         const { button } = renderHome();
         const ring = () => button('播放模式：順序播放').querySelector('[data-part="glow-ring"]');
@@ -123,6 +141,19 @@ describe('App home scene', () => {
         expect(armLook()).toEqual(PARKED);
         await userEvent.click(button('觀看 MV'));
         expect(armLook()).toEqual(PARKED);
+        await userEvent.click(button('播放'));
+        expect(armLook()).toEqual(PLAYING);
+    });
+
+    // S-073：電視開住時唱片夾㩒唔到：讀屏要講「已停用」，唔可以係一粒冇反應嘅「播放」掣
+    it('should disable the clamp while the MV is open', async () => {
+        const { button, armLook } = renderHome(catalogWithMv());
+        await userEvent.click(button('開啟歌單'));
+        await userEvent.click(button('播放'));
+        await userEvent.click(button('觀看 MV'));
+        expect(button('播放')).toHaveAttribute('aria-disabled', 'true');
+        await userEvent.click(button('觀看 MV'));
+        expect(button('播放')).not.toHaveAttribute('aria-disabled');
         await userEvent.click(button('播放'));
         expect(armLook()).toEqual(PLAYING);
     });
@@ -167,5 +198,50 @@ describe('App home scene with motion', () => {
         expect(part('cover')).toHaveAttribute('data-spinning', 'false');
         act(() => vi.advanceTimersByTime(MOTION.scene.needleDropMs));
         expect(part('cover')).toHaveAttribute('data-spinning', 'true');
+    });
+});
+
+/** canvas 量字（每個字 = 字級 × 比例）：真字體（載入完）比後備字體闊 */
+const FALLBACK_EM = 0.45;
+const LOADED_EM = 0.7;
+const stubCanvas = (isLoaded: () => boolean) =>
+    vi.stubGlobal(
+        'OffscreenCanvas',
+        class {
+            getContext() {
+                return {
+                    font: '',
+                    measureText(this: { font: string }, text: string) {
+                        const size = Number(/([\d.]+)px/.exec(this.font)?.[1] ?? 0);
+                        return {
+                            width: text.length * size * (isLoaded() ? LOADED_EM : FALLBACK_EM),
+                        };
+                    },
+                };
+            }
+        },
+    );
+
+// W-017：用後備字體量完放得落，真字體載入完闊咗：要重新 fit，唔可以出界
+describe('App when the fonts finish loading', () => {
+    beforeEach(() => stubReducedMotion(true));
+    afterEach(removeFakeFonts);
+
+    it('should fit the album title again with the loaded font', async () => {
+        let loaded = false;
+        stubCanvas(() => loaded);
+        const fonts = installFakeFonts();
+        const catalog = sampleDocument();
+        const first = catalog.albums[0];
+        if (first) first.title = 'GREATEST HITS 1999';
+        const { part } = renderHome(catalog);
+        const sizeBefore = Number(part('album-title')?.getAttribute('font-size'));
+        loaded = true;
+        await act(() => fonts.resolveReady());
+        const sizeAfter = Number(part('album-title')?.getAttribute('font-size'));
+        expect(sizeAfter).toBeLessThan(sizeBefore);
+        loaded = false;
+        act(() => fonts.finishLoading());
+        expect(Number(part('album-title')?.getAttribute('font-size'))).toBe(sizeBefore);
     });
 });

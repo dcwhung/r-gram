@@ -22,9 +22,18 @@ describe('tokens.css', () => {
         expect(cjkAt).toBeGreaterThan(0);
         // 連 var() 入面嘅值都展開先驗（之前 `var(--font-slab)` 入面收埋咗 `serif`）
         const beforeCjk = resolved(mixed.slice(0, cjkAt)).replace(/,\s*$/, '');
-        expect(beforeCjk).toMatch(/Rokkitt/);
+        expect(beforeCjk).toMatch(/^'RB Slab Light'/);
         expect(GENERIC_FAMILY.test(beforeCjk)).toBe(false);
         expect(mixed.trim().endsWith('var(--font-cjk)')).toBe(true);
+    });
+
+    // T-044：slab 字體跟設計稿：「RB Slab」畫碟名同歌號，「RB Slab Light」畫版本號同混排（fonts.css）
+    it.each([
+        ['--font-slab', 'RB Slab'],
+        ['--font-slab-light', 'RB Slab Light'],
+        ['--font-mixed', 'RB Slab Light'],
+    ])('should start %s with the %s face from fonts.css', (name, family) => {
+        expect(token(name)?.split(',')[0]?.trim()).toBe(`'${family}'`);
     });
 
     it('should end the CJK stack with a generic family', () => {

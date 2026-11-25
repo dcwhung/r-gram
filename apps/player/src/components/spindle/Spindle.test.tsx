@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { Spindle, type SpindleMode } from './Spindle';
 
-const renderSpindle = (mode: SpindleMode, progress = 0.25) => {
+const renderSpindle = (mode: SpindleMode, progress = 0.25, disabled = false) => {
     const onPress = vi.fn();
     const { container } = render(
         <svg>
@@ -12,6 +12,7 @@ const renderSpindle = (mode: SpindleMode, progress = 0.25) => {
                 mode={mode}
                 progress={progress}
                 accent="#2f8f57"
+                disabled={disabled}
                 onPress={onPress}
             />
         </svg>,
@@ -78,5 +79,16 @@ describe('Spindle', () => {
         expect(part('clamp')?.getAttribute('transform')).toBe('translate(940 1196)');
         await userEvent.click(button);
         expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    // S-073：停用時讀屏講「已停用」，㩒落去冇反應，但仍然 focus 得到
+    it('should be marked disabled and ignore presses when disabled', async () => {
+        const { button, onPress } = renderSpindle('paused', 0.25, true);
+        expect(button).toHaveAttribute('aria-disabled', 'true');
+        expect(button).toHaveAttribute('tabindex', '0');
+        await userEvent.click(button);
+        button.focus();
+        await userEvent.keyboard('{Enter}');
+        expect(onPress).not.toHaveBeenCalled();
     });
 });

@@ -34,7 +34,7 @@ const shrunkSize = (text: string, { size, minSize, maxWidth, measure }: FitOptio
     return null;
 };
 
-/** 喺 minSize 放得落嘅最長開頭 + 「…」（按 code point 截，唔會切開 emoji） */
+/** 喺 minSize 放得落嘅最長開頭（尾嘅空格唔要）+ 「…」（按 code point 截，唔會切開 emoji） */
 const truncated = (text: string, { minSize, maxWidth, measure }: FitOptions): string => {
     const chars = Array.from(text);
     const fits = (count: number) =>
@@ -45,7 +45,8 @@ const truncated = (text: string, { minSize, maxWidth, measure }: FitOptions): st
         if (fits(middle)) low = middle;
         else high = middle - 1;
     }
-    return chars.slice(0, low).join('') + ELLIPSIS;
+    // 截短位喺空格之後：唔好留空格再加「…」（S-075）。拿走空格只會更窄，照樣放得落
+    return chars.slice(0, low).join('').trimEnd() + ELLIPSIS;
 };
 
 export const fitText = (text: string, options: FitOptions): FittedText => {

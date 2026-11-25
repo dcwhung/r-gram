@@ -50,4 +50,13 @@ describe('pressable', () => {
         expect(onPress).not.toHaveBeenCalled();
         expect(button).toHaveAttribute('tabindex', '0');
     });
+
+    it('should leave the Tab order when it is not focusable', () => {
+        render(
+            <svg>
+                <g aria-label="covered" {...pressable(vi.fn(), false, false)} />
+            </svg>,
+        );
+        expect(screen.getByRole('button', { name: 'covered' })).toHaveAttribute('tabindex', '-1');
+    });
 });

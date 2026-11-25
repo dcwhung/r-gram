@@ -33,9 +33,8 @@
     font-family: var(--font-mixed);
 }
 
-/* 設計稿用 slab 嘅 Light 字重 */
+/* 設計稿 SLAB_LIGHT（Light 係另一個 family，唔係字重） */
 .info-version {
     fill: var(--color-version);
-    font-family: var(--font-slab);
-    font-weight: 300;
+    font-family: var(--font-slab-light);
 }

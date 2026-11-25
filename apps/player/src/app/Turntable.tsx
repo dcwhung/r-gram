@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import { Disc } from '../components/disc/Disc';
 import { Screws } from '../components/metal/Screws';
 import { Platter } from '../components/platter/Platter';
@@ -23,6 +24,16 @@ export interface HomeHandlers {
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */
 export const isLowerHalf = ({ y }: Point) => y > DESIGN_HEIGHT / 2;
 
+/** S-074：暗層係 focus 緊嘅掣，收返之後佢冇咗：focus 交返唱片夾，唔好跌去 body */
+const useCloseList = (onCloseList: () => void) => {
+    const spindleRef = useRef<SVGGElement>(null);
+    const closeList = () => {
+        onCloseList();
+        spindleRef.current?.focus();
+    };
+    return { spindleRef, closeList };
+};
+
 interface TurntableProps {
     layout: StageLayout;
     view: HomeView;
@@ -35,6 +46,7 @@ interface TurntableProps {
  */
 export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
     const leadIn = useArmLeadIn(view.armPose);
+    const { spindleRef, closeList } = useCloseList(handlers.onCloseList);
     const { disc, hub } = layout;
     return (
         <>
@@ -62,16 +74,20 @@ export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
                 bookletOpen={view.bookletOpen}
                 mvOpen={view.mvOpen}
                 playing={view.playing}
+                covered={view.listOpen}
                 onBooklet={handlers.onBooklet}
                 onMv={handlers.onMv}
                 onMode={handlers.onMode}
             />
-            {view.listOpen && <ListVeil onClose={handlers.onCloseList} />}
+            {view.listOpen && <ListVeil onClose={closeList} />}
             <Spindle
+                ref={spindleRef}
                 layout={layout}
                 mode={view.spindle}
                 progress={view.progress}
                 accent={view.accent}
+                // 電視開住時唱片夾喺電視後面（T-060），useHome 唔理；停用令讀屏用戶知（S-073）
+                disabled={view.mvOpen}
                 onPress={handlers.onSpindle}
             />
         </>

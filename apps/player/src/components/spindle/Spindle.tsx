@@ -1,3 +1,4 @@
+import type { Ref } from 'react';
 import { t, type MessageKey } from '../../i18n/t';
 import { hitSizeUnits } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
@@ -28,7 +29,11 @@ interface SpindleProps {
     /** 播放進度 0–1 */
     progress: number;
     accent: string;
+    /** 停用：㩒唔到但 focus 得到（讀屏講「已停用」），例如電視開住時（唱片夾喺電視後面） */
+    disabled?: boolean;
     onPress: () => void;
+    /** 收返歌單之後 focus 返呢度（S-074） */
+    ref?: Ref<SVGGElement>;
 }
 
 const Face = ({
@@ -36,7 +41,7 @@ const Face = ({
     mode,
     progress,
     accent,
-}: { r: number } & Omit<SpindleProps, 'layout' | 'onPress'>) => (
+}: { r: number } & Omit<SpindleProps, 'layout' | 'disabled' | 'onPress' | 'ref'>) => (
     <>
         <Clamp r={r} />
         {mode === 'list' && (
@@ -63,11 +68,19 @@ const Face = ({
  * 唱片機中軸嘅唱片夾：固定喺轉盤正中，唔跟碟郁；play / pause 喺佢上面
  *（Functional Spec CR-002「唱片夾同碟」；設計稿 spindle()）。
  */
-export const Spindle = ({ layout, mode, progress, accent, onPress }: SpindleProps) => {
+export const Spindle = (props: SpindleProps) => {
+    const { layout, mode, progress, accent, disabled = false, onPress, ref } = props;
     const { disc, hub } = layout;
     const r = disc.r * hub.clamp;
     return (
-        <g className="spindle" aria-label={t(LABEL[mode])} {...pressable(onPress)}>
+        <g
+            ref={ref}
+            className="spindle"
+            aria-label={t(LABEL[mode])}
+            // 平時唔出呢個屬性（同設計稿移植嘅 markup 一致）
+            aria-disabled={disabled || undefined}
+            {...pressable(onPress, disabled)}
+        >
             <circle
                 data-part="hit"
                 cx={disc.x}
