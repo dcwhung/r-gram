@@ -1,12 +1,26 @@
 /*
  * Worker 自己出嘅文字：中文書面語，唔用口語字（test/writtenChinese.test.ts 鎖住）。
+ * 規則（backlog B-044）：所有 API 錯誤回應嘅 message 都係呢度嘅中文書面語；管理端可以直接顯示，
+ * 亦可以按 `code` / `details[].reason` 用自己嘅語言檔砌字（code 同 reason 係穩定介面，message 唔係）。
  * - auth：登入流程嘅三個頁
+ * - errors：守門（401、403）同通用 404 / 500 嘅 message
  * - albums：專輯 API（T-022）錯誤回應嘅 message 同每個欄位錯誤（details[].reason）嘅 message；
  *   `{name}` 係參數，由 fillMessage() 填入
- * 守門（401、403）同通用 404 / 500 嘅 message 仍然係畀開發者睇嘅英文
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
+    errors: {
+        /** 401 UNAUTHORIZED */
+        unauthorized: '尚未登入或登入已逾時，請重新登入。',
+        /** 403 FORBIDDEN_ORIGIN */
+        forbiddenOrigin: '請求來源不符，已拒絕處理。',
+        /** 404 NOT_FOUND（冇呢個路徑） */
+        notFound: '找不到指定的路徑。',
+        /** 500 INTERNAL */
+        internal: '伺服器發生錯誤，請稍後再試。',
+        /** 500 INTERNAL：Worker 設定不完整（validateEnv） */
+        misconfigured: '伺服器設定不完整，請通知管理員。',
+    },
     auth: {
         /** 白名單外嘅帳戶（403） */
         denied: {

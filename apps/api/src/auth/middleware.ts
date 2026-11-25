@@ -9,6 +9,7 @@ import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../app';
 import { ERROR_CODE, HTTP_STATUS, SESSION_COOKIE } from '../config';
 import { isAdminEmail } from '../lib/env';
+import { zhHant } from '../i18n/zh-Hant';
 import { errorJson } from '../lib/http';
 import { deleteSession, findSession } from './session';
 
@@ -22,7 +23,7 @@ export const requireSameOrigin = createMiddleware<AppEnv>(async (c, next) => {
         c,
         HTTP_STATUS.forbidden,
         ERROR_CODE.forbiddenOrigin,
-        'cross-origin request refused',
+        zhHant.errors.forbiddenOrigin,
     );
 });
 
@@ -39,7 +40,8 @@ const currentAdmin = async (env: AppEnv['Bindings'], token: string | undefined) 
 export const requireSession = createMiddleware<AppEnv>(async (c, next) => {
     const email = await currentAdmin(c.env, getCookie(c, SESSION_COOKIE));
     if (!email) {
-        return errorJson(c, HTTP_STATUS.unauthorized, ERROR_CODE.unauthorized, 'not logged in');
+        const message = zhHant.errors.unauthorized;
+        return errorJson(c, HTTP_STATUS.unauthorized, ERROR_CODE.unauthorized, message);
     }
     c.set('email', email);
     return next();

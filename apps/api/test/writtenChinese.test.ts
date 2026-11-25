@@ -16,6 +16,19 @@ describe('zh-Hant page text', () => {
         for (const text of stringsOf(zhHant)) expect(text, text).not.toMatch(COLLOQUIAL);
     });
 
+    // backlog B-044：API 錯誤訊息一律中文書面語（守門、通用 404 / 500 都係）
+    it('should word every guard and generic API error in Chinese', () => {
+        expect(Object.keys(zhHant.errors)).toEqual([
+            'unauthorized',
+            'forbiddenOrigin',
+            'notFound',
+            'internal',
+            'misconfigured',
+        ]);
+        for (const text of Object.values(zhHant.errors))
+            expect(text, text).toMatch(/\p{Script=Han}/u);
+    });
+
     it('should word the no-permission page as specified', () => {
         expect(zhHant.auth.denied.title).toBe('沒有權限');
         expect(zhHant.auth.denied.message).toBe('此帳戶沒有管理權限。');

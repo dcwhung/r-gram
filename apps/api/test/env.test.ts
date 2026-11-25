@@ -1,3 +1,4 @@
+import { zhHant } from '../src/i18n/zh-Hant';
 import { env } from 'cloudflare:test';
 import { afterEach, vi } from 'vitest';
 import type { Env } from '../src/env';
@@ -113,7 +114,7 @@ describe('misconfigured Worker', () => {
             const response = await call(path, {}, broken);
             expect(response.status, path).toBe(500);
             expect(await response.json(), path).toEqual({
-                error: { code: 'INTERNAL', message: 'server misconfigured' },
+                error: { code: 'INTERNAL', message: zhHant.errors.misconfigured },
             });
         }
         const logged = JSON.stringify(errorLog.mock.calls);

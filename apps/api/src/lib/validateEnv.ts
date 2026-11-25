@@ -8,6 +8,7 @@ import type { AppEnv } from '../app';
 import { ERROR_CODE, HTTP_STATUS, SESSION_SECRET_MIN_LENGTH } from '../config';
 import type { Env } from '../env';
 import { csvList, isAsciiAddress } from './env';
+import { zhHant } from '../i18n/zh-Hant';
 import { errorJson } from './http';
 
 type EnvCheck = (env: Partial<Env>) => boolean;
@@ -90,5 +91,6 @@ export const requireValidEnv = createMiddleware<AppEnv>(async (c, next) => {
     const invalid = invalidNamesOf(c.env);
     if (invalid.length === 0) return next();
     console.error('[env] missing or invalid settings:', invalid.join(', '));
-    return errorJson(c, HTTP_STATUS.internalError, ERROR_CODE.internal, 'server misconfigured');
+    const message = zhHant.errors.misconfigured;
+    return errorJson(c, HTTP_STATUS.internalError, ERROR_CODE.internal, message);
 });

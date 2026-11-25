@@ -1,3 +1,4 @@
+import { zhHant } from '../src/i18n/zh-Hant';
 import { Hono } from 'hono';
 import { afterEach, vi } from 'vitest';
 import pkg from '../package.json';
@@ -48,7 +49,7 @@ describe('error format', () => {
         const response = await call('/catalog/v1/unknown');
         expect(response.status).toBe(404);
         expect(await response.json()).toEqual({
-            error: { code: 'NOT_FOUND', message: 'not found' },
+            error: { code: 'NOT_FOUND', message: zhHant.errors.notFound },
         });
     });
 
@@ -79,7 +80,7 @@ describe('error format', () => {
         expect(response.status).toBe(500);
         const body = await response.text();
         expect(JSON.parse(body)).toEqual({
-            error: { code: 'INTERNAL', message: 'internal error' },
+            error: { code: 'INTERNAL', message: zhHant.errors.internal },
         });
         const logged = JSON.stringify(errorLog.mock.calls);
         expect(logged).toContain('TypeError');

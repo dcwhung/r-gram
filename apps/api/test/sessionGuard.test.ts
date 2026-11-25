@@ -1,10 +1,11 @@
 /* /api/* 守門：session（US-101「未登入時所有管理 API 回 401」）同 CSRF Origin 檢查 */
+import { zhHant } from '../src/i18n/zh-Hant';
 import { env } from 'cloudflare:test';
 import { afterEach, vi } from 'vitest';
 import { SESSION_TTL_MS } from '../src/config';
 import { ADMIN, ORIGIN, call, loginCookie, sessionCount } from './helpers';
 
-const UNAUTHORIZED = { error: { code: 'UNAUTHORIZED', message: 'not logged in' } };
+const UNAUTHORIZED = { error: { code: 'UNAUTHORIZED', message: zhHant.errors.unauthorized } };
 const MUTATING_METHODS = ['POST', 'PUT', 'PATCH', 'DELETE'];
 
 afterEach(() => vi.restoreAllMocks());
@@ -97,7 +98,7 @@ describe('session guard', () => {
         const response = await call('/api/me', { headers: { cookie } }, { ...env, DB: brokenDb });
         expect(response.status).toBe(500);
         expect(await response.json()).toEqual({
-            error: { code: 'INTERNAL', message: 'internal error' },
+            error: { code: 'INTERNAL', message: zhHant.errors.internal },
         });
         expect(response.headers.get('cache-control')).toBe('no-store');
     });
@@ -111,8 +112,8 @@ describe('CSRF Origin check', () => {
         for (const method of MUTATING_METHODS) {
             const response = await send(method, {});
             expect(response.status, method).toBe(403);
-            expect(await response.json(), method).toMatchObject({
-                error: { code: 'FORBIDDEN_ORIGIN' },
+            expect(await response.json(), method).toEqual({
+                error: { code: 'FORBIDDEN_ORIGIN', message: zhHant.errors.forbiddenOrigin },
             });
         }
     });

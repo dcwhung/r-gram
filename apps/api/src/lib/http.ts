@@ -1,12 +1,13 @@
 /*
  * 錯誤回應（Technical Spec「API 設計 → 錯誤格式」）：{ "error": { "code", "message", "details"? } }。
- * 守門同通用錯誤嘅 message 係畀開發者睇嘅英文；內容 API（例如 albums/）用 i18n 嘅書面語，
+ * message 一律係 i18n/zh-Hant.ts 嘅中文書面語（backlog B-044），包括守門同通用錯誤；
  * 管理端可以直接顯示，亦可以按 code / reason 用自己嘅語言檔出字。
  * 另外：JSON body 同 If-Match 嘅讀法（內容 API 共用）
  */
 import type { Context, ErrorHandler, NotFoundHandler } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { ERROR_CODE, HTTP_STATUS, type ErrorCode } from '../config';
+import { zhHant } from '../i18n/zh-Hant';
 
 export const errorJson = (
     c: Context,
@@ -17,7 +18,7 @@ export const errorJson = (
 ) => c.json({ error: details ? { code, message, details } : { code, message } }, status);
 
 export const handleNotFound: NotFoundHandler = (c) =>
-    errorJson(c, HTTP_STATUS.notFound, ERROR_CODE.notFound, 'not found');
+    errorJson(c, HTTP_STATUS.notFound, ERROR_CODE.notFound, zhHant.errors.notFound);
 
 /**
  * 冇人接嘅 error：回 500，唔將 error 內容畀 client。
@@ -26,7 +27,8 @@ export const handleNotFound: NotFoundHandler = (c) =>
  */
 export const handleError: ErrorHandler = (error, c) => {
     console.error('[api] unhandled error', error.name, `${c.req.method} ${c.req.routePath}`);
-    return errorJson(c, HTTP_STATUS.internalError, ERROR_CODE.internal, 'internal error');
+    const message = zhHant.errors.internal;
+    return errorJson(c, HTTP_STATUS.internalError, ERROR_CODE.internal, message);
 };
 
 export type JsonObject = Record<string, unknown>;
