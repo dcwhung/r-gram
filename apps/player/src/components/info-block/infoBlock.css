@@ -1,0 +1,41 @@
+/* 左上資訊同版本號（設計稿 info()）：字體同顏色用 token；位置、字級、字距喺幾何表 info */
+.info-title,
+.info-song {
+    fill: var(--color-ink);
+}
+
+.info-title--latin {
+    font-family: var(--font-slab);
+}
+
+.info-title--cjk {
+    font-family: var(--font-cjk);
+    font-weight: 900;
+}
+
+.info-year {
+    fill: var(--color-info-soft);
+    font-family: var(--font-mixed);
+}
+
+.info-song {
+    font-family: var(--font-cjk);
+    font-weight: 700;
+}
+
+/* 空心心形：線色由呢度繼承落 icon 嘅 path（icon 本身 fill 係 none） */
+.info-heart {
+    stroke: var(--color-info-faint);
+}
+
+.info-track {
+    fill: var(--color-info-faint);
+    font-family: var(--font-mixed);
+}
+
+/* 設計稿用 slab 嘅 Light 字重 */
+.info-version {
+    fill: var(--color-version);
+    font-family: var(--font-slab);
+    font-weight: 300;
+}

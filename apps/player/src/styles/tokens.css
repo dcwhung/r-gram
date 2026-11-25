@@ -11,6 +11,12 @@
     --color-flag-bg: #0a0a0a;
     --color-icon: #262626;
     --color-muted: #8f8c85;
+    /* 左上資訊：年份、歌號同時間、心形；右上版本號（設計稿 info()） */
+    --color-info-soft: #555555;
+    --color-info-faint: #777777;
+    --color-version: #8a8a8a;
+    /* 歌單壓暗咗嘅舞台（--color-stage 上面疊 80% 黑）：安全區外面用 */
+    --color-stage-dimmed: #313130;
     /* 專輯色同著燈色：由而家隻碟決定，元件喺舞台上面覆寫 */
     --color-accent: #6e6e6e;
     --color-glow: #eceef2;

@@ -11,6 +11,44 @@ export interface Point {
 
 export type ButtonId = 'booklet' | 'mv' | 'mode';
 
+/** 一行字：位置（基線）、字級、字距 */
+export interface TextLine extends Point {
+    size: number;
+    spacing: number;
+}
+
+/** 左上資訊同右上版本號（設計稿 info()）。`minSize` = 放唔落時最細縮到幾多；`maxRight` = 字最遠去到邊（x） */
+export interface InfoLayout {
+    /** 碟名：英文數字用 slab（latin），其他用 Noto Sans HK 900（cjk）；兩款嘅基線同字級唔同 */
+    title: {
+        x: number;
+        latin: { y: number; size: number; spacing: number };
+        cjk: { y: number; size: number; spacing: number };
+        minSize: number;
+        maxRight: number;
+    };
+    year: TextLine;
+    /** 年份後面嘅專輯色橫線：離年份幾遠、高度、長度、線粗 */
+    rule: { gap: number; y: number; length: number; width: number };
+    song: Point & { size: number; minSize: number; maxRight: number };
+    /** 歌名前面三條專輯色棒：位置、間距、闊、最高、圓角、底部離基線幾多、各條高度（× height） */
+    bars: {
+        x: number;
+        step: number;
+        width: number;
+        height: number;
+        corner: number;
+        lift: number;
+        levels: readonly number[];
+    };
+    /** 歌名後面嘅心形：離歌名尾幾遠（到心形中心）、大細、中心比基線高幾多、空心線粗（icon 格單位） */
+    heart: { gap: number; size: number; lift: number; stroke: number };
+    /** 「第 nn 首 · m:ss」 */
+    track: TextLine;
+    /** 右上版本號（靠右對齊：x 係右邊） */
+    version: TextLine;
+}
+
 export interface StageLayout {
     id: LayoutId;
     /** 主頁嘅碟（圓心、半徑） */
@@ -60,6 +98,8 @@ export interface StageLayout {
     dial: { inner: number; outer: number; letters: number; current: number; other: number };
     /** 螺絲；`zoneIndex` 嗰粒（左下）周圍唔放控件 */
     screws: { points: readonly Point[]; zoneIndex: number };
+    /** 左上資訊、右上版本號（貼頂組） */
+    info: InfoLayout;
     /** 歌單同歌書：沿住同碟同心嘅弧線排 */
     arc: { r: number; stepDeg: number };
     /** 淨空同感應範圍規則（Functional Spec CR-002） */

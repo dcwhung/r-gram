@@ -1,4 +1,4 @@
-/* 暫時嘅外殼排版：App 名、非官方聲明、版本喺左上（之後係專輯名同歌名嘅位置；T-035 取代） */
+/* Preload 嘅暫時畫面（PreloadPlaceholder）：App 名、非官方聲明、版本（T-034 取代） */
 .app-identity {
     position: absolute;
     top: calc(var(--u) * 110);
@@ -18,10 +18,4 @@
     font-weight: 700;
     letter-spacing: calc(var(--u) * 1);
     line-height: 1;
-}
-
-.stage-svg {
-    position: absolute;
-    inset: 0;
-    display: block;
 }
