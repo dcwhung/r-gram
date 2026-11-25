@@ -1,0 +1,19 @@
+/* 暫時嘅外殼排版（位置同字級跟設計稿 Preload 底部：R Gram / 歌迷自製　非官方 / 版本） */
+.app-identity {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(var(--u) * 60);
+    display: grid;
+    justify-items: center;
+    gap: calc(var(--u) * 10);
+    color: var(--color-muted);
+    font-size: calc(var(--u) * 22);
+    letter-spacing: calc(var(--u) * 3);
+}
+
+.app-identity strong {
+    color: var(--color-ink);
+    font-size: calc(var(--u) * 30);
+    font-weight: 700;
+}

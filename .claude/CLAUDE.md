@@ -23,6 +23,9 @@
 | Unit（全部 workspace）       | `npm test`                                                                               |
 | 覆蓋率                       | `npm run coverage`                                                                       |
 | Format                       | `npm run format`                                                                         |
+| 播放端開發 server            | `npm run dev -w apps/player`                                                             |
+| 播放端 build                 | `npm run build -w apps/player`                                                           |
+| 淨跑播放端測試               | `npx vitest run --project @r-gram/player`                                                |
 | Cloud sandbox 嘅 Playwright  | 預裝 Chromium：`PW_CHROMIUM_PATH=/opt/pw-browsers/chromium`；唔好跑 `playwright install` |
 
 加 app（`apps/player`、`apps/admin`、`apps/api`）時：喺根 `tsconfig.json` 嘅 `references`、根 `vitest.config.ts` 嘅 `projects`、`.github/workflows/ci.yml` 各加一行，並更新呢個表。

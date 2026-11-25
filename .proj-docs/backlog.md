@@ -12,3 +12,4 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-006 | QA S1 catalog-core（Observation） | 字串長度上限未做（Technical Spec「安全設計」：`CREDIT_MAX_CHARS`、`LRC_MAX_BYTES` 等）。常數放 `packages/catalog`（管理端同 API 共用），API 入口驗 | T-023、T-080 |
 | B-007 | QA S1 catalog-core（Observation） | 根設定檔（`package.json`、`tsconfig.json`、`vitest.config.ts`、`ci.yml`）而家喺 `catalog-core` 鏈，每加一個 app 都會令佢 REVERIFY。下次 QA 將佢哋分去新鏈 `repo-scaffold` | T-020 嘅 QA |
 | B-008 | T-030（`npm audit`） | `vite-plugin-pwa ^2.0.0` → `workbox-build` → `glob` / `minimatch` 有 4 個 moderate 警告（GHSA-3g3m-2fjr-6pw4、GHSA-g3hv-75wg-m249）。只喺 build 時用，glob pattern 係自己寫死嘅設定，唔食外來輸入；`npm audit fix` 會降去 `vite-plugin-pwa@1.1.0`（breaking）。同 903-player 用緊嘅版本一樣。等上游出修正版再升 | 上游有修正時 |
+| B-009 | T-030（設計問題，要用戶決定） | 設計稿係 9:16（1080 × 1920），但 iPhone 係約 9:19.5：闊度填滿之後，畫面會高出約 420 單位（約 22%）。舞台已經計出 `--stage-extra`；預設做法：左上資訊同頂部螺絲貼頂，唱片機（碟、轉盤、唱臂、控件）成組貼底，多出嚟嘅空位喺中間。要喺真機 / 預覽睇過先定 | T-033、T-035 |

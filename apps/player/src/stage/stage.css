@@ -1,0 +1,15 @@
+/* 舞台：闊 1080 單位；高度最少 1920 單位，高啲嘅手機會填滿成個畫面 */
+.stage {
+    position: absolute;
+    top: 0;
+    left: var(--stage-offset-x, 0);
+    width: calc(var(--u) * 1080);
+    height: calc(var(--u) * (1920 + var(--stage-extra, 0)));
+    overflow: hidden;
+    background: var(--color-stage);
+    color: var(--color-ink);
+    /* 元件自己處理手勢（轉碟、歌單捲動）；唔好畀瀏覽器捲動或者縮放 */
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}

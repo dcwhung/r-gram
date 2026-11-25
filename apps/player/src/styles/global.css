@@ -1,0 +1,25 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* 畫面固定：唔捲動、唔回彈（團隊 PWA 規則：100dvh） */
+html,
+body {
+    height: 100dvh;
+    margin: 0;
+    overflow: hidden;
+    overscroll-behavior: none;
+    background: var(--color-flag-bg);
+    font-family: var(--font-mixed);
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+    position: relative;
+    height: 100%;
+}

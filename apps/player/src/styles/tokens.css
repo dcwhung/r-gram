@@ -1,0 +1,37 @@
+/*
+ * Design token。顏色、字體以已確認嘅設計稿做準（_mockups_/home-turntable/src/template.html；
+ * 設計規則見 _design_/HANDOFF.md §3：黑白 + 專輯色、車床鋁質感）。
+ * 時長同 config/motion.ts 同值（JS 用 motion.ts，CSS 用呢度）。
+ */
+:root {
+    /* 顏色 */
+    --color-ink: #111111;
+    --color-paper: #f5f3ee;
+    --color-stage: #f4f4f2;
+    --color-flag-bg: #0a0a0a;
+    --color-icon: #262626;
+    --color-muted: #8f8c85;
+    /* 專輯色同著燈色：由而家隻碟決定，元件喺舞台上面覆寫 */
+    --color-accent: #6e6e6e;
+    --color-glow: #eceef2;
+
+    /* 字體：英文數字用 slab（有裝 Lubalin Graph 就用，冇就用隨 app 提供嘅 Rokkitt）；中文用 Noto Sans HK */
+    --font-cjk: 'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans CJK TC', sans-serif;
+    --font-slab: 'Lubalin Graph', 'ITC Lubalin Graph', 'Rokkitt', Rockwell, serif;
+    --font-mixed: var(--font-slab), var(--font-cjk);
+
+    /* 回饋類（≤ 300ms） */
+    --motion-feedback-toggle: 160ms;
+    --motion-feedback-fade: 200ms;
+    --motion-feedback-swap: 120ms;
+    /* 場景類（Functional Spec D1 已接受超過 300ms） */
+    --motion-scene-disc-change: 500ms;
+    --motion-scene-dial-key: 260ms;
+    --motion-scene-tonearm: 650ms;
+    --motion-scene-booklet-open: 400ms;
+    --motion-scene-booklet-close: 240ms;
+    --motion-scene-tv-rise: 800ms;
+    --motion-scene-crt-on: 220ms;
+    --motion-scene-crt-off: 150ms;
+    --motion-scene-tv-drop: 450ms;
+}

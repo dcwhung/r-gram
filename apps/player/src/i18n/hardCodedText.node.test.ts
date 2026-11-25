@@ -1,4 +1,6 @@
+// @vitest-environment node
 import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { findHardCodedText } from './hardCodedText';
 
@@ -8,12 +10,13 @@ import { findHardCodedText } from './hardCodedText';
  */
 const SRC = fileURLToPath(new URL('..', import.meta.url));
 const SOURCE_FILE = /\.tsx?$/;
-const EXEMPT = /\.test\.tsx?$|[\\/]i18n[\\/]zh-Hant\.ts$|\.d\.ts$/;
+/** 路徑相對 `src/`：測試檔、語言檔、型別宣告唔使驗 */
+const EXEMPT = /\.test\.tsx?$|^i18n[\\/]zh-Hant\.ts$|\.d\.ts$/;
 
 const sourceFiles = () =>
     readdirSync(SRC, { recursive: true, encoding: 'utf8' })
         .filter((path) => SOURCE_FILE.test(path) && !EXEMPT.test(path))
-        .map((path) => `${SRC}/${path}`);
+        .map((path) => join(SRC, path));
 
 describe('findHardCodedText', () => {
     it('should report CJK characters in string literals and JSX text', () => {
