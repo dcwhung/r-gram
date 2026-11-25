@@ -48,15 +48,31 @@ describe('PHONE_LAYOUT', () => {
             lift: 2,
             levels: [0.72, 1, 0.5],
         });
-        expect(info.heart).toEqual({ gap: 46, size: 50, lift: 16, stroke: 2.6 });
+        // 第 18 版 SONG_FIT：heart 71 = 心形中心離歌名尾 46 + 半個心形 25；heartRise 0.364 × 字級
+        expect(info.heart).toEqual({ gap: 46, size: 50, rise: 0.364, stroke: 2.6 });
         expect(info.track).toEqual({ x: 74, y: 368, size: 22, spacing: 3 });
         expect(info.version).toEqual({ x: 1008, y: 118, size: 22, spacing: 3 });
     });
 
-    // 左上嘅字唔可以伸去唱臂底座（設計稿冇寫明闊度：右邊留返同左邊一樣嘅位；歌名連心形停喺底座 40 之外）
+    // 碟名右邊留返同左邊一樣嘅位（T-035）；歌名連心形停喺唱臂底座 36 之外（第 18 版 SONG_FIT.right）
     it('should keep the title within the right margin and the song line clear of the tonearm base', () => {
         const { info, arm } = PHONE_LAYOUT;
         expect(info.title.maxRight).toBe(1080 - info.title.x);
-        expect(info.song.maxRight).toBe(arm.x - arm.base - 40);
+        expect(info.song.maxRight).toBe(arm.x - arm.base - 36);
+    });
+
+    // CR-005 D51；第 18 版 SONG_FIT = { size: 44, min: 32, step: 2, pitch: 38, lift: 22, secondRight: 470 }
+    it('should carry the two-line song title constants of the mockup', () => {
+        expect(PHONE_LAYOUT.info.song).toEqual({
+            x: 128,
+            y: 318,
+            size: 44,
+            minSize: 32,
+            step: 2,
+            maxRight: 772,
+            lift: 22,
+            pitch: 38,
+            secondRight: 470,
+        });
     });
 });

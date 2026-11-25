@@ -1,6 +1,9 @@
 import type { CatalogDocument } from '@r-gram/catalog';
 import { type Dispatch, useReducer } from 'react';
+import type { CoverVariants } from '../catalog/coverVariants';
 import { findTrack, isPlayable } from '../catalog/selectors';
+import { useCoverVariants } from '../catalog/useCoverVariants';
+import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
 import {
     IDLE_PLAYBACK,
@@ -80,20 +83,28 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
 export interface Home {
     stage: StageState;
     playback: PlaybackState;
+    /** 今次開 app 每張專輯用邊張封面（轉盤嘅碟、Preload 都用，T-034、T-036） */
+    covers: CoverVariants;
     /** 未有 catalog = null */
     view: HomeView | null;
     handlers: HomeHandlers | null;
 }
 
-/** 主頁嘅狀態同動作：場景狀態機 + 播放狀態（暫時，T-038 取代）+ catalog → 畫面要嘅值 */
-export const useHome = (catalog: CatalogDocument | null): Home => {
+/**
+ * 主頁嘅狀態同動作：場景狀態機 + 播放狀態（暫時，T-038 取代）+ catalog → 畫面要嘅值。
+ * 封面：開 app 時每張專輯揀一張（CR-005 D56；`random` 測試用固定值），畫面上嘅碟另一張封面有空先攞入 cache。
+ */
+export const useHome = (catalog: CatalogDocument | null, random?: () => number): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
     const [playback, play] = useReducer(playbackReducer, IDLE_PLAYBACK);
-    if (!catalog) return { stage, playback, view: null, handlers: null };
-    const view = homeView(catalog, stage, playback);
+    const covers = useCoverVariants(catalog, random);
+    usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
+    if (!catalog) return { stage, playback, covers, view: null, handlers: null };
+    const view = homeView(catalog, stage, playback, covers);
     return {
         stage,
         playback,
+        covers,
         view,
         handlers: handlersFor({ catalog, stage, view, dispatch, play }),
     };

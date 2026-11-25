@@ -1,4 +1,5 @@
 import {
+    armCentreYAt,
     heartHitPoint,
     heartPoint,
     platterLeftAt,
@@ -15,6 +16,15 @@ const angleOf = (point: { x: number; y: number }) =>
 const normalised = (deg: number) => ((deg % 360) + 360) % 360;
 
 describe('geometry helpers', () => {
+    it('should follow the tonearm centre line from its pivot at a given angle', () => {
+        const { arm } = PHONE_LAYOUT;
+        expect(armCentreYAt(PHONE_LAYOUT, arm.parkDeg, arm.x)).toBeCloseTo(arm.y);
+        // 176°：向左伸、慢慢向下（y 向下）
+        expect(armCentreYAt(PHONE_LAYOUT, 176, 470)).toBeCloseTo(
+            330 + 430 * Math.tan((4 * Math.PI) / 180),
+        );
+    });
+
     it('should convert polar to stage coordinates with y pointing down', () => {
         const [right, down] = [polar({ x: 10, y: 20 }, 5, 0), polar({ x: 10, y: 20 }, 5, 90)];
         expect(right.x).toBeCloseTo(15);

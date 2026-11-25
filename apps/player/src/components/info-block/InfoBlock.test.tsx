@@ -109,6 +109,93 @@ describe('InfoBlock', () => {
     });
 });
 
+/*
+ * Functional Spec D51（CR-005，修訂 D23）；設計稿第 18 版 fitSong()、三格「歌名較長（縮字）」「歌名好長（斷兩行）」
+ *「歌名好長 + 唱臂喺泊位」。estimateTextWidth = 設計稿 textWidth()，所以位置同設計稿一樣。
+ */
+describe('InfoBlock long song titles', () => {
+    const LONG = '歌名好長好長嘅示範一行點都放唔落 (Live 2021)';
+    const rows = (part: ReturnType<typeof renderInfo>) =>
+        [...(part('song-title')?.querySelectorAll('tspan') ?? [])].map((row) => ({
+            text: row.textContent,
+            x: row.getAttribute('x'),
+            y: row.getAttribute('y'),
+        }));
+
+    it('should only shrink a title that fits on one line at a smaller size', () => {
+        const part = renderInfo({ track: track({ title: '歌名較長嘅示範要縮細啲字先放得落' }) });
+        expect(part('song-title')).toHaveAttribute('font-size', '34');
+        expect(rows(part)).toEqual([
+            { text: '歌名較長嘅示範要縮細啲字先放得落', x: '128', y: '318' },
+        ]);
+    });
+
+    it('should break a title onto two lines at the minimum size, raising the first line', () => {
+        const part = renderInfo({ track: track({ title: LONG }) });
+        expect(part('song-title')).toHaveAttribute('font-size', '32');
+        expect(rows(part)).toEqual([
+            { text: '歌名好長好長嘅示範一行點都放唔落', x: '128', y: '296' },
+            { text: '(Live 2021)', x: '128', y: '334' },
+        ]);
+    });
+
+    it('should keep the track line in place and raise the accent bars with the first line', () => {
+        const part = renderInfo({ track: track({ title: LONG }) });
+        expect(part('track-line')).toHaveAttribute('y', '368');
+        const tallest = part('song-bars')?.querySelectorAll('rect')[1];
+        expect(tallest).toHaveAttribute('y', '264');
+    });
+
+    it('should put the heart after the end of the last line', () => {
+        const part = renderInfo({ track: track({ title: LONG }) });
+        const transform = part('song-heart')
+            ?.querySelector('[data-part="icon"]')
+            ?.getAttribute('transform');
+        const [, cx, cy] = /translate\(([\d.]+) ([\d.]+)\)/.exec(transform ?? '') ?? [];
+        // 128 + 「(Live 2021)」11 × 0.56 × 32 + 46；中心比第二行基線高 32 × 0.364
+        expect(Number(cx)).toBeCloseTo(371.12, 1);
+        expect(Number(cy)).toBeCloseTo(322.35, 1);
+    });
+
+    it('should end the second line with an ellipsis only when two lines are not enough', () => {
+        const part = renderInfo({ track: track({ title: `${LONG}${'加長'.repeat(8)}` }) });
+        const [, second] = rows(part);
+        expect(second?.text?.endsWith('…')).toBe(true);
+        expect(rows(part)).toHaveLength(2);
+    });
+
+    // W-017：字體載入完換新嘅量字函數，要用真字體重新 fit（真字體闊啲就由一行變兩行）
+    it('should fit again with the new measure after the web fonts load', () => {
+        const title = '歌名較長嘅示範要縮細啲字先放得落';
+        const { container, rerender } = render(
+            <svg>
+                <InfoBlock
+                    info={PHONE_LAYOUT.info}
+                    album={album()}
+                    track={track({ title })}
+                    timeText="0:41"
+                    accent="#2f8f57"
+                    measure={estimateTextWidth}
+                />
+            </svg>,
+        );
+        const wider: typeof estimateTextWidth = (text, font) => estimateTextWidth(text, font) * 1.2;
+        rerender(
+            <svg>
+                <InfoBlock
+                    info={PHONE_LAYOUT.info}
+                    album={album()}
+                    track={track({ title })}
+                    timeText="0:41"
+                    accent="#2f8f57"
+                    measure={wider}
+                />
+            </svg>,
+        );
+        expect(container.querySelectorAll('[data-part="song-title"] tspan')).toHaveLength(2);
+    });
+});
+
 describe('VersionText', () => {
     it('should show the build version at the top right', () => {
         const { container } = render(

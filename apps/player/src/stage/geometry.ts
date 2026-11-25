@@ -18,6 +18,10 @@ export const polar = (centre: Point, radius: number, deg: number): Point => ({
     y: centre.y + radius * Math.sin(deg * DEG_TO_RAD),
 });
 
+/** 唱臂中線（由軸心以 deg 伸出嘅直線）喺 x 嘅高度（y）：用嚟驗左上歌名同泊位嘅唱臂唔重疊 */
+export const armCentreYAt = ({ arm }: StageLayout, deg: number, x: number): number =>
+    arm.y + (x - arm.x) * Math.tan(deg * DEG_TO_RAD);
+
 /** 圓喺高度 y 嘅左邊緣（x 座標） */
 export const circleLeftAt = (centre: Point, radius: number, y: number): number =>
     centre.x - Math.sqrt(radius ** 2 - (y - centre.y) ** 2);

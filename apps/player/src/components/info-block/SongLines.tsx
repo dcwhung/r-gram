@@ -1,13 +1,12 @@
 import type { CatalogTrack } from '@r-gram/catalog';
+import { useMemo } from 'react';
 import { t } from '../../i18n/t';
 import type { InfoLayout } from '../../stage/layouts';
-import { fitText } from '../../utils/fitText';
 import { padTrackNumber } from '../../utils/formatTime';
 import type { TextMeasure } from '../../utils/textMeasure';
 import { Icon } from '../icons/Icon';
 import { px } from '../svgNumber';
-
-const SONG_WEIGHT = 700;
+import { fitSongTitle, type SongFit } from './songFit';
 
 interface SongLinesProps {
     info: InfoLayout;
@@ -17,18 +16,19 @@ interface SongLinesProps {
     measure: TextMeasure;
 }
 
-/** 歌名前面三條專輯色棒（設計稿 info()） */
-const Bars = ({ info, accent }: Pick<SongLinesProps, 'info' | 'accent'>) => {
-    const { bars, song } = info;
+/** 歌名前面三條專輯色棒（設計稿 info()）：跟歌名第一行 */
+const Bars = ({ info, accent, top }: Pick<SongLinesProps, 'info' | 'accent'> & { top: number }) => {
+    const { bars } = info;
     return (
         <g data-part="song-bars" fill={accent}>
             {bars.levels.map((level, index) => {
                 const height = bars.height * level;
                 return (
                     <rect
-                        key={level}
+                        // 位置就係身份：兩條一樣高都唔會撞 key（backlog B-056 ④）
+                        key={index}
                         x={bars.x + index * bars.step}
-                        y={px(song.y - bars.lift - height)}
+                        y={px(top - bars.lift - height)}
                         width={bars.width}
                         height={px(height)}
                         rx={bars.corner}
@@ -43,51 +43,37 @@ const Bars = ({ info, accent }: Pick<SongLinesProps, 'info' | 'accent'>) => {
  * 歌名後面嘅心形：而家係佔位（未收藏嘅空心樣、唔可以㩒）。收藏同心形掣係 T-070，到時改做掣。
  * 讀屏唔讀（未有功能）。
  */
-const HeartPlaceholder = ({ info, x }: { info: InfoLayout; x: number }) => {
-    const { heart, song } = info;
-    return (
-        <g
-            data-part="song-heart"
-            aria-hidden="true"
-            className="info-heart"
-            strokeWidth={heart.stroke}
-            strokeLinejoin="round"
-        >
-            <Icon name="heart" cx={x} cy={song.y - heart.lift} size={heart.size} color="none" />
-        </g>
-    );
-};
+const HeartPlaceholder = ({ info, at }: { info: InfoLayout; at: SongFit['heart'] }) => (
+    <g
+        data-part="song-heart"
+        aria-hidden="true"
+        className="info-heart"
+        strokeWidth={info.heart.stroke}
+        strokeLinejoin="round"
+    >
+        <Icon name="heart" cx={at.x} cy={at.y} size={info.heart.size} color="none" />
+    </g>
+);
 
-/** 歌名（放唔落就縮字，FR-036、D23）、心形、「第 nn 首 · m:ss」 */
+/** 歌名（縮字 → 兩行 → 「…」，FR-036、D51）、心形、「第 nn 首 · m:ss」 */
 export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesProps) => {
-    const { song, heart, track: line } = info;
-    const fitted = fitText(track.title, {
-        size: song.size,
-        minSize: song.minSize,
-        // 心形連佢右半邊都要喺上限之內
-        maxWidth: song.maxRight - song.x - heart.gap - heart.size / 2,
-        measure: (text, size) =>
-            measure(text, { family: 'cjk', size, weight: SONG_WEIGHT, spacing: 0 }),
-    });
-    const titleWidth = measure(fitted.text, {
-        family: 'cjk',
-        size: fitted.size,
-        weight: SONG_WEIGHT,
-        spacing: 0,
-    });
+    const { song, track: line } = info;
+    // 只喺歌名、版面或者量字函數（字體載入完）變先重新 fit：播放進度每秒更新都唔使重新量（backlog B-056 ①）
+    const fit = useMemo(
+        () => fitSongTitle(track.title, info, measure),
+        [track.title, info, measure],
+    );
     return (
         <>
-            <Bars info={info} accent={accent} />
-            <text
-                data-part="song-title"
-                className="info-song"
-                x={song.x}
-                y={song.y}
-                fontSize={fitted.size}
-            >
-                {fitted.text}
+            <Bars info={info} accent={accent} top={fit.top} />
+            <text data-part="song-title" className="info-song" fontSize={fit.size}>
+                {fit.rows.map((row, index) => (
+                    <tspan key={index} x={song.x} y={px(row.y)}>
+                        {row.text}
+                    </tspan>
+                ))}
             </text>
-            <HeartPlaceholder info={info} x={song.x + titleWidth + heart.gap} />
+            <HeartPlaceholder info={info} at={fit.heart} />
             <text
                 data-part="track-line"
                 className="info-track"

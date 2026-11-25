@@ -4,6 +4,7 @@
  * 所以呢度用 `FAVOURITES_ALBUM_ID` 查專輯 / 歌單會搵唔到；收藏嘅歌用 `findTrack()` 逐首搵返。
  */
 import type { CatalogAlbum, CatalogDocument, CatalogTrack } from '@r-gram/catalog';
+import { COVER_VARIANT, type CoverVariant, hasSecondCover } from './coverVariants';
 
 export interface TrackLocation {
     album: CatalogAlbum;
@@ -37,3 +38,25 @@ export const isPlayable = (track: CatalogTrack): boolean => track.audio !== null
 /** 播得嘅歌，次序不變（隊列、Shuffle 只計呢啲） */
 export const playableTracks = (tracks: readonly CatalogTrack[]): readonly CatalogTrack[] =>
     tracks.filter(isPlayable);
+
+/** 一張封面：大封面（揀中嘅碟）同佢自己嘅縮圖（轉盤兩旁），檔名相對 `imageBase` */
+export interface AlbumArt {
+    cover: string | null;
+    thumb: string | null;
+}
+
+/**
+ * 揀中嗰張封面（CR-005 D56）：大封面同縮圖一定係同一張。冇第二張就用第一張。
+ * 專輯色永遠跟第一張（`album.accent`），唔喺呢度。
+ */
+export const albumArt = (album: CatalogAlbum, variant: CoverVariant): AlbumArt =>
+    variant === COVER_VARIANT.SECOND && hasSecondCover(album)
+        ? { cover: album.cover2 ?? null, thumb: album.thumb2 ?? null }
+        : { cover: album.cover, thumb: album.thumb };
+
+/** 冇顯示嗰張（離線 cache 順手攞）；得一張封面 = null */
+export const otherArt = (album: CatalogAlbum, variant: CoverVariant): AlbumArt | null => {
+    if (!hasSecondCover(album)) return null;
+    const other = variant === COVER_VARIANT.SECOND ? COVER_VARIANT.FIRST : COVER_VARIANT.SECOND;
+    return albumArt(album, other);
+};
