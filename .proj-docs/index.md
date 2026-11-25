@@ -21,6 +21,9 @@
 | --- | --- | --- | --- |
 | 2026-11-25 | [reviews/2026-11-25_00-23_review_T-001_T-002.md](reviews/2026-11-25_00-23_review_T-001_T-002.md) | warn 85 / 100（W-001–W-003） | T-001 scaffold、T-002 `packages/catalog` |
 | 2026-11-25 | [reviews/2026-11-25_00-33_review_T-001_T-002_re-review.md](reviews/2026-11-25_00-33_review_T-001_T-002_re-review.md) | pass 100 / 100 | 同上（修正後） |
+| 2026-11-25 | [reviews/2026-11-25_02-43_review_T-030.md](reviews/2026-11-25_02-43_review_T-030.md) | warn 80 / 100（W-004–W-007） | T-030 播放端基礎 |
+| 2026-11-25 | [reviews/2026-11-25_02-58_review_T-030_re-review.md](reviews/2026-11-25_02-58_review_T-030_re-review.md) | pass 100 / 100 | 同上（修正後） |
+| 2026-11-25 | [reviews/2026-11-25_03-08_review_T-020_T-021.md](reviews/2026-11-25_03-08_review_T-020_T-021.md) | pass 95 / 100（W-008，已修） | T-020 Worker scaffold、T-021 登入 |
 
 ## QA
 
