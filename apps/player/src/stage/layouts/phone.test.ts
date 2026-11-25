@@ -14,4 +14,17 @@ describe('PHONE_LAYOUT', () => {
             bend: -1,
         });
     });
+
+    // CR-003 決定 2：設計稿 SCALE = { from: 185, to: 376.25, … }；弧固定，唔再有每格固定角度
+    it('should carry the fixed scale arc of the mockup', () => {
+        expect(PHONE_LAYOUT.scale).toEqual({
+            fromDeg: 185,
+            toDeg: 376.25,
+            inner: 92,
+            outer: 104,
+            long: 112,
+            heart: 26,
+            heartGap: 18,
+        });
+    });
 });

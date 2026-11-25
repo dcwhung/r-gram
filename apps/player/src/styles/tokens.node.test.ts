@@ -40,6 +40,7 @@ describe('tokens.css', () => {
         ['--motion-scene-dial-key', MOTION.scene.dialKeyMs],
         ['--motion-scene-disc-rotation', MOTION.scene.discRotationMs],
         ['--motion-scene-tonearm', MOTION.scene.tonearmMs],
+        ['--motion-scene-needle-drop', MOTION.scene.needleDropMs],
         ['--motion-scene-booklet-open', MOTION.scene.bookletOpenMs],
         ['--motion-scene-booklet-close', MOTION.scene.bookletCloseMs],
         ['--motion-scene-tv-rise', MOTION.scene.tvRiseMs],

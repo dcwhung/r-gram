@@ -1,3 +1,4 @@
+import { DESIGN_WIDTH } from '../fitStage';
 import {
     buttonCdGap,
     buttonKnobGap,
@@ -7,6 +8,7 @@ import {
     knobMargins,
     knobPlatterGap,
     minHitGap,
+    positionsFor,
     screwGap,
 } from '../geometry';
 import { LAYOUTS } from './index';
@@ -15,6 +17,13 @@ import { PHONE_LAYOUT } from './phone';
 /** 設計稿嘅格數：17 張專輯 + ♥ */
 const DESIGN_POSITIONS = 18;
 const MARGIN_TOLERANCE = 2;
+/** CR-003 決定 2：任何專輯數都要過，測試掃 1 至 30 張 */
+const MIN_ALBUMS = 1;
+const MAX_ALBUMS = 30;
+const ALBUM_COUNTS = Array.from(
+    { length: MAX_ALBUMS - MIN_ALBUMS + 1 },
+    (_, index) => MIN_ALBUMS + index,
+);
 
 /*
  * 淨空同感應範圍規則（Functional Spec CR-002、FR-032）。每份幾何表都要過；加裝置版面時同一組測試照跑。
@@ -40,17 +49,28 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
         expect(buttonKnobGap(layout)).toBeGreaterThanOrEqual(clearance.controlGap);
     });
 
-    it('should keep the zone around the bottom-left screw free of controls', () => {
-        expect(screwGap(layout, DESIGN_POSITIONS)).toBeGreaterThanOrEqual(clearance.screwZone);
-    });
+    it.each(ALBUM_COUNTS)(
+        'should keep the zone around the bottom-left screw free of controls with %i albums',
+        (albums) => {
+            expect(screwGap(layout, positionsFor(albums))).toBeGreaterThanOrEqual(
+                clearance.screwZone,
+            );
+        },
+    );
 
-    it('should keep the touch targets from overlapping at the design position count', () => {
-        expect(minHitGap(layout, DESIGN_POSITIONS)).toBeGreaterThanOrEqual(0);
+    // ♥ 固定喺弧尾，所以感應範圍同專輯數無關：唔重疊、♥ 嘅方格唔出界
+    it('should keep the touch targets apart and on screen whatever the album count', () => {
+        expect(minHitGap(layout)).toBeGreaterThanOrEqual(0);
+        hitAreas(layout).forEach(({ x, y, half }) => {
+            expect(x - half).toBeGreaterThanOrEqual(0);
+            expect(x + half).toBeLessThanOrEqual(DESIGN_WIDTH);
+            expect(y - half).toBeGreaterThanOrEqual(0);
+        });
     });
 
     it('should size the round touch targets from the 44pt rule, never smaller than the control', () => {
         const half = hitSizeUnits(layout) / 2;
-        const [booklet, , , clamp, knob] = hitAreas(layout, DESIGN_POSITIONS);
+        const [booklet, , , clamp, knob] = hitAreas(layout);
         expect(half).toBeCloseTo((clearance.hitPt / clearance.viewportPt) * 1080 * 0.5);
         expect(booklet?.half).toBe(half);
         expect(clamp?.half).toBe(half);
@@ -58,34 +78,7 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
     });
 });
 
-/*
- * W-006：格數 = 已上架專輯數 + 1，會變。♥ 嘅感應方格跟最尾一格嘅角度走但唔轉向，
- * 所以唔係每個格數都過到「感應範圍互不重疊」同「螺絲周圍留空」。呢度明寫而家邊啲格數過到；
- * 其餘格數點處理係設計問題（backlog B-010），要喺 T-036 之前由用戶決定。幾何一改，呢個清單要有意識咁跟住改。
- */
-describe('phone layout across position counts', () => {
-    const MIN_POSITIONS = 2;
-    const MAX_POSITIONS = 21;
-    const SUPPORTED_POSITIONS = [8, 9, 10, 15, 16, 17, 18];
-
-    const passes = (positions: number) =>
-        minHitGap(PHONE_LAYOUT, positions) >= 0 &&
-        screwGap(PHONE_LAYOUT, positions) >= PHONE_LAYOUT.clearance.screwZone;
-
-    it('should pass the touch-target and screw rules exactly at the listed position counts', () => {
-        const counts = Array.from(
-            { length: MAX_POSITIONS - MIN_POSITIONS + 1 },
-            (_, index) => MIN_POSITIONS + index,
-        );
-        expect(counts.filter(passes)).toEqual(SUPPORTED_POSITIONS);
-    });
-
-    it('should include the current catalogue size (17 albums and the favourites slot)', () => {
-        expect(SUPPORTED_POSITIONS).toContain(DESIGN_POSITIONS);
-    });
-});
-
-/* 手機版面嘅量度值同設計稿第 15 版嘅量度表一致（_mockups_/home-turntable/index.html） */
+/* 手機版面嘅量度值同設計稿第 17 版嘅量度表一致（_mockups_/home-turntable/index.html） */
 describe('phone layout measurements', () => {
     it('should place the knob where the mockup does', () => {
         expect(PHONE_LAYOUT.knob).toMatchObject({ x: 266, y: 1784, r: 76 });
@@ -99,6 +92,14 @@ describe('phone layout measurements', () => {
         expect(Math.round(knobPlatterGap(PHONE_LAYOUT))).toBe(66);
         expect(Math.round(buttonPlatterGap(PHONE_LAYOUT))).toBe(76);
         expect(Math.round(buttonCdGap(PHONE_LAYOUT))).toBe(92);
-        expect(Math.round(minHitGap(PHONE_LAYOUT, DESIGN_POSITIONS))).toBe(4);
+        expect(Math.round(minHitGap(PHONE_LAYOUT))).toBe(4);
+    });
+
+    // 最近螺絲嘅永遠係 185° 嗰條刻度線，所以幾多張專輯都係 125（Functional Spec §CR-003「刻度弧」）
+    it('should keep the 185° tick as the nearest control to the screw for every album count', () => {
+        const gaps = ALBUM_COUNTS.map((albums) =>
+            Math.round(screwGap(PHONE_LAYOUT, positionsFor(albums))),
+        );
+        expect(new Set(gaps)).toEqual(new Set([125]));
     });
 });

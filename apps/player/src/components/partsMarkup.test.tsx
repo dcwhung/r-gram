@@ -4,11 +4,12 @@ import { PHONE_LAYOUT as LAYOUT } from '../stage/layouts';
 import { Screws } from './metal/Screws';
 import { Platter } from './platter/Platter';
 import { Spindle, type SpindleMode } from './spindle/Spindle';
+import type { ArmPose } from './tonearm/armPose';
 import { Tonearm } from './tonearm/Tonearm';
 
 const markup = (part: ReactNode) => render(<svg>{part}</svg>).container.firstElementChild;
 
-const tonearm = (playing: boolean) => <Tonearm arm={LAYOUT.arm} playing={playing} glow="#24f96f" />;
+const tonearm = (pose: ArmPose) => <Tonearm arm={LAYOUT.arm} pose={pose} glow="#24f96f" />;
 const spindle = (mode: SpindleMode) => (
     <Spindle layout={LAYOUT} mode={mode} progress={0.19} accent="#2f8f57" onPress={() => {}} />
 );
@@ -17,11 +18,13 @@ const spindle = (mode: SpindleMode) => (
  * W-009：零件嘅形狀數字由 JSX 搬咗入有名嘅形狀表（跟設計稿 tonearm()、spindle()、clamp()、platter()、screw()）。
  * 呢度鎖住手機版面每件零件 render 出嚟嘅 markup：snapshot 喺搬之前錄低，搬完一個字都冇變。
  * 之後改形狀表令 markup 變咗 = 同設計稿唔再一致：先改設計稿並取得確認，再用 `vitest -u` 更新。
+ * T-042：唱臂加咗升針（設計稿第 17 版 ARM_LIFT）：臂身同落影各包一層，由 style 嘅 transform 做過場。
  */
 describe('part markup for the phone layout', () => {
     it.each<[string, ReactNode]>([
-        ['the tonearm parked', tonearm(false)],
-        ['the tonearm playing', tonearm(true)],
+        ['the tonearm parked', tonearm('parked')],
+        ['the tonearm playing', tonearm('playing')],
+        ['the tonearm paused with the needle lifted', tonearm('lifted')],
         ['the spindle with no song', spindle('idle')],
         ['the spindle in the track list', spindle('list')],
         ['the spindle playing', spindle('playing')],

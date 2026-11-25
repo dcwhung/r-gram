@@ -11,6 +11,7 @@ describe('motion tokens', () => {
         expect(MOTION.scene).toMatchObject({
             discChangeMs: 500,
             tonearmMs: 650,
+            needleDropMs: 160,
             bookletOpenMs: 400,
             bookletCloseMs: 240,
             tvRiseMs: 800,
