@@ -23,6 +23,19 @@ describe('fitText', () => {
         });
     });
 
+    // 設計稿第 18 版 SONG_FIT.step：左上歌名每次縮 2
+    it('should only try sizes on the step from the normal size', () => {
+        expect(
+            fitText('一二三四五六', {
+                size: 44,
+                minSize: 32,
+                step: 2,
+                maxWidth: 215,
+                measure: square,
+            }),
+        ).toEqual({ text: '一二三四五六', size: 34 });
+    });
+
     // 字距唔跟字級縮：按比例估完仲要再試細啲
     it('should step down further when fixed spacing keeps it too wide after scaling', () => {
         const spaced = (text: string, size: number) => [...text].length * (size + 4);

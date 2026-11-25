@@ -1,5 +1,7 @@
 import { DESIGN_WIDTH } from '../fitStage';
+import { ARM_SHAPE } from '../../components/tonearm/armShape';
 import {
+    armCentreYAt,
     buttonCdGap,
     buttonKnobGap,
     buttonPlatterGap,
@@ -66,6 +68,21 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
             expect(x + half).toBeLessThanOrEqual(DESIGN_WIDTH);
             expect(y - half).toBeGreaterThanOrEqual(0);
         });
+    });
+
+    // CR-005 D51：歌名斷兩行時，第二行（到 secondRight）喺泊位嘅唱臂上面，唔會畀臂管遮住
+    it('should keep the second line of a long song title above the parked tonearm', () => {
+        const { arm, info } = layout;
+        const tubeHalf = Math.max(arm.base * ARM_SHAPE.tube.width, ARM_SHAPE.tube.minWidth) / 2;
+        const secondBaseline = info.song.y - info.song.lift + info.song.pitch;
+        const tubeTop = armCentreYAt(layout, arm.parkDeg, info.song.secondRight) - tubeHalf;
+        expect(tubeTop).toBeGreaterThan(secondBaseline);
+        expect(info.song.secondRight).toBeLessThan(info.song.maxRight);
+    });
+
+    it('should keep the track line where it is when the song title takes two lines', () => {
+        const { song, track } = layout.info;
+        expect(song.y - song.lift + song.pitch).toBeLessThan(track.y - track.size);
     });
 
     it('should size the round touch targets from the 44pt rule, never smaller than the control', () => {
