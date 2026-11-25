@@ -8,15 +8,22 @@ const CSS = readFileSync(fileURLToPath(new URL('./tokens.css', import.meta.url))
 /** `--name: value;` → value（冇就 undefined） */
 const token = (name: string) => new RegExp(`${name}:\\s*([^;]+);`).exec(CSS)?.[1]?.trim();
 
+/** 將 `var(--x)` 換成佢嘅值（可以一層套一層），等測試睇到真正嘅字體次序 */
+const resolved = (value: string): string =>
+    value.replace(/var\((--[\w-]+)\)/g, (_, name: string) => resolved(token(name) ?? ''));
+
 const GENERIC_FAMILY = /(^|,\s*)(serif|sans-serif|monospace|system-ui)\s*(,|$)/;
 
 describe('tokens.css', () => {
     // W-004：generic family 排喺中文字體前面，瀏覽器會用平台嘅 serif 畫漢字（變明體），輪唔到 Noto Sans HK
     it('should not put a generic family before the CJK families in the mixed stack', () => {
         const mixed = token('--font-mixed') ?? '';
-        const beforeCjk = mixed.slice(0, mixed.indexOf('var(--font-cjk)'));
-        expect(mixed).toContain('var(--font-cjk)');
-        expect(GENERIC_FAMILY.test(beforeCjk.replace(/,\s*$/, ''))).toBe(false);
+        const cjkAt = mixed.indexOf('var(--font-cjk)');
+        expect(cjkAt).toBeGreaterThan(0);
+        // 連 var() 入面嘅值都展開先驗（之前 `var(--font-slab)` 入面收埋咗 `serif`）
+        const beforeCjk = resolved(mixed.slice(0, cjkAt)).replace(/,\s*$/, '');
+        expect(beforeCjk).toMatch(/Rokkitt/);
+        expect(GENERIC_FAMILY.test(beforeCjk)).toBe(false);
         expect(mixed.trim().endsWith('var(--font-cjk)')).toBe(true);
     });
 
