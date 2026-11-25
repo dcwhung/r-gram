@@ -7,6 +7,7 @@
 import { Hono } from 'hono';
 import { apiRoutes } from './api/routes';
 import type { AppEnv } from './app';
+import { authRoutes } from './auth/routes';
 import { handleError, handleNotFound } from './lib/http';
 import { noIndex, privateResponse } from './lib/securityHeaders';
 import { requireValidEnv } from './lib/validateEnv';
@@ -17,6 +18,7 @@ app.use('*', noIndex);
 app.use('/api/*', privateResponse);
 app.use('/auth/*', privateResponse);
 app.use('*', requireValidEnv);
+app.route('/auth', authRoutes);
 app.route('/api', apiRoutes);
 app.notFound(handleNotFound);
 app.onError(handleError);

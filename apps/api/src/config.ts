@@ -12,6 +12,23 @@ export const SESSION_TTL_MS = SESSION_TTL_SECONDS * SECOND_MS;
 /** session token 隨機 bytes（D1 只存 SHA-256） */
 export const SESSION_TOKEN_BYTES = 32;
 
+const OAUTH_STATE_MINUTES = 10;
+/** OAuth 開始 → callback 之間嘅 state + PKCE verifier（HMAC 簽名、短命） */
+export const OAUTH_COOKIE = '__Host-oauth';
+export const OAUTH_STATE_TTL_SECONDS = OAUTH_STATE_MINUTES * MINUTE_SECONDS;
+export const OAUTH_STATE_BYTES = 16;
+/** RFC 7636：verifier 43–128 字；32 bytes base64url = 43 字 */
+export const PKCE_VERIFIER_BYTES = 32;
+
+export const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
+export const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
+export const GOOGLE_ISSUERS: readonly string[] = [
+    'https://accounts.google.com',
+    'accounts.google.com',
+];
+export const GOOGLE_SCOPE = 'openid email';
+export const OAUTH_CALLBACK_PATH = '/auth/google/callback';
+
 /** SESSION_SECRET（HMAC-SHA-256 key）最少字數：`openssl rand -base64 32` 出 44 個字 */
 export const SESSION_SECRET_MIN_LENGTH = 32;
 
