@@ -17,7 +17,8 @@ export const pressable = (onPress: () => void, disabled = false) => {
         onKeyDown: (event: KeyboardEvent) => {
             if (!ACTIVATION_KEYS.includes(event.key)) return;
             event.preventDefault();
-            press();
+            // 㩒住唔放嘅重覆 keydown 只計第一下
+            if (!event.repeat) press();
         },
     } as const;
 };
