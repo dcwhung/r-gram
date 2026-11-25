@@ -43,6 +43,7 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-043 | Review T-022（S-057、S-058） | ① PATCH 專輯：寫入之後再讀之間，如果另一個請求刪咗嗰隻碟，會回 404 但其實已經寫入；改用 `UPDATE … RETURNING`。② 排序嘅「檢查 id 齊唔齊」同寫入唔喺同一個 transaction（一個管理員嘅情況可以接受，加註解）。③ `afterWrite` 之後亦會喺 `POST /api/catalog/rebuild`（變成生成兩次）同 `PUT /api/assets` 行，T-026 要排除 | T-026 |
 | B-044 | Review T-022（S-059、決定 12） | Technical Spec 同步（下次 CR）：冇 If-Match → 400；`ID_REMOVED` 嘅 details 形狀同強制刪除回 200 連 body；排序 409；專輯欄位上限同 folder 規則；`reason` 碼用大寫；API-012 嘅歌曲形狀；`year` 跟 `releaseDate`；新增專輯嘅預設值；改歌名唔重算字母盤標記。另要定一條規則：API 錯誤訊息嘅語言（專輯 API 用中文書面語，登入相關嘅 401／403 同通用 404／500 仲係英文）——建議全部用中文書面語，管理端以 `code`／`reason` 砌自己嘅文字 | 下次 Change Request；語言規則喺 T-023 之前定 |
 | B-045 | Re-review T-022（S-062、S-063） | ① 專輯 folder 名仲收 `...` 同 `a..b`（唔危險：網址會原樣保留），但 Technical Spec 寫 R2 key 唔可以有 `..`，由呢類 folder 掃出嚟嘅 key 會過唔到手動指定檔案嘅檢查；一係拒絕任何 `..`，一係喺 spec 寫明 folder 規則（連同 B-044）。② 錯誤訊息嘅 `{max}` 呢類 placeholder 如果漏咗參數，會原樣出現喺用戶見到嘅訊息；加一個測試行勻所有 reason，確認冇 `{`／`}` 剩低。③ 文字欄位拒絕零闊連接符 U+200D（組合 emoji 用），re-review 認為唔豁免；之後真係要用，行 Change Request | T-023 |
+| B-046 | QA S1 api-albums（Observation） | ① 未知欄位嘅數目冇上限：5,000 個未知欄位（362 KB 請求）會回 5,000 條 details、605 KB 回應；超過某個數目就只回一條。② `GET /api/albums` 嘅 `catalog`（catalog 狀態，物件或者 null）同寫入回應將來嘅 `catalog: { ok }` 同名但形狀唔同，T-026 定案時要統一或者改名。③ `.dev.vars.example` 嘅 `SESSION_SECRET` placeholder 得 29 個字元，照抄會令設定檢查回 500（檢查本身正確）；placeholder 改做夠長嘅假值 | ①③ T-023；② T-026 |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 

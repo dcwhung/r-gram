@@ -9,9 +9,9 @@
     - AC-5 OAuth（TS API-001、API-002；「安全設計」認證）：Authorization Code + PKCE S256；`state` + verifier 喺短期 `__Host-oauth` cookie；callback 驗 issuer、audience、`email_verified`
     - AC-6 CSRF 同 header（TS「安全設計」CSRF、Header、搜尋引擎）：改資料嘅 method 要 `Origin` = `WORKER_ORIGIN`，唔啱 403 `FORBIDDEN_ORIGIN`；`/api`、`/auth` 有 `X-Frame-Options: DENY`、`frame-ancestors 'none'`、`Cache-Control: no-store`；所有回應 `X-Robots-Tag: noindex`
     - AC-7 Health 同錯誤格式（TS API-004、API-005；「API 設計」錯誤格式）：`GET /api/health` → `{ ok, version }`（version = `apps/api/package.json`）；`GET /api/me` → `{ email }`；錯誤係 `{ error: { code, message } }`
-    - AC-8 資料庫（TS「數據庫設計」「索引設計」）：`albums`、`tracks`、`lyrics`、`assets`、`publishes`、`sessions` 嘅欄位、約束同四個索引
+    - AC-8 資料庫（TS v1.2「數據庫設計」「索引設計」，CR-003）：`albums`、`tracks`、`lyrics`、`assets`、`catalog_state`、`sessions` 嘅欄位、約束同四個索引（冇 `enabled`、冇 `publishes`）
     - AC-9 設定（Plan T-020；TS「部署架構」Bindings、`[vars]`；「安全設計」Secret）：`DB` / `CATALOG` / `MEDIA`、五個 var、兩個 secret；漏咗或者格式錯一律 500，log 只記名；secret 唔入 repo
-- Scope files: `apps/api/` 入面 git tracked 嘅全部檔案（`src/**`、`test/**`、`migrations/**`、`wrangler.toml`、`.dev.vars.example`、`package.json`、`tsconfig*.json`、`vitest.config.ts`），`seed/*.json` 除外（屬 `catalog-core`）
+- Scope files: `apps/api/` 入面 git tracked 嘅全部檔案（`src/**`、`test/**`、`migrations/**`、`wrangler.toml`、`.dev.vars.example`、`package.json`、`tsconfig*.json`、`vitest.config.ts`），`seed/*.json` 除外（屬 `catalog-core`），專輯 API 嘅檔除外（屬 `api-albums`：`src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`、`test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`）。`src/api/routes.ts`、`src/config.ts`、`src/lib/http.ts`、`src/i18n/zh-Hant.ts` 兩條鏈都用，留喺呢度
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
@@ -19,4 +19,4 @@
 - HTTP smoke（改到 route、middleware 或者 `wrangler.toml` 先做）：臨時 `.dev.vars`（由 `.dev.vars.example` 抄，用完刪）+ `wrangler d1 migrations apply r-gram --local` + `wrangler dev --local-protocol https`，`curl -k` 打 `/api/health`、`/api/me`、`/auth/google/start`、`/auth/logout`。唔好跟住 redirect 去 Google
 - PWA gate: no。Performance gate: no（未有讀寫內容嘅 API）
 - Security / Data gate: yes（登入、session、redirect、輸入）；由上面嘅 test 覆蓋
-- Out of scope: 真 Google 來回（要用戶嘅 OAuth client：U-4、U-5）；部署（T-028；backlog B-016）；`/catalog/v1/*`（T-026）；專輯 / 歌曲 API（T-022 起）；`seed/*.json`
+- Out of scope: 真 Google 來回（要用戶嘅 OAuth client：U-4、U-5）；部署（T-028；backlog B-016）；`/catalog/v1/*`（T-026）；專輯 API（`api-albums`）；歌曲 API（T-023 起）；`seed/*.json`

@@ -1,0 +1,25 @@
+# Test Plan — api-albums
+
+- Chain: 專輯 API（`apps/api`）：列表 + 完整度 + 全站統計、新增、讀取、修改（If-Match）、排序、刪除（ID 守衛）、寫入後置步驟接口。任務 T-022
+- AC（L1 來源：TS = Technical Spec v1.2、FS = Functional Spec v1.4）:
+    - AC-1 守門（TS「API 設計」通則、「安全設計」授權 / CSRF）：全部 `/api/albums*` 冇 session 一律 401；寫入 Origin ≠ `WORKER_ORIGIN` 一律 403，資料不變；讀唔使 Origin
+    - AC-2 列表（TS API-010；FS FR-114、US-102 第 1 點；D35 建議，未確認唔 block）：按 `sort_order` 排；每張碟 `completeness { tracks, audio, mv, lyrics }`（NULL 同空字串 key 當冇）；`stats` = 專輯數、歌數、有音檔 / 歌詞 / MV 嘅歌數、有封面嘅專輯數；`catalog` = `catalog_state` 或 null
+    - AC-3 新增 / 讀取（TS API-011、API-012；FS US-102 第 4、5 點）：id 規則（`^[a-z0-9]+(-[a-z0-9]+)*$`、非 `favourites`、≤ 64）同 title 必填；字母盤標記預設按碟名；排最尾；id 重覆 409 `CONFLICT`；讀取連歌（唔包歌詞原文）
+    - AC-4 修改（TS API-013、通則「並發」；FS US-102 第 2、3 點）：只改有畀嘅欄；`id`、`enabled`（CR-003）同其他未知欄 400；冇 If-Match 400、過時 409 `STALE`；同一個 If-Match 兩個請求只有一個成功；`year` 跟 `releaseDate`
+    - AC-5 驗證同安全（TS「安全設計」輸入驗證、R2 key 驗證）：文字欄擋控制 / 格式 / 行分隔字元；長度上限；日期、色碼、assets；folder 擋 `.`、`..`、`/ \ ? # %`；未知欄位名截短；錯誤一次過列晒（path + reason）
+    - AC-6 排序（TS API-015）：`ids` 要同現有專輯完全一樣（缺、多 → 409 `CONFLICT`；重覆、非字串 → 400）；冇專輯 + `[]` → 200；同時兩個排序最後係其中一個完整次序
+    - AC-7 刪除（TS API-014、「ID 守衛」；FS US-102 第 6 點、D30）：冇 `?force=1` → 409 `ID_REMOVED`，`details` 列專輯同歌 id；`force=1` 刪專輯、歌、歌詞（cascade），回應列出真係刪咗嘅歌
+    - AC-8 寫入後置步驟（TS API-061、「CR-003 對技術設計嘅影響」內容流程 / 生成失敗）：只喺成功寫入之後行；hook throw → 照回成功 status，加 `catalog: { ok: false }`，錯誤內容唔入回應同 log；預設 no-op 唔改回應
+    - AC-9 訊息（CLAUDE.md 介面文字規則；`zh-Hant.ts`）：專輯 API 嘅 `message` 同 `details[].message` 係中文書面語，冇未填 `{placeholder}`
+- Scope files:
+    - `apps/api/src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`
+    - `apps/api/test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`
+    - 1-hop 依賴（屬 `api-auth`，唔喺呢條鏈 freeze）：`src/api/routes.ts`、`src/config.ts`、`src/lib/http.ts`、`src/i18n/zh-Hant.ts`、`src/auth/middleware.ts`；`@r-gram/catalog`（屬 `catalog-core`）
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie。預期由 spec 寫，唔抄 developer 嘅 test。throw hook：scratch app 用 `afterWrite(throwingHook)` + `albumRoutes`
+- HTTP smoke（改到 route 或者 middleware 先做）：同 `api-auth` 一樣，`wrangler dev --local --ip 127.0.0.1 --persist-to <scratch>`；proxy 指去 127.0.0.1:9，任何對外請求即刻失敗
+- PWA gate: no。Performance gate: no（D1 一條 GROUP BY，資料量細）。Security / Data gate: yes（AC-1、AC-5、AC-7）
+- Out of scope: 歌曲 API（T-023）；`rebuildCatalog()` 同 `catalog.ok` 嘅最終格式（T-026）；封面上載（T-024）；D35 統計項目確認（U-8）

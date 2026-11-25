@@ -42,6 +42,7 @@
 | 2026-11-25 | [qa/2026-11-25_08-16_qa_player-core.md](qa/2026-11-25_08-16_qa_player-core.md) | S1 pass（AC-1–AC-6；冇阻擋性問題，一條 Observation 入 backlog B-034） | 新鏈 `player-core`：T-032、T-033；`player-foundation` 受影響嘅 AC-1／3／5／6 重驗。Frozen plan：[qa/plans/player-core.md](qa/plans/player-core.md) |
 | 2026-11-25 | [qa/2026-11-25_08-36_qa_player-catalog.md](qa/2026-11-25_08-36_qa_player-catalog.md) | S1 pass（AC-1–AC-7；冇阻擋性問題，一條 Minor 入 backlog B-037） | 新鏈 `player-catalog`：T-031；`player-foundation` 只重驗 `vite-env.d.ts`。Frozen plan：[qa/plans/player-catalog.md](qa/plans/player-catalog.md) |
 | 2026-11-25 | [qa/2026-11-25_09-09_qa_catalog-song-text_catalog-core_api-auth.md](qa/2026-11-25_09-09_qa_catalog-song-text_catalog-core_api-auth.md) | S1 pass（冇阻擋性問題；一條 Minor 入 backlog B-042） | 新鏈 `catalog-song-text`：T-029；`catalog-core`（`parseLrc`）同 `api-auth`（schema，T-096）重驗。Frozen plan：[qa/plans/catalog-song-text.md](qa/plans/catalog-song-text.md) |
+| 2026-11-25 | [qa/2026-11-25_09-50_qa_api-albums.md](qa/2026-11-25_09-50_qa_api-albums.md) | S1 pass（AC-1–AC-9；冇阻擋性問題，兩條 Observation 入 backlog B-046） | 新鏈 `api-albums`：T-022；`api-auth`（共用檔）同 `repo-scaffold`（lock file）重驗。Frozen plan：[qa/plans/api-albums.md](qa/plans/api-albums.md) |
 
 Backlog：[backlog.md](backlog.md)
 
