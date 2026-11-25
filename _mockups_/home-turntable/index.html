@@ -78,7 +78,7 @@ svg.live [data-anim] { transition: transform .5s cubic-bezier(.4, 0, .2, 1), opa
 svg.live [data-anim="arm"] { transition: transform .65s cubic-bezier(.4, 0, .2, 1); }
 svg.live [data-anim="armlift"], svg.live [data-anim="armshadow"] { transition: transform .16s ease-out; }
 /* 第 18 版：睇唔到嗰陣（淡出咗）換碟，唱臂即時到位，唔做擺動 */
-svg.live[data-arm-instant="true"] [data-anim="arm"], svg.live[data-arm-instant="true"] [data-anim="armlift"], svg.live[data-arm-instant="true"] [data-anim="armshadow"] { transition: none; }
+svg.live[data-choosing="true"] [data-anim="arm"], svg.live[data-arm-instant="true"] [data-anim="arm"], svg.live[data-arm-instant="true"] [data-anim="armlift"], svg.live[data-arm-instant="true"] [data-anim="armshadow"] { transition: none; }
 svg.live[data-playing="false"] .spin { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { svg.live [data-anim] { transition: none; } }
 .facts { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
@@ -149,7 +149,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede"><b>第 18 版（等你確認）。</b>① 字母盤改用實際資料：21 隻碟 + ♥ = 22 格，次序按類型（專輯、迷你專輯、精選、現場、原聲、單曲）再按編號；因為多過 17 隻碟，由第一日起就係「每 3 個出一個字母，其餘用細點」。② 左上歌名太長：先縮字（44 → 最細 32）；最細字都放唔落就斷做兩行，歌號同時間嗰行位置不變；兩行都放唔落先用「…」。③ 播緊時揀碟：唱臂同左下三粒細掣淡出，隻碟停轉，聲照播；轉返播緊嗰隻碟鬆手，唱臂同細掣淡入返、碟再轉。鬆手喺另一隻碟：聲照播，嗰隻碟嘅唱臂喺泊位。互動格試法：由歌單揀歌播 → 㩒旋鈕（揀碟）→ 再㩒旋鈕（返去）；或者播緊時㩒 ♥ 去「我的收藏」再㩒 ♥ 返嚟。</p>
+    <p class="lede"><b>第 18 版（等你確認）。</b>① 字母盤改用實際資料：21 隻碟 + ♥ = 22 格，次序按類型（專輯、迷你專輯、精選、現場、原聲、單曲）再按編號；因為多過 17 隻碟，由第一日起就係「每 3 個出一個字母，其餘用細點」。② 左上歌名太長：先縮字（44 → 最細 32）；最細字都放唔落就斷做兩行，歌號同時間嗰行位置不變；兩行都放唔落先用「…」。③ 播緊時揀碟：唱臂、左下三粒細掣同左上歌名淡出（只留碟名），隻碟停轉，聲照播；擰到邊隻碟，左上碟名就跟住變；轉返播緊嗰隻碟鬆手，唱臂同細掣淡入返、碟再轉。鬆手喺另一隻碟：聲照播，嗰隻碟嘅唱臂喺泊位。互動格試法：由歌單揀歌播 → 㩒旋鈕（揀碟）→ 再㩒旋鈕（返去）；或者播緊時㩒 ♥ 去「我的收藏」再㩒 ♥ 返嚟。</p>
     <p class="lede">第 17 版（已確認）。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用細點；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
     <p class="lede">第 16 版嘅內容不變：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺碟上面；歌書開住時暫停，歌書留住；冇歌嘅專輯嘅歌單。</p>
     <p class="lede">封面同歌詞係佔位。</p>
@@ -163,8 +163,9 @@ tr:last-child td { border-bottom: 0; }
     <p class="lede"><b>第 18 版第 ③ 點（播緊時揀碟）試法：</b></p>
     <ol class="lede" style="margin: 0 0 16px; padding-left: 1.4em; color: var(--muted)">
         <li>㩒碟面打開歌單，再㩒中間嘅唱片夾：唱針落碟，開始播。</li>
-        <li>㩒左下大旋鈕（= 開始揀碟）：唱臂同三粒細掣淡出，隻碟停轉；聲當照播。</li>
-        <li>再㩒大旋鈕（= 轉返播緊嗰隻碟鬆手）：唱臂同細掣淡入返，碟再轉。</li>
+        <li>㩒左下大旋鈕（= 開始揀碟）：唱臂、三粒細掣同左上歌名淡出，只留碟名；隻碟停轉；聲當照播。</li>
+        <li>揀碟時㩒旁邊滑入嚟嘅碟（= 將旋鈕擰去嗰隻碟）：左上碟名即刻跟住變。</li>
+        <li>再㩒大旋鈕（= 鬆手）：停喺 KOMOREBI 就唱臂、細掣同歌名淡入返、碟再轉；停喺另一隻碟就唱臂喺泊位、冇歌名，聲當照播。</li>
         <li>播緊時㩒刻度最尾嘅 ♥（= 鬆手喺另一隻碟）：換做「我的收藏」碟，唱臂喺泊位、左上冇歌名；聲當照播。再㩒 ♥ 返去 KOMOREBI，見返落針同歌名。</li>
     </ol>
     <div class="hero">
@@ -388,6 +389,10 @@ tr:last-child td { border-bottom: 0; }
         komorebi: {
             title: 'KOMOREBI', sub: '2026', cover: 'komorebi', accent: '#2f8f57', glow: 'hsl(146 95% 52%)',
         },
+        i: { title: 'i', sub: '2020', cover: 'rings', accent: '#77777a', glow: 'hsl(0 0% 72%)' },
+        juntos: { title: 'JUNTOS', sub: '2023', cover: 'dots', accent: '#c98a5e', glow: 'hsl(22 90% 62%)' },
+        'frank-ep': { title: '¿Frank?', sub: '2014', cover: 'plain', accent: '#8c7fc4', glow: 'hsl(250 80% 70%)' },
+        'ni-dou': { title: '呢度', sub: '2016', cover: 'rings', accent: '#77777a', glow: 'hsl(0 0% 72%)' },
         favourites: {
             title: T.favouritesTitle, sub: T.trackCount(8), cover: 'favourites', accent: '#d7263d', glow: 'hsl(352 96% 60%)',
         },
@@ -448,12 +453,12 @@ tr:last-child td { border-bottom: 0; }
     const DIAL_KEYS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'F', '呢', '在', '橡', 'W', 'R', 'R', '電', '終', '讓', '♥'];
     // 呢份稿畫出嚟嘅五隻碟（K 前後各兩隻）
     const WHEEL_ROW = [
-        { key: 'I', cover: 'rings', pos: 8 },
-        { key: 'J', cover: 'dots', pos: 9 },
-        { key: 'K', cover: 'komorebi', pos: 10 },
-        { key: 'F', cover: 'plain', pos: 11 },
-        { key: '呢', cover: 'rings', pos: 12 },
-        { key: '♥', cover: 'favourites', pos: 21 },
+        { key: 'I', album: 'i', cover: 'rings', pos: 8 },
+        { key: 'J', album: 'juntos', cover: 'dots', pos: 9 },
+        { key: 'K', album: 'komorebi', cover: 'komorebi', pos: 10 },
+        { key: 'F', album: 'frank-ep', cover: 'plain', pos: 11 },
+        { key: '呢', album: 'ni-dou', cover: 'rings', pos: 12 },
+        { key: '♥', album: 'favourites', cover: 'favourites', pos: 21 },
     ];
     const ART = 500; // 每隻碟以原點為中心、半徑 500 畫一次，位置同大細由外層 transform 決定
     // Favourites 碟面：用戶提供嘅 RubberBand logo（標誌 + 字樣），放喺碟芯下面；闊度細到主頁（碟右邊出界）都見到成個
@@ -476,7 +481,8 @@ tr:last-child td { border-bottom: 0; }
         ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播（再播時重新落針）', { album: 'komorebi', song: true, paused: true, parked: true, wheel: 0 }],
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
-        ['播緊時揀碟', '第 18 版：聲照播；唱臂同左下三粒細掣淡出；隻碟停轉；轉返播緊嗰隻碟鬆手，唱臂同細掣淡入返、碟再轉', { album: 'komorebi', song: true, wheel: 1 }],
+        ['播緊時揀碟', '第 18 版：聲照播；唱臂、左下三粒細掣同左上歌名嗰部分淡出，只留碟名；隻碟停轉；轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉', { album: 'komorebi', song: true, wheel: 1 }],
+        ['播緊時揀碟：轉到另一隻碟', '第 18 版：左上碟名同年份即刻跟住旋鈕指住嘅碟變（呢度轉咗去 JUNTOS）；聲照播，仲係 KOMOREBI 嗰首', { album: 'juntos', song: false, wheel: 1 }],
         ['播緊 KOMOREBI，鬆手喺另一隻碟', '第 18 版（以「我的收藏」做例）：聲照播，仲係 KOMOREBI 嗰首；畫面嗰隻碟唔轉、唱臂喺泊位、左上冇歌名；㩒唱片夾 = 打開呢隻碟嘅歌單', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 未有音檔（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
@@ -498,7 +504,7 @@ tr:last-child td { border-bottom: 0; }
     const SLAB_LIGHT = `'RB Slab Light', Rockwell, serif`;
     const CJK = `'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans CJK TC', sans-serif`;
     const isLatin = (text) => /^[\x20-\x7e]+$/.test(text);
-    const selectedIndex = (st) => WHEEL_ROW.findIndex((entry) => entry.cover === ALBUMS[st.album].cover);
+    const selectedIndex = (st) => WHEEL_ROW.findIndex((entry) => entry.album === st.album);
     /** Wheel 打開途中，主頁專屬嘅嘢（唱臂、三粒掣）淡出得快過輪升起 */
     const homeOpacity = (st) => (st.swapping ? 0 : n(clamp01(1 - st.wheel * 1.8)));
     /** song = 揀咗歌；真係播緊 = 揀咗歌、冇暫停、冇開電視 */
@@ -730,11 +736,14 @@ tr:last-child td { border-bottom: 0; }
         return WHEEL_ROW.map((entry, i) => {
             const pose = discPose(i, st);
             const current = i === sel;
+            const offset = i - sel;
+            // 互動格：字母盤開住時，㩒旁邊見到嘅碟 = 將旋鈕轉去嗰隻碟（正式 app 係擰旋鈕）
+            const pickable = fid === 'live' && st.wheel === 1 && !current && offset >= -1 && offset <= 2;
             const art = discArt(entry.cover, `clip-${fid}-${i}`, { spin: current && (fid === 'live' ? Boolean(st.song) : isPlaying(st) && !st.wheel), delayMs: st.armFresh ? ARM_IN_MS : 0 });
             const style = `transform: translate(${n(pose.x)}px, ${n(pose.y)}px) scale(${(pose.r / ART).toFixed(4)}); opacity: ${n(pose.opacity)}`;
             return (
-                `<g data-anim="disc-${i}" style="${style}"${current ? '' : ' pointer-events="none"'}>` +
-                `<g data-swap="disc-${i}">${current ? `<g data-act="list" role="button" aria-label="${T.openList}">${art}</g>` : art}</g>` +
+                `<g data-anim="disc-${i}" style="${style}"${current || pickable ? '' : ' pointer-events="none"'}>` +
+                `<g data-swap="disc-${i}">${current ? `<g data-act="list" role="button" aria-label="${T.openList}">${art}</g>` : pickable ? `<g data-act="turn" data-to="${entry.album}" role="button" aria-label="轉去呢隻碟">${art}</g>` : art}</g>` +
                 `<path data-anim="veil-${i}" fill-rule="evenodd" d="${ringPath(ART, ART * HUB.clamp)}" fill="#fff" style="opacity: ${pose.veil}" pointer-events="none"/></g>`
             );
         }).map((disc, i) => (i === sel ? `${disc}<g data-follow="disc-${sel}">${spindle(st)}</g>` : disc)).join('');
@@ -823,7 +832,7 @@ tr:last-child td { border-bottom: 0; }
     };
     const songRows = (fit, ink) =>
         fit.rows.map((row, i) => `<text x="${SONG_FIT.x}" y="${fit.y + i * SONG_FIT.pitch}" font-family="${CJK}" font-weight="700" font-size="${fit.size}" fill="${ink}">${esc(row)}</text>`).join('');
-    const info = (st) => {
+    const infoParts = (st) => {
         const { title, accent, glow } = ALBUMS[st.album];
         const sub = st.empty && st.album === 'favourites' ? T.trackCount(0) : ALBUMS[st.album].sub; // 未有收藏：0 首；冇歌嘅專輯照顯示年份
         const dark = Boolean(st.booklet || st.list);
@@ -840,20 +849,22 @@ tr:last-child td { border-bottom: 0; }
         out += `<text x="74" y="244" font-family="${MIXED}" font-size="${SUB_SIZE}" fill="${soft}" letter-spacing="${SUB_SPACING}">${sub}</text>`;
         out += `<path d="M${n(lineX)} 234H${n(lineX + 98)}" stroke="${accent}" stroke-width="3.5" stroke-linecap="round"/>`;
         out += `<text x="1008" y="118" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="22" fill="${dark ? '#8f8c85' : '#8a8a8a'}" letter-spacing="3">v0.1.0</text>`;
+        const album = out; // 以上係碟名、年份、版本號；以下係歌名嗰部分（揀碟時淡出）
+        out = '';
         const songX = SONG_FIT.x;
         const songY = SONG_FIT.y;
         if (st.list) {
             // 歌單：左上顯示揀中嗰行（歌號用專輯色，同 v16 一樣）；Favourites 加原本嗰隻碟
-            if (st.empty) return out;
+            if (st.empty) return [album, out];
             const { rows, focus } = TRACKS[st.album];
             const [title, , from] = rows[focus];
             const fit = fitSong(title, false);
             out += `<text x="74" y="${fit.y - 2}" font-family="${SLAB}" font-size="32" fill="${accent}">${String(focus + 1).padStart(2, '0')}</text>`;
             out += songRows(fit, ink);
             if (from) out += `<text x="74" y="368" font-family="${MIXED}" font-size="22" fill="${faint}" letter-spacing="2">${from}</text>`;
-            return out;
+            return [album, out];
         }
-        if (!st.song) return out;
+        if (!st.song) return [album, out];
         const fit = fitSong(st.songTitle ?? SONG.title);
         [0.72, 1, 0.5].forEach((level, i) => {
             const barH = 30 * level;
@@ -872,7 +883,13 @@ tr:last-child td { border-bottom: 0; }
         }
         out += '</g>';
         out += `<text x="74" y="368" font-family="${MIXED}" font-size="22" fill="${faint}" letter-spacing="3">${T.trackNumber(SONG.no)}  ·  ${SONG.time}</text>`;
-        return out;
+        return [album, out];
+    };
+    /** part：'album' = 碟名部分、'song' = 歌名部分；唔講 = 兩部分一齊 */
+    const info = (st, part) => {
+        const [album, song] = infoParts(st);
+        if (part === 'album') return album;
+        return part === 'song' ? song : album + song;
     };
 
     /* ---------- 大旋鈕（轉碟）+ 刻度弧 + ♥ + 環繞旋鈕嘅字母盤 ---------- */
@@ -1173,7 +1190,7 @@ tr:last-child td { border-bottom: 0; }
 
     const listLayer = (st) => {
         const { accent } = ALBUMS[st.album];
-        const { rows, focus } = TRACKS[st.album];
+        const { rows, focus } = TRACKS[st.album] ?? { rows: [], focus: 0 };
         let out = dimLayer('closelist') + focusFrame(LIST.r, LIST.frame);
         if (st.empty) {
             const [x] = polar(DISC.x, DISC.y, LIST.r, 180);
@@ -1532,7 +1549,11 @@ tr:last-child td { border-bottom: 0; }
             `<g data-anim="armfade" style="opacity: ${fade}"${fade === 0 ? ' pointer-events="none"' : ''}>${tonearm(st)}</g>`,
         ].join('');
         const buttons = `<g data-anim="buttons" style="opacity: ${fade}"${fade === 0 ? ' pointer-events="none"' : ''}><g data-swap="buttons">${BUTTONS.map((b) => button(b, st)).join('')}</g></g>`;
-        const infoLayer = `<g data-swap="info">${info(st)}</g>`;
+        // 第 18 版：揀碟時（同換碟嗰下）歌名嗰部分同唱臂、細掣一齊淡出；碟名留低，跟住旋鈕指住嘅碟變
+        const songFade = st.list || st.booklet ? 1 : fade;
+        const infoLayer =
+            `<g data-swap="info">${info(st, 'album')}</g>` +
+            `<g data-anim="songfade" style="opacity: ${songFade}"${songFade === 0 ? ' pointer-events="none"' : ''}><g data-swap="songinfo">${info(st, 'song')}</g></g>`;
         // MV：成部唱片機連標題變模糊，加一層淡白，電視喺上面。模糊層疊喺清晰層上面淡入 / 淡出；電視升起 / 收埋
         if (st.mv) {
             const behind = `${turntable}${buttons}${infoLayer}`;
@@ -1589,7 +1610,11 @@ tr:last-child td { border-bottom: 0; }
     /* ---------- 互動格 ---------- */
     const liveSvg = document.getElementById('live');
     /** 互動格畫面：播緊嘅歌喺另一隻碟時（聲照播），畫面嗰隻碟當未揀歌——唱臂泊位、冇歌名（D13、D36） */
-    const liveView = () => (live.song && live.album !== live.songAlbum ? { ...live, song: false, paused: false, parked: false } : live);
+    const liveView = () => ({
+        ...live,
+        ...(live.song && live.album !== live.songAlbum ? { song: false, paused: false, parked: false } : {}),
+        empty: !TRACKS[live.album], // 示範資料只有兩隻碟有歌單
+    });
     let liveSignature = '';
 
     /** 將新畫面嘅 style / 內容搬去現有節點，等 CSS transition 做到動畫 */
@@ -1620,6 +1645,7 @@ tr:last-child td { border-bottom: 0; }
         const html = scene(st, 'live');
         const signature = `${live.booklet}|${live.bookClosing}|${live.list}|${live.mv}|${live.mvClosing}|${live.armSeq}`; // 歌書 / 歌單 / 電視開關要成格重畫，其他都做動畫
         liveSvg.dataset.playing = String(isPlaying(st) && st.wheel === 0); // 揀碟時碟唔轉（聲照播）
+        liveSvg.dataset.choosing = String(st.wheel > 0); // 揀碟時唱臂睇唔到：換位唔做擺動
         if (signature === liveSignature) morph(html);
         else liveSvg.innerHTML = html;
         liveSignature = signature;
@@ -1672,14 +1698,18 @@ tr:last-child td { border-bottom: 0; }
         wheel: () => { if (live.list || live.mv) return; live.wheel = live.wheel > 0.5 ? 0 : 1; live.booklet = false; },
         favourites: () => {
             if (live.list || live.mv || live.swapping) return;
-            const album = live.album === 'favourites' ? 'komorebi' : 'favourites';
+            const album = live.album === 'favourites' ? (live.backTo ?? 'komorebi') : 'favourites';
+            if (album === 'favourites') live.backTo = live.album;
             if (live.song) swapAlbum(album); // 有歌播緊 / 暫停緊：聲唔停，唱臂同細掣淡出 → 換碟 → 淡入
             else Object.assign(live, { album, booklet: false });
         },
         list: () => { if (atHome()) Object.assign(live, { list: true, booklet: false }); },
+        // 揀碟時轉去另一隻碟：左上碟名即刻跟住變；聲照播
+        turn: (target) => { if (live.wheel === 1 && ALBUMS[target.dataset.to]) Object.assign(live, { album: target.dataset.to, booklet: false }); },
         closelist: () => { live.list = false; },
         playpause: () => {
             if (live.mv || live.wheel > 0) return;
+            if (live.list && !TRACKS[live.album]) { live.list = false; return; } // 示範：呢隻碟冇歌單
             // 由泊位開始播（歌單揀歌、MV 收返之後）：唱針由上方轉到碟上再放低；暫停後再播只係放低
             const fromPark = live.list || (liveView().song && live.paused && live.parked);
             if (live.list) Object.assign(live, { list: false, song: true, paused: false, parked: false, songAlbum: live.album }); // 歌單：播揀中嗰首
@@ -1704,14 +1734,14 @@ tr:last-child td { border-bottom: 0; }
             setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true, parked: true }); renderLive(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
         },
     };
-    const LIVE_ONLY = new Set(['wheel', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
+    const LIVE_ONLY = new Set(['wheel', 'turn', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
 
     document.addEventListener('click', (event) => {
         const target = event.target.closest('[data-act]');
         const name = target && target.dataset.act;
         if (!name || !ACTIONS[name]) return;
         if (LIVE_ONLY.has(name) && !target.closest('#live')) return;
-        ACTIONS[name]();
+        ACTIONS[name](target);
         if (LIVE_ONLY.has(name)) renderLive(); // 只影響互動格嘅動作唔使成頁重畫（手機會慢）
         else render();
     });
