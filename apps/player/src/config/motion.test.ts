@@ -36,6 +36,15 @@ describe('motion tokens', () => {
         expect(MOTION.scene.preloadStepMs).toBe(Math.round(V16_FILL_MS / ITEMS / 10) * 10);
     });
 
+    // T-036：設計稿第 18 版 SWAP_FADE_MS（唱臂、細掣、左上歌名淡出淡入）同 CSS 嘅字母盤淡入
+    it('should use the chrome fade and dial fades of mockup version 18', () => {
+        expect(MOTION.scene).toMatchObject({
+            chromeFadeMs: 320,
+            dialPlateFadeMs: 220,
+            dialKeyFadeMs: 180,
+        });
+    });
+
     it('should fit the staggered dial letters inside the disc-change duration', () => {
         const { dialKeyMs, dialKeyOpenStepMs, discChangeMs } = MOTION.scene;
         const DIAL_POSITIONS = 18;
