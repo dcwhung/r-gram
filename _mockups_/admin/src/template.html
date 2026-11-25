@@ -126,6 +126,10 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 .checks li.err { color: var(--danger); font-weight: 700; }
 .checks li.err::before { content: '✕  '; color: var(--danger); }
 .checks li.note::before { content: '–  '; color: var(--muted); }
+.extras { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 4px; }
+.extras summary { min-height: var(--hit); display: flex; align-items: center; cursor: pointer; font-size: 14px; font-weight: 700; color: var(--muted); }
+.extras-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; padding-bottom: 8px; }
+.field select { width: 100%; min-height: var(--hit); padding: 0 12px; border: 1px solid #b9b9b5; border-radius: 10px; background: #fff; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .12); font: inherit; }
 .edit .bar { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .danger-link { background: none; border: 0; color: var(--danger); min-height: var(--hit); padding: 0 8px; font-weight: 700; }
 .add { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 4px 6px 34px; background: none; border: 0; color: var(--muted); font-weight: 700; text-align: left; }
@@ -339,11 +343,26 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
             (bad ? `<li class="err">第 ${badLine} 行沒有時間標記（其他歌詞行都有）。請補上，或者全部歌詞都不加時間標記。</li>` : `<li>歌詞 5 行，全部有時間標記</li>`)
         );
     };
+    // 文字框下面嘅細控件（D37）：只喺管理端用，唔會喺播放端顯示
+    const fileSelect = (id, label, auto) =>
+        `<div class="field"><label for="${id}">${label}</label><select id="${id}"><option>${auto ? `自動配對：${esc(auto)}` : '未有檔案'}</option><option>手動指定…</option></select></div>`;
+    const extras = (track, { blank }) => {
+        const audio = !blank && track.no !== NO_AUDIO_TRACK ? `${pad(track.no)} ${track.title}.m4a` : null;
+        const mv = !blank && MV_TRACKS.has(track.no) ? `${pad(track.no)} ${track.title}.mp4` : null;
+        return (
+            `<details class="extras"><summary>其他：參考連結、備註、媒體檔</summary><div class="extras-grid">` +
+            `<div class="field"><label for="x-url">歌詞參考連結</label><input id="x-url" value="${esc(blank ? '' : (track.lyricsUrl ?? ''))}" placeholder="https://"></div>` +
+            `<div class="field"><label for="x-note">備註</label><input id="x-note" value="${esc(blank ? '' : (track.note ?? ''))}"></div>` +
+            fileSelect('x-audio', '音檔', audio) + fileSelect('x-mv', 'MV', mv) +
+            `</div></details>`
+        );
+    };
     const editor = (track, mode = {}) =>
         `<div class="edit"><div><label class="sub" for="song">歌曲資料及歌詞</label>` +
         `<textarea id="song" class="${mode.bad ? 'bad' : ''}" spellcheck="false" placeholder="${esc(FORMAT)}" aria-describedby="checks">${esc(songText(track, mode))}</textarea></div>` +
         `<div class="hint"><b>格式</b><pre>${esc(FORMAT)}</pre>第一行一定是歌名。「曲：」「詞：」「編：」「監：」可以省略；有副題（例如 Live）可以加一行「副題：」。歌詞可以有時間標記（會跟隨歌曲顯示），也可以完全不加。` +
         `<div style="margin-top: 12px"><b>檢查結果</b></div><ul class="checks" id="checks" aria-live="polite">${checks(track, mode)}</ul></div>` +
+        extras(track, mode) +
         `<div class="bar"><button class="key primary" data-act="save" ${mode.bad ? 'disabled' : ''}>儲存</button><button class="key" data-act="collapse">取消</button><span class="spacer"></span>` +
         (mode.blank ? '' : `<button class="danger-link" data-act="toast-delete">刪除這首歌</button>`) + `</div></div>`;
 
