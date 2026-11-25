@@ -21,6 +21,7 @@ import { CATALOG_JSON_KEY, CATALOG_WRITE_ATTEMPTS, ERROR_CODE, JSON_CONTENT_TYPE
 import type { Env } from '../env';
 import { sha256Hex } from '../lib/crypto';
 import { buildContent, buildDocument, catalogBases, type CatalogContent } from './buildDocument';
+import { locateIssues, type CatalogIssue } from './issues';
 import { readCatalogSnapshot } from './snapshot';
 import {
     recordFailure,
@@ -40,11 +41,18 @@ interface Prepared {
     live: LiveCatalog;
 }
 
+/** details：INVALID_DOCUMENT 嘅位置（S-092） */
+interface Failed {
+    kind: 'failed';
+    error: CatalogFailure;
+    details?: readonly CatalogIssue[];
+}
+
 /** conflict：條件寫入唔啱；superseded：寫咗，但寫完 D1 已經唔係嗰份內容。兩種都由頭再嚟 */
 type Outcome =
     | { kind: 'written' | 'unchanged'; live: LiveCatalog }
     | { kind: 'conflict' | 'superseded' }
-    | { kind: 'failed'; error: CatalogFailure };
+    | Failed;
 
 type Settled = Exclude<Outcome, { kind: 'conflict' | 'superseded' }>;
 
@@ -57,17 +65,16 @@ const contentOf = async (env: RebuildEnv): Promise<CatalogContent> =>
 /** hash 只計內容（唔計 generatedAt） */
 const hashOf = (content: CatalogContent): Promise<string> => sha256Hex(JSON.stringify(content));
 
-/** D1 → 驗證過嘅 document；validator 唔收 → INVALID_DOCUMENT */
-const prepare = async (
-    env: RebuildEnv,
-    generatedAt: string,
-): Promise<Prepared | CatalogFailure> => {
+/** D1 → 驗證過嘅 document；validator 唔收 → INVALID_DOCUMENT + 位置（id + 欄名，冇內容） */
+const prepare = async (env: RebuildEnv, generatedAt: string): Promise<Prepared | Failed> => {
     const content = await contentOf(env);
-    const parsed = parseCatalogDocument(buildDocument(content, generatedAt));
+    const built = buildDocument(content, generatedAt);
+    const parsed = parseCatalogDocument(built);
     if (!parsed.ok) {
         const [first] = parsed.errors;
         console.error('[catalog] invalid document', parsed.errors.length, first?.path, first?.code);
-        return ERROR_CODE.invalidDocument;
+        const details = locateIssues(built, parsed.errors);
+        return { kind: 'failed', error: ERROR_CODE.invalidDocument, details };
     }
     const { document } = parsed;
     const hash = await hashOf(content);
@@ -88,7 +95,7 @@ const stillCurrent = async (env: RebuildEnv, hash: string): Promise<boolean> =>
 const attempt = async (env: RebuildEnv): Promise<Outcome> => {
     const current = await env.CATALOG.head(CATALOG_JSON_KEY);
     const prepared = await prepare(env, new Date().toISOString());
-    if (typeof prepared === 'string') return { kind: 'failed', error: prepared };
+    if ('kind' in prepared) return prepared;
     const { json, live } = prepared;
     const stored = current?.customMetadata;
     if (stored?.hash === live.hash) {
@@ -138,7 +145,9 @@ export const rebuildCatalog = async (env: RebuildEnv, actor: string): Promise<Re
     const outcome = await settle(env);
     const stamp = { updatedAt: new Date().toISOString(), actor };
     if (outcome.kind === 'failed') {
-        return { ...(await recordFailure(env.DB, outcome.error, stamp)), unchanged: false };
+        const status = await recordFailure(env.DB, outcome.error, stamp);
+        const { details } = outcome;
+        return { ...status, unchanged: false, ...(details && { details }) };
     }
     await recordSuccess(env.DB, outcome.live, stamp);
     const unchanged = outcome.kind === 'unchanged';

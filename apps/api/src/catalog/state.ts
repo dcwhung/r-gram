@@ -6,6 +6,7 @@
  * updatedAt = 最近一次嘗試；error = 最近一次失敗嘅種類（成功係 null）
  */
 import { ERROR_CODE } from '../config';
+import type { CatalogIssue } from './issues';
 
 export type CatalogFailure =
     typeof ERROR_CODE.invalidDocument | typeof ERROR_CODE.catalogWriteFailed;
@@ -19,6 +20,11 @@ export interface CatalogStatus {
     updatedAt: string;
     /** CatalogFailure；生成步驟意外 throw（api/afterWrite.ts）係 INTERNAL */
     error: string | null;
+    /**
+     * 只有今次生成係 INVALID_DOCUMENT 先有：擋住生成嘅位置（review S-092）。
+     * 寫入回應同 POST /api/catalog/rebuild 有；GET /api/albums 冇（catalog_state 唔存），要再按重試先睇到
+     */
+    details?: readonly CatalogIssue[];
 }
 
 /** 一份成功生成（或者內容冇變）嘅 catalog.json */

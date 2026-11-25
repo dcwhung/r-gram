@@ -7,7 +7,7 @@
 import { env } from 'cloudflare:test';
 import { zhHant } from '../src/i18n/zh-Hant';
 import { ORIGIN, call, loginCookie } from './helpers';
-import { api, insertAlbum, json } from './albumFixtures';
+import { api, insertAlbum, insertTrack, json } from './albumFixtures';
 import { SHA256_HEX, bucketWith, liveDocument, stateRow } from './catalogFixtures';
 
 const REBUILD = '/api/catalog/rebuild';
@@ -23,8 +23,23 @@ const CATALOG_STATUS_KEYS = [
 ];
 
 interface ErrorBody {
-    error: { code: string; message: string };
+    error: { code: string; message: string; details?: Record<string, unknown>[] };
 }
+
+/** 兩個壞欄（專輯 accent、歌名空白），內容有一段唔應該出現喺回應嘅字 */
+const seedBroken = async () => {
+    await insertAlbum('good', 1);
+    await insertAlbum('bad', 2, { accent: 'crimson', title: '秘密碟名' });
+    await insertTrack('bad-01', 'bad', 1, { title: ' ', composer: '秘密作曲' });
+};
+
+/** review S-092：只有 id 同欄名，冇內容 */
+const BROKEN_DETAILS = [
+    { albumId: 'bad', field: 'accent', code: 'INVALID_COLOUR' },
+    { albumId: 'bad', trackId: 'bad-01', field: 'title', code: 'INVALID_STRING' },
+];
+
+const CONTENT = ['秘密碟名', '秘密作曲', 'crimson'];
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -70,8 +85,20 @@ describe('POST /api/catalog/rebuild', () => {
         expect(body.error).toEqual({
             code: 'INVALID_DOCUMENT',
             message: zhHant.catalog.errors.invalidDocument,
+            details: [{ albumId: 'bad', field: 'accent', code: 'INVALID_COLOUR' }],
         });
         expect((await stateRow())?.status).toBe('failed');
+    });
+
+    // review S-092：管理員要搵到邊一行擋住生成
+    it('should locate each problem by album id, track id and field, without content', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        await seedBroken();
+        const response = await api('POST', REBUILD);
+        expect(response.status).toBe(422);
+        const raw = await response.text();
+        expect((JSON.parse(raw) as ErrorBody).error.details).toEqual(BROKEN_DETAILS);
+        for (const text of CONTENT) expect(raw).not.toContain(text);
     });
 
     it('should answer 502 CATALOG_WRITE_FAILED when R2 refuses the write', async () => {
@@ -135,6 +162,20 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
         expect(body.title).toBe('Apollo');
         expect(body.catalog).toMatchObject({ ok: false, error: 'INVALID_DOCUMENT' });
         expect(await liveDocument()).toBeNull();
+    });
+
+    it('should locate the problem in the write response catalog too (S-092)', async () => {
+        const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        await seedBroken();
+        const response = await api('PUT', '/api/albums/order', { ids: ['bad', 'good'] });
+        expect(response.status).toBe(200);
+        const raw = await response.text();
+        const { catalog } = JSON.parse(raw) as { catalog: Record<string, unknown> };
+        expect(catalog).toMatchObject({ ok: false, error: 'INVALID_DOCUMENT' });
+        // 錯誤喺 albums[0]（bad 而家排第一），details 照用 id
+        expect(catalog.details).toEqual(BROKEN_DETAILS);
+        for (const text of CONTENT) expect(raw).not.toContain(text);
+        for (const text of CONTENT) expect(JSON.stringify(log.mock.calls)).not.toContain(text);
     });
 
     it('should not generate after a failed write', async () => {

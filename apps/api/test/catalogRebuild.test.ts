@@ -262,6 +262,7 @@ describe('rebuildCatalog: failures', () => {
             trackCount: 0,
             updatedAt: expect.any(String),
             error: 'INVALID_DOCUMENT',
+            details: [{ albumId: 'bad', field: 'accent', code: 'INVALID_COLOUR' }],
         });
         expect((await liveDocument())?.albums.map((album) => album.id)).toEqual(['a']);
         expect(await stateRow()).toMatchObject({
@@ -270,6 +271,19 @@ describe('rebuildCatalog: failures', () => {
             error: 'INVALID_DOCUMENT',
         });
         expect(JSON.stringify(log.mock.calls)).not.toContain('秘密碟名');
+    });
+
+    // review S-092：文件頂層嘅欄冇專輯 id，只有欄名
+    it('should locate a problem outside the albums by its field alone', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const result = await rebuild({ ...env, MEDIA_BASE: 'http://media.example/' });
+        expect(result.details).toEqual([{ field: 'mediaBase', code: 'INVALID_URL' }]);
+    });
+
+    it('should give no details for a failure that is not about the document', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        const { bucket } = bucketWith({ put: () => Promise.reject(new Error('R2 down')) });
+        expect(await rebuild({ ...env, CATALOG: bucket })).not.toHaveProperty('details');
     });
 
     it('should record CATALOG_WRITE_FAILED when R2 refuses the write, keeping the previous values', async () => {
