@@ -1,10 +1,10 @@
 # Technical Spec：R Gram（播放端 PWA + 內容管理 Backend）
 
-**版本**：v1.4
-**日期**：2026-11-25 16:40（v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
-**作者**：Architect Agent（v1.2、v1.3、v1.4：Project Manager Agent 跟 CR-003、CR-004、CR-005 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
-**關聯 Functional Spec**：v1.6（包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：**v1.4**（CR-005）。跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
+**版本**：v1.5
+**日期**：2026-11-25 19:36（v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
+**作者**：Architect Agent（v1.2–v1.5：Project Manager Agent 跟 CR-003、CR-004、CR-005 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
+**關聯 Functional Spec**：v1.7（v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
+**狀態**：**v1.5**（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）。加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -126,6 +126,7 @@ src/
 ├── catalog/        loader.ts（fetch + 驗證 + 本機 cache）、selectors.ts
 ├── stage/          Stage.tsx（按比例縮放舞台）、StageSvg.tsx（單一 SVG 畫布，貼頂 / 貼底兩組；CR-003）、geometry.ts（幾何純函數）、fitStage.ts、safeArea.ts、layouts/<mode>.ts（幾何資料表）、useLayoutMode.ts
 ├── components/     flag/ metal/（SvgDefs、Screws、車床紋）platter/ disc/ spindle/ tonearm/ metal-button/ icons/ knob/ dial-ring/ tracklist/ info-block/ booklet/ tv/ rotate-notice/
+│                   mini-turntable/ held-tracks/（CR-005 第 18 版：細唱片機、拎住嘅碟嘅歌單欄；T-048、T-049）
 │                   （CR-002 + CR-003：場景零件全部係 React SVG 元件；wheel/、lyrics/、info-panel/ 已刪）
 ├── playback/       audioEngine.ts、queue.ts（純函數）、playModes.ts、mediaSession.ts、resume.ts
 ├── mv/             videoEngine.ts、volumeGain.ts（Web Audio）
@@ -143,7 +144,7 @@ src/
 | --- | --- |
 | `scene` | `preload` → `home` ⇄ `discChange`；`home` ⇄ `list`；`discChange` → `list`（Functional Spec D27：轉碟中㩒碟面直接入歌單）。⚠️ CR-002 / CR-003 同步 T-032 嘅實作；之前寫 `home ⇄ wheel → list → home` |
 | `overlay` | `null`｜`mv`｜`booklet`（只喺 `scene = home` 有；兩個互斥）。暫停 / 繼續係播放 store 嘅事，唔改 `overlay`：歌書開住時暫停，歌書留住（⚠️ CR-003 決定 5） |
-| `viewAlbumId` | 畫面顯示緊嘅碟（可以同播緊嘅碟唔同，Functional Spec D13） |
+| `viewAlbumId` | 畫面顯示緊嘅碟（可以同播緊嘅碟唔同，Functional Spec D13）。⚠️ CR-005 第 18 版：= 旋鈕指住／手上拎住嘅碟（「顯示嘅碟」）；「載入嘅碟」係播放 store 嘅 `albumId`；兩個唔同就係 `holding`（見「補充：播放端設計稿第 18 版確認嘅技術設計」） |
 | `previousAlbumId` | 去 Favourites 碟之前嗰隻真專輯：再㩒 ♥ 返去（⚠️ CR-003 同步：T-032 已做） |
 | `selectedTrackId` | 歌單揀中 / 左上顯示嘅歌 |
 | 播放狀態（獨立 store） | `idle`｜`loading`｜`playing`｜`paused`｜`error` + `queue`、`currentTrackId`、`positionSec`、`durationSec` |
@@ -156,7 +157,7 @@ src/
 | --- | --- |
 | `playing`（落針 99°，小燈著） | 播放狀態 `playing`，`overlay ≠ mv`，`viewAlbumId` = 播緊嘅碟 |
 | `lifted`（升針：角度唔變，成支臂放大少少、落影移遠；設計稿第 17 版 `ARM_LIFT`，由第 16 版起） | 播放狀態 `paused` 而且係用戶㩒唱片夾暫停，`overlay ≠ mv`，`viewAlbumId` = 停低嗰隻碟 |
-| `parked`（泊位 176°） | 其餘：未揀歌、`overlay = mv`、MV 熄咗之後未再播。Functional Spec D36（已確認）：重開 app 回復上次嘅歌、播完最後一首、載入失敗、睇緊另一隻碟（⚠️ CR-005 D52：揀碟期間唱臂成支淡出，見「CR-005 對技術設計嘅影響」） |
+| `parked`（泊位 176°） | 其餘：未揀歌、`overlay = mv`、MV 熄咗之後未再播。Functional Spec D36（已確認）：重開 app 回復上次嘅歌、播完最後一首、載入失敗、~~睇緊另一隻碟~~（⚠️ CR-005 D52：揀碟期間唱臂成支淡出；第 18 版確認：拎住另一隻碟時大唱片機冇唱臂，細唱片機嘅唱臂用同一張表、以載入嘅碟計，見「補充：播放端設計稿第 18 版確認嘅技術設計」） |
 
 要分得出「用戶暫停」同「因為 MV／重開 app 而停」：播放 store 記低暫停原因（例如 `pauseReason: 'user'｜'mv'｜'restore'`），做法由 T-038 定案。`lifted → playing` 冇轉動（即刻續播）；`parked → playing` 行完整落針動作。
 
@@ -172,7 +173,7 @@ src/
 
 - 新 token 名（`tonearmDropMs`、CSS `--motion-scene-tonearm-drop`）係建議，由 T-042 定案；`motion.test.ts` 同 `tokens.node.test.ts` 要鎖住數值。小燈淡入用現有回饋類 token（設計稿 0.12s）。
 - 設計稿嘅做法可以照用：`parked → playing` 嗰刻畀唱臂一個開場 class，行 `armSwing`（650ms）再行 `armDrop`（160ms，延遲 650ms）兩個 CSS keyframes；播完要除走個 class，否則佢最後一格會蓋住之後嘅 `lifted`。狀態機唔等 `animationend`（實現注意事項 11）：class 嘅加同除只係顯示層嘅事。
-- 開場跟「開始播」走，唔係跟畫面切換走：轉碟期間唱臂本身淡出（⚠️ CR-005 D52：播緊時一樣，碟停轉）；睇完另一隻碟返去播緊嗰隻碟，`pose` 會由 `parked` 變 `playing`，但唔應該再行一次開場（建議做法，由 T-038 定案）。
+- 開場跟「開始播」走，唔係跟畫面切換走：轉碟期間唱臂本身淡出（⚠️ CR-005 D52：播緊時一樣，碟停轉）；睇完另一隻碟返去播緊嗰隻碟，`pose` 會由 `parked` 變 `playing`，但唔應該再行一次開場（建議做法，由 T-038 定案）。⚠️ CR-005 第 18 版：返去載入嘅碟係「淡出期間即時到位 → 淡入」（設計稿 `swapAlbum`、`data-arm-instant`），唔行開場；拎住嘅碟㩒一行播先行完整開場。
 - 出聲時間照實現注意事項 1：② 完嗰刻出聲；`audioEngine` 介面由 T-011 定案。
 
 **版面系統**（`stage/`）
@@ -199,7 +200,9 @@ src/
 | 唱臂 | SVG `<g>`，CSS `rotate` | 時長用 scene token；三個姿勢（泊位 / 落針 / 升針，CR-003 決定 11）；由泊位開始播有兩段開場（轉入 650ms → 放低 160ms，第 17 版；見上面「唱針開場」） |
 | 金屬面 / 掣 / 旋鈕 / 螺絲 / 轉盤 / 唱片夾 | SVG gradient 同 filter，集中喺一個共用 `<defs>`（`components/metal/SvgDefs.tsx`；id 同引用共用 `defIds.ts` 嘅常數） | 光圈用 CSS；感應範圍係零件上面一個透明圖形（圓形，半徑按 44pt 換算） |
 | 轉碟旋鈕 + 字母盤（CR-002 取代 Wheel） | SVG；pointer 拖動旋鈕（吸附去最近一格） | `role="listbox"`；方向鍵可操作；角度由 `scaleAngle()` 計（CR-003：弧固定、專輯平均分佈）。第 17 版：邊格出字母、邊格出細點由純函數 `dialShowsLetter()` 決定（Functional Spec D28）；出細點嘅格照舊係 listbox 嘅 option，無障礙名稱唔變 |
-| 歌單 | SVG `<text>` 行，用 `arcRows()` 沿弧線排（以碟心做原點；T-037 定案） | 拖動 / 滾輪捲動 + 吸附；`role="listbox"` |
+| 歌單 | SVG `<text>` 行，用 `arcRows()` 沿弧線排（以碟心做原點；T-037 定案）。⚠️ CR-005 第 18 版：只用喺冇歌載入時揀中嘅碟同載入嘅碟 | 拖動 / 滾輪捲動 + 吸附；`role="listbox"` |
+| 拎住嘅碟嘅歌單欄（CR-005 第 18 版） | SVG `<text>` 行，直身靠左一欄；欄內捲動用 SVG `mask`（頂底淡出）+ 位置條；底下一層舞台底色漸變（T-049 定案） | 拖動 / 滾輪 / 鍵盤捲動，拖過唔當㩒；每行係一粒掣 |
+| 細唱片機（CR-005 第 18 版） | 重用轉盤、碟、唱片夾、唱臂元件，外層 `scale(MINI.r / PLATTER.r)`（T-048 定案） | 成組係一粒掣；碟用自己嘅轉動 class（播緊就轉，同大唱片機嘅停轉分開） |
 | 電視 | SVG 機身（同一個畫布）；`<video>` 係疊喺畫布上面嘅 HTML element，用 `clip-path: path()` 裁成弧面螢幕，位置由幾何表換算；掃描線用 CSS 疊層 | 獨立 chunk，㩒 MV 掣先載入；T-060 定案 |
 | 模糊層 | 唱片機層 `filter: blur()` | 唔用 mockup 嘅 `blurBackdrop()` |
 | 歌書（曲詞編監 + 歌詞） | SVG `<text>`。有時間標記嘅歌詞用 `arcRows()`，而家嗰行太長就喺框入面斷行；冇時間標記嘅歌詞係直身一欄，可以上下捲（第 17 版；見「播放端設計稿第 17 版嘅技術設計」。T-072、T-082 定案） | 獨立 chunk |
@@ -1182,8 +1185,8 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | 掃描 | 每類檔各自按歌號配對 | 音檔做錨：冇音檔嘅歌號，`.txt`、MV 入 `skipped`（`NO_AUDIO`）；加 `cover2.jpg` | 已確認（D54、D55）；兩個例外同 `cover2.png` 待確認 |
 | 第二張封面 | — | `albums.cover2`、`thumb2`、`cover2_source_etag`；內容檔可選 `cover2`、`thumb2`；API-013 三個欄 | 已確認（D55）；T-100 |
 | 播放端封面 | 用 `album.cover`／`thumb` | 開 app 時每張專輯隨機揀一張，開住期間唔變，唔記低 | 已確認（D56）；T-046 |
-| 左上歌名 | `fitText()`：縮字 → 「…」 | 縮字 → 兩行 → 第二行尾「…」 | 已確認（D51）；數值等第 18 版確認；T-047 |
-| 播緊時揀碟 | 唱臂、細掣淡出（CR-002）；碟照轉 | 揀碟期間唱臂同三粒細掣淡出、碟停轉、聲照播；返播緊嗰隻碟鬆手淡入返 | 已確認（D52）；數值等第 18 版確認；T-036 |
+| 左上歌名 | `fitText()`：縮字 → 「…」 | 縮字 → 兩行 → 第二行尾「…」 | 已確認（D51）；數值 ✅ 第 18 版已確認（`SONG_FIT`）；T-047 |
+| 播緊時揀碟 | 唱臂、細掣淡出（CR-002）；碟照轉 | 揀碟期間唱臂同三粒細掣淡出、碟停轉、聲照播；返播緊嗰隻碟鬆手淡入返。⚠️ 第 18 版確認改寫：連左上歌名嗰部分淡出；拎住另一隻碟（`holding`）：細唱片機 + 歌單欄 | 已確認（D52，第 18 版改寫）；T-036、T-048、T-049 |
 | 字重 | spec 寫「Book 遇到粗體由瀏覽器模擬」 | 唔模擬粗體（同 T-044 code 一致） | 已確認（D53）；唔使改 code |
 
 ### 封面尺寸（D50）
@@ -1232,17 +1235,17 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | 項目 | 設計 |
 | --- | --- |
 | 策略 | `fitText()`（歌名）由「縮字 → 『…』」改為「縮字（44 → 32）→ `wrapLine()` 兩行 → 第二行尾『…』」。斷行規則用歌書嘅 `wrapLine()`，加「英文字同括號入面唔斷」（設計稿第 18 版）；共用函數改動要連歌書測試一齊跑 |
-| 幾何（第 18 版，等確認） | 第一行上移 22、行距 38、「第 nn 首」行唔郁；第二行右邊界 x ≤ 470（唱臂泊位）。數值入 `layouts/phone.ts`，元件只讀表；`clearance.test.ts` 加兩行時嘅淨空 |
+| 幾何（第 18 版，✅ 已確認；`SONG_FIT`） | 第一行上移 22（`lift`）、行距 38（`pitch`）、「第 nn 首」行唔郁；第二行右邊界 x ≤ 470（`secondRight`，唱臂泊位）。數值入 `layouts/phone.ts`，元件只讀表；`clearance.test.ts` 加兩行時嘅淨空 |
 | 元件 | `info-block/SongLines.tsx`：兩行時心形跟最後一行；`key` 唔好再用字級（backlog B-056 ④） |
 
 ### 播緊時揀碟（D52；T-036、T-038）
 
 | 項目 | 設計 |
 | --- | --- |
-| 衍生狀態 | `chromeHidden = scene === 'discChange'`：唱臂同三粒細掣 `opacity` 0、唔接受 pointer、唔入 Tab 次序。碟轉唔轉：`spinning = pose === 'playing' && scene !== 'discChange'`（揀碟期間全部碟停喺原位，`animation-play-state: paused`） |
+| 衍生狀態 | `chromeHidden = scene === 'discChange'`：唱臂同三粒細掣 `opacity` 0、唔接受 pointer、唔入 Tab 次序。碟轉唔轉：`spinning = pose === 'playing' && scene !== 'discChange'`（揀碟期間全部碟停喺原位，`animation-play-state: paused`）。⚠️ 第 18 版確認：`chromeHidden` 加 `|| holding`，而且連左上歌名嗰部分一齊隱藏；`spinning` 加 `&& !holding`（見下面「補充」） |
 | 返播緊嗰隻碟鬆手 | `discChange → home` 而且 `viewAlbumId` = 播緊嘅碟：淡入；`pose` 直接係 `playing`／`lifted`，**唔行開場**（「唱針開場」嗰段已有嘅建議） |
-| 喺另一隻碟鬆手（第 18 版，等確認） | 返 `home`：細掣淡入、唱臂 `parked`、左上唔顯示歌名（`selectedTrackId` 唔屬嗰隻碟就唔顯示）；㩒唱片夾 = 打開歌單 |
-| 時長 | 新 scene token（建議 `--motion-scene-chrome-fade`／`chromeFadeMs`，數值照第 18 版），入 `config/motion.ts` 同 `tokens.css`，連鎖數值嘅測試；減少動態效果 = 0 |
+| ~~喺另一隻碟鬆手（第 18 版，等確認）~~ | ~~返 `home`：細掣淡入、唱臂 `parked`、左上唔顯示歌名；㩒唱片夾 = 打開歌單~~。⚠️ **第 18 版確認改寫**：喺另一隻碟鬆手 = 繼續 `holding`（細唱片機、歌單欄；冇轉盤、唱臂、細掣），見下面「補充」 |
+| 時長 | 新 scene token `chromeFadeMs`（CSS `--motion-scene-chrome-fade`）= 設計稿 `SWAP_FADE_MS`（同字母盤淡出一樣），入 `config/motion.ts` 同 `tokens.css`，連鎖數值嘅測試；減少動態效果 = 0 |
 | 聲音 | 播放 store 唔受場景影響（照舊） |
 
 ### 字重（D53）
@@ -1260,7 +1263,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | `apps/api/src/assets/*`、`config.ts` | 尺寸規則（1200／320） | 規則不變；PATCH 時驗位同尺寸（B-052 ①） | T-099 |
 | `packages/catalog/src/scan/matchMediaFiles.ts` | 未做 CR-004 部分 | 連音檔做錨、`cover2`、`skipped` | T-025 |
 | `apps/player/src/app/homeView.ts`（連測試） | `coverUrl` 用 `album.cover` | 用揀中嗰張 | T-046 |
-| `apps/player/src/utils/fitText.ts`、`components/info-block/SongLines.tsx`、`stage/layouts/phone.ts`、`clearance.test.ts` | 縮字之後截短 | 兩行 | T-047（等第 18 版確認） |
+| `apps/player/src/utils/fitText.ts`、`components/info-block/SongLines.tsx`、`stage/layouts/phone.ts`、`clearance.test.ts` | 縮字之後截短 | 兩行 | T-047（第 18 版已確認，可以開工） |
 | `apps/player/src/config/motion.ts`、`styles/tokens.css` | 冇淡出 token | 加 `chromeFadeMs` | T-036 |
 
 上面部分檔案屬於已凍結嘅 QA 鏈（`api-albums`、`api-assets`、`api-auth`（schema）、`catalog-core`、`player-catalog`、`player-home`）：改完按 validation gate 重驗有改動嘅部分。
@@ -1277,6 +1280,106 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | US-003、FR-038（改） | `chromeHidden`、`spinning`、`chromeFadeMs` |
 | FR-041（改） | 字眼；code 不變 |
 
+### 補充：播放端設計稿第 18 版確認嘅技術設計（T-036、T-047、T-048、T-049、T-038、T-040）
+
+對應 Functional Spec v1.7 §CR-005「補充：播放端設計稿第 18 版確認」（用戶 2026-11-25 確認；source commit `4e739cd`）。數值以設計稿常數為準：`SCALE`、`DIAL_KEYS`、`SONG_FIT`、`MINI`、`TRACKLIST`、`SWAP_FADE_MS`；下面只寫常數名同做法。**今次冇改 code**；只影響 `apps/player`。標「T-xxx 定案」嘅細節留畀嗰個任務。
+
+**狀態：載入嘅碟同顯示嘅碟**
+
+| 名 | 來源 | 意思 |
+| --- | --- | --- |
+| 載入嘅碟 | 播放 store 嘅 `albumId`（`app/playbackState.ts` 已有；T-038 嘅真播放 store 保留呢個欄） | 唱片機入面嗰隻碟（播緊或者暫停）；`idle` = `null`。Favourites 碟播緊時係 `favourites`（隊列屬 Favourites 碟） |
+| 顯示嘅碟 | `stageReducer` 嘅 `viewAlbumId`（已有） | 旋鈕指住／手上拎住嘅碟；左上碟名同年份跟佢 |
+| `holding`（衍生，唔另外存） | `loaded !== null && viewAlbumId !== loaded && (scene === 'home' ｜｜ scene === 'discChange')` | 拎住另一隻碟（旋鈕開住指住，或者已經鬆手）。純函數，連 unit test（建議放 `app/homeView.ts` 或者新 `app/holding.ts`，T-048 定案） |
+
+| 衍生顯示 | 規則 |
+| --- | --- |
+| 大唱片機嘅轉盤 | `!holding` 先顯示（`opacity` 用 `chromeFadeMs` 過場） |
+| `chromeHidden`（唱臂、三粒細掣、左上**歌名嗰部分**：音量條、歌名、心形、「第 nn 首」同時間） | `loaded !== null && (scene === 'discChange' ｜｜ holding)`；冇歌載入時照 CR-002（字母盤開住時淡出唱臂同細掣）。隱藏時 `opacity` 0、`pointer-events: none`、唔入 Tab 次序 |
+| 大唱片機嘅碟轉唔轉 | `pose === 'playing' && scene !== 'discChange' && !holding` |
+| 細唱片機 | `holding` 先顯示；碟：播放 store `playing` 就轉（用自己嘅 class，唔受上一行影響）；唱臂姿勢用同一張「唱臂姿勢」表，以**載入嘅碟**代替 `viewAlbumId` 計（Functional Spec D58 ①） |
+| 歌單欄 | `holding` 先顯示；欄底 = `scene === 'discChange' ? TRACKLIST.bottomOpen : TRACKLIST.bottomHeld`；行只喺 `scene === 'home'` 先㩒得（旋鈕開住時 `aria-disabled`） |
+| 碟名闊度上限 | `holding` 時收窄到細唱片機左邊（設計稿 `MINI.x - MINI.r - 20`；入幾何表做有名常數，例如 `albumTitle.rightWhenHeld`）；其餘照 T-035 嘅上限。同一個 fit 函數，只換闊度 |
+| 半透明層 | `holding` 先顯示；喺碟上面、字母盤同旋鈕下面 |
+
+**動作**
+
+| 動作 | 做法 |
+| --- | --- |
+| 擰旋鈕（`openDiscChange`、`selectAlbum`，已有） | 唔使改 reducer：`viewAlbumId` 跟旋鈕，`holding` 自動成立／解除 |
+| 鬆手（`closeDiscChange`，已有） | 返 `home`；`viewAlbumId` 唔變。如果 `viewAlbumId` = 載入嘅碟：淡入、唔行開場；否則繼續 `holding` |
+| `openList`（㩒碟面／唱片夾） | `holding` 時唔做嘢（冇轉盤、冇唱片夾；歌單已經喺碟名下面）。要 reducer 知道載入嘅碟：action 帶 `loadedAlbumId`，或者由 `useHome` 擋（T-048 定案）；連測試 |
+| 㩒細唱片機（新 action，建議 `returnToLoaded`） | `viewAlbumId = 載入嘅碟`、`scene = home`（字母盤開住都收埋）。顯示層：淡出期間換碟、唱臂即時到位，之後淡入（設計稿 `swapAlbum`，CSS 用一個「即時」記號關掉唱臂 transition），唔行開場 |
+| 㩒歌單欄一行（新 action，建議 `playHeldTrack`） | 只喺 `scene === 'home' && holding`：stage `selectedTrackId = trackId`；播放 store `start { albumId: viewAlbumId, trackId }`（已有嘅 action：舊歌停、換隊列）。`albumId` 變咗之後 `holding` 自動解除 → 轉盤淡入、細唱片機淡出 → 唱臂由 `parked` 行完整開場（`tonearmMs` + `needleDropMs`）。未有音檔嘅行唔發 action。真正出聲由 T-038（`audioEngine`）接 |
+| ♥（`toggleFavourites`） | `holding` 時等同轉去 ♥ 嗰格（Functional Spec D58 ④）；`previousAlbumId` 嘅處理由 T-048 定案（建議：記低拎住之前嘅顯示嘅碟） |
+| 播放 store 變化（自動下一首、播完、載入失敗） | 唔改 stage；細唱片機嘅歌名同唱臂跟住播放 store（D58 ①②） |
+| 續播（T-062） | 只記載入嘅碟同歌；`holding` 唔記低，重開 app 返載入嘅碟（D58 ③） |
+
+**版面數字（`stage/layouts/phone.ts`）**：全部由設計稿常數抄入，元件只讀表；`layouts/types.ts` 加對應型別。
+
+| 表 | 來源常數 | 用喺 |
+| --- | --- | --- |
+| `songFit` | `SONG_FIT` | 左上歌名兩行（T-047） |
+| `miniTurntable` | `MINI`（圓心、半徑、字同轉盤之間嘅距離、感應範圍加闊、兩行字級）；縮放 = `MINI.r / PLATTER.r` | 細唱片機（T-048） |
+| `albumTitle.rightWhenHeld` | `MINI.x - MINI.r - 20`（20 要變有名常數） | 碟名 fit（T-048） |
+| `heldTracks` | `TRACKLIST`（欄位置、`bottomOpen`／`bottomHeld`、字級、行距、歌號比例同闊度、淡出高度、位置條闊度同 x、半透明層嘅 `scrimOpacity`／`scrimEnd`）；位置條最短長度（設計稿寫死 60）同拖動門檻（設計稿 6 px）要變有名常數 | 歌單欄（T-049） |
+| 22 格 | `SCALE`（`positions` 由專輯數生成，唔寫死 22）、`DIAL_KEYS`（字母嚟自內容檔 `wheelKey`） | 轉盤（T-036；E2E 用 22 格嘅 fixture） |
+
+**淨空規則測試（`clearance.test.ts`）加**：① 歌單欄欄底（`bottomOpen`）唔入字母盤外圈；欄底（`bottomHeld`）唔入刻度弧同旋鈕；② 歌單欄右邊唔入細唱片機嘅感應範圍；③ 細唱片機嘅感應範圍唔同版本號、碟名（收窄之後）、♥ 重疊；④ 感應範圍 ≥ 44pt 嘅檢查加一個**明文例外清單**，只得「歌單欄嘅行」（Functional Spec D57；行高 = `heldTracks.pitch`，約 24pt），其餘控件照守。
+
+**元件**（每個 `.tsx` 檔 ≤ 150 行、函數 ≤ 50 行；拆細）
+
+| 元件／模組 | 內容 |
+| --- | --- |
+| `components/mini-turntable/MiniTurntable.tsx` | 重用 `Platter`、`Disc`（封面用 T-046 揀中嗰張）、唱片夾、`Tonearm`（姿勢以載入嘅碟計）；兩行字（`t()`：「播放中」／「已暫停」、歌名）；成組 `role="button"`、`aria-label`「返回播放中的唱片」、透明感應範圍 |
+| `components/held-tracks/`（`HeldTrackList.tsx`、`HeldTrackRow.tsx`、`HeldScrim.tsx`、`ScrollBar.tsx`） | 一欄行；歌號專輯色、歌名黑字；灰色行 `aria-disabled`；長歌名用現有量字函數加「…」（同 T-037 弧線歌單共用一個「一行截短」函數）；頂底淡出用 SVG `mask` + `linearGradient`（id 用 `useId()` 或者 `defIds`）；位置條喺**左邊**；半透明層 = 舞台底色 `linearGradient`（左 `scrimOpacity` → 右 0）做 `mask` |
+| `components/held-tracks/columnLayout.ts`（純函數，連 unit test） | 由行數、欄高、行距計：可捲距離、某行嘅 y、頂／底淡出開唔開、位置條長度同位置；捲動值夾喺 0 至可捲距離 |
+| 捲動 | pointer 拖動（過咗門檻先當拖，拖過唔當㩒）、滾輪、鍵盤（焦點喺行時上下鍵、Page Up／Down）；欄 `touch-action: none`；換碟時捲動歸零 |
+| 圖層次序（`StageSvg`） | 照設計稿 `scene()`：底色 → 螺絲 → 轉盤 → 碟 → 半透明層（連螺絲再畫一次）→ 字母盤 → 旋鈕 → ♥ → 唱臂 → 細唱片機 → 三粒細掣 → 歌單欄 → 左上資訊 |
+| i18n（`src/i18n/zh-Hant.ts`） | 加「播放中」「已暫停」「返回播放中的唱片」、行嘅 `aria-label`（例如「播放：{歌名}」）；空欄重用「尚未有歌曲」「尚未收藏歌曲」。鍵名由 T-048／T-049 定；書面語測試照跑 |
+
+**Motion token**
+
+| Token | 數值來源 | 用喺 |
+| --- | --- | --- |
+| `MOTION.scene.chromeFadeMs`（CSS `--motion-scene-chrome-fade`；新） | 設計稿 `SWAP_FADE_MS`（同 CSS 嘅 `opacity` 過場一樣） | 唱臂、三粒細掣、左上歌名嗰部分淡出淡入；大轉盤、細唱片機、半透明層出現／消失。屬 scene token（Functional Spec D1 豁免 300ms） |
+| 現有 `tonearmMs`、`needleDropMs` | 不變 | 拎住嘅碟㩒一行之後嘅完整開場 |
+| 歌單欄內容 | 冇過場（設計稿即時換） | 換碟時欄內容即時換 |
+| 減少動態效果 | 全部 0；唱臂即時到位 | `utils/motion.ts`（`prefersReducedMotion`） |
+
+`motion.test.ts`、`tokens.node.test.ts` 鎖住新 token 嘅數值。元件唔寫死毫秒。
+
+**測試同 E2E**
+
+| 層 | 內容 |
+| --- | --- |
+| Unit | `holding` 同各衍生顯示（冇歌載入、播緊、暫停、旋鈕開住／鬆手、指返載入嘅碟）；`returnToLoaded`、`playHeldTrack`、`openList` 嘅守衛；`columnLayout`；細唱片機嘅唱臂姿勢以載入嘅碟計 |
+| 元件 | 細唱片機（兩個字、`aria-label`、㩒）；歌單欄（灰色行唔㩒得、旋鈕開住唔㩒得、拖動唔當㩒、長歌名「…」、空碟） |
+| 淨空 | 上面四條 |
+| E2E 截圖（T-040） | 對 `VIEWS` 入面標「第 18 版」嘅格：「歌名較長（縮字）」「歌名好長（斷兩行）」「歌名好長 + 唱臂喺泊位」「播緊時揀碟」「播緊時揀碟：轉到另一隻碟」「播緊時，手上拎住另一隻碟」「長歌單（30 首）」，連 22 格嘅轉盤；流程：播緊 → 擰去另一隻碟 → 鬆手 → 㩒一行（新歌開場）／㩒細唱片機（返去，聲冇停）；減少動態效果再行一次 |
+
+**已完成嘅 code 受影響（今次冇改 code）**
+
+| 檔案 | 要改 | 任務 |
+| --- | --- | --- |
+| `app/stageReducer.ts`（連測試） | 加 `returnToLoaded`、`playHeldTrack`；`openList` 嘅 `holding` 守衛 | T-048、T-049 |
+| `app/homeView.ts`、`app/HomeScene.tsx`、`app/useHome.ts`（連測試） | `holding`、`chromeHidden` 連歌名嗰部分、碟名闊度、細唱片機同歌單欄嘅接入 | T-036、T-048、T-049 |
+| `components/info-block/*` | 歌名嗰部分可以獨立淡出（碟名同年份留低） | T-036 |
+| `stage/layouts/phone.ts`、`types.ts`、`clearance.test.ts` | `songFit`、`miniTurntable`、`albumTitle.rightWhenHeld`、`heldTracks`；例外清單 | T-047、T-048、T-049 |
+| `config/motion.ts`、`styles/tokens.css`（連測試） | `chromeFadeMs` | T-036 |
+| `i18n/zh-Hant.ts` | 新字串 | T-048、T-049 |
+
+上面部分檔案屬已凍結嘅 QA 鏈 `player-home`、`player-core`、`player-foundation`：改完按 validation gate 重驗有改動嘅部分；新元件（`mini-turntable/`、`held-tracks/`）建議入 `player-home` 鏈（主 session 定）。
+
+| Functional 需求 | 技術落點 |
+| --- | --- |
+| FR-043 拎住另一隻碟、細唱片機 | `holding`、`chromeHidden`、`MiniTurntable`、`returnToLoaded`、`miniTurntable` 幾何、`albumTitle.rightWhenHeld`、`chromeFadeMs` |
+| FR-044 歌單欄 | `HeldTrackList`、`columnLayout`、`heldTracks` 幾何、`playHeldTrack`、淨空例外 |
+| D52（改寫）、D13、D36 ④ | 上面兩行；唱臂姿勢表以載入嘅碟計細唱片機 |
+| D51（定案） | `songFit`（T-047） |
+| D57 | `clearance.test.ts` 例外清單 |
+| D58（🅰️） | 細唱片機唱臂同歌名跟播放 store；`holding` 唔入續播 |
+
 ## 修訂記錄
 
 | 版本 | 日期 | 改動 |
@@ -1291,3 +1394,4 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | v1.2（第 17 版確認） | 2026-11-25 | **2026-11-25：播放端設計稿第 17 版確認**（CR-003 之內嘅補充，唔係新 CR；版本號不變）。跟 Functional Spec v1.4 嘅同名補充：加「播放端設計稿第 17 版嘅技術設計」一節：歌書歌詞版面（純文字用直身一欄，`wrapLine()` 自動斷行、上下捲、頂底淡出；有時間標記嘅長行用 `fitLyricLine()`，縮字之後喺框入面斷行、框線變高，其他行右邊淡出）、字母盤嘅字母（`dialShowsLetter()`）、唱臂。「場景狀態機」加「唱針開場同姿勢之間嘅動作」：`parked → playing` 兩段（650ms + 160ms，小燈同碟轉延遲 810ms），`lifted ⇄ playing` 只係放低／升起（160ms），減少動態效果直接到位；`config/motion.ts` 要加 160ms 嘅 token。`fitText()` 嘅跑馬燈策略刪走（D22 修訂）。狀態：刻度弧、唱臂兩行由「設計稿第 16 版等確認」改為「第 17 版已確認」。Backend、API、資料庫、歌詞 JSON 唔受影響。仍然等用戶：管理端設計稿第 2 版連 D35、A-7、A-8 |
 | v1.3 | 2026-11-25 12:40 | 跟 Functional Spec v1.5（**CR-004**）更新：加「CR-004 對技術設計嘅影響」一節（對照表、掃描嘅設計、資料夾名同發行類別、字體、內容資料重新生成、API 細節回寫、已完成 code 受影響清單連任務編號）。媒體 bucket 改名 `rb-discography`（架構圖、R2 key layout、Bindings、dashboard 設定、T4；binding `MEDIA` 同 `MEDIA_BASE` 不變）。`albums` 加 `category`、`category_no`、`cover_source_etag`，`folder` NULL = 預期資料夾名 `<category>-<NN>-<id>`；`tracks` 加 `text_source_etag`；內容檔專輯加 `category`、`categoryNo`。API-030 重寫（封面來源、歌曲文字）、加 API-031 一節；API-011、API-013、API-032 跟住改。字體：local Lubalin Graph → bucket 字體 URL → 內建 Rokkitt（Tech Stack、build 變數、技術風險）。內容資料 21 個發行、291 首歌；187 / 22 / 53 作廢，等 T-097。回寫（backlog B-044、B-049 ①、B-052 ②、T-024 review S-088）：錯誤訊息語言同 `details` 形狀、`If-Match`、API-011／013／014／015／020／021／022／023／041／050／071 嘅回應同錯誤碼、通用錯誤碼。**待用戶確認**嘅部分：類別短名串法、`type` 欄、初始次序、封面尺寸、文字檔新增歌曲（Functional Spec D43、D44、D47、D48、D49）。今次冇改 code |
 | v1.4 | 2026-11-25 16:40 | 跟 Functional Spec v1.6（**CR-005**）更新：加「CR-005 對技術設計嘅影響」一節（對照表、封面尺寸、掃描以音檔做錨、第二張封面、播放端隨機封面、左上歌名兩行、播緊時揀碟、字重、已完成 code 受影響清單連任務）。`albums` 加 `cover2`、`thumb2`、`cover2_source_etag`；API-013、API-050、API-070 嘅講法跟住改；掃描分類表加 `cover2` 同 `NO_AUDIO`；唱臂姿勢同「字體」嘅字眼改（D52、D53，review W-026 關閉）；CR-004 對照表嘅 D43、D47、D48 改為已回答；seed 同 credit 配對數字（246 / 0 / 45，review S-122）。內容檔 `category`、`categoryNo` 必填（review W-028）。今次冇改 code |
+| v1.5 | 2026-11-25 19:36 | 跟 Functional Spec v1.7（**CR-005 補充：播放端設計稿第 18 版確認**，source commit `4e739cd`）更新：加「補充：播放端設計稿第 18 版確認嘅技術設計」（載入嘅碟 = 播放 store `albumId`、顯示嘅碟 = `viewAlbumId`、衍生 `holding`；`chromeHidden` 連左上歌名嗰部分、大唱片機唔轉；動作 `returnToLoaded`、`playHeldTrack`、`openList` 守衛；`layouts/phone.ts` 加 `songFit`、`miniTurntable`、`albumTitle.rightWhenHeld`、`heldTracks`；淨空規則加四條連 D57 例外清單；元件 `mini-turntable/`、`held-tracks/`、`columnLayout.ts`；`chromeFadeMs` = 設計稿 `SWAP_FADE_MS`；測試同 E2E 格；已完成 code 受影響清單）。「播緊時揀碟」入面「喺另一隻碟鬆手 = 唱臂泊位」作廢；唱臂姿勢表、組件圖、繪圖方式跟住改；D51、22 格數值定案。今次冇改 code |
