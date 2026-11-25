@@ -7,6 +7,7 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
+    第 16 版（2026-11-25）。用戶決定：刻度弧固定、♥ 永遠喺最尾；暫停時唱針略為升起、唱臂留喺原位（同真唱片機一樣）；歌書開住時暫停，歌書留住。
     第 15 版（2026-11-25）。用戶意見：電視第二粒旋鈕 icon 要表示快轉同倒轉；屏幕開機 / 熄機加快；開關歌書要有過場；「尚未收藏歌曲」下面唔要提示。
     第 14 版（2026-11-24）。用戶意見：MV 電視欠立體感、電視腳光暗唔啱（參考附圖）；電視出現要有向上升起嘅過場；
     所有介面文字用中文書面語、支援 i18n、預設繁體中文。
@@ -66,6 +67,8 @@ svg.stage [data-act] { cursor: pointer; }
 /* 互動格：狀態改變時只改各組嘅 transform / opacity，由 transition 做動畫（時長沿用 v16：Wheel 0.5s、唱臂 0.65s） */
 svg.live [data-anim] { transition: transform .5s cubic-bezier(.4, 0, .2, 1), opacity .32s ease; }
 svg.live [data-anim="arm"] { transition: transform .65s cubic-bezier(.4, 0, .2, 1); }
+svg.live [data-anim="armlift"], svg.live [data-anim="armshadow"] { transition: transform .16s ease-out; }
+svg.live[data-playing="false"] .spin { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { svg.live [data-anim] { transition: none; } }
 .facts { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 6px; }
 .facts li { display: grid; grid-template-columns: 8.5em 1fr; gap: 10px; padding: 6px 0; border-top: 1px solid var(--line); }
@@ -124,7 +127,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede">第 15 版。電視第二粒旋鈕 icon 改做 ◀◀ ▶▶（快轉同倒轉都用佢）；屏幕開機 0.22 秒、熄機 0.15 秒（之前 0.45／0.28）；歌書開關加咗過場（暗層淡入、框線由唱片夾伸出、歌詞沿弧線展開）；「尚未收藏歌曲」下面嗰句提示刪走。</p>
+    <p class="lede">第 16 版。① 刻度弧固定：專輯平均分佈，♥ 永遠喺最尾（見下面「刻度格數」）。② 暫停同真唱片機一樣：唱針略為升起，唱臂留喺碟上面原位，碟停喺原位；再㩒即刻續播。只有未揀歌同 MV 收返之後，唱臂先返回泊位。③ 歌書開住時㩒唱片夾暫停，歌書留住，歌詞停喺當時嗰句；要收歌書就㩒歌書掣。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -180,6 +183,10 @@ tr:last-child td { border-bottom: 0; }
     <h2>播放模式掣：四個狀態</h2>
     <p class="lede">同一粒掣，每㩒一下轉一個模式，模式靠 icon 分。播緊時外圈同 icon 一齊著燈（專輯色），冇播就唔著。「重覆一首」用數字 badge。下面放大咗嚟睇；主頁上面係細掣嘅大細（約 32pt）。</p>
     <div id="modes"></div>
+
+    <h2>刻度格數：刻度弧固定</h2>
+    <p class="lede">刻度弧嘅起點同終點固定，♥ 永遠喺弧嘅最尾（位置同之前 18 格時一樣），專輯喺弧上面平均分佈：碟少就疏啲，碟多就密啲。♥ 唔會再因為碟數改變而撞到播放模式掣或者旋鈕。字母盤打開嘅總時間固定 0.5 秒。約 24 隻碟之內字母清楚分得開，30 隻開始貼埋（到時要縮細字母）；RubberBand 而家係 17 隻。</p>
+    <div id="scales"></div>
 
     <h2>掣點分類</h2>
     <div class="table-wrap">
@@ -394,7 +401,8 @@ tr:last-child td { border-bottom: 0; }
     const platterLeftAt = (y) => DISC.x - Math.sqrt(PLATTER.r ** 2 - (y - DISC.y) ** 2);
     const KNOB = { x: Math.round(platterLeftAt(KNOB_Y) / 2), y: KNOB_Y, r: 76 };
     // 刻度弧：18 格等距（17 張專輯 + 最尾 ♥），由 185°（左）經頂部去到 376.25°（右下）
-    const SCALE = { from: 185, step: 11.25, positions: 18, inner: 92, outer: 104, long: 112, heart: 26, heartGap: 18 }; // ♥ 喺最後一條刻度線外面
+    // 刻度弧固定（from 至 to）；格數 = 專輯數 + 1（♥），專輯喺弧上面平均分佈；♥ 永遠喺弧嘅最尾（最後一條刻度線外面）
+    const SCALE = { from: 185, to: 376.25, positions: 18, inner: 92, outer: 104, long: 112, heart: 26, heartGap: 18 };
     const HEART_POS = SCALE.positions - 1;
     // 轉碟時環繞旋鈕嘅字母盤：字母喺刻度對出，同一個角度
     const DIAL = { inner: 186, outer: 288, letters: 237, current: 46, other: 28 };
@@ -417,10 +425,11 @@ tr:last-child td { border-bottom: 0; }
     const VIEWS = [
         ['未揀歌', '唱臂泊位；唱片夾冇 icon；MV 掣變灰；播放模式掣冇著燈；刻度最後一格對出係 ♥', { album: 'komorebi', song: false, booklet: false, wheel: 0 }],
         ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形；播放模式掣著燈', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
+        ['暫停', '同真唱片機一樣：唱針略為升起，唱臂留喺碟上面原位；碟停喺原位；唱片夾係 play + 停住嘅進度圈；再㩒即刻續播，唔使重新落針', { album: 'komorebi', song: true, paused: true, wheel: 0 }],
         ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
         ['歌單（㩒碟面）', '唱片機壓暗；歌名沿碟弧線排；唱片夾係 play 掣；灰色嗰行 = 未有音檔（示意）', { album: 'komorebi', song: false, list: true, wheel: 0 }],
         ['MV 電視', '互動格入面會由底部升起再開機；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同快轉／倒轉', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
-        ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播', { album: 'komorebi', song: true, paused: true, wheel: 0 }],
+        ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播（再播時重新落針）', { album: 'komorebi', song: true, paused: true, parked: true, wheel: 0 }],
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
@@ -428,7 +437,7 @@ tr:last-child td { border-bottom: 0; }
         ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
     ];
     const ui = { fav: true, mode: 'order', showHit: false, showGap: false };
-    const live = { album: 'komorebi', song: false, paused: false, booklet: false, list: false, mv: false, mvPaused: false, mvFresh: false, mvClosing: false, bookFresh: false, bookClosing: false, wheel: 0 };
+    const live = { album: 'komorebi', song: false, paused: false, parked: false, booklet: false, list: false, mv: false, mvPaused: false, mvFresh: false, mvClosing: false, bookFresh: false, bookClosing: false, wheel: 0 };
 
     /* ---------- 工具 ---------- */
     const n = (v) => Math.round(v * 10) / 10;
@@ -446,6 +455,10 @@ tr:last-child td { border-bottom: 0; }
     const homeOpacity = (st) => n(clamp01(1 - st.wheel * 1.8));
     /** song = 揀咗歌；真係播緊 = 揀咗歌、冇暫停、冇開電視 */
     const isPlaying = (st) => Boolean(st.song && !st.paused && !st.mv);
+    /** 唱臂喺碟上面：揀咗歌、冇開電視、唔係 MV 收返之後（parked）。暫停唔會收臂（同真唱片機一樣） */
+    const armOnDisc = (st) => Boolean(st.song && !st.mv && !st.parked);
+    /** 暫停：唱針略為升起，唱臂留喺原位 */
+    const armLifted = (st) => armOnDisc(st) && Boolean(st.paused);
     const MIXED = `'RB Slab Light', Rockwell, ${CJK}`; // 英文用 slab，中文退去 CJK
 
     /** 有固定 seed 嘅隨機數（封面佔位圖每次一樣） */
@@ -669,7 +682,7 @@ tr:last-child td { border-bottom: 0; }
         return WHEEL_ROW.map((entry, i) => {
             const pose = discPose(i, st);
             const current = i === sel;
-            const art = discArt(entry.cover, `clip-${fid}-${i}`, { spin: current && isPlaying(st) });
+            const art = discArt(entry.cover, `clip-${fid}-${i}`, { spin: current && (fid === 'live' ? Boolean(st.song) : isPlaying(st)) });
             const style = `transform: translate(${n(pose.x)}px, ${n(pose.y)}px) scale(${(pose.r / ART).toFixed(4)}); opacity: ${n(pose.opacity)}`;
             return (
                 `<g data-anim="disc-${i}" style="${style}"${current ? '' : ' pointer-events="none"'}>` +
@@ -686,10 +699,13 @@ tr:last-child td { border-bottom: 0; }
         `<circle cx="${DISC.x}" cy="${DISC.y}" r="${PLATTER.r - 6}" fill="#f6f6f4" opacity=".5"/>` +
         metal(DISC.x, DISC.y, 16, { rot: 40, bevel: 0.2, withShadow: false });
 
+    // 暫停時唱針升起：成支臂放大少少，落影移遠（似離開碟面）
+    const ARM_LIFT = { scale: 1.018, rest: '5px, 9px', shadow: '14px, 25px' };
     const tonearm = (st) => {
         const { x, y, len, base, park, play, bend } = ARM;
         const { glow } = ALBUMS[st.album];
-        const deg = isPlaying(st) ? play : park;
+        const deg = armOnDisc(st) ? play : park;
+        const lifted = armLifted(st);
         const tube = Math.max(16, base * 0.2);
         const headX = len - 58;
         const headY = bend * 30;
@@ -698,13 +714,13 @@ tr:last-child td { border-bottom: 0; }
             const [sx, sy] = polar(x, y, base * 0.72, 45 + i * 90);
             out += `<circle cx="${n(sx)}" cy="${n(sy)}" r="${n(base * 0.07)}" fill="#6a6a6a"/>`;
         }
-        out += `<g data-anim="arm" style="transform: translate(${x}px, ${y}px) rotate(${deg}deg)">`;
+        out += `<g data-anim="arm" style="transform: translate(${x}px, ${y}px) rotate(${deg}deg)"><g data-anim="armlift" style="transform: scale(${lifted ? ARM_LIFT.scale : 1})">`;
         // 配重
         out += `<rect x="${n(-base * 1.62)}" y="${n(-base * 0.4)}" width="${n(base * 1.05)}" height="${n(base * 0.8)}" rx="7" fill="url(#gCyl)" stroke="#5c5c5c" stroke-width="1.5"/>`;
         out += `<rect x="${n(-base * 0.62)}" y="${n(-tube * 0.45)}" width="${n(base * 0.62)}" height="${n(tube * 0.9)}" fill="url(#gCyl)"/>`;
         // 臂管：直身，近針頭先順滑彎入
         const path = `M0 0H${n(len * 0.76)}Q${n(headX - 20)} 0 ${n(headX)} ${n(headY)}`;
-        out += `<path d="${path}" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="${n(tube)}" stroke-linecap="round" transform="translate(5 9)" filter="url(#fShadow)"/>`;
+        out += `<path d="${path}" fill="none" stroke="#000" stroke-opacity=".22" stroke-width="${n(tube)}" stroke-linecap="round" filter="url(#fShadow)"/>`.replace('<path', `<g data-anim="armshadow" style="transform: translate(${lifted ? ARM_LIFT.shadow : ARM_LIFT.rest})"><path`) + '</g>';
         out += `<path d="${path}" fill="none" stroke="#6d6d6d" stroke-width="${n(tube)}" stroke-linecap="round"/>`;
         out += `<path d="${path}" fill="none" stroke="#d2d2d2" stroke-width="${n(tube * 0.74)}" stroke-linecap="round"/>`;
         out += `<path d="${path}" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="${n(tube * 0.22)}" stroke-linecap="round" transform="translate(0 ${n(-tube * 0.16)})"/>`;
@@ -715,7 +731,7 @@ tr:last-child td { border-bottom: 0; }
         out += `<rect x="-6" y="-19" width="66" height="38" rx="6" fill="url(#gCyl)" stroke="#5c5c5c" stroke-width="1.5"/>`;
         out += `<rect x="6" y="-12" width="30" height="24" rx="3" fill="#2a2a2a"/>`;
         out += `<g data-swap="led">${isPlaying(st) ? `<circle cx="47" cy="0" r="11" fill="${glow}" opacity=".5" filter="url(#fGlow)"/>` : ''}<circle cx="47" cy="0" r="5.5" fill="${isPlaying(st) ? glow : '#5a5a5a'}"/></g>`;
-        out += '</g></g>';
+        out += '</g></g></g>';
         out += metal(x, y, base * 0.34, { rot: 60, bevel: 0.14, withShadow: false });
         out += `<circle cx="${x}" cy="${y}" r="${n(base * 0.1)}" fill="#3d3d3d"/>`;
         return out;
@@ -778,7 +794,7 @@ tr:last-child td { border-bottom: 0; }
 
     /* ---------- 大旋鈕（轉碟）+ 刻度弧 + ♥ + 環繞旋鈕嘅字母盤 ---------- */
 
-    const scaleAngle = (pos) => SCALE.from + pos * SCALE.step;
+    const scaleAngle = (pos, positions = SCALE.positions) => SCALE.from + (pos * (SCALE.to - SCALE.from)) / (positions - 1);
     /** ♥ = 刻度最後一格：平時喺嗰格刻度線嘅外面；轉碟時沿同一個角度滑出去字母盤 */
     const heartPoint = (w = 0) => polar(KNOB.x, KNOB.y, lerp(SCALE.long + SCALE.heartGap, DIAL.letters, w), scaleAngle(HEART_POS));
     /** ♥ 細，所以感應方格由旋鈕邊向外伸（唔同旋鈕重疊）；轉碟時跟住心形 */
@@ -840,8 +856,8 @@ tr:last-child td { border-bottom: 0; }
         plateFrom: 0.42, // 底盤起點：內圈啱啱貼住旋鈕邊（186 × 0.42 ≈ 旋鈕半徑 76）
         keyFrom: 0.5, // 字母起點：喺旋鈕邊，細一半
         stagger: 0.6, // 靜態「開到一半」用：頭尾字母相差幾多進度
-        openStepMs: 14, // 每個字母遲幾耐先出（17 個字 × 14ms + 0.26s ≈ 0.5s）
-        closeStepMs: 8,
+        openStaggerMs: 238, // 頭尾字母相差幾耐（固定；238ms + 0.26s ≈ 0.5s，幾多隻碟都一樣）
+        closeStaggerMs: 136,
     };
     const dialKeyProgress = (pos, w) => clamp01((w - (pos / (SCALE.positions - 1)) * DIAL_MOTION.stagger) / (1 - DIAL_MOTION.stagger));
     const dialRing = (st) => {
@@ -864,8 +880,9 @@ tr:last-child td { border-bottom: 0; }
             const [x, y] = polar(0, 0, DIAL.letters * lerp(DIAL_MOTION.keyFrom, 1, k), scaleAngle(pos));
             const latin = isLatin(key);
             const size = (on ? DIAL.current : DIAL.other) * (latin ? 1 : 0.82);
-            const delay = opening ? pos * DIAL_MOTION.openStepMs : (SCALE.positions - 2 - pos) * DIAL_MOTION.closeStepMs;
-            const style = `transform: translate(${n(x)}px, ${n(y)}px) scale(${lerp(DIAL_MOTION.keyFrom, 1, k).toFixed(3)}); opacity: ${n(k)}; transition-delay: ${delay}ms`;
+            const lastKey = SCALE.positions - 2;
+            const delay = opening ? (pos / lastKey) * DIAL_MOTION.openStaggerMs : ((lastKey - pos) / lastKey) * DIAL_MOTION.closeStaggerMs;
+            const style = `transform: translate(${n(x)}px, ${n(y)}px) scale(${lerp(DIAL_MOTION.keyFrom, 1, k).toFixed(3)}); opacity: ${n(k)}; transition-delay: ${Math.round(delay)}ms`;
             out +=
                 `<g data-anim="dialkey-${pos}" style="${style}"><g data-swap="dialkey-${pos}">` +
                 `<text text-anchor="middle" dominant-baseline="central" font-family="${latin ? (on ? SLAB : SLAB_LIGHT) : CJK}" font-weight="${latin ? 400 : 900}" font-size="${n(size)}" fill="${on ? INK : '#3d3d3a'}">${key}</text></g></g>`;
@@ -1144,6 +1161,61 @@ tr:last-child td { border-bottom: 0; }
         return `<svg class="modes" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="播放模式掣：${MODES.map((m) => MODE_LABEL[m]).join('、')}；播緊著燈，冇播唔著">${out}</svg>`;
     };
 
+    /* ---------- 刻度格數示意：刻度弧固定，專輯平均分佈，♥ 永遠喺最尾 ---------- */
+    const scaleShowcase = () => {
+        const COUNTS = [4, 9, 17, 24, 30]; // 專輯數（17 = 而家）
+        const CELL = 620;
+        const HEAD = 96;
+        const ROWS = [['平時', false], ['轉碟中', true]];
+        const KEYS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZABCD'.split('');
+        const { accent } = ALBUMS.komorebi;
+        const top = KNOB.r - 11;
+        const cell = (albums, open) => {
+            const positions = albums + 1;
+            const current = Math.floor(albums / 2);
+            const angle = (pos) => scaleAngle(pos, positions);
+            let out = '';
+            if (open) {
+                out += `<path fill-rule="evenodd" d="${ringPath(DIAL.outer, DIAL.inner)}" fill="#fbfbf9" fill-opacity=".6" stroke="#fff" stroke-opacity=".9" stroke-width="5"/>`;
+                out += `<circle r="${DIAL.outer + 3}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/><circle r="${DIAL.inner - 3}" fill="none" stroke="#a8a8a4" stroke-width="1.5"/>`;
+            }
+            for (let pos = 0; pos < positions; pos += 1) {
+                const on = pos === current;
+                const long = pos % 4 === 0;
+                const [x1, y1] = polar(0, 0, SCALE.inner, angle(pos));
+                const [x2, y2] = polar(0, 0, on || long ? SCALE.long : SCALE.outer, angle(pos));
+                out += `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="${on ? accent : '#77777a'}" stroke-width="${on ? 5 : long ? 2.6 : 1.6}" stroke-linecap="round"/>`;
+                if (open && pos < albums) {
+                    const [kx, ky] = polar(0, 0, DIAL.letters, angle(pos));
+                    out += `<text x="${n(kx)}" y="${n(ky)}" text-anchor="middle" dominant-baseline="central" font-family="${on ? SLAB : SLAB_LIGHT}" font-size="${on ? DIAL.current : DIAL.other}" fill="${on ? INK : '#3d3d3a'}">${KEYS[pos]}</text>`;
+                }
+            }
+            const [hx, hy] = polar(0, 0, open ? DIAL.letters : SCALE.long + SCALE.heartGap, angle(positions - 1));
+            out += `<g transform="translate(${n(hx)} ${n(hy)}) scale(${open ? 1 : (SCALE.heart / 38).toFixed(3)})">${icon('heart', 0, 0, 38, '#3a3a3a')}</g>`;
+            out += shadow(0, 0, KNOB.r, { dx: 7, dy: 13, opacity: 0.36 });
+            out += `<circle r="${KNOB.r}" fill="url(#gCyl)" stroke="#5f5f5f" stroke-width="1.2"/>`;
+            out += `<circle r="${KNOB.r - 5}" fill="none" stroke="#6b6b6b" stroke-opacity=".7" stroke-width="9" stroke-dasharray="3 4.2"/>`;
+            out += metal(0, 0, top, { rot: 24, bevel: 0.07, withShadow: false });
+            out += `<path d="M${n(top * 0.42)} 0H${n(top - 9)}" stroke="${accent}" stroke-width="8" stroke-linecap="round" transform="rotate(${n(angle(current))})"/>`;
+            return out;
+        };
+        const WIDTH = CELL * COUNTS.length;
+        const HEIGHT = HEAD + CELL * ROWS.length;
+        let out = `<rect width="${WIDTH}" height="${HEIGHT}" fill="url(#gStage)"/>`;
+        COUNTS.forEach((albums, i) => {
+            const step = (SCALE.to - SCALE.from) / albums;
+            out += `<text x="${CELL * (i + 0.5)}" y="46" text-anchor="middle" font-family="${CJK}" font-weight="700" font-size="34" fill="${INK}">${albums} 隻碟${albums === SCALE.positions - 1 ? '（而家）' : ''}</text>`;
+            out += `<text x="${CELL * (i + 0.5)}" y="82" text-anchor="middle" font-family="${CJK}" font-size="24" fill="#777">每格 ${n(step)}°</text>`;
+            ROWS.forEach(([, open], row) => {
+                out += `<g transform="translate(${CELL * (i + 0.5)} ${HEAD + CELL * (row + 0.5)})">${cell(albums, open)}</g>`;
+            });
+        });
+        ROWS.forEach(([name], row) => {
+            out += `<text x="24" y="${HEAD + CELL * row + 44}" font-family="${CJK}" font-weight="700" font-size="30" fill="${INK}">${name}</text>`;
+        });
+        return `<svg class="modes" style="max-width: 1180px" viewBox="0 0 ${WIDTH} ${HEIGHT}" role="img" aria-label="刻度格數示意：${COUNTS.join('、')} 隻碟時，刻度弧位置不變，♥ 永遠喺最尾">${out}</svg>`;
+    };
+
     /* ---------- Preload 畫面（靜態示意）：App 名同非官方聲明放喺度 ---------- */
     const preloadCard = () => {
         const logoW = 560;
@@ -1324,6 +1396,7 @@ tr:last-child td { border-bottom: 0; }
     const renderLive = () => {
         const html = scene(live, 'live');
         const signature = `${live.booklet}|${live.bookClosing}|${live.list}|${live.mv}|${live.mvClosing}`; // 歌書 / 歌單 / 電視開關要成格重畫，其他都做動畫
+        liveSvg.dataset.playing = String(isPlaying(live));
         if (signature === liveSignature) morph(html);
         else liveSvg.innerHTML = html;
         liveSignature = signature;
@@ -1332,6 +1405,7 @@ tr:last-child td { border-bottom: 0; }
     const renderStatic = () => {
         document.getElementById('grid').innerHTML = VIEWS.map(staticCard).join('') + wholeDisc() + preloadCard();
         document.getElementById('modes').innerHTML = modeShowcase();
+        document.getElementById('scales').innerHTML = scaleShowcase();
         document.getElementById('measure').innerHTML = measurements();
     };
 
@@ -1352,15 +1426,15 @@ tr:last-child td { border-bottom: 0; }
         wheel: () => { if (live.list || live.mv) return; live.wheel = live.wheel > 0.5 ? 0 : 1; live.booklet = false; },
         favourites: () => {
             if (live.list || live.mv) return;
-            Object.assign(live, { album: live.album === 'favourites' ? 'komorebi' : 'favourites', song: false, paused: false, booklet: false });
+            Object.assign(live, { album: live.album === 'favourites' ? 'komorebi' : 'favourites', song: false, paused: false, parked: false, booklet: false });
         },
         list: () => { if (atHome()) Object.assign(live, { list: true, booklet: false }); },
         closelist: () => { live.list = false; },
         playpause: () => {
             if (live.mv || live.wheel > 0) return;
-            if (live.list) Object.assign(live, { list: false, song: true, paused: false }); // 歌單：播揀中嗰首
+            if (live.list) Object.assign(live, { list: false, song: true, paused: false, parked: false }); // 歌單：播揀中嗰首
             else if (!live.song) live.list = true; // 未揀歌：打開歌單
-            else Object.assign(live, { paused: !live.paused, booklet: false });
+            else Object.assign(live, { paused: !live.paused, parked: false }); // 歌書開住時暫停：歌書留住，歌詞停喺當時嗰句
         },
         // 歌書：打開有過場；收返先播收起動畫，完咗先真正閂
         info: () => {
@@ -1376,7 +1450,7 @@ tr:last-child td { border-bottom: 0; }
         tvstop: () => {
             if (live.mvClosing) return;
             live.mvClosing = true;
-            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true }); render(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
+            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true, parked: true }); render(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
         },
     };
     const LIVE_ONLY = new Set(['wheel', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
