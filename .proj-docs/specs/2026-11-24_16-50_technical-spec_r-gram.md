@@ -4,7 +4,7 @@
 **日期**：2026-11-25 08:06（v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
 **作者**：Architect Agent（v1.2：Project Manager Agent 跟 CR-003 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
 **關聯 Functional Spec**：v1.4（包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：**v1.2**（CR-003）。跟用戶 2026-11-25 嘅 14 項決定（已確認）更新；標「待確認」嘅設計對應 Functional Spec D30–D39，確認之前唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
+**狀態**：**v1.2**（CR-003）。跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。播放端設計稿第 16 版、管理端設計稿第 2 版同 Implementation Plan A-7 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -111,8 +111,8 @@ r-gram/
 | 模組 | 內容 | 邊個用 |
 | --- | --- | --- |
 | `schema/` | `CatalogDocument`、`Album`、`Track` 型別；`parseCatalogDocument()` validator；id 格式規則 | api（生成 catalog 時驗）、player（載入時驗）、admin |
-| `lrc/` | `parseLrc(text) → { lines, errors }`；`toLyricsJson()`（⚠️ CR-003：歌詞 JSON 加 `synced`；純文字歌詞見 Functional Spec D32，待確認） | `song-text/`（歌詞部分交畀佢）、api、admin |
-| `song-text/`（⚠️ CR-003 新增） | `parseSongText(text) → { title, subtitle, credits, lyrics, errors }`；`formatSongText(song) → text`（回填用；兩者要 round-trip）。格式：Functional Spec D31、D37（待確認） | api（儲存時驗 + 拆欄）、admin（即時逐行驗證、回填） |
+| `lrc/` | `parseLrc(text) → { lines, errors }`；`toLyricsJson()`（⚠️ CR-003：歌詞 JSON 加 `synced`；純文字歌詞見 Functional Spec D32，已確認） | `song-text/`（歌詞部分交畀佢）、api、admin |
+| `song-text/`（⚠️ CR-003 新增） | `parseSongText(text) → { title, subtitle, credits, lyrics, errors }`；`formatSongText(song) → text`（回填用；兩者要 round-trip）。格式：Functional Spec D31、D37（已確認） | api（儲存時驗 + 拆欄）、admin（即時逐行驗證、回填） |
 | `scan/` | `matchMediaFiles(keys, tracks) → { matched, unmatchedFiles, tracksWithoutAudio, conflicts }` | api（掃描）、test |
 | `wheel/` | `wheelKeyFor(title)`：英文名第一個字母（忽略 `¿` 等符號）、中文名第一個字 | api（預設值）、admin |
 | `color/` | `dominantColor(pixels)`、`glowColor(hex)`（由 mockup `template.html` / `anim.js` 移植） | admin（上載封面時抽色）、player（著燈色） |
@@ -156,7 +156,7 @@ src/
 | --- | --- |
 | `playing`（落針 99°，小燈著） | 播放狀態 `playing`，`overlay ≠ mv`，`viewAlbumId` = 播緊嘅碟 |
 | `lifted`（升針：角度唔變，成支臂放大少少、落影移遠；設計稿第 16 版 `ARM_LIFT`） | 播放狀態 `paused` 而且係用戶㩒唱片夾暫停，`overlay ≠ mv`，`viewAlbumId` = 停低嗰隻碟 |
-| `parked`（泊位 176°） | 其餘：未揀歌、`overlay = mv`、MV 熄咗之後未再播。Functional Spec D36（待確認）：重開 app 回復上次嘅歌、播完最後一首、載入失敗、睇緊另一隻碟 |
+| `parked`（泊位 176°） | 其餘：未揀歌、`overlay = mv`、MV 熄咗之後未再播。Functional Spec D36（已確認）：重開 app 回復上次嘅歌、播完最後一首、載入失敗、睇緊另一隻碟 |
 
 要分得出「用戶暫停」同「因為 MV／重開 app 而停」：播放 store 記低暫停原因（例如 `pauseReason: 'user'｜'mv'｜'restore'`），做法由 T-038 定案。`lifted → playing` 冇轉動（即刻續播）；`parked → playing` 行完整落針動作。
 
@@ -265,15 +265,15 @@ POST /api/albums/:id/scan/apply ─► 寫入非手動指定嘅配對（手動�
 | API-003 | `POST /auth/logout` | None（要 same-origin） | 刪 session（⚠️ CR-003 同步 T-021 嘅實作；之前寫 session） |
 | API-004 | `GET /api/me` | session | `{ email }` |
 | API-005 | `GET /api/health` | None | `{ ok, version }` |
-| API-010 | `GET /api/albums` | session | 專輯列表 + 每張專輯嘅完整度 + 全站統計（CR-003：FR-114；項目 D35）+ catalog 生成狀態 |
+| API-010 | `GET /api/albums` | session | 專輯列表 + 每張專輯嘅完整度 + 全站統計（CR-003：FR-114；項目 D35，等管理端設計稿第 2 版確認）+ catalog 生成狀態 |
 | API-011 | `POST /api/albums` | session | 新增專輯 |
 | API-012 | `GET /api/albums/:id` | session | 專輯 + 歌曲 |
 | API-013 | `PATCH /api/albums/:id` | session | 改專輯欄位 |
 | API-014 | `DELETE /api/albums/:id` | session | 刪專輯（連歌、歌詞）；冇 `?force=1` 回 409 `ID_REMOVED`（⚠️ CR-003：ID 守衛搬嚟呢度） |
 | API-015 | `PUT /api/albums/order` | session | 專輯排序 |
 | API-020 | `POST /api/albums/:id/tracks` | session | 新增歌：body 係歌曲文字 `{ text }`（同 API-041）；加喺最尾，歌號 = 次序（⚠️ CR-003） |
-| API-021 | `PATCH /api/tracks/:id` | session | 改歌嘅其他欄位：參考欄（歌詞參考連結、備註）、手動指定音檔 / MV key。⚠️ CR-003：冇上架；歌名、副題、credit 改經 API-041（D37 待確認）；歌號經 API-023 |
-| API-024 | `GET /api/tracks/sources?title=` | session | 搵其他專輯同名歌（「由同名歌帶入」用；回每首嘅歌曲文字：credit + 歌詞）。⚠️ CR-003：併入 API-044；P1，D34 待確認 |
+| API-021 | `PATCH /api/tracks/:id` | session | 改歌嘅其他欄位：參考欄（歌詞參考連結、備註）、手動指定音檔 / MV key。⚠️ CR-003：冇上架；歌名、副題、credit 改經 API-041（D37 已確認）；歌號經 API-023 |
+| API-024 | `GET /api/tracks/sources?title=` | session | 搵其他專輯同名歌（「由同名歌帶入」用；回每首嘅歌曲文字：credit + 歌詞）。⚠️ CR-003：API-044 併入呢個；P1，D34 已確認 |
 | API-022 | `DELETE /api/tracks/:id` | session | 刪歌；冇 `?force=1` 回 409 `ID_REMOVED`（⚠️ CR-003） |
 | API-023 | `PUT /api/albums/:id/tracks/order` | session | 歌曲排序（重編歌號） |
 | API-030 | `GET /api/albums/:id/scan` | session | 掃描預覽（唔寫入） |
@@ -282,7 +282,7 @@ POST /api/albums/:id/scan/apply ─► 寫入非手動指定嘅配對（手動�
 | API-040 | `GET /api/tracks/:id/text` | session | 攞成首歌嘅文字（`formatSongText()`：歌名 + 副題 + 曲詞編監 + 歌詞原文）；展開歌曲行時先叫（⚠️ CR-003；之前係 `/lyrics`） |
 | API-041 | `PUT /api/tracks/:id/text` | session | 儲存成首歌嘅文字：歌名、副題、credit、歌詞一次過（⚠️ CR-003；之前係 `/lyrics`） |
 | ~~API-042~~ | ~~`DELETE /api/tracks/:id/lyrics`~~ | — | ⚠️ CR-003 刪除：清除歌詞 = 用 API-041 儲存冇歌詞部分嘅文字 |
-| API-043 | `POST /api/albums/:id/lyrics/import` | session | 批量匯入 `.lrc` / `.txt`：只取代歌詞部分（⚠️ CR-003；P1，D34 待確認） |
+| API-043 | `POST /api/albums/:id/lyrics/import` | session | 批量匯入 `.lrc` / `.txt`：只取代歌詞部分（⚠️ CR-003；P1，D34 已確認） |
 | ~~API-044~~ | ~~`GET /api/lyrics/sources?title=`~~ | — | ⚠️ CR-003 刪除：併入 API-024 |
 | API-050 | `PUT /api/assets` | session | 上載封面圖 |
 | ~~API-060~~ | ~~`GET /api/changes`~~ | — | ⚠️ CR-003 刪除：冇草稿 |
@@ -348,7 +348,7 @@ POST /api/albums/:id/scan/apply ─► 寫入非手動指定嘅配對（手動�
 - **Method**：PUT
 - **Path**：`/api/tracks/:id/text`
 - **認證**：Required（session + same-origin）；Header `If-Match: "<updatedAt>"`
-- **Request Body**（格式：Functional Spec D31、D37，**待確認**）：
+- **Request Body**（格式：Functional Spec D31、D37，已確認）：
     ```json
     { "text": "一早地下鐵\n曲：阿正\n詞：Tim Lui / 6號\n編：阿正\n監：RubberBand / 雷頌德\n\n[00:12.30]第一句歌詞\n[00:18.75]第二句歌詞" }
     ```
@@ -360,7 +360,7 @@ POST /api/albums/:id/scan/apply ─► 寫入非手動指定嘅配對（手動�
 - **Error Cases**：
     | Status | Code | 描述 |
     | --- | --- | --- |
-    | 400 | VALIDATION_ERROR | `details` 逐行列出：`{ "line": 1, "reason": "TITLE_REQUIRED" }`、`DUPLICATE_LABEL`、`BAD_TIMESTAMP`、`MIXED_TIMESTAMPS`（有啲歌詞行有時間標記、有啲冇；D32）、`LINE_TOO_LONG`、`TOO_MANY_LINES`、`CREDIT_TOO_LONG`。D32 唔接受嘅話，全部行都冇時間標記回 `NO_TIMED_LINES` |
+    | 400 | VALIDATION_ERROR | `details` 逐行列出：`{ "line": 1, "reason": "TITLE_REQUIRED" }`、`DUPLICATE_LABEL`、`BAD_TIMESTAMP`、`MIXED_TIMESTAMPS`（有啲歌詞行有時間標記、有啲冇；D32）、`LINE_TOO_LONG`、`TOO_MANY_LINES`、`CREDIT_TOO_LONG`。全部歌詞行都冇時間標記唔係錯誤（純文字歌詞，D32 已確認），唔再回 `NO_TIMED_LINES` |
     | 409 | STALE | `If-Match` 同現有 `updatedAt` 唔同 |
     | 413 | TOO_LARGE | 超過 `SONG_TEXT_MAX_BYTES`（64 KB；取代 `LRC_MAX_BYTES`） |
 
@@ -463,7 +463,7 @@ POST /api/albums/:id/scan/apply ─► 寫入非手動指定嘅配對（手動�
 
 `t` 係毫秒、已按時間排序、已套用 `[offset:]`；空白 `text` = 間奏（唔 highlight 任何一行）。
 
-⚠️ CR-003（Functional Spec D32，**待確認**）：加 `synced`。純文字歌詞係 `{ "synced": false, "lines": [{ "text": "第一句歌詞" }, { "text": "" }] }`：冇 `t`，空白 `text` = 分段；播放端唔行 `activeLine()`，歌書唔跟歌行。D32 唔接受嘅話 `synced` 永遠係 `true`，可以唔加。
+⚠️ CR-003（Functional Spec D32，已確認）：加 `synced`。純文字歌詞係 `{ "synced": false, "lines": [{ "text": "第一句歌詞" }, { "text": "" }] }`：冇 `t`，空白 `text` = 分段；播放端唔行 `activeLine()`，歌書唔跟歌行（顯示方式：Functional Spec D38，已確認）。
 
 ---
 
@@ -500,7 +500,7 @@ D1（SQLite）。時間欄一律 ISO 8601 UTC 字串（session 過期用 epoch m
 | album_id | TEXT | NOT NULL，FK → albums.id ON DELETE CASCADE | |
 | no | INTEGER | NOT NULL；UNIQUE (album_id, no) | 歌號（⚠️ CR-003：跟歌曲行次序由 1 連續編，API-023 重編；管理端唔可以直接改） |
 | title | TEXT | NOT NULL | 歌名（⚠️ CR-003：經歌曲文字第一行輸入） |
-| subtitle | TEXT | NULL | 副題（⚠️ CR-003 D37 待確認：經歌曲文字 `副題：` 行輸入） |
+| subtitle | TEXT | NULL | 副題（⚠️ CR-003 D37 已確認：經歌曲文字 `副題：` 行輸入） |
 | audio_key | TEXT | NULL | R2 key |
 | audio_manual | INTEGER | NOT NULL DEFAULT 0 | 1 = 手動指定，掃描唔蓋 |
 | mv_key | TEXT | NULL | R2 key |
@@ -522,7 +522,7 @@ D1（SQLite）。時間欄一律 ISO 8601 UTC 字串（session 過期用 epoch m
 | --- | --- | --- | --- |
 | track_id | TEXT | PK，FK → tracks.id ON DELETE CASCADE | |
 | source | TEXT | NOT NULL | ⚠️ CR-003：歌曲文字入面歌詞部分嘅原文（回填文字框用）；之前叫 `lrc` |
-| synced | INTEGER | NOT NULL CHECK IN (0, 1) | ⚠️ CR-003（D32 待確認）：1 = 有時間標記；0 = 純文字 |
+| synced | INTEGER | NOT NULL CHECK IN (0, 1) | ⚠️ CR-003（D32 已確認）：1 = 有時間標記；0 = 純文字 |
 | json_name | TEXT | NOT NULL | R2 `lyrics/<hash>.json` 檔名（生成 catalog 時直接引用） |
 | line_count | INTEGER | NOT NULL | |
 | updated_at | TEXT | NOT NULL | |
@@ -804,32 +804,32 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 
 ## CR-003 對技術設計嘅影響
 
-同 CR-002 唔同，今次 Backend、API、資料庫都受影響。本節取代上文同佢有出入嘅地方；受影響嘅表已喺原位改（標 ⚠️ CR-003）。「狀態」欄寫「待確認」嘅行對應 Functional Spec D30–D39，用戶確認之前唔開工。
+同 CR-002 唔同，今次 Backend、API、資料庫都受影響。本節取代上文同佢有出入嘅地方；受影響嘅表已喺原位改（標 ⚠️ CR-003）。「狀態」欄對應 Functional Spec D30–D39 嘅行：用戶 2026-11-25 已確認（D33 係技術決定，唔使用戶確認；D35 等管理端設計稿第 2 版確認）。寫「等確認」嘅係設計稿，確認之前靠佢嘅任務唔開工。
 
 | 範疇 | v1.1 | v1.2 | 狀態 |
 | --- | --- | --- | --- |
-| 內容流程 | 草稿（D1）→ 發佈 → `catalog.json` | 冇草稿：每個成功嘅寫入請求之後即刻 `rebuildCatalog()`（D1 → document → validator → R2 `catalog.json`，hash 冇變就唔寫）。做成 `/api/*` 寫入 route 嘅後置步驟，各 route 唔使自己叫 | 決定 7 已確認；做法 D30 待確認 |
-| 生成失敗 | 發佈失敗唔影響播放端 | R2 寫入係成個檔取代，失敗 = 舊檔仍然有效。D1 已寫入嘅修改唔還原：`catalog_state.status = 'failed'`，回應帶 `catalog.ok = false`，管理端出提示同重試（API-061） | D30 待確認 |
+| 內容流程 | 草稿（D1）→ 發佈 → `catalog.json` | 冇草稿：每個成功嘅寫入請求之後即刻 `rebuildCatalog()`（D1 → document → validator → R2 `catalog.json`，hash 冇變就唔寫）。做成 `/api/*` 寫入 route 嘅後置步驟，各 route 唔使自己叫 | 決定 7 已確認；做法 D30 已確認（用戶 2026-11-25） |
+| 生成失敗 | 發佈失敗唔影響播放端 | R2 寫入係成個檔取代，失敗 = 舊檔仍然有效。D1 已寫入嘅修改唔還原：`catalog_state.status = 'failed'`，回應帶 `catalog.ok = false`，管理端出提示同重試（API-061） | D30 已確認 |
 | 上下架 | `albums.enabled`、`tracks.enabled`；catalog 只包已上架 | 兩欄刪走；catalog 包全部專輯同歌；API-013、API-021 冇 `enabled` | 決定 7 已確認 |
-| 發佈記錄 | `publishes`：記錄、diff、ID 守衛、還原 | 刪；改為單行 `catalog_state` | D30 待確認 |
-| ID 守衛 | 發佈時比對上次嘅 id | id 只會因為刪除而消失：守衛搬去 API-014、API-022（`?force=1`） | D30 待確認 |
-| 歌曲輸入 | API-021 改欄位；API-041 存 LRC | `packages/catalog/song-text/`：`parseSongText()`、`formatSongText()`、round-trip 測試。API-040 / API-041 改為讀 / 寫成首歌嘅文字；API-020 用同一個 body 新增 | 決定 8 已確認；格式 D31、D37 待確認 |
-| 純文字歌詞 | 冇（`NO_TIMED_LINES`） | 歌詞 JSON 加 `synced`；`synced = false` 時 `lines[]` 冇 `t`；`lyrics.synced`；播放端 `activeLine()` 只喺 `synced` 用 | D32 待確認（會推翻 Functional Spec C4） |
-| 儲存欄位 | 結構化 | 不變；`lyrics.lrc` 改名 `source` | D33 待確認 |
-| 批量匯入、同名歌 | API-043、API-024、API-044 | API-043 只換歌詞部分；API-024 回同名歌嘅歌曲文字；API-044 刪 | D34 待確認 |
-| 統計 | API-010 每張專輯嘅完整度 | API-010 加全站統計（專輯數、歌曲數、有音檔 / 歌詞 / MV 嘅歌數、有封面嘅專輯數） | 決定 9 已確認；項目 D35 待確認 |
+| 發佈記錄 | `publishes`：記錄、diff、ID 守衛、還原 | 刪；改為單行 `catalog_state` | D30 已確認 |
+| ID 守衛 | 發佈時比對上次嘅 id | id 只會因為刪除而消失：守衛搬去 API-014、API-022（`?force=1`） | D30 已確認 |
+| 歌曲輸入 | API-021 改欄位；API-041 存 LRC | `packages/catalog/song-text/`：`parseSongText()`、`formatSongText()`、round-trip 測試。API-040 / API-041 改為讀 / 寫成首歌嘅文字；API-020 用同一個 body 新增 | 決定 8 已確認；格式 D31、D37 已確認（D31 由決定 8、D32、D37 完全決定） |
+| 純文字歌詞 | 冇（`NO_TIMED_LINES`） | 歌詞 JSON 加 `synced`；`synced = false` 時 `lines[]` 冇 `t`；`lyrics.synced`；播放端 `activeLine()` 只喺 `synced` 用 | D32 已確認（取代 Functional Spec C4） |
+| 儲存欄位 | 結構化 | 不變；`lyrics.lrc` 改名 `source` | D33：技術決定（冇用戶睇得到嘅影響），唔使用戶確認 |
+| 批量匯入、同名歌 | API-043、API-024、API-044 | API-043 只換歌詞部分；API-024 回同名歌嘅歌曲文字；API-044 刪 | D34 已確認 |
+| 統計 | API-010 每張專輯嘅完整度 | API-010 加全站統計（專輯數、歌曲數、有音檔 / 歌詞 / MV 嘅歌數、有封面嘅專輯數） | 決定 9 已確認；項目 D35 **待確認**（等管理端設計稿第 2 版） |
 | 場景零件 | 逐個元件 `<div>` / `<img>` / inline SVG | 單一 `<svg>` 畫布（`stage/StageSvg.tsx`），零件係 React SVG 元件；共用 `<defs>`（`metal/SvgDefs.tsx`、`defIds.ts`） | 決定 4 已確認（T-033 已做） |
 | 高身手機 | 舞台 9:16 按比例 | `StageSvg`：「貼頂」組唔郁，「貼底」組 `translate(0, extraUnits)` | 決定 1 已確認（T-033 已做） |
 | 刻度弧 | 角度 = `fromDeg + pos × stepDeg`（固定 11.25°） | 幾何表 `scale: { fromDeg: 185, toDeg: 376.25, … }`，刪 `stepDeg`；`scaleAngle(layout, pos, albumCount)` = `fromDeg + pos × (toDeg − fromDeg) ÷ albumCount`；♥ 永遠喺 `toDeg` | 決定 2 已確認；設計稿第 16 版等確認 |
 | 淨空測試 | `SUPPORTED_POSITIONS = [8, 9, 10, 15, 16, 17, 18]` | ♥ 位置固定，感應範圍同螺絲規則同專輯數無關：測試改為掃 1 至 30 張全部過。唔設專輯數硬上限；字母盤可讀性（約 24 張清楚、30 張貼埋；21 張起而家嗰格嘅放大字可能要縮）唔入測試，到時先處理 | 決定 2 已確認 |
 | 細屏 | 感應範圍 ≥ 44pt | 以 `clearance.viewportPt = 390` 做基準（而家已經係咁計）；唔加細屏分支 | 決定 3 已確認 |
-| 唱臂 | 落針 = `playing` 而且 `overlay ≠ mv` 而且 `viewAlbumId` = 播緊嘅碟；否則泊位 | 三個姿勢 `parked｜playing｜lifted`（衍生值）；播放 store 記暫停原因；`Tonearm` 由 `playing: boolean` 改為 `pose` | 決定 11 已確認；其餘情況 D36 待確認；設計稿第 16 版等確認 |
+| 唱臂 | 落針 = `playing` 而且 `overlay ≠ mv` 而且 `viewAlbumId` = 播緊嘅碟；否則泊位 | 三個姿勢 `parked｜playing｜lifted`（衍生值）；播放 store 記暫停原因；`Tonearm` 由 `playing: boolean` 改為 `pose` | 決定 11 已確認；其餘情況 D36 已確認；設計稿第 16 版等確認 |
 | 歌書 + 暫停 | 冇講 | 暫停唔改 `overlay`；`stageReducer` 唔使改 | 決定 5 已確認 |
 | 管理端 UI | 沿用 903-player `apps/admin/src/ui/` 嘅元件 | 外觀按設計稿第 2 版重做（鋁面板、螺絲、碟、儀錶）；只移植行為（裁切、拖動排序、Toast、確認對話框）。播放端嘅金屬 SVG 零件（`components/metal`、車床紋、螺絲）係咪抽去共用 package：設計稿第 2 版確認之後先定（Implementation Plan 開放問題） | 決定 9 已確認；設計稿第 2 版等確認 |
 | 管理端主題 | — | 只做淺色；唔加 `prefers-color-scheme` 分支 | 決定 10 已確認 |
 | Branch、寄存 | T1、T3 待確認 | T1 ✅ Vercel（spike 頁都喺度）；T3 ✅ 留喺 session branch，第一個可用版本由用戶開 PR 入 `main` | 決定 12、13 已確認 |
 
-### `parseSongText()` 嘅規則（Functional Spec D31、D32、D37，待確認）
+### `parseSongText()` 嘅規則（Functional Spec D31、D32、D37，已確認）
 
 | 步驟 | 規則 |
 | --- | --- |
@@ -886,3 +886,4 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | v1.1（補二） | 2026-11-25 00:01 | 跟 CR-002 補充（preview 第 15 版）：歌書過場嘅做法；CRT 開機 0.22s、熄機 0.15s |
 | v1.1 Approved | 2026-11-25 00:07 | 用戶確認；狀態改 Approved。內容冇改 |
 | v1.2 | 2026-11-25 08:06 | 跟 Functional Spec v1.4（**CR-003**）更新：加「CR-003 對技術設計嘅影響」一節（對照表、`parseSongText()` 規則、已完成 code 受影響清單）。Backend：冇草稿同發佈，每次寫入之後生成 catalog（核心原則 1、數據流 A、API-061）；刪 `enabled` 兩欄；`publishes` → `catalog_state`；`lyrics` 改欄；歌曲文字 API（API-020、API-040、API-041）；刪 API-042、API-044、API-060、API-062；ID 守衛搬去刪除。播放端：繪圖方式改為單一 SVG 畫布；狀態機補 `discChange → list` 同 `previousAlbumId`（review S-042）；唱臂三個姿勢；刻度弧固定；高身同細屏。同步已完成嘅實作（backlog B-017）：API-003 認證欄、`apps/api` 組件圖、Header 行。T1、T3 用戶已確認。標「待確認」嘅行等 Functional Spec D30–D39 |
+| v1.2（確認） | 2026-11-25 | **2026-11-25：D30–D39 確認**（CR-003 之內嘅狀態更新，唔係新 CR；版本號不變，設計內容冇改）。用戶答「嗰 8 條跟建議」：對應 D30、D31、D32、D34、D36、D37 嘅「待確認」改為已確認（內容流程、生成失敗、`catalog_state`、ID 守衛、歌曲文字、純文字歌詞同 `synced`、批量匯入同同名歌、唱臂其餘情況、`parseSongText()` 規則）。D33（儲存欄位照舊分開、`lyrics.lrc` 改名 `source`）記做技術決定，唔使用戶確認。D35（API-010 嘅統計項目）仍然待確認，等管理端設計稿第 2 版。刪走「D32 唔接受嘅話」嘅兩個後備講法（API-041 嘅 `NO_TIMED_LINES`、歌詞 JSON 唔加 `synced`）；API-024 嘅「併入」講法改清楚（API-044 併入 API-024） |
