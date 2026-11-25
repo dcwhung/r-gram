@@ -325,7 +325,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const songText = (track, { bad = false, blank = false } = {}) => {
         if (blank) return '';
         const credit = (label, value) => (value ? `${label}：${value}` : null);
-        const head = [track.title + (track.subtitle ? `（${track.subtitle}）` : ''), credit('曲', track.composer), credit('詞', track.lyricist), credit('編', track.arranger), credit('監', track.producer)].filter(Boolean);
+        const head = [track.title, credit('副題', track.subtitle), credit('曲', track.composer), credit('詞', track.lyricist), credit('編', track.arranger), credit('監', track.producer)].filter(Boolean);
         const lyrics = ['[00:12.30]歌詞第一行（佔位）', '[00:16.80]歌詞第二行（佔位）', bad ? '歌詞第三行（佔位）' : '[00:21.45]歌詞第三行（佔位）', '[00:26.10]歌詞第四行（佔位）', '[00:31.90]歌詞第五行（佔位）'];
         return [...head, '', ...lyrics].join('\n');
     };
@@ -334,7 +334,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const checks = (track, { bad, blank }) => {
         if (blank) return `<li class="note">第一行輸入歌名</li><li class="note">「曲：」「詞：」「編：」「監：」可以省略</li><li class="note">歌詞可以稍後再加</li>`;
         const credits = ['composer', 'lyricist', 'arranger', 'producer'].filter((k) => track[k]).length;
-        const badLine = 1 + credits + 1 + BAD_LYRIC_INDEX; // 歌名 + 曲詞編監 + 空行 + 第幾句
+        const badLine = 1 + (track.subtitle ? 1 : 0) + credits + 1 + BAD_LYRIC_INDEX; // 歌名 + 副題 + 曲詞編監 + 空行 + 第幾句
         return (
             `<li>歌名：${esc(track.title)}</li><li>曲、詞、編、監：已填 ${credits} 項</li>` +
             (bad ? `<li class="err">第 ${badLine} 行沒有時間標記（其他歌詞行都有）。請補上，或者全部歌詞都不加時間標記。</li>` : `<li>歌詞 5 行，全部有時間標記</li>`)
@@ -343,7 +343,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const editor = (track, mode = {}) =>
         `<div class="edit"><div><label class="sub" for="song">歌曲資料及歌詞</label>` +
         `<textarea id="song" class="${mode.bad ? 'bad' : ''}" spellcheck="false" placeholder="${esc(FORMAT)}" aria-describedby="checks">${esc(songText(track, mode))}</textarea></div>` +
-        `<div class="hint"><b>格式</b><pre>${esc(FORMAT)}</pre>第一行一定是歌名。歌詞可以有時間標記（會跟隨歌曲顯示），也可以完全不加。` +
+        `<div class="hint"><b>格式</b><pre>${esc(FORMAT)}</pre>第一行一定是歌名。「曲：」「詞：」「編：」「監：」可以省略；有副題（例如 Live）可以加一行「副題：」。歌詞可以有時間標記（會跟隨歌曲顯示），也可以完全不加。` +
         `<div style="margin-top: 12px"><b>檢查結果</b></div><ul class="checks" id="checks" aria-live="polite">${checks(track, mode)}</ul></div>` +
         `<div class="bar"><button class="key primary" data-act="save" ${mode.bad ? 'disabled' : ''}>儲存</button><button class="key" data-act="collapse">取消</button><span class="spacer"></span>` +
         (mode.blank ? '' : `<button class="danger-link" data-act="toast-delete">刪除這首歌</button>`) + `</div></div>`;
