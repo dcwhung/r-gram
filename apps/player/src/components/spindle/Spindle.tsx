@@ -7,6 +7,9 @@ import { px } from '../svgNumber';
 import { Clamp } from './Clamp';
 import './spindle.css';
 import { PauseGlyph, PlayGlyph, ProgressRing } from './SpindleGlyphs';
+import { SPINDLE_SHAPE } from './spindleShape';
+
+const { play, listRing } = SPINDLE_SHAPE;
 
 /** 未揀歌｜歌單入面｜播緊｜暫停（包括熄電視之後） */
 export type SpindleMode = 'idle' | 'list' | 'playing' | 'paused';
@@ -38,15 +41,21 @@ const Face = ({
         <Clamp r={r} />
         {mode === 'list' && (
             <>
-                <circle data-part="list-ring" r={px(r)} fill="none" stroke="#fff" strokeWidth="3" />
-                <PlayGlyph size={r * 0.62} />
+                <circle
+                    data-part="list-ring"
+                    r={px(r)}
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth={listRing.width}
+                />
+                <PlayGlyph size={r * play.listSize} />
             </>
         )}
         {(mode === 'playing' || mode === 'paused') && (
             <ProgressRing r={r} progress={progress} accent={accent} />
         )}
         {mode === 'playing' && <PauseGlyph r={r} />}
-        {mode === 'paused' && <PlayGlyph size={r * 0.5} />}
+        {mode === 'paused' && <PlayGlyph size={r * play.pausedSize} />}
     </>
 );
 
@@ -66,7 +75,7 @@ export const Spindle = ({ layout, mode, progress, accent, onPress }: SpindleProp
                 r={px(Math.max(r, hitSizeUnits(layout) / 2))}
                 fill="transparent"
             />
-            <Shadow cx={disc.x} cy={disc.y} r={r} dx={0} dy={5} opacity={0.4} />
+            <Shadow cx={disc.x} cy={disc.y} r={r} {...SPINDLE_SHAPE.shadow} />
             <g data-part="clamp" transform={`translate(${disc.x} ${disc.y})`}>
                 <Face r={r} mode={mode} progress={progress} accent={accent} />
             </g>

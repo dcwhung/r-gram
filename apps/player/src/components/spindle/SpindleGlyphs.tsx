@@ -1,38 +1,38 @@
 import { px } from '../svgNumber';
+import { SPINDLE_SHAPE } from './spindleShape';
 
-/** play 三角（以原點為中心） */
-export const PlayGlyph = ({ size }: { size: number }) => (
-    <path
-        data-part="play"
-        d={`M${px(-size * 0.42)} ${px(-size * 0.56)}L${px(size * 0.62)} 0L${px(-size * 0.42)} ${px(size * 0.56)}z`}
-        fill="#fff"
-    />
-);
+/** play 三角（以原點為中心）：左邊上下兩點，右邊一個尖 */
+export const PlayGlyph = ({ size }: { size: number }) => {
+    const { back, halfHeight, tip } = SPINDLE_SHAPE.play;
+    const left = px(-size * back);
+    const top = px(-size * halfHeight);
+    const bottom = px(size * halfHeight);
+    const d = `M${left} ${top}L${px(size * tip)} 0L${left} ${bottom}z`;
+    return <path data-part="play" d={d} fill="#fff" />;
+};
 
 /** pause 兩條直條 */
 export const PauseGlyph = ({ r }: { r: number }) => {
-    const width = r * 0.17;
-    const height = r * 0.56;
+    const { pause } = SPINDLE_SHAPE;
+    const width = r * pause.width;
+    const height = r * pause.height;
     const bar = (x: number) => (
         <rect
             x={px(x)}
             y={px(-height / 2)}
             width={px(width)}
             height={px(height)}
-            rx={px(width * 0.25)}
+            rx={px(width * pause.corner)}
             fill="#fff"
         />
     );
     return (
         <g data-part="pause">
-            {bar(-width * 1.45)}
-            {bar(width * 0.45)}
+            {bar(width * pause.leftX)}
+            {bar(width * pause.rightX)}
         </g>
     );
 };
-
-const RING_RADIUS = 0.84;
-const QUARTER_TURN_BACK = -90;
 
 /** 進度圈：底圈 + 專輯色弧（由 12 點鐘開始，順時針） */
 export const ProgressRing = ({
@@ -44,13 +44,14 @@ export const ProgressRing = ({
     progress: number;
     accent: string;
 }) => {
-    const ringRadius = r * RING_RADIUS;
+    const { ring } = SPINDLE_SHAPE;
+    const ringRadius = r * ring.r;
     const circumference = 2 * Math.PI * ringRadius;
     const share = Number.isFinite(progress) ? Math.max(0, Math.min(1, progress)) : 0;
-    const width = px(Math.max(5, r * 0.1));
+    const width = px(Math.max(ring.minWidth, r * ring.width));
     return (
         <>
-            <circle r={px(r * 0.74)} fill="#0b0b0c" opacity=".78" />
+            <circle r={px(r * ring.backdrop)} fill="#0b0b0c" opacity=".78" />
             <circle
                 r={px(ringRadius)}
                 fill="none"
@@ -66,7 +67,7 @@ export const ProgressRing = ({
                 strokeWidth={width}
                 strokeLinecap="round"
                 strokeDasharray={`${px(circumference * share)} ${px(circumference)}`}
-                transform={`rotate(${QUARTER_TURN_BACK})`}
+                transform={`rotate(${ring.startDeg})`}
             />
         </>
     );

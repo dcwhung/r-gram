@@ -19,7 +19,7 @@ export const PHONE_LAYOUT: StageLayout = {
     disc: DISC,
     platter: { r: PLATTER_RADIUS },
     hub: { clear: 0.16, clamp: 0.118, rim: 0.972 },
-    arm: { x: 900, y: 330, length: 640, base: 92, parkDeg: 176, playDeg: 99 },
+    arm: { x: 900, y: 330, length: 640, base: 92, parkDeg: 176, playDeg: 99, bend: -1 },
     orbit: { r: 1000, startDeg: -48, stepDeg: 30, scale: 0.72, veil: 0.42, spread: 0.9 },
     buttons: {
         r: 44,

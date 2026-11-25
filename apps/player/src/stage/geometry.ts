@@ -6,6 +6,8 @@ import { DESIGN_WIDTH } from './fitStage';
 import type { Point, StageLayout } from './layouts/types';
 
 const DEG_TO_RAD = Math.PI / 180;
+/** 一個圈（度）：將零件平均分佈喺一圈時用 */
+export const FULL_TURN_DEG = 360;
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
 const lerp = (from: number, to: number, k: number) => from + (to - from) * k;

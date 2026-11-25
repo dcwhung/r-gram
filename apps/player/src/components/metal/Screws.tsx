@@ -2,23 +2,31 @@ import type { Point } from '../../stage/layouts';
 import { px } from '../svgNumber';
 import { Metal } from './Metal';
 
-const SCREW_RADIUS = 11;
-const SLOT_HALF_LENGTH = 0.55;
-const SLOT_ANGLE_DEG = 35;
+/** 一字螺絲嘅形狀（設計稿 screw()）：半徑、車床紋角度、斜邊；坑嘅半長（以半徑做 1）、角度、線粗 */
+const SCREW_SHAPE = {
+    r: 11,
+    rot: 70,
+    bevel: 0.2,
+    slot: { halfLength: 0.55, deg: 35, width: 2.4 },
+} as const;
 
 /** 一字螺絲 */
-export const Screw = ({ x, y }: Point) => (
-    <>
-        <Metal cx={x} cy={y} r={SCREW_RADIUS} rot={70} bevel={0.2} shadow={false} />
-        <path
-            d={`M${px(x - SCREW_RADIUS * SLOT_HALF_LENGTH)} ${px(y)}H${px(x + SCREW_RADIUS * SLOT_HALF_LENGTH)}`}
-            stroke="#555"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            transform={`rotate(${SLOT_ANGLE_DEG} ${px(x)} ${px(y)})`}
-        />
-    </>
-);
+export const Screw = ({ x, y }: Point) => {
+    const { slot, ...face } = SCREW_SHAPE;
+    const half = face.r * slot.halfLength;
+    return (
+        <>
+            <Metal cx={x} cy={y} {...face} shadow={false} />
+            <path
+                d={`M${px(x - half)} ${px(y)}H${px(x + half)}`}
+                stroke="#555"
+                strokeWidth={slot.width}
+                strokeLinecap="round"
+                transform={`rotate(${slot.deg} ${px(x)} ${px(y)})`}
+            />
+        </>
+    );
+};
 
 export const Screws = ({ points }: { points: readonly Point[] }) => (
     <>

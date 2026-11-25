@@ -19,8 +19,14 @@ export interface StageLayout {
     platter: { r: number };
     /** 碟芯（以碟半徑做 1）：透明膠圈外徑、碟孔（= 唱片夾）、銀邊內徑 */
     hub: { clear: number; clamp: number; rim: number };
-    /** 唱臂：軸心、長度、底座半徑、泊位同落針角度 */
-    arm: Point & { length: number; base: number; parkDeg: number; playDeg: number };
+    /** 唱臂：軸心、長度、底座半徑、泊位同落針角度；`bend` = 針頭殼向邊一邊彎（−1：臂向右伸時向上，即係向碟心） */
+    arm: Point & {
+        length: number;
+        base: number;
+        parkDeg: number;
+        playDeg: number;
+        bend: 1 | -1;
+    };
     /** 轉碟時其他碟沿弧線排 */
     orbit: {
         r: number;
