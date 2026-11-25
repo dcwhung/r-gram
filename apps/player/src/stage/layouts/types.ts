@@ -116,7 +116,10 @@ export interface StageLayout {
         playDeg: number;
         bend: 1 | -1;
     };
-    /** 轉碟時其他碟沿弧線排 */
+    /**
+     * 轉碟時其他碟沿弧線排（設計稿 discPose()）：弧線半徑、第一張嘅角度、每張隔幾多度、縮細比例、白紗透明度、
+     * 字母盤閂埋時每張碟再散開幾多（× stepDeg）；`shown` = 字母盤打開時見到嘅碟（離揀中嗰張 from 至 to 張）
+     */
     orbit: {
         r: number;
         startDeg: number;
@@ -124,6 +127,7 @@ export interface StageLayout {
         scale: number;
         veil: number;
         spread: number;
+        shown: { from: number; to: number };
     };
     /** 三粒細掣：半徑、光圈、icon 大細同位置 */
     buttons: {
@@ -133,8 +137,11 @@ export interface StageLayout {
         iconSize: number;
         items: readonly (Point & { id: ButtonId })[];
     };
-    /** 轉碟旋鈕；`heartHitGap` = ♥ 嘅感應方格離旋鈕邊幾遠（方格由旋鈕邊向外伸，唔同旋鈕重疊） */
-    knob: Point & { r: number; heartHitGap: number };
+    /**
+     * 轉碟旋鈕；`heartHitGap` = ♥ 嘅感應方格離旋鈕邊幾遠（方格由旋鈕邊向外伸，唔同旋鈕重疊）；
+     * `turnDeadZone` = 拖動時 pointer 離旋鈕中心少過幾多（× 感應半徑）唔計角度（太近中心，角度會亂跳）
+     */
+    knob: Point & { r: number; heartHitGap: number; turnDeadZone: number };
     /** 刻度弧：固定由 fromDeg 去到 toDeg；每張專輯一格平均分佈，最尾一格（toDeg）係 ♥ */
     scale: {
         fromDeg: number;
@@ -145,8 +152,28 @@ export interface StageLayout {
         heart: number;
         heartGap: number;
     };
-    /** 轉碟時環繞旋鈕嘅字母盤 */
-    dial: { inner: number; outer: number; letters: number; current: number; other: number };
+    /**
+     * 轉碟時環繞旋鈕嘅字母盤（設計稿 DIAL、DIAL_ALL_UP_TO、DIAL_MAX_LETTERS、DIAL_CLEARANCE、DIAL_DOT、DIAL_MOTION）：
+     * 底盤內外半徑、字母半徑、揀中同其他字母嘅字級；`letterRule` = 碟多時嘅字母規則（Functional Spec D28）：
+     * 幾多格或以下每格都出字母、最多幾個字母、淨空 = 字母半徑 × clearanceStepDeg 嘅弧長 × clearanceFactor；
+     * `dotR` = 冇出字母嗰格嘅細點半徑；`plateFrom`、`keyFrom` = 打開過場嘅起點（底盤 scale、字母嘅半徑同 scale）
+     */
+    dial: {
+        inner: number;
+        outer: number;
+        letters: number;
+        current: number;
+        other: number;
+        letterRule: {
+            allUpTo: number;
+            maxLetters: number;
+            clearanceStepDeg: number;
+            clearanceFactor: number;
+        };
+        dotR: number;
+        plateFrom: number;
+        keyFrom: number;
+    };
     /** 螺絲；`zoneIndex` 嗰粒（左下）周圍唔放控件 */
     screws: { points: readonly Point[]; zoneIndex: number };
     /** 左上資訊、右上版本號（貼頂組） */

@@ -16,7 +16,7 @@ const shown = (current: number, positions: number) =>
 describe('dialLetterEvery', () => {
     it.each([
         [18, 1],
-        [19, 3],
+        [19, 2],
         [22, 3],
         [25, 3],
         [31, 4],
