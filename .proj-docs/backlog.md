@@ -44,6 +44,9 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-044 | Review T-022（S-059、決定 12） | Technical Spec 同步（下次 CR）：冇 If-Match → 400；`ID_REMOVED` 嘅 details 形狀同強制刪除回 200 連 body；排序 409；專輯欄位上限同 folder 規則；`reason` 碼用大寫；API-012 嘅歌曲形狀；`year` 跟 `releaseDate`；新增專輯嘅預設值；改歌名唔重算字母盤標記。另要定一條規則：API 錯誤訊息嘅語言（專輯 API 用中文書面語，登入相關嘅 401／403 同通用 404／500 仲係英文）——建議全部用中文書面語，管理端以 `code`／`reason` 砌自己嘅文字 | 下次 Change Request；語言規則喺 T-023 之前定 |
 | B-045 | Re-review T-022（S-062、S-063） | ① 專輯 folder 名仲收 `...` 同 `a..b`（唔危險：網址會原樣保留），但 Technical Spec 寫 R2 key 唔可以有 `..`，由呢類 folder 掃出嚟嘅 key 會過唔到手動指定檔案嘅檢查；一係拒絕任何 `..`，一係喺 spec 寫明 folder 規則（連同 B-044）。② 錯誤訊息嘅 `{max}` 呢類 placeholder 如果漏咗參數，會原樣出現喺用戶見到嘅訊息；加一個測試行勻所有 reason，確認冇 `{`／`}` 剩低。③ 文字欄位拒絕零闊連接符 U+200D（組合 emoji 用），re-review 認為唔豁免；之後真係要用，行 Change Request | T-023 |
 | B-046 | QA S1 api-albums（Observation） | ① 未知欄位嘅數目冇上限：5,000 個未知欄位（362 KB 請求）會回 5,000 條 details、605 KB 回應；超過某個數目就只回一條。② `GET /api/albums` 嘅 `catalog`（catalog 狀態，物件或者 null）同寫入回應將來嘅 `catalog: { ok }` 同名但形狀唔同，T-026 定案時要統一或者改名。③ `.dev.vars.example` 嘅 `SESSION_SECRET` placeholder 得 29 個字元，照抄會令設定檢查回 500（檢查本身正確）；placeholder 改做夠長嘅假值 | ①③ T-023；② T-026 |
+| B-047 | Review T-023（S-064、S-065） | ① `readBoundedJsonObject` 先讀晒成個 body 先檢查長度：上限喺 parse 之前生效，但唔係喺 buffer 之前（只有已登入、同源嘅請求先到到呢度，影響低）；先睇 `Content-Length` 或者邊讀邊計。② 兩處守衛冇測試守住：歌詞 DELETE 嘅 `changes() > 0`、body 上限（mutant 冇被捉到；行為本身正確） | 下次改 `apps/api/src/tracks` 或 `lib/http.ts` |
+| B-048 | Review T-023（S-066） | R2 會留低冇人引用嘅歌詞檔（只係浪費空間，唔會有壞連結）：強制刪專輯之後、R2 寫入後 D1 出錯、三次 id 都撞。刪專輯時重用 `dropUnusedLyrics()`，或者喺生成 catalog 時清走冇引用嘅歌詞檔 | T-026 |
+| B-049 | Review T-023（S-069、S-071） | ① Technical Spec 同步（下次 CR）：409 `LYRICS_REMOVED` 同佢嘅 details；400 details 形狀；200／201 回應連 `track` 同 `hints`；API-021 嘅欄位同上限；API-022、API-023 回應；body 上限同 parse 前回 413；歌曲 id 格式；歌詞檔 key 格式；共用錯誤碼加 `LYRICS_REMOVED`、`TOO_LARGE`。② 專輯 folder 仲收 `a..b`，但手動指定嘅媒體 key 拒絕任何 `..`：兩條規則要一致（同 B-045 ①） | ① 下次 Change Request；② T-025 之前 |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 

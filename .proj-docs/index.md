@@ -30,6 +30,7 @@
 | 2026-11-25 | [reviews/2026-11-25_08-59_review_T-029_T-096.md](reviews/2026-11-25_08-59_review_T-029_T-096.md) | pass 95 / 100 | T-029 歌曲文字 parser、T-096 D1 schema 跟 CR-003。一條 Warning W-012（`[1]`、`[1999]` 被當成時間標記）已修；S-049–S-052 同 Observation 入咗 backlog（B-038–B-041） |
 | 2026-11-25 | [reviews/2026-11-25_09-25_review_T-022.md](reviews/2026-11-25_09-25_review_T-022.md) | warn 85 / 100 | T-022 專輯 API。冇 Critical；三條 Warning（W-013 folder 收 `..`、W-014 空排序回 500、W-015 掛鉤出錯令已儲存嘅寫入回 500）已修；S-057–S-061 入咗 backlog（B-043、B-044） |
 | 2026-11-25 | [reviews/2026-11-25_09-42_review_T-022_re-review.md](reviews/2026-11-25_09-42_review_T-022_re-review.md) | pass 100 / 100 | 同上（修正後）。W-013–W-015 同 S-053–S-056 已關；新建議 S-062、S-063 入咗 backlog（B-045） |
+| 2026-11-25 | [reviews/2026-11-25_11-10_review_T-023.md](reviews/2026-11-25_11-10_review_T-023.md) | pass 95 / 100 | T-023 歌曲 API（連 backlog 修正 B-020、B-022、B-038、B-040、B-042–B-046）。冇 Critical；一條 Warning W-016（歌曲 route 冇測試守住 401）已補；S-067 已修；其餘建議入咗 backlog（B-047–B-049） |
 
 ## QA
 
