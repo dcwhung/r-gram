@@ -1,4 +1,5 @@
 import { isAlbumId, isTrackId } from './ids';
+import { isReleaseCategory } from './releaseCategory';
 import { type CatalogError, type Fields, Issues, isRecord } from './issues';
 import { CATALOG_VERSION, CREDIT_FIELDS, type CatalogDocument } from './types';
 
@@ -88,6 +89,13 @@ const checkTrack = (
     );
 };
 
+/** 類別同序號：兩個都冇 = 舊格式，收；有其中一個就兩個都要啱 */
+const checkCategory = (issues: Issues, album: Fields, path: string): void => {
+    if (album.category === undefined && album.categoryNo === undefined) return;
+    issues.check(isReleaseCategory(album.category), `${path}.category`, 'INVALID_CATEGORY');
+    issues.check(isPositiveInteger(album.categoryNo), `${path}.categoryNo`, 'INVALID_NUMBER');
+};
+
 const checkAlbumFields = (issues: Issues, album: Fields, path: string): void => {
     issues.text(album.title, `${path}.title`);
     issues.check(isWheelKey(album.wheelKey), `${path}.wheelKey`, 'INVALID_WHEEL_KEY');
@@ -99,6 +107,7 @@ const checkAlbumFields = (issues: Issues, album: Fields, path: string): void => 
         'INVALID_NUMBER',
     );
     issues.text(album.type, `${path}.type`, { allowEmpty: true });
+    checkCategory(issues, album, path);
     issues.text(album.label, `${path}.label`, { allowEmpty: true });
     const validAccent = typeof album.accent === 'string' && ACCENT.test(album.accent);
     issues.check(validAccent, `${path}.accent`, 'INVALID_COLOUR');

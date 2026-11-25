@@ -1,6 +1,7 @@
 /*
  * albums 表嘅讀寫（全部 parameterised；欄位名只會嚟自 rows.ts 嘅常數）。
- * 並發：修改用 `WHERE updated_at = If-Match` 一句完成（檢查同寫入之間冇空隙）；排序同刪除用 D1 batch（一個 transaction）
+ * 並發：修改用 `WHERE updated_at = If-Match` 一句完成（檢查同寫入之間冇空隙）；排序同刪除用 D1 batch（一個 transaction）。
+ * 同類別序號唔重覆（CR-004，FR-124）亦喺寫入嗰一句檢查（`NOT EXISTS`），唔係先讀後寫
  */
 import { NEUTRAL_ACCENT, wheelKeyFor } from '@r-gram/catalog';
 import { nextUpdatedAt } from '../lib/updatedAt';
@@ -11,34 +12,60 @@ import type { EditableField } from './fieldRules';
 export const findAlbum = (db: D1Database, id: string) =>
     db.prepare(`SELECT ${ALBUM_COLUMNS} FROM albums WHERE id = ?`).bind(id).first<AlbumRow>();
 
-/** 新增：預設字母盤標記按碟名、專輯色用中性灰（上載封面後由 T-024 抽色）；排喺最尾。id 已存在 → false */
-export const insertAlbum = async (db: D1Database, id: string, fields: AlbumFields) => {
-    const now = new Date().toISOString();
+/**
+ * ?7 = 類別、?8 = 序號（NULL = 嗰個類別最大序號 + 1）。序號已有人用 → `NOT EXISTS` 唔成立，乜都唔寫；
+ * `category_no = NULL` 永遠唔成立，所以冇畀序號時一定寫得入。SELECT 一定要有 WHERE，SQLite 先唔會將
+ * ON CONFLICT 當成 join 嘅一部分
+ */
+const INSERT_SQL = `
+    INSERT INTO albums (id, title, wheel_key, release_date, year, type, category, category_no,
+        label, accent, cover, cover_source_etag, thumb, folder, sort_order, created_at, updated_at)
+    SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7,
+        COALESCE(?8, (SELECT COALESCE(MAX(category_no), 0) + 1 FROM albums WHERE category = ?7)),
+        ?9, ?10, ?11, ?12, ?13, ?14,
+        (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM albums), ?15, ?15
+    WHERE NOT EXISTS (SELECT 1 FROM albums WHERE category = ?7 AND category_no = ?8)
+    ON CONFLICT (id) DO NOTHING`;
+
+/** INSERT_SQL ?1–?14 嘅值；冇畀嘅欄用預設 */
+const insertValues = (id: string, fields: AlbumFields): unknown[] => {
     const title = fields.title as string;
+    return [
+        id,
+        title,
+        fields.wheelKey ?? wheelKeyFor(title),
+        fields.releaseDate ?? null,
+        yearOf(fields.releaseDate),
+        fields.type ?? '',
+        fields.category,
+        fields.categoryNo ?? null,
+        fields.label ?? '',
+        fields.accent ?? NEUTRAL_ACCENT,
+        fields.cover ?? null,
+        fields.coverSourceEtag ?? null,
+        fields.thumb ?? null,
+        fields.folder ?? null,
+    ];
+};
+
+export type InsertOutcome = 'inserted' | 'idTaken' | 'ordinalTaken';
+
+/**
+ * 新增：預設字母盤標記按碟名、專輯色用中性灰（上載封面後抽色）、序號接住同類別最大嗰個；排喺最尾。
+ * 寫唔入：id 已存在優先報（409），否則係序號已有人用（400）
+ */
+export const insertAlbum = async (
+    db: D1Database,
+    id: string,
+    fields: AlbumFields,
+): Promise<InsertOutcome> => {
+    const now = new Date().toISOString();
     const result = await db
-        .prepare(
-            `INSERT INTO albums (id, title, wheel_key, release_date, year, type, label, accent,
-                 cover, thumb, folder, sort_order, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11,
-                 (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM albums), ?12, ?12)
-             ON CONFLICT (id) DO NOTHING`,
-        )
-        .bind(
-            id,
-            title,
-            fields.wheelKey ?? wheelKeyFor(title),
-            fields.releaseDate ?? null,
-            yearOf(fields.releaseDate),
-            fields.type ?? '',
-            fields.label ?? '',
-            fields.accent ?? NEUTRAL_ACCENT,
-            fields.cover ?? null,
-            fields.thumb ?? null,
-            fields.folder ?? null,
-            now,
-        )
+        .prepare(INSERT_SQL)
+        .bind(...insertValues(id, fields), now)
         .run();
-    return result.meta.changes > 0;
+    if (result.meta.changes > 0) return 'inserted';
+    return (await findAlbum(db, id)) ? 'idTaken' : 'ordinalTaken';
 };
 
 /** SET 子句同佢嘅值：有畀 releaseDate 就連 year 一齊改 */
@@ -54,8 +81,23 @@ const assignments = (fields: AlbumFields): { sql: string[]; values: unknown[] } 
 };
 
 /**
- * 只喺 updated_at 仲係 `expected` 時改；`RETURNING` 喺同一句回改好嘅行（backlog B-043 ①：
- * 寫入之後再讀，中間被刪就會誤報 404）。改唔到（過時或者冇呢張碟）→ null
+ * 改類別或者序號時：改完之後嘅（類別, 序號）唔可以同另一張碟一樣。冇畀嘅一邊用嗰張碟而家嘅值。
+ * 只改其他欄位就唔檢查（就算資料本身已經撞號，都唔會令改碟名失敗）
+ */
+const ordinalGuard = (fields: AlbumFields): { sql: string; values: unknown[] } =>
+    'category' in fields || 'categoryNo' in fields
+        ? {
+              sql: `AND NOT EXISTS (SELECT 1 FROM albums other
+                  WHERE other.id <> albums.id
+                  AND other.category = COALESCE(?, albums.category)
+                  AND other.category_no = COALESCE(?, albums.category_no))`,
+              values: [fields.category ?? null, fields.categoryNo ?? null],
+          }
+        : { sql: '', values: [] };
+
+/**
+ * 只喺 updated_at 仲係 `expected`（同埋序號冇撞）時改；`RETURNING` 喺同一句回改好嘅行（backlog B-043 ①：
+ * 寫入之後再讀，中間被刪就會誤報 404）。改唔到（過時、序號已有人用或者冇呢張碟）→ null
  */
 export const updateAlbum = (
     db: D1Database,
@@ -64,13 +106,14 @@ export const updateAlbum = (
     expected: string,
 ): Promise<AlbumRow | null> => {
     const { sql, values } = assignments(fields);
+    const guard = ordinalGuard(fields);
     return db
         .prepare(
             `UPDATE albums SET ${[...sql, 'updated_at = ?'].join(', ')}
-             WHERE id = ? AND updated_at = ?
+             WHERE id = ? AND updated_at = ? ${guard.sql}
              RETURNING ${ALBUM_COLUMNS}`,
         )
-        .bind(...values, nextUpdatedAt(expected), id, expected)
+        .bind(...values, nextUpdatedAt(expected), id, expected, ...guard.values)
         .first<AlbumRow>();
 };
 

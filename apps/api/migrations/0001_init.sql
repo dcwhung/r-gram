@@ -1,5 +1,6 @@
--- R Gram 內容資料（Technical Spec「數據庫設計」，CR-003 之後：冇上下架、冇發佈記錄）。
--- D1 未部署過，所以 CR-003 直接改呢個檔，唔加新 migration。
+-- R Gram 內容資料（Technical Spec「數據庫設計」，CR-003 之後：冇上下架、冇發佈記錄；
+-- CR-004：發行類別、序號、封面同歌曲文字嘅來源 ETag）。
+-- D1 未部署過，所以 CR-003、CR-004 直接改呢個檔，唔加新 migration。
 -- 時間欄一律 ISO 8601 UTC 字串（sessions.expires_at 例外：epoch ms）。
 -- CHECK 只鎖結構上唔會變嘅規則（id 格式、0 / 1、狀態值）；長度上限等可調嘅規則由 packages/catalog validator 管。
 -- TEXT PRIMARY KEY 喺 SQLite 唔會自動 NOT NULL，所以逐個寫明。
@@ -16,7 +17,11 @@ CREATE TABLE assets (
 -- albums：一隻碟一行
 --   id：^[a-z0-9]+(-[a-z0-9]+)*$（同 packages/catalog isAlbumId），建立後不變；
 --       'favourites' 係播放端虛擬專輯嘅保留字
---   folder：r-gram-media 入面嘅資料夾名（NULL = 用 id）
+--   category：發行類別短名（packages/catalog RELEASE_CATEGORIES；串法待用戶確認，Functional Spec D43）
+--   category_no：類別內序號，由 1 起；同類別唔可以重覆由 API 驗（唔加 UNIQUE：兩張碟對調序號要分兩步改）
+--   cover_source_etag：上次由掃描套用嘅封面來源（cover.jpg｜png）嘅 R2 ETag；NULL = 未套用過
+--   folder：媒體 bucket rb-discography 入面嘅資料夾名（NULL = 用預期資料夾名 <category>-<NN>-<id>，
+--     由 packages/catalog expectedFolder() 計；字元規則由 API 驗）
 --   updated_at 兼做 If-Match
 CREATE TABLE albums (
     id TEXT PRIMARY KEY NOT NULL CHECK (
@@ -32,9 +37,12 @@ CREATE TABLE albums (
     release_date TEXT,
     year INTEGER,
     type TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL CHECK (category IN ('album', 'ep', 'best', 'live', 'ost', 'single')),
+    category_no INTEGER NOT NULL CHECK (category_no >= 1),
     label TEXT NOT NULL DEFAULT '',
     accent TEXT NOT NULL,
     cover TEXT REFERENCES assets (name),
+    cover_source_etag TEXT,
     thumb TEXT REFERENCES assets (name),
     folder TEXT,
     sort_order INTEGER NOT NULL,
@@ -48,6 +56,7 @@ CREATE INDEX albums_sort_order ON albums (sort_order);
 --   id：^[a-z0-9-]+$（同 packages/catalog isTrackId），建立後不變
 --   audio_manual / mv_manual：1 = 手動指定，掃描唔蓋
 --   lyrics_source_url、note、youtube_id、video_kind：參考欄，唔入 catalog
+--   text_source_etag：上次由掃描套用嘅歌曲文字檔（NN 名.txt）嘅 R2 ETag；NULL = 未套用過。人手儲存唔改佢
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY NOT NULL CHECK (id <> '' AND id NOT GLOB '*[^a-z0-9-]*'),
     album_id TEXT NOT NULL REFERENCES albums (id) ON DELETE CASCADE,
@@ -66,6 +75,7 @@ CREATE TABLE tracks (
         lyrics_source_url IS NULL OR lyrics_source_url GLOB 'https://*'
     ),
     note TEXT,
+    text_source_etag TEXT,
     youtube_id TEXT,
     video_kind TEXT,
     created_at TEXT NOT NULL,

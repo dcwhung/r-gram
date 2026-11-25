@@ -2,7 +2,7 @@
  * D1 資料 → catalog 文件（Technical Spec API-070；packages/catalog 嘅 CatalogDocument）。
  * - 全部專輯同歌（CR-003：冇上下架）；冇歌嘅專輯照出（D39）；冇音檔嘅歌照出，audio = null（D11）
  * - 空字串 / 空白轉 null（validator 唔收空字串；type、label 例外，backlog B-005）
- * - audio / mv 係 r-gram-media 嘅 key 原文，cover / thumb / lyrics 係檔名：播放端用 mediaUrl(base, key) 逐段 encode
+ * - audio / mv 係媒體 bucket（rb-discography）嘅 key 原文，cover / thumb / lyrics 係檔名：播放端用 mediaUrl(base, key) 逐段 encode
  * 呢度唔驗證：rebuild.ts 寫入之前一定行 parseCatalogDocument()
  */
 import {
@@ -60,6 +60,8 @@ const toAlbum = (album: AlbumSnapshot, tracks: readonly TrackSnapshot[]): Catalo
         // 年份跟發行日期：冇日期就冇年份
         year: releaseDate === null ? null : album.year,
         type: album.type,
+        category: album.category,
+        categoryNo: album.category_no,
         label: album.label,
         accent: album.accent,
         cover: orNull(album.cover),

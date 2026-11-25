@@ -31,12 +31,13 @@ const idIssue = (id: unknown): FieldIssue | undefined => {
     return valid ? undefined : { path: ID_KEY, reason: 'INVALID_ID' };
 };
 
-/** 新增：id、title 必填；其他欄同修改一樣 */
+/** 新增：id、title、category 必填（CR-004）；其他欄同修改一樣 */
 export const parseCreate = (body: JsonObject): ParsedFields & { id: string } => {
     const issue = idIssue(body[ID_KEY]);
     const parsed = parseFields(body, [ID_KEY]);
     const issues = issue ? [issue, ...parsed.issues] : parsed.issues;
     if (body.title === undefined) issues.push({ path: 'title', reason: 'REQUIRED' });
+    if (body.category === undefined) issues.push({ path: 'category', reason: 'REQUIRED' });
     return { id: body[ID_KEY] as string, fields: parsed.fields, issues };
 };
 

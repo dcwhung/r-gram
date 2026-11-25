@@ -12,7 +12,7 @@ const NO_RULES: Readonly<Record<never, never>> = {};
 export const parseTrackFields = (body: JsonObject): ParsedFields<TrackField, TrackReason> =>
     parseFieldsWith(TRACK_FIELD_RULES, body);
 
-/** 手動指定嘅檔案要喺 r-gram-media 入面（Technical Spec「安全設計」：儲存前 MEDIA.head(key)） */
+/** 手動指定嘅檔案要喺媒體 bucket（rb-discography）入面（Technical Spec「安全設計」：儲存前 MEDIA.head(key)） */
 export const missingMediaIssues = async (
     media: R2Bucket,
     fields: TrackFields,

@@ -9,6 +9,7 @@ export type CatalogErrorCode =
     | 'INVALID_NUMBER'
     | 'INVALID_COLOUR'
     | 'INVALID_WHEEL_KEY'
+    | 'INVALID_CATEGORY'
     | 'NOT_AN_ARRAY'
     | 'DUPLICATE';
 

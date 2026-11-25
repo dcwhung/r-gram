@@ -3,7 +3,7 @@ export interface Env {
     DB: D1Database;
     /** private：catalog.json、封面圖、歌詞 JSON */
     CATALOG: R2Bucket;
-    /** 音檔 / MV（公開網址直出）：Worker 只 list / head */
+    /** 媒體 bucket rb-discography：音檔、MV、封面來源、歌曲文字檔（公開網址直出）；Worker 只讀，唔寫 */
     MEDIA: R2Bucket;
     GOOGLE_CLIENT_ID: string;
     /** secret */
@@ -16,6 +16,6 @@ export interface Env {
     PLAYER_ORIGINS: string;
     /** Worker 自己嘅 origin：OAuth redirect、CSRF Origin 檢查、catalog 圖 URL */
     WORKER_ORIGIN: string;
-    /** r-gram-media 嘅公開網址（/ 結尾），寫入 catalog.json 嘅 mediaBase */
+    /** 媒體 bucket（rb-discography）嘅公開網址（/ 結尾），寫入 catalog.json 嘅 mediaBase */
     MEDIA_BASE: string;
 }
