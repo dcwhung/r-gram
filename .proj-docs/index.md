@@ -15,6 +15,15 @@
 | --- | --- | --- | --- |
 | 2026-11-25 | [plans/2026-11-25_00-07_implementation-plan_r-gram.md](plans/2026-11-25_00-07_implementation-plan_r-gram.md) | v1.0 Approved | Implementation Plan：可行性（有條件可行）、Phase A–L、任務 T-001–T-095、要用戶做嘅事 U-1–U-10、風險 R-001–R-010、工作量約 77 人日、開始順序 |
 
+## Reviews
+
+| 日期 | 文件 | 結果 | 範圍 |
+| --- | --- | --- | --- |
+| 2026-11-25 | [reviews/2026-11-25_00-23_review_T-001_T-002.md](reviews/2026-11-25_00-23_review_T-001_T-002.md) | warn 85 / 100（W-001–W-003） | T-001 scaffold、T-002 `packages/catalog` |
+| 2026-11-25 | [reviews/2026-11-25_00-33_review_T-001_T-002_re-review.md](reviews/2026-11-25_00-33_review_T-001_T-002_re-review.md) | pass 100 / 100 | 同上（修正後） |
+
+Backlog：[backlog.md](backlog.md)
+
 ## 待辦（阻住開發嘅 mockup）
 
 | 次序 | Mockup | 阻住 |
