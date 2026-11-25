@@ -502,7 +502,7 @@ tr:last-child td { border-bottom: 0; }
         ['播緊時揀碟', '第 18 版：聲照播；唱臂、左下三粒細掣同左上歌名嗰部分淡出，只留碟名；隻碟停轉；轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉', { album: 'komorebi', song: true, wheel: 1 }],
         ['播緊時揀碟：轉到另一隻碟', '第 18 版：好似行開去碟架拎第二隻碟睇——唱片機縮去右上角照播；左上碟名跟住旋鈕指住嘅碟變，碟名下面即刻列出呢隻碟嘅歌單。冇黑色層：黑字，字級比「播放中」大一級；隻碟左邊蓋一層半透明嘅底色', { album: 'juntos', song: false, wheel: 1, away: true, loaded: 'komorebi' }],
         ['播緊時，手上拎住另一隻碟', '第 18 版：鬆手之後，歌單向下排多幾行。㩒一行 = 將隻碟放入唱片機播嗰首：原本首歌停，隻碟落轉盤，唱針由泊位轉過嚟落碟。㩒右上角細唱片機 = 放低隻碟，返去播緊嗰隻', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
-        ['長歌單（30 首）', '第 18 版：一版見到約 20 首；放唔晒就上下捲，頂同底淡出表示仲有，右邊有位置條；歌名太長用「…」', { album: 'we-are-rubberband', song: false, wheel: 0, away: true, loaded: 'komorebi', listScroll: 0.5 }],
+        ['長歌單（30 首）', '第 18 版：一版見到約 20 首；放唔晒就上下捲，頂同底淡出表示仲有，左邊有位置條；歌名太長用「…」', { album: 'we-are-rubberband', song: false, wheel: 0, away: true, loaded: 'komorebi', listScroll: 0.5 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 未有音檔（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
         ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
@@ -842,10 +842,10 @@ tr:last-child td { border-bottom: 0; }
     /**
      * 第 18 版：手上拎住另一隻碟（連擰緊旋鈕指住嗰陣）——碟名下面直接列出佢嘅歌單，唔使再㩒碟面。
      * 冇黑色層：歌名用黑字直接寫喺淺色底上面；字級比右上角「播放中」（MINI.label）大一級，行距收窄。
-     * 隻碟嘅左邊蓋一層半透明嘅底色（向右淡出；唔係壓暗），隻碟仍然透得出嚟，歌名又睇得清楚。
-     * 㩒一行 = 將隻碟放入唱片機播嗰首。歌多就上下捲：頂（捲咗先有）同底（下面仲有先有）淡出，右邊有位置條。
+     * 畫面蓋一層半透明嘅底色：由左邊 62% 直線淡到右邊 0%（唔係壓暗），隻碟仍然透得出嚟，歌名又睇得清楚。
+     * 㩒一行 = 將隻碟放入唱片機播嗰首。歌多就上下捲：頂（捲咗先有）同底（下面仲有先有）淡出，左邊有位置條。
      */
-    const TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomHeld: 1650, size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, scrimSolid: 470, scrimEnd: 800, scrimOpacity: 0.62 };
+    const TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomHeld: 1650, size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, barX: 44, scrimSolid: 0, scrimEnd: W, scrimOpacity: 0.62 }; // 淺色層：由左 62% 直線淡到右邊 0%
     const trackPitch = () => TRACKLIST.pitch;
     const panelMetrics = (st) => {
         const rows = (TRACKS[st.album] ?? { rows: [] }).rows;
@@ -897,7 +897,7 @@ tr:last-child td { border-bottom: 0; }
             `<mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="${W}" height="${H}"><rect y="${top}" width="${W}" height="${room}" fill="url(#${id}-g)"/></mask>` +
             `<g mask="url(#${id})">${list}</g>`;
         if (hidden > 0) {
-            const barX = TRACKLIST.right + 26;
+            const barX = TRACKLIST.barX; // 位置條喺歌號左邊
             const thumb = Math.max(60, (room * room) / (rows.length * pitch));
             const thumbY = top + (room - thumb) * (st.listScroll ?? 0);
             out += `<rect x="${barX}" y="${top}" width="${TRACKLIST.bar}" height="${room}" rx="2.5" fill="#000" fill-opacity=".07"/><rect x="${barX}" y="${n(thumbY)}" width="${TRACKLIST.bar}" height="${n(thumb)}" rx="2.5" fill="${accent}"/>`;
