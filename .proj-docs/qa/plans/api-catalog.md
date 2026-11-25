@@ -3,6 +3,7 @@
 - Chain: 儲存即生效（`apps/api`）：每個成功嘅 `/api` 寫入之後 `rebuildCatalog()`（D1 → document → `parseCatalogDocument()` → 內容 hash 冇變唔寫 → 條件寫入 R2 `catalog.json` → `catalog_state`）、重試 `POST /api/catalog/rebuild`、公開 `catalog.json` / `lyrics/:name`（連 T-024 嘅 `img/:name` 共用嘅 serve / routes 檔）。任務 T-026
 - AC（L1 來源：TS = Technical Spec v1.3、FS = Functional Spec v1.5）:
     - AC-1 儲存即生效（TS「核心原則 1」、API-061、API-070；FS FR-121、D30、D39、D11）：每個成功寫入回應帶 `catalog`（同 `GET /api/albums` 一樣形狀）；`catalog.json` 即刻反映；文件過 `parseCatalogDocument()`、播放端 `loadCatalog()` 收；冇歌嘅專輯、冇音檔嘅歌照列；空字串 → `null`；`mediaUrl()` 每段 encode 一次
+    - AC-1b 類別（CR-004，T-098；TS API-070 / 072「專輯加 `category`、`categoryNo`」、「內容檔 schema」）：`catalog.json` 每張專輯都有 `category`、`categoryNo`；`folder`、`coverSourceEtag`、`expectedFolder` 唔入
     - AC-2 冇變唔寫（TS API-061「hash 一樣就唔寫」）：ETag、`generatedAt`、R2 object 不變；`unchanged: true`
     - AC-3 未生成（TS API-070 Error Cases）：404 `NOT_READY`，`no-store`
     - AC-4 重試 endpoint（TS API-061）：session 401、Origin 403；唔再行寫入後置步驟（一次生成）；200 / 422 `INVALID_DOCUMENT` / 502 `CATALOG_WRITE_FAILED`
@@ -22,4 +23,4 @@
 - Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie；本機 D1 / R2。失敗：直接改 D1 嘅值、R2 / D1 proxy（put reject / 回 null、delete reject、prepare throw）。並發：`Promise.all` 多個寫入；put proxy 喺寫入之前插入另一個請求（A→B→A）或者先改 etag（撞上限）。`loadCatalog()` 嘅 fetch 直接叫 Worker handler。預期由 spec 寫，唔抄 developer 嘅 test
 - HTTP smoke：唔使（冇改 middleware 次序；route 經 workerd 打 `src/index.ts`）。唔好 request `wrangler.toml` 嘅真 `MEDIA_BASE`
 - PWA gate: no。Performance gate: no（每個寫入讀兩句 D1 + head / put 一個 R2 object；291 首歌估計 < 170 KB）。Security / Data gate: yes（AC-4、AC-5、AC-8）
-- Out of scope: 管理端提示同重試掣（T-051 起）；seed 之後生成（T-027、API-070 `NOT_READY` 建議）；CR-004 嘅 `category` / `categoryNo`（T-097 之後）；Worker 中途被中止嘅窄位（`rebuild.ts` 註解已記）；共用歌詞檔同時寫入嘅窄位（`lyricsCleanup.ts` 註解已記）
+- Out of scope: 管理端提示同重試掣（T-051 起）；seed 之後生成（T-027、API-070 `NOT_READY` 建議）；Worker 中途被中止嘅窄位（`rebuild.ts` 註解已記）；共用歌詞檔同時寫入嘅窄位（`lyricsCleanup.ts` 註解已記）

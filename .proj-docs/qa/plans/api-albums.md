@@ -11,6 +11,8 @@
     - AC-7 刪除（TS API-014、「ID 守衛」；FS US-102 第 6 點、D30）：冇 `?force=1` → 409 `ID_REMOVED`，`details` 列專輯同歌 id；`force=1` 刪專輯、歌、歌詞（cascade），回應列出真係刪咗嘅歌
     - AC-8 寫入後置步驟（TS API-061、「CR-003 對技術設計嘅影響」內容流程 / 生成失敗）：只喺成功寫入之後行；hook throw → 照回成功 status，加 `catalog: { ok: false }`，錯誤內容唔入回應同 log；預設 no-op 唔改回應
     - AC-9 訊息（CLAUDE.md 介面文字規則；`zh-Hant.ts`）：專輯 API 嘅 `message` 同 `details[].message` 係中文書面語，冇未填 `{placeholder}`
+    - AC-10 類別同序號（CR-004，T-098；FS FR-124、D43、D44；TS API-011、API-013、「資料夾名同發行類別」）：`category` 必填、六個短名之一（`INVALID_CATEGORY`）；`categoryNo` 1–999 整數（`INVALID_ORDINAL`）；冇畀 = 同類別 `MAX + 1`，到 999 就 400 `INVALID_ORDINAL`、乜都唔寫（S-118）；同類別撞號 400 `ORDINAL_TAKEN`；新增：id 撞 409 `CONFLICT` 先過 `ORDINAL_TAKEN`；修改：404 → 409 `STALE` → `ORDINAL_TAKEN`；淨改類別用而家嘅序號查；只改其他欄唔查；同時新增 / 修改唔會撞號
+    - AC-11 資料夾同來源 ETag（CR-004；TS「資料夾名同發行類別」、B-045 ①、B-049 ②）：`folder` 任何位置 `..`、`_` 開頭 → `INVALID_FOLDER`；`null` = 用預期資料夾名；回應（API-010、012、013）帶 `category`、`categoryNo`、`coverSourceEtag`（≤ 128 字，`null` 清走）、`folder`、`expectedFolder`（`<category>-<NN>-<id>`，唔可以改）
 - Scope files:
     - `apps/api/src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`；內容 API 共用（T-023 由專輯 code 抽出，歌曲 API 都用）：`src/api/errors.ts`、`src/lib/fields.ts`
     - `apps/api/test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`
@@ -19,7 +21,7 @@
     - `npm run lint`
     - `npm run typecheck`
     - `npm run coverage`（全部 workspace 一次；門檻 80%）
-- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie。預期由 spec 寫，唔抄 developer 嘅 test。throw hook：scratch app 用 `afterWrite(throwingHook)` + `albumRoutes`
+- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie。預期由 spec 寫，唔抄 developer 嘅 test。throw hook：scratch app 用 `afterWrite(throwingHook)` + `albumRoutes`。AC-10 並發：`Promise.all` 同類別多個新增 / 兩張碟改同一個序號；AC-10 / 11 成功寫入之後讀 `/catalog/v1/catalog.json`
 - HTTP smoke（改到 route 或者 middleware 先做）：同 `api-auth` 一樣，`wrangler dev --local --ip 127.0.0.1 --persist-to <scratch>`；proxy 指去 127.0.0.1:9，任何對外請求即刻失敗
 - PWA gate: no。Performance gate: no（D1 一條 GROUP BY，資料量細）。Security / Data gate: yes（AC-1、AC-5、AC-7）
 - Out of scope: 歌曲 API（T-023）；`rebuildCatalog()` 同 `catalog.ok` 嘅最終格式（T-026）；封面上載（T-024）；D35 統計項目確認（U-8）

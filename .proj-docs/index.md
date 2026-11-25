@@ -54,6 +54,7 @@
 | 2026-11-25 | [qa/2026-11-25_12-02_qa_api-assets.md](qa/2026-11-25_12-02_qa_api-assets.md) | S1 pass（AC-1–AC-9；冇阻擋性問題） | 新鏈 `api-assets`：T-024（封面上載、公開圖片 route）；`api-auth`、`api-albums`、`api-tracks` 重驗。Frozen plan：[qa/plans/api-assets.md](qa/plans/api-assets.md) |
 | 2026-11-25 | [qa/2026-11-25_15-56_qa_api-catalog.md](qa/2026-11-25_15-56_qa_api-catalog.md) | S1 pass（冇阻擋性問題） | 新鏈 `api-catalog`：T-026（每次寫入後生成 catalog、重試 endpoint、對外 catalog 同歌詞 route）；`api-auth`、`api-albums`、`api-tracks`、`api-assets` 重驗。Frozen plan：[qa/plans/api-catalog.md](qa/plans/api-catalog.md) |
 | 2026-11-25 | [qa/2026-11-25_16-10_qa_player-home_player-fonts.md](qa/2026-11-25_16-10_qa_player-home_player-fonts.md) | S1 pass（冇阻擋性問題） | 新鏈 `player-home`、`player-fonts`：T-042（刻度、唱臂兩段開場）、T-035（主畫面）、T-044（字體同字體守衛）；`player-core`、`player-foundation` 重驗。Frozen plan：[qa/plans/player-home.md](qa/plans/player-home.md)、[qa/plans/player-fonts.md](qa/plans/player-fonts.md) |
+| 2026-11-25 | [qa/2026-11-25_16-43_qa_T-098_T-097.md](qa/2026-11-25_16-43_qa_T-098_T-097.md) | S1 pass（冇阻擋性問題） | T-098（專輯類別、序號、資料夾）、T-097（內容資料重新生成）連 review 修正；新鏈 `seed-tools`；`api-albums`、`api-auth`、`api-tracks`、`api-catalog`、`catalog-core`、`catalog-song-text`、`player-catalog` 重驗。Frozen plan：[qa/plans/seed-tools.md](qa/plans/seed-tools.md) |
 
 Backlog：[backlog.md](backlog.md)
 

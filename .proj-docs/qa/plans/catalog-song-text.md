@@ -7,7 +7,7 @@
     - AC-3 歌詞（FS D32、TS 同上）：可以冇（`null`）；全部行有時間標記 → 同步（沿用 `parseLrc()` 規則，包括 `[offset:]`、metadata）；全部冇 → 純文字（前後空行刪、中間連續空行當一個分段）；混合 → 逐行報錯。`[1]`、`[1999]`、`[Chorus]`、`[ti:…]`、`[offset:…]` 唔算時間標記；`[00:60.00]`、`[1:2]` 算（W-012）
     - AC-4 行號同輸入正規化（FS D31「錯誤：逐行指出（行號 + 原因）」）：行號 = 成段文字入面嘅行號（由 1 開始）；CRLF = LF；BOM 唔計；行尾空白唔計；錯誤按行號排
     - AC-5 長度上限（TS「安全設計」；backlog B-006；`limits.ts`）：成段 64 KiB（UTF-8）、1000 行、歌名／副題 200 字、credit 200 字、歌詞每行 500 字（code point）
-    - AC-6 回填同 round trip（FS D31「回填」；TS「`formatSongText()`」）：次序歌名、副題、曲、詞、編、監（全形冒號，冇值唔出）、空行、`lyrics.source` 原樣；`parseSongText(formatSongText(x))` = `x`；262 首 seed 歌全部成立
+    - AC-6 回填同 round trip（FS D31「回填」；TS「`formatSongText()`」）：次序歌名、副題、曲、詞、編、監（全形冒號，冇值唔出）、空行、`lyrics.source` 原樣；`parseSongText(formatSongText(x))` = `x`；seed 歌全部成立（CR-004 之後 291 首）
     - AC-7 歌詞 JSON（TS API-072、CR-003）：`toLyricsJson()` 帶 `synced`；純文字行冇 `t`（`toLyricsJson` 檔屬 `catalog-core`，喺呢度用佢做輸出驗收）
 - Scope files:
     - `packages/catalog/src/song-text/**`（`parseSongText.ts`、`formatSongText.ts`、`labels.ts`、`lyrics.ts`、`limits.ts`、`types.ts` 同 `*.test.ts`）

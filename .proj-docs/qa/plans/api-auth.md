@@ -8,6 +8,7 @@
     - AC-4 返回原頁（FS US-101 第 4 點；TS「安全設計」`next` 參數）：登入後去 `next`；只收同站相對 path，其他一律當 `/`
     - AC-5 OAuth（TS API-001、API-002；「安全設計」認證）：Authorization Code + PKCE S256；`state` + verifier 喺短期 `__Host-oauth` cookie；callback 驗 issuer、audience、`email_verified`
     - AC-6 CSRF 同 header（TS「安全設計」CSRF、Header、搜尋引擎）：改資料嘅 method 要 `Origin` = `WORKER_ORIGIN`，唔啱 403 `FORBIDDEN_ORIGIN`；`/api`、`/auth` 有 `X-Frame-Options: DENY`、`frame-ancestors 'none'`、`Cache-Control: no-store`；所有回應 `X-Robots-Tag: noindex`
+    - AC-8 補充（CR-004，T-098；TS「數據庫設計 → albums」）：`albums.category` NOT NULL + CHECK 六個值、`category_no` NOT NULL + CHECK ≥ 1、`cover_source_etag`；`tracks.text_source_etag`；仍然只有 `0001_init.sql`
     - AC-7 Health 同錯誤格式（TS API-004、API-005；「API 設計」錯誤格式）：`GET /api/health` → `{ ok, version }`（version = `apps/api/package.json`）；`GET /api/me` → `{ email }`；錯誤係 `{ error: { code, message } }`
     - AC-8 資料庫（TS v1.2「數據庫設計」「索引設計」，CR-003）：`albums`、`tracks`、`lyrics`、`assets`、`catalog_state`、`sessions` 嘅欄位、約束同四個索引（冇 `enabled`、冇 `publishes`）
     - AC-9 設定（Plan T-020；TS「部署架構」Bindings、`[vars]`；「安全設計」Secret）：`DB` / `CATALOG` / `MEDIA`、五個 var、兩個 secret；漏咗或者格式錯一律 500，log 只記名；secret 唔入 repo

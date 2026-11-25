@@ -8,10 +8,12 @@
     - AC-5 掃描配對（FS US-105；TS 實現注意事項 9）：檔名（唔計資料夾）開頭 1–3 位數字 = 歌號；`m4a` / `mp3` → audio、`mp4` / `m4v` → mv、其他 → `UNKNOWN_EXTENSION`；同一歌號同一類多過一個檔 → `conflicts`；唔分大細楷；結果有 `matched` / `unmatchedFiles` / `tracksWithoutAudio` / `conflicts`；重複掃描結果一致
     - AC-6 `wheelKeyFor`（TS 組件圖 `wheel/`）：英文名第一個字母（忽略 `¿` 等符號）、中文名第一個字
     - AC-7 顏色（TS 組件圖 `color/`）：`dominantColor` / `glowColor` 同設計稿（`_mockups_/r-gram/src/anim.js`、`src/tools/template.html`）輸出一致
-    - AC-8 Seed（FS US-109；TS「Seed credit 配對」；Plan Phase A）：17 張專輯 262 首歌 = 187 直接 / 22 同名 / 53 冇資料（當中 39 首屬《逆流大叔》原聲大碟）；「—」當冇；seed 歌 id = `<albumId>-<兩位歌號>`；fixture catalog 通過 `parseCatalogDocument()`
+    - AC-8 Seed（FS US-109、CR-004「內容資料」、D46、D47；TS「Seed credit 配對」、「內容資料重新生成（T-097）」）：~~17 張 262 首、187 / 22 / 53~~ CR-004：21 個發行、291 首歌、credit 252 行；配對 246 直接 / 0 同名 / 45 冇（當中 39 首屬《逆流大叔》原聲大碟；數字由 T-097 報告，S-122 等 PM 回寫 spec）；每個發行有 `category`、`categoryNo`，每個類別由 1 連續；初始次序先類別後序號；21 個預期資料夾名（`album-01-apollo-18` … `single-02-joeng-sai-gaai-dou-dung`）；之前 262 首歌入面 261 個 id（同歌名）不變，`singles` 冇咗（`seed/testing/previousTrackIds.json` 鎖住）；「—」當冇；seed 歌 id = `<albumId>-<兩位歌號>`；fixture catalog 通過 `parseCatalogDocument()`
+    - AC-10 類別（CR-004，T-098；TS「資料夾名同發行類別」、API-070）：`RELEASE_CATEGORIES` 六個短名（串法 D43 待用戶確認）；`expectedFolder()` 序號補零到兩位、100 以上照出；catalog 文件 `category`、`categoryNo` 必填（W-028 方案 A），缺一個、錯值都唔收
 - Scope files:
     - `packages/catalog/`：`src/**`（`src/song-text/**` 除外，屬 `catalog-song-text`）、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
-    - `apps/api/seed/discography.json`、`apps/api/seed/credits.json`（`seed.node.test.ts` 讀真資料）
+    - `apps/api/seed/discography.json`、`apps/api/seed/credits.json`（`seed.node.test.ts` 讀真資料；由 `seed-tools` 鏈嘅 script 生成）
+    - 1-hop：`_design_/tools/*.py`（屬 `seed-tools`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
