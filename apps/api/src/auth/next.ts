@@ -7,7 +7,10 @@
  * - path 唔可以有 dot-segment（. / ..，包括 %2e）：瀏覽器會 normalise，/x/../auth/… 一樣行返 /auth
  * - 最後用 URL parser 再對一次：解出嚟嘅 origin 一定要係 Worker 自己（上面嘅規則漏咗都過唔到）
  */
-/** 按 byte 計：`next` 會放入 state cookie（瀏覽器上限 4096 byte） */
+/**
+ * `next` 會放入 state cookie（瀏覽器上限 4096 byte）：上限按回傳嘅字串計（URL parser 編碼後係 ASCII，
+ * 一個中文字變 9 個字元；backlog B-020）。輸入先按 UTF-8 byte 擋一次，好大嘅輸入唔使行 URL parser
+ */
 const MAX_NEXT_BYTES = 2048;
 /** C0 控制字元（< U+0020）同 DEL（U+007F） */
 const SPACE_CODE = 0x20;
@@ -66,5 +69,6 @@ export const safeNext = (next: unknown, workerOrigin: string): string | undefine
     if (!next.startsWith('/') || next.startsWith('//')) return undefined;
     if (next.includes('\\') || hasControlCharacter(next)) return undefined;
     if (hasDotSegment(next) || isAuthPath(next)) return undefined;
-    return onOriginPath(next, workerOrigin);
+    const path = onOriginPath(next, workerOrigin);
+    return path !== undefined && path.length <= MAX_NEXT_BYTES ? path : undefined;
 };

@@ -89,6 +89,15 @@ describe('safeNext', () => {
         expect(next(CJK_OVER_LIMIT)).toBeUndefined();
     });
 
+    // backlog B-020：放入 state cookie 嘅係編碼後嘅 path（每個中文字 9 個字元），上限按呢個計
+    it('should count the limit on the percent-encoded path that goes into the cookie', () => {
+        const CJK_ENCODED_OVER_LIMIT = `/${'樂'.repeat(300)}`;
+        expect(new TextEncoder().encode(CJK_ENCODED_OVER_LIMIT).length).toBeLessThan(2048);
+        expect(next(CJK_ENCODED_OVER_LIMIT)).toBeUndefined();
+        const CJK_ENCODED_AT_LIMIT = `/${'樂'.repeat(227)}`;
+        expect(next(CJK_ENCODED_AT_LIMIT)).toHaveLength(1 + 227 * 9);
+    });
+
     it('should refuse dot-segments, encoded or not (browsers normalise them)', () => {
         const dotted = [
             '/x/../auth/google/start',
