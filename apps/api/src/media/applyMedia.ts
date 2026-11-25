@@ -1,7 +1,7 @@
 /*
  * API-031 `media`（媒體配對）同 `clearAudio`（音檔已不在資料夾，Functional Spec D62）逐項套用：
  * - media：檔仲喺資料夾（唔係 → STALE）；手動指定嘅唔郁（MANUAL_KEPT）；MV 要嗰個歌號有音檔（NO_AUDIO，D54）
- * - clearAudio：audio_key 仲係預覽嗰個、唔係手動指定、個檔仲係唔喺資料夾，先清（否則 STALE）；冇音檔就冇 MV，
+ * - clearAudio：audio_key 仲係預覽嗰個、唔係手動指定、個檔仲係唔喺資料夾（list 要讀齊），先清（否則 STALE）；冇音檔就冇 MV，
  *   掃描配對嘅 MV 連結一齊清（MV 檔仲喺資料夾都清，S-135）；手動指定嘅 MV 同手動指定嘅音檔一樣唔郁
  * 一項出 exception → 嗰項 INTERNAL，其他照做（applyGuard.ts）
  */
@@ -46,6 +46,7 @@ const clearOne = async (db: D1Database, context: ApplyContext, item: ClearItem) 
     const track = context.tracks.get(item.trackId);
     const current =
         track &&
+        context.complete &&
         !track.audioManual &&
         track.audioKey === item.audioKey &&
         !context.files.has(item.audioKey);
