@@ -342,6 +342,19 @@ describe('D1 constraints (0001_init)', () => {
         );
     });
 
+    // CR-006（Functional Spec D60）：歌號 1 至 999，可以跳號；同一張碟唔可以重覆
+    it('should only accept track numbers from 1 to 999, gaps allowed', async () => {
+        await insertAlbum('apollo-18');
+        for (const no of [0, -1, 1000]) {
+            await expect(insertTrack('bad', 'apollo-18', no), String(no)).rejects.toThrow(/CHECK/);
+        }
+        await insertTrack('apollo-18-01', 'apollo-18', 1);
+        await insertTrack('apollo-18-07', 'apollo-18', 7);
+        await insertTrack('apollo-18-999', 'apollo-18', 999);
+        await expect(insertTrack('apollo-18-x', 'apollo-18', 7)).rejects.toThrow(/UNIQUE/);
+        expect(await count('tracks')).toBe(3);
+    });
+
     it('should only accept 0 or 1 for the manual flags', async () => {
         await insertAlbum('apollo-18');
         for (const flag of ['audio_manual', 'mv_manual']) {

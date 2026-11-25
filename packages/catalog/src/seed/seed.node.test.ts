@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { parseCatalogDocument } from '../schema/parseCatalogDocument';
+import { trackIdFor } from '../schema/ids';
 import { expectedFolder, RELEASE_CATEGORIES } from '../schema/releaseCategory';
 import { wheelKeyFor } from '../wheel/wheelKeyFor';
 import { matchCredits } from './matchCredits';
 import { seedToCatalog } from './seedToCatalog';
-import { trackIdFor } from './trackId';
 import type { SeedCredits, SeedDiscography } from './types';
 
 // 真實初始資料（apps/api/seed/，由 _design_/tools/ 嘅 script 由 2026-11-25 版來源檔生成；CR-004、T-097）

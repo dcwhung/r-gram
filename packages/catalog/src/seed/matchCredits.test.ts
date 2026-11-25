@@ -1,5 +1,5 @@
 import { matchCredits } from './matchCredits';
-import { seedToCatalog, trackIdFor } from './seedToCatalog';
+import { seedToCatalog } from './seedToCatalog';
 import type { SeedCredits, SeedCreditTrack, SeedDiscography } from './types';
 
 const creditRow = (overrides: Partial<SeedCreditTrack>): SeedCreditTrack => ({
@@ -103,16 +103,6 @@ describe('matchCredits', () => {
             albums: [{ albumId: 'apollo-18', tracks: [dashes] }],
         });
         expect(result.stats).toEqual({ direct: 0, byTitle: 0, missing: 4 });
-    });
-});
-
-describe('trackIdFor', () => {
-    it.each([
-        [1, 'apollo-18-01'],
-        [15, 'apollo-18-15'],
-        [120, 'apollo-18-120'],
-    ])('should pad track %i to two digits', (no, expected) => {
-        expect(trackIdFor('apollo-18', no)).toBe(expected);
     });
 });
 
