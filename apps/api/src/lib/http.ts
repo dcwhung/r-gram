@@ -1,6 +1,8 @@
 /*
- * 錯誤回應（Technical Spec「API 設計 → 錯誤格式」）：{ "error": { "code", "message" } }。
- * message 係畀開發者睇嘅英文；畫面文字由管理端按 code 出
+ * 錯誤回應（Technical Spec「API 設計 → 錯誤格式」）：{ "error": { "code", "message", "details"? } }。
+ * 守門同通用錯誤嘅 message 係畀開發者睇嘅英文；內容 API（例如 albums/）用 i18n 嘅書面語，
+ * 管理端可以直接顯示，亦可以按 code / reason 用自己嘅語言檔出字。
+ * 另外：JSON body 同 If-Match 嘅讀法（內容 API 共用）
  */
 import type { Context, ErrorHandler, NotFoundHandler } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
@@ -11,7 +13,8 @@ export const errorJson = (
     status: ContentfulStatusCode,
     code: ErrorCode,
     message: string,
-) => c.json({ error: { code, message } }, status);
+    details?: readonly unknown[],
+) => c.json({ error: details ? { code, message, details } : { code, message } }, status);
 
 export const handleNotFound: NotFoundHandler = (c) =>
     errorJson(c, HTTP_STATUS.notFound, ERROR_CODE.notFound, 'not found');
@@ -24,4 +27,29 @@ export const handleNotFound: NotFoundHandler = (c) =>
 export const handleError: ErrorHandler = (error, c) => {
     console.error('[api] unhandled error', error.name, `${c.req.method} ${c.req.routePath}`);
     return errorJson(c, HTTP_STATUS.internalError, ERROR_CODE.internal, 'internal error');
+};
+
+export type JsonObject = Record<string, unknown>;
+
+export const isJsonObject = (value: unknown): value is JsonObject =>
+    typeof value === 'object' && value !== null && !Array.isArray(value);
+
+/** body 唔係 JSON object（壞 JSON、array、null、冇 body）→ undefined */
+export const readJsonObject = async (c: Context): Promise<JsonObject | undefined> => {
+    try {
+        const body: unknown = await c.req.json();
+        return isJsonObject(body) ? body : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
+/** If-Match 嘅值（去 `W/` 同引號）；冇 header → undefined */
+export const readIfMatch = (c: Context): string | undefined => {
+    const header = c.req.header('if-match');
+    if (header === undefined) return undefined;
+    return header
+        .trim()
+        .replace(/^W\//, '')
+        .replace(/^"(.*)"$/, '$1');
 };

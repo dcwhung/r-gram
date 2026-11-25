@@ -34,12 +34,14 @@ export const SESSION_SECRET_MIN_LENGTH = 32;
 
 export const HTTP_STATUS = {
     ok: 200,
+    created: 201,
     noContent: 204,
     found: 302,
     badRequest: 400,
     unauthorized: 401,
     forbidden: 403,
     notFound: 404,
+    conflict: 409,
     internalError: 500,
     badGateway: 502,
 } as const;
@@ -49,6 +51,12 @@ export const ERROR_CODE = {
     unauthorized: 'UNAUTHORIZED',
     forbiddenOrigin: 'FORBIDDEN_ORIGIN',
     notFound: 'NOT_FOUND',
+    validation: 'VALIDATION_ERROR',
+    /** If-Match 同現有 updatedAt 唔同 */
+    stale: 'STALE',
+    conflict: 'CONFLICT',
+    /** 刪除會令 id 由 catalog 消失：要帶 ?force=1 再叫（ID 守衛） */
+    idRemoved: 'ID_REMOVED',
     internal: 'INTERNAL',
 } as const;
 
