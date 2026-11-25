@@ -8,7 +8,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SEED = HERE.parents[2] / 'apps' / 'api' / 'seed'
-DEMO_ALBUM = 'apollo-18'
+DEMO_ALBUM = 'komorebi'
+# 示意：呢張碟喺媒體資料夾入面有音檔嘅歌號（第 4、6、8、11 首未出，冇音檔 = 冇呢首歌；CR-006）
+DEMO_AUDIO = {1, 2, 3, 5, 7, 9, 10, 12}
 NO_VALUE = '—'
 # 設計稿 v16 嘅預設專輯色（_mockups_/r-gram/src/anim.js）；冇嘅用中性灰
 ACCENTS = {
@@ -16,7 +18,7 @@ ACCENTS = {
     'dedicated-to': '#a12a45', 'easy': '#3d8fb8', 'frank': '#d7263d', 'frank-ep': '#d7263d',
     'we-are-rubberband': '#c1121f', 'gotta-go': '#1f9a5c', 'hours': '#4a44c8', 'i': '#6f6f6f',
     'rubberband-ciao-2021-live': '#b0413e', 'men-on-the-dragon-ost': '#1565c0', 'juntos': '#e8611a',
-    'komorebi': '#2f8a4f', 'singles': '#6e6e6e',
+    'komorebi': '#2f8a4f',
 }
 NEUTRAL = '#6e6e6e'
 # 同播放端設計稿用同一套字體（RB Slab）
@@ -34,8 +36,8 @@ def main():
     albums = [
         {
             'id': a['id'], 'title': a['title'], 'year': a['year'], 'key': a['wheelKey'],
-            'releaseDate': a['releaseDate'], 'type': a['type'], 'label': a['label'],
-            'tracks': len(a['tracks']), 'accent': ACCENTS.get(a['id'], NEUTRAL),
+            'category': a['category'], 'categoryNo': a['categoryNo'], 'label': a['label'],
+            'accent': ACCENTS.get(a['id'], NEUTRAL),
         }
         for a in discography['albums']
     ]
@@ -46,9 +48,10 @@ def main():
             'no': t['no'], 'title': t['title'], 'subtitle': t['subtitle'],
             **{k: clean(rows.get(t['no'], {}).get(k)) for k in ('composer', 'lyricist', 'arranger', 'producer', 'lyricsUrl', 'note')},
         }
-        for t in demo['tracks']
+        for t in demo['tracks'] if t['no'] in DEMO_AUDIO
     ]
-    data = json.dumps({'albums': albums, 'tracks': tracks}, ensure_ascii=False, separators=(',', ':'))
+    titles = {t['no']: t['title'] for t in demo['tracks']}
+    data = json.dumps({'albums': albums, 'tracks': tracks, 'titles': titles}, ensure_ascii=False, separators=(',', ':'))
     html = (HERE / 'template.html').read_text(encoding='utf-8')
     assert html.count('/*__DATA__*/null') == 1
     assert html.count(FONTS_MARKER) == 1

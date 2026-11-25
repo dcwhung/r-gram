@@ -6,6 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <title>R Gram 管理端 設計稿</title>
 <!--
+    第 3 版（2026-11-25，等用戶確認）。加入 CR-004／005／006：掃描係主要資料來源（有音檔先有歌，掃描會新增歌曲）、歌號跟檔名可以跳號（冇拖動排序）、
+    專輯有發行類別同序號（決定媒體資料夾名）、只記年份、冇自由文字「類型」、可以有第二張封面；掃描結果分做新增／更新／要選擇／已略過／音檔已不在資料夾。
     第 2 版（2026-11-25）。用戶意見：第 1 版太似 903-player，要用返 R Gram 自己嘅風格（車床鋁面、螺絲、唱片盤），同播放端夾返。
     同時落實：冇上下架、冇草稿、冇「發佈」——一儲存就即時生效；歌曲資料同歌詞喺同一個 textarea 入；統計改用儀錶呈現；只做淺色。
     Source：呢個檔 + build.py（python3 src/build.py）；唔好直接改 ../index.html。
@@ -107,9 +109,8 @@ h1 { font-size: 26px; } h2 { font-size: 18px; }
 .tracks { list-style: none; margin: 12px 0 0; padding: 0; }
 .tracks > li { border-top: 1px solid var(--line); }
 .tracks > li:first-child { border-top: 0; }
-.track { display: grid; grid-template-columns: 26px 44px 1fr auto 26px; align-items: center; gap: 8px; width: 100%; min-height: 56px; padding: 6px 4px; background: none; border: 0; text-align: left; border-radius: 10px; }
+.track { display: grid; grid-template-columns: 44px 1fr auto 26px; align-items: center; gap: 8px; width: 100%; min-height: 56px; padding: 6px 4px; background: none; border: 0; text-align: left; border-radius: 10px; }
 .track:hover { background: rgba(0, 0, 0, .04); }
-.track .grip { color: #a2a29e; font-size: 16px; letter-spacing: -7px; cursor: grab; }
 .track .no { font-family: var(--slab-light); font-size: 22px; color: var(--muted); }
 .track .title { font-weight: 700; }
 .track .title small { font-weight: 400; color: var(--muted); margin-left: 6px; }
@@ -117,7 +118,7 @@ h1 { font-size: 26px; } h2 { font-size: 18px; }
 .track .chev { color: var(--muted); transition: transform .16s; }
 li.open .track .chev { transform: rotate(90deg); }
 li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line); }
-.edit { display: grid; grid-template-columns: 1fr 250px; gap: 14px; padding: 4px 12px 14px 42px; }
+.edit { display: grid; grid-template-columns: 1fr 250px; gap: 14px; padding: 4px 12px 14px 12px; }
 .edit textarea { width: 100%; min-height: 330px; padding: 12px 14px; border: 1px solid #b9b9b5; border-radius: 10px; background: #fff; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .12); line-height: 1.75; resize: vertical; }
 .edit textarea.bad { border-color: var(--danger); }
 .hint { font-size: 13px; color: var(--muted); }
@@ -133,11 +134,36 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 .field select { width: 100%; min-height: var(--hit); padding: 0 12px; border: 1px solid #b9b9b5; border-radius: 10px; background: #fff; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .12); font: inherit; }
 .edit .bar { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .danger-link { background: none; border: 0; color: var(--danger); min-height: var(--hit); padding: 0 8px; font-weight: 700; }
-.add { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 4px 6px 34px; background: none; border: 0; color: var(--muted); font-weight: 700; text-align: left; }
+.add { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 56px; padding: 6px 4px 6px 8px; background: none; border: 0; color: var(--muted); font-weight: 700; text-align: left; }
+
+/* 第 3 版：類別分組、封面兩格、資料夾、未有歌曲、掃描結果分組 */
+.group { display: flex; align-items: baseline; gap: 10px; margin: 22px 4px 10px; font-size: 16px; }
+.group:first-child { margin-top: 0; }
+.group small { font-family: var(--slab-light); font-size: 15px; font-weight: 400; color: var(--muted); }
+.covers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+.cover { padding: 10px; border-radius: 14px; background: var(--well); box-shadow: inset 0 2px 7px rgba(0, 0, 0, .2), 0 1px 0 #fff; text-align: center; }
+.cover .art { aspect-ratio: 1; border-radius: 8px; background: radial-gradient(circle at 30% 26%, rgba(255, 255, 255, .28), transparent 46%), radial-gradient(circle at 72% 70%, rgba(0, 0, 0, .2), transparent 52%), var(--accent); }
+.cover.empty .art { background: none; border: 2px dashed #b9b9b5; display: grid; place-items: center; color: var(--faint); font-size: 13px; font-weight: 700; }
+.cover .cap { font-size: 13px; font-weight: 700; color: var(--muted); margin: 8px 0 6px; }
+.cover .key { min-height: 36px; padding: 0 14px; font-size: 14px; }
+.readonly { min-height: var(--hit); display: flex; align-items: center; padding: 0 12px; border-radius: 10px; background: #e9e9e6; }
+.readonly code, .path { font: 14px ui-monospace, Menlo, monospace; color: #333; word-break: break-all; }
+.empty-list { padding: 28px 12px; text-align: center; color: var(--muted); }
+.empty-list b { display: block; color: var(--ink); font-size: 18px; margin-bottom: 6px; }
+.scan-group { margin-top: 16px; }
+.scan-group:first-child { margin-top: 0; }
+.scan-group h2 { font-size: 15px; display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.scan-group h2 small { font-family: var(--slab-light); font-weight: 400; color: var(--muted); }
+.scan-group .sub { font-size: 13px; }
+.scan input[type="checkbox"] { width: 20px; height: 20px; margin: 0; accent-color: #111; }
+.scan select { min-height: 36px; padding: 0 8px; border: 1px solid #b9b9b5; border-radius: 8px; background: #fff; font: inherit; font-size: 13px; max-width: 220px; }
+.tag.new { background: #d9f2e2; color: #145c33; }
+.tag.gone { background: #f6d9d6; color: #7a1c15; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #b0b0ac; justify-self: center; }
 
 /* 對話框、登入、提示 */
 .scrim { position: fixed; inset: 0; background: rgba(20, 20, 20, .55); display: grid; place-items: center; padding: 16px; z-index: 5; }
-.dialog { width: min(680px, 100%); max-height: 90vh; overflow: auto; }
+.dialog { width: min(760px, 100%); max-height: 90vh; overflow: auto; }
 .scan { list-style: none; margin: 0; padding: 0; font-size: 14px; }
 .scan li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
 .scan li:first-child { border-top: 0; }
@@ -160,8 +186,8 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     .top .round { margin-left: auto; }
     .brand { font-size: 26px; }
     .deck svg { max-width: 230px; margin: 0 auto; }
-    .track { grid-template-columns: 22px 38px 1fr 22px; }
-    .track .leds { grid-column: 3 / 4; grid-row: 2; }
+    .track { grid-template-columns: 38px 1fr 22px; }
+    .track .leds { grid-column: 2 / 3; grid-row: 2; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -182,15 +208,17 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 
 <script>
 (() => {
-    const DATA = {"albums":[{"id":"apollo-18","title":"Apollo 18","year":2008,"key":"A","releaseDate":"2008-09-26","type":"錄音室專輯","label":"金牌娛樂 (Gold Label Entertainment)","tracks":15,"accent":"#2b4bd6"},{"id":"beaming","title":"Beaming","year":2009,"key":"B","releaseDate":"2009-07-24","type":"錄音室專輯","label":"金牌大風 (Gold Typhoon)","tracks":17,"accent":"#d49b00"},{"id":"rubberband-concert-1","title":"RubberBand Concert #1","year":2009,"key":"R","releaseDate":"2009-12-30","type":"演唱會專輯","label":"金牌大風","tracks":25,"accent":"#e4267b"},{"id":"connected","title":"Connected","year":2010,"key":"C","releaseDate":"2010-09-03","type":"錄音室專輯","label":"金牌大風","tracks":12,"accent":"#0f8b8d"},{"id":"dedicated-to","title":"Dedicated To…","year":2011,"key":"D","releaseDate":"2011-03-18","type":"錄音室專輯","label":"金牌大風","tracks":11,"accent":"#a12a45"},{"id":"easy","title":"Easy","year":2012,"key":"E","releaseDate":"2012-08-08","type":"錄音室專輯","label":"金牌大風","tracks":11,"accent":"#3d8fb8"},{"id":"frank","title":"Frank","year":2014,"key":"F","releaseDate":"2014-04-10","type":"錄音室專輯","label":"寰亞唱片","tracks":12,"accent":"#d7263d"},{"id":"frank-ep","title":"¿Frank?","year":2014,"key":"F","releaseDate":"2014-10-23","type":"EP","label":"寰亞唱片","tracks":5,"accent":"#d7263d"},{"id":"we-are-rubberband","title":"We Are RubberBand","year":2015,"key":"W","releaseDate":"2015-10-30","type":"精選","label":"金牌大風 (Gold Typhoon) / Warner Music Hong Kong","tracks":30,"accent":"#c1121f"},{"id":"gotta-go","title":"Gotta Go","year":2016,"key":"G","releaseDate":"2016-01-08","type":"錄音室專輯","label":"寰亞音樂 (Media Asia Music Ltd.)","tracks":11,"accent":"#1f9a5c"},{"id":"hours","title":"Hours","year":2018,"key":"H","releaseDate":"2018-09-26","type":"錄音室專輯","label":"R Flat","tracks":9,"accent":"#4a44c8"},{"id":"i","title":"i","year":2020,"key":"I","releaseDate":"2020-12-01","type":"錄音室專輯","label":"R Flat","tracks":9,"accent":"#6f6f6f"},{"id":"rubberband-ciao-2021-live","title":"RubberBand Ciao 2021 (Live)","year":2022,"key":"R","releaseDate":"2022-05-10","type":"演唱會專輯","label":"R Flat (distributed by Golden Dynamic / 金牌大風)","tracks":32,"accent":"#b0413e"},{"id":"men-on-the-dragon-ost","title":"電影《逆流大叔》原聲大碟","year":2022,"key":"電","releaseDate":"2022-08-02","type":"電影原聲","label":"One Cool Music (HK) Limited","tracks":41,"accent":"#1565c0"},{"id":"juntos","title":"JUNTOS","year":2023,"key":"J","releaseDate":"2023-12-20","type":"錄音室專輯","label":"R Flat（發行：Golden Dynamic）","tracks":9,"accent":"#e8611a"},{"id":"komorebi","title":"KOMOREBI","year":2026,"key":"K","releaseDate":"2026-11-27","type":"錄音室專輯（預購中）","label":"R Flat","tracks":12,"accent":"#2f8a4f"},{"id":"singles","title":"單曲（未收錄於專輯）","year":null,"key":"單","releaseDate":null,"type":"精選","label":"R Flat","tracks":1,"accent":"#6e6e6e"}],"tracks":[{"no":1,"title":"一早地下鐵","subtitle":null,"composer":"阿正","lyricist":"Tim Lui / 6號","arranger":"阿正","producer":"RubberBand / 雷頌德","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband-%e4%b8%80%e6%97%a9%e5%9c%b0%e4%b8%8b%e9%90%b5/","note":"Apollo 18 track 1; also on KKBOX https://www.kkbox.com/hk/tc/song/Cr8QyAQRa7_3MUonbj"},{"no":2,"title":"Hero","subtitle":null,"composer":"阿正","lyricist":"6號","arranger":"RubberBand","producer":"RubberBand / 雷頌德","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 2"},{"no":3,"title":"遊車河","subtitle":null,"composer":"阿正","lyricist":"Tim Lui / 6號","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 3; MV included on bonus DVD"},{"no":4,"title":"電玩男","subtitle":null,"composer":"泥鯭","lyricist":"泥鯭","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 4"},{"no":5,"title":"Tears","subtitle":null,"composer":"藝琛","lyricist":"Tim Lui / 6號","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 5; MV included on bonus DVD. 藝琛 = 阿偉 (黎藝琛)"},{"no":6,"title":"小涼伴","subtitle":null,"composer":"藝琛","lyricist":"Tim Lui","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband-%e5%b0%8f%e6%b6%bc%e4%bc%b4/","note":"Apollo 18 track 6. 藝琛 = 阿偉 (黎藝琛)"},{"no":7,"title":"零度聖誕","subtitle":null,"composer":"藝琛","lyricist":"Tim Lui / 6號","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 7. 藝琛 = 阿偉 (黎藝琛)"},{"no":8,"title":"在森林和原野","subtitle":null,"composer":"阿正","lyricist":"6號","arranger":"RubberBand","producer":"RubberBand / 雷頌德","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 8"},{"no":9,"title":"潛","subtitle":null,"composer":"阿正 / 泥鯭","lyricist":"Tim Lui","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 9"},{"no":10,"title":"Secret","subtitle":null,"composer":"藝琛","lyricist":"Tim Lui / 6號","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 10. 藝琛 = 阿偉 (黎藝琛)"},{"no":11,"title":"夜不眠","subtitle":null,"composer":"阿正 / 泥鯭 / 6號","lyricist":"Tim Lui","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 11"},{"no":12,"title":"最後…那","subtitle":null,"composer":"阿正","lyricist":"泥鯭","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 12"},{"no":13,"title":"城記","subtitle":null,"composer":"藝琛","lyricist":"6號","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 13. 藝琛 = 阿偉 (黎藝琛)"},{"no":14,"title":"脫逃","subtitle":null,"composer":"阿正 / 6號","lyricist":"6號","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Apollo 18 track 14"},{"no":15,"title":"認錯","subtitle":"Bonus Track","composer":"李驥","lyricist":"李驥","arranger":"RubberBand","producer":"雷頌德 / RubberBand","lyricsUrl":"https://www.littleoslo.com/lyc/home/rubberband%E3%80%80%E3%80%90apollo-18%E3%80%91/","note":"Bonus Track · Apollo 18 bonus track (track 15). Cover of 優客李林 (Ukulele) Mandarin song 認錯 (1991), written by 李驥"}]};
-    const DEMO_ID = 'apollo-18';
+    const DATA = {"albums":[{"id":"apollo-18","title":"Apollo 18","year":2008,"key":"A","category":"album","categoryNo":1,"label":"金牌娛樂 (Gold Label Entertainment)","accent":"#2b4bd6"},{"id":"beaming","title":"Beaming","year":2009,"key":"B","category":"album","categoryNo":2,"label":"金牌大風 (Gold Typhoon)","accent":"#d49b00"},{"id":"connected","title":"Connected","year":2010,"key":"C","category":"album","categoryNo":3,"label":"金牌大風","accent":"#0f8b8d"},{"id":"dedicated-to","title":"Dedicated To…","year":2011,"key":"D","category":"album","categoryNo":4,"label":"金牌大風","accent":"#a12a45"},{"id":"easy","title":"Easy","year":2012,"key":"E","category":"album","categoryNo":5,"label":"金牌大風","accent":"#3d8fb8"},{"id":"frank","title":"Frank","year":2014,"key":"F","category":"album","categoryNo":6,"label":"寰亞唱片","accent":"#d7263d"},{"id":"gotta-go","title":"Gotta Go","year":2016,"key":"G","category":"album","categoryNo":7,"label":"寰亞音樂 (Media Asia Music Ltd.)","accent":"#1f9a5c"},{"id":"hours","title":"Hours","year":2018,"key":"H","category":"album","categoryNo":8,"label":"R Flat","accent":"#4a44c8"},{"id":"i","title":"i","year":2020,"key":"I","category":"album","categoryNo":9,"label":"R Flat","accent":"#6f6f6f"},{"id":"juntos","title":"JUNTOS","year":2023,"key":"J","category":"album","categoryNo":10,"label":"R Flat（發行：Golden Dynamic）","accent":"#e8611a"},{"id":"komorebi","title":"KOMOREBI","year":2026,"key":"K","category":"album","categoryNo":11,"label":"R Flat","accent":"#2f8a4f"},{"id":"frank-ep","title":"¿Frank?","year":2014,"key":"F","category":"ep","categoryNo":1,"label":"寰亞唱片","accent":"#d7263d"},{"id":"ni-dou","title":"呢度","year":2016,"key":"呢","category":"ep","categoryNo":2,"label":"R Flat","accent":"#6e6e6e"},{"id":"zoi-jat-hei","title":"在一起","year":2023,"key":"在","category":"ep","categoryNo":3,"label":"R Flat","accent":"#6e6e6e"},{"id":"zoeng-ngaa","title":"橡芽","year":2012,"key":"橡","category":"best","categoryNo":1,"label":"金牌大風","accent":"#6e6e6e"},{"id":"we-are-rubberband","title":"We Are RubberBand","year":2015,"key":"W","category":"best","categoryNo":2,"label":"金牌大風 (Gold Typhoon) / Warner Music Hong Kong","accent":"#c1121f"},{"id":"rubberband-concert-1","title":"RubberBand Concert #1","year":2009,"key":"R","category":"live","categoryNo":1,"label":"金牌大風","accent":"#e4267b"},{"id":"rubberband-ciao-2021-live","title":"RubberBand Ciao 2021 (Live)","year":2022,"key":"R","category":"live","categoryNo":2,"label":"R Flat (distributed by Golden Dynamic / 金牌大風)","accent":"#b0413e"},{"id":"men-on-the-dragon-ost","title":"電影《逆流大叔》原聲大碟","year":2022,"key":"電","category":"ost","categoryNo":1,"label":"One Cool Music (HK) Limited","accent":"#1565c0"},{"id":"zung-jyu-hou-tin-hei","title":"終於好天氣（方皓玟 × RubberBand）","year":2016,"key":"終","category":"single","categoryNo":1,"label":"","accent":"#6e6e6e"},{"id":"joeng-sai-gaai-dou-dung","title":"讓世界都懂","year":2024,"key":"讓","category":"single","categoryNo":2,"label":"R Flat","accent":"#6e6e6e"}],"tracks":[{"no":1,"title":"下一位參賽者","subtitle":"派台 2025-05-12","composer":"RubberBand","lyricist":"RubberBand / Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://www.kkbox.com/hk/en/song/T-DHEq7u-xXCV3r4oX","note":"派台 2025-05-12 · Single released 2025-05-21; English title: Tonight is the Night. On KOMOREBI (2026-11-27)."},{"no":2,"title":"跟住去邊度","subtitle":"派台 2026-01-05","composer":"RubberBand","lyricist":"RubberBand / Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://rubberbandhk.bandcamp.com/track/whats-next","note":"派台 2026-01-05 · Single released 2026-01-05; English title: What's Next?. Inspired by 黃子華's 1992 stand-up routine 跟住去邊度 and the 2024 試當真 short film of the same name. On KOMOREBI."},{"no":3,"title":"搲撈HK","subtitle":"派台 2025-08-18","composer":"RubberBand","lyricist":"RubberBand / Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://rubberbandhk.bandcamp.com/track/hk-hustling","note":"派台 2025-08-18 · Single released 2025-08-18; English title: Hustling. Self-promotional song (band 'advertising itself' for 業配). On KOMOREBI."},{"no":5,"title":"太平門","subtitle":"派台 2026-06-15","composer":"RubberBand","lyricist":"RubberBand / Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://rubberbandhk.bandcamp.com/track/emergency-exit","note":"派台 2026-06-15 · Single released 2026-06-15; English title: Emergency Exit. Story of passengers in one train car upended by an accident. On KOMOREBI."},{"no":7,"title":"我永遠記得","subtitle":"派台 2026-04-01","composer":"RubberBand / 雷柏熹","lyricist":"Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://www.kkbox.com/hk/tc/song/4s9GyR4TOGRFhFIe6J","note":"派台 2026-04-01 · Single released 2026-04-01; English title: I Will Always Remember. On KOMOREBI."},{"no":9,"title":"一杯","subtitle":"派台 2026-08-17","composer":"RubberBand","lyricist":"Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://rubberbandhk.bandcamp.com/track/tipsy-night","note":"派台 2026-08-17 · Single released 2026-08-17; English title: Tipsy Night. On KOMOREBI."},{"no":10,"title":"想寫好的功課","subtitle":"派台 2025-02-10","composer":"RubberBand","lyricist":"Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://www.kkbox.com/hk/tc/song/TZytv-oQH5GcOxwvEb","note":"派台 2025-02-10 · Single released 2025-02-10; English title: Homework. On KOMOREBI."},{"no":12,"title":"木漏日","subtitle":"派台 2026-11-10","composer":"RubberBand","lyricist":"Tim Lui","arranger":"RubberBand / 雷柏熹","producer":"RubberBand / 雷柏熹","lyricsUrl":"https://rubberbandhk.bandcamp.com/track/komorebi","note":"派台 2026-11-10 · Title track of KOMOREBI; single released 2026-11-09. Album recorded in Japan."}],"titles":{"1":"下一位參賽者","2":"跟住去邊度","3":"搲撈HK","4":"毒蟲圖鑑","5":"太平門","6":"理想的下午","7":"我永遠記得","8":"揀睇誌","9":"一杯","10":"想寫好的功課","11":"G’night","12":"木漏日"}};
+    const DEMO_ID = 'komorebi';
     const DEMO = DATA.albums.find((album) => album.id === DEMO_ID);
-    // 示意數字：[有音檔, 有歌詞, 有 MV]；其他專輯當未上載
-    const MEDIA = { 'apollo-18': [14, 11, 4], komorebi: [12, 6, 2], juntos: [9, 5, 1], hours: [9, 3, 2], i: [9, 0, 0] };
-    const NO_COVER = new Set(['singles']);
-    const NO_AUDIO_TRACK = 15; // 示意：最後一首未有音檔
-    const NO_LYRICS_FROM = 12; // 示意：第 12 首起未有歌詞
-    const MV_TRACKS = new Set([1, 3, 7, 9]);
+    const EMPTY = DATA.albums.find((album) => album.id === 'frank-ep'); // 示意：未上載歌嘅碟
+    // 示意數字：[歌曲（有音檔先有歌）, 有歌詞, 有 MV]；其他專輯未上載歌
+    const MEDIA = { komorebi: [DATA.tracks.length, 6, 2] };
+    // 示意：封面張數（錄音室專輯已上載封面，Hours 有兩張；其他類別未有）
+    const coversOf = (album) => (album.category !== 'album' ? 0 : album.id === 'hours' ? 2 : 1);
+    const NO_LYRICS = new Set([10, 12]); // 示意：呢兩首未有歌詞
+    const MV_TRACKS = new Set([1, 7]);
+    const CATEGORIES = [['album', '錄音室專輯'], ['ep', '迷你專輯'], ['best', '精選'], ['live', '現場專輯'], ['ost', '原聲大碟'], ['single', '單曲']];
 
     /* ---------- 工具 ---------- */
     const n = (v) => Math.round(v * 10) / 10;
@@ -200,6 +228,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const isLatin = (text) => /^[\x20-\x7e¿…]+$/.test(text);
     const pad = (no) => String(no).padStart(2, '0');
     const mediaOf = (album) => MEDIA[album.id] ?? [0, 0, 0];
+    const folderOf = (album) => `${album.category}-${pad(album.categoryNo)}-${album.id}`; // 媒體資料夾 = 類別-序號-id
 
     /* ---------- 車床拉絲面（同播放端 buildLathe 一樣） ---------- */
     const buildLathe = () => {
@@ -242,19 +271,19 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const roundButton = (name, label, act) =>
         `<button class="round" data-act="${act}" aria-label="${label}" title="${label}"><svg viewBox="-24 -24 48 48">${metal(0, 0, 19)}<g stroke="#2e2e2e">${ICONS[name]}</g></svg></button>`;
 
-    /* ---------- 碟：空心 CD 放喺轉盤上，中間係唱片夾；夾上面嘅圈 = 音檔完整度，字 = 字母盤標記 ---------- */
+    /* ---------- 碟：空心 CD 放喺轉盤上，中間係唱片夾；夾上面嘅圈 = 歌詞完整度（有音檔先有歌，所以唔再計音檔），字 = 字母盤標記 ---------- */
     const discSvg = (album) => {
-        const [audio] = mediaOf(album);
+        const [songs, lyrics] = mediaOf(album);
         const R = 100;
         const ring = 27;
-        const share = album.tracks ? audio / album.tracks : 0;
+        const share = songs ? lyrics / songs : 0;
         const [ex, ey] = polar(0, 0, ring, -90 + share * 359.9);
         const latinKey = isLatin(album.key);
-        const cover = NO_COVER.has(album.id)
+        const cover = coversOf(album) === 0
             ? `<circle r="${R - 6}" fill="#d9d9d5"/><text y="-56" text-anchor="middle" font-size="13" font-weight="700" fill="#7a7a76" font-family="var(--cjk)">未有封面</text>`
             : `<circle r="${R - 6}" fill="${album.accent}"/><circle cx="-34" cy="-30" r="38" fill="#fff" opacity=".13"/><circle cx="40" cy="26" r="46" fill="#000" opacity=".12"/><circle cx="30" cy="-48" r="20" fill="#fff" opacity=".14"/>`;
         return (
-            `<svg viewBox="-112 -112 224 228" role="img" aria-label="${esc(album.title)}：音檔 ${audio}／${album.tracks}">` +
+            `<svg viewBox="-112 -112 224 228" role="img" aria-label="${esc(album.title)}：${songs} 首歌，歌詞 ${lyrics}／${songs}">` +
             shadow(0, 4, R + 6, { dx: 0, dy: 6, opacity: 0.22 }) + metal(0, 0, R + 6, { rot: 12, bevel: 0.012, withShadow: false }) +
             cover + `<circle r="${R - 6}" fill="url(#gSheen)"/><circle r="${R - 6}" fill="none" stroke="#e9e9e6" stroke-width="3"/>` +
             `<circle r="40" fill="#fff" opacity=".42"/><circle r="40" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1.5"/>` +
@@ -288,18 +317,19 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
         );
     };
     const totals = () => {
-        const sum = { albums: DATA.albums.length, tracks: 0, audio: 0, lyrics: 0, mv: 0, covers: 0 };
+        const sum = { albums: DATA.albums.length, withSongs: 0, songs: 0, lyrics: 0, mv: 0, covers: 0 };
         DATA.albums.forEach((album) => {
-            const [audio, lyrics, mv] = mediaOf(album);
-            sum.tracks += album.tracks; sum.audio += audio; sum.lyrics += lyrics; sum.mv += mv;
-            sum.covers += NO_COVER.has(album.id) ? 0 : 1;
+            const [songs, lyrics, mv] = mediaOf(album);
+            sum.songs += songs; sum.lyrics += lyrics; sum.mv += mv;
+            sum.withSongs += songs ? 1 : 0;
+            sum.covers += coversOf(album) ? 1 : 0;
         });
         return sum;
     };
 
     /* ---------- 畫面 ---------- */
     const state = { screen: 'albums', open: null, bad: false, adding: false, toast: '' };
-    const SCREENS = [['albums', '專輯'], ['album', '專輯頁'], ['edit', '修改歌曲'], ['bad', '修改歌曲（格式有錯）'], ['add', '新增歌曲'], ['scan', '掃描結果'], ['login', '登入'], ['denied', '沒有權限']];
+    const SCREENS = [['albums', '專輯'], ['album', '專輯頁'], ['empty', '專輯頁（未有歌曲）'], ['scan', '掃描結果'], ['edit', '修改歌曲'], ['bad', '修改歌曲（格式有錯）'], ['add', '手動新增歌曲'], ['login', '登入'], ['denied', '沒有權限']];
 
     const top = () =>
         `<header class="plate top">${screw('tl')}${screw('tr')}<button class="brand" data-act="home" aria-label="R Gram 內容管理：返回專輯">R Gram<small>內容管理</small></button>` +
@@ -307,22 +337,27 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 
     const led = (on, label) => `<span class="led ${on ? 'on' : ''}"><i></i>${label}</span>`;
 
+    const albumCard = (album) => {
+        const [songs, lyrics, mv] = mediaOf(album);
+        return (
+            `<button class="disc" data-act="open-album" style="--accent: ${album.accent}">${discSvg(album)}` +
+            `<div class="name ${isLatin(album.title) ? 'latin' : ''}">${esc(album.title)}</div>` +
+            `<div class="meta">${album.year ? `${album.year} · ` : ''}${songs ? `${songs} 首` : '尚未有歌曲'}</div>` +
+            (songs ? `<div class="meta">歌詞 ${lyrics}／${songs} · MV ${mv}</div>` : '') + `</button>`
+        );
+    };
     const albums = () => {
         const sum = totals();
-        const cards = DATA.albums.map((album) => {
-            const [audio, lyrics] = mediaOf(album);
-            return (
-                `<button class="disc" data-act="open-album" style="--accent: ${album.accent}">${discSvg(album)}` +
-                `<div class="name ${isLatin(album.title) ? 'latin' : ''}">${esc(album.title)}</div>` +
-                `<div class="meta">${album.year ?? '—'} · ${album.tracks} 首</div><div class="meta">音檔 ${audio}／${album.tracks} · 歌詞 ${lyrics}／${album.tracks}</div></button>`
-            );
+        const groups = CATEGORIES.map(([id, name]) => {
+            const list = DATA.albums.filter((album) => album.category === id).sort((a, b) => a.categoryNo - b.categoryNo);
+            return `<h2 class="group">${name}<small>${list.length}</small></h2><div class="discs">${list.map(albumCard).join('')}</div>`;
         }).join('');
         return (
-            plate(`<div class="row" style="margin-bottom: 10px"><span class="engrave">${sum.albums} 隻碟 · ${sum.tracks} 首歌</span><span class="spacer"></span><span class="sub">所有修改一儲存就即時在播放端生效</span></div>` +
-                `<div class="well gauges">${gauge('歌曲已有音檔', sum.audio, sum.tracks)}${gauge('歌曲已有歌詞', sum.lyrics, sum.tracks)}${gauge('歌曲已有 MV', sum.mv, sum.tracks)}${gauge('專輯已有封面', sum.covers, sum.albums)}</div>`) +
+            plate(`<div class="row" style="margin-bottom: 10px"><span class="engrave">${sum.albums} 隻碟 · ${sum.songs} 首歌</span><span class="spacer"></span><span class="sub">所有修改一儲存就即時在播放端生效</span></div>` +
+                `<div class="well gauges">${gauge('專輯已有歌曲', sum.withSongs, sum.albums)}${gauge('歌曲已有歌詞', sum.lyrics, sum.songs)}${gauge('歌曲已有 MV', sum.mv, sum.songs)}${gauge('專輯已有封面', sum.covers, sum.albums)}</div>`) +
             plate(`<div class="row" style="margin-bottom: 12px"><h1>專輯</h1><span class="spacer"></span><button class="key" data-act="toast-new">＋ 新增專輯</button></div>` +
-                `<div class="well"><div class="discs">${cards}</div></div>` +
-                `<p class="sub" style="margin: 12px 4px 0">碟中間的字是轉碟字母盤上的標記；外圈亮起的部分是已有音檔的歌曲比例。拖動可以改變次序。</p>`)
+                `<div class="well">${groups}</div>` +
+                `<p class="sub" style="margin: 12px 4px 0">次序跟隨類別及序號，與播放端的字母盤一樣。碟中間的字是字母盤上的標記；外圈亮起的部分是已有歌詞的歌曲比例。歌曲由掃描媒體資料夾新增：打開一隻碟，然後掃描。</p>`)
         );
     };
 
@@ -336,7 +371,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const FORMAT = '歌名\n曲：作曲人\n詞：填詞人\n編：編曲人\n監：監製\n\n[00:12.30]第一句歌詞\n[00:18.75]第二句歌詞';
     const BAD_LYRIC_INDEX = 3; // 示意：第三句歌詞漏咗時間標記
     const checks = (track, { bad, blank }) => {
-        if (blank) return `<li class="note">第一行輸入歌名</li><li class="note">「曲：」「詞：」「編：」「監：」可以省略</li><li class="note">歌詞可以稍後再加</li>`;
+        if (blank) return `<li class="note">第一行輸入歌名</li><li class="note">「曲：」「詞：」「編：」「監：」可以省略</li><li class="note">歌詞可以稍後再加</li><li class="note">要在「其他」指定音檔：有音檔才有歌曲</li>`;
         const credits = ['composer', 'lyricist', 'arranger', 'producer'].filter((k) => track[k]).length;
         const badLine = 1 + (track.subtitle ? 1 : 0) + credits + 1 + BAD_LYRIC_INDEX; // 歌名 + 副題 + 曲詞編監 + 空行 + 第幾句
         return (
@@ -348,13 +383,15 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const fileSelect = (id, label, auto) =>
         `<div class="field"><label for="${id}">${label}</label><select id="${id}"><option>${auto ? `自動配對：${esc(auto)}` : '未有檔案'}</option><option>手動指定…</option></select></div>`;
     const extras = (track, { blank }) => {
-        const audio = !blank && track.no !== NO_AUDIO_TRACK ? `${pad(track.no)} ${track.title}.m4a` : null;
+        const audio = !blank ? `${pad(track.no)} ${track.title}.m4a` : null;
         const mv = !blank && MV_TRACKS.has(track.no) ? `${pad(track.no)} ${track.title}.mp4` : null;
+        const nextNo = Math.max(...DATA.tracks.map((row) => row.no)) + 1;
         return (
-            `<details class="extras"><summary>其他：參考連結、備註、媒體檔</summary><div class="extras-grid">` +
+            `<details class="extras" ${blank ? 'open' : ''}><summary>其他：歌號、參考連結、備註、媒體檔</summary><div class="extras-grid">` +
+            `<div class="field"><label for="x-no">歌號（跟隨檔案名稱，可以不連續）</label><input id="x-no" inputmode="numeric" value="${blank ? '' : pad(track.no)}" placeholder="自動：${pad(nextNo)}"></div>` +
+            fileSelect('x-audio', '音檔', audio) + fileSelect('x-mv', 'MV', mv) +
             `<div class="field"><label for="x-url">歌詞參考連結</label><input id="x-url" value="${esc(blank ? '' : (track.lyricsUrl ?? ''))}" placeholder="https://"></div>` +
             `<div class="field"><label for="x-note">備註</label><input id="x-note" value="${esc(blank ? '' : (track.note ?? ''))}"></div>` +
-            fileSelect('x-audio', '音檔', audio) + fileSelect('x-mv', 'MV', mv) +
             `</div></details>`
         );
     };
@@ -369,51 +406,99 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 
     const trackRow = (track) => {
         const open = state.open === track.no && !state.adding;
-        const audio = track.no !== NO_AUDIO_TRACK;
-        const lyrics = track.no < NO_LYRICS_FROM;
         return (
-            `<li class="${open ? 'open' : ''}"><button class="track ${audio ? '' : 'dim'}" data-act="toggle" data-no="${track.no}" aria-expanded="${open}">` +
-            `<span class="grip" aria-hidden="true">⋮⋮</span><span class="no">${pad(track.no)}</span>` +
+            `<li class="${open ? 'open' : ''}"><button class="track" data-act="toggle" data-no="${track.no}" aria-expanded="${open}">` +
+            `<span class="no">${pad(track.no)}</span>` +
             `<span class="title">${esc(track.title)}${track.subtitle ? `<small>${esc(track.subtitle)}</small>` : ''}</span>` +
-            `<span class="leds">${led(audio, '音檔')}${led(MV_TRACKS.has(track.no), 'MV')}${led(lyrics, '歌詞')}</span><span class="chev" aria-hidden="true">›</span></button>` +
+            `<span class="leds">${led(true, '音檔')}${led(MV_TRACKS.has(track.no), 'MV')}${led(!NO_LYRICS.has(track.no), '歌詞')}</span><span class="chev" aria-hidden="true">›</span></button>` +
             (open ? editor(track, { bad: state.bad }) : '') + `</li>`
         );
     };
 
-    const album = () => {
-        const [audio, lyrics, mv] = mediaOf(DEMO);
+    const coverTile = (index, has, act) =>
+        `<div class="cover ${has ? '' : 'empty'}"><div class="art">${has ? '' : '未有'}</div><div class="cap">封面 ${index}${index === 2 ? '（選填）' : ''}</div>` +
+        `<button class="key" data-act="${act}">${has ? '更換' : '加入'}</button></div>`;
+    const categorySelect = (current) =>
+        `<select id="f-category">${CATEGORIES.map(([id, name]) => `<option ${id === current ? 'selected' : ''}>${name}</option>`).join('')}</select>`;
+
+    const album = (target, tracks) => {
+        const [songs, lyrics, mv] = mediaOf(target);
+        const covers = coversOf(target);
         const left = plate(
-            `<div class="deck">${discSvg(DEMO)}</div>` +
-            `<div class="row" style="justify-content: center"><button class="key" data-act="toast-cover">更換封面</button></div>` +
+            `<div class="deck">${discSvg(target)}</div>` +
+            `<div class="covers">${coverTile(1, covers >= 1, 'toast-cover')}${coverTile(2, covers >= 2, 'toast-cover')}</div>` +
+            `<p class="sub" style="margin: 10px 2px 0">有兩張封面時，播放端每次開啟會隨機顯示其中一張；專輯色跟隨封面 1。小於 1200 × 1200 的圖片會自動放大。</p>` +
             `<div class="well fields" style="margin-top: 16px">` +
-            `<div class="field"><label for="f-title">專輯名</label><input id="f-title" value="${esc(DEMO.title)}"></div>` +
-            `<div class="two"><div class="field"><label for="f-date">發行日期</label><input id="f-date" value="${esc(DEMO.releaseDate ?? '')}"></div>` +
-            `<div class="field"><label for="f-key">字母盤標記</label><input id="f-key" value="${esc(DEMO.key)}" maxlength="2"></div></div>` +
-            `<div class="field"><label for="f-colour">專輯色（亮燈顏色跟隨）</label><div class="swatch"><i></i><input id="f-colour" value="${DEMO.accent}"></div></div>` +
-            `<div class="row"><button class="key primary" data-act="save-album">儲存</button><span class="sub">由封面自動抽色，可以自行修改</span></div></div>`,
+            `<div class="field"><label for="f-title">專輯名</label><input id="f-title" value="${esc(target.title)}"></div>` +
+            `<div class="field"><label for="f-category">發行類別</label>${categorySelect(target.category)}</div>` +
+            `<div class="two"><div class="field"><label for="f-no">序號（類別內第幾張）</label><input id="f-no" inputmode="numeric" value="${target.categoryNo}"></div>` +
+            `<div class="field"><label for="f-year">年份（選填）</label><input id="f-year" inputmode="numeric" value="${target.year ?? ''}"></div></div>` +
+            `<div class="two"><div class="field"><label for="f-key">字母盤標記</label><input id="f-key" value="${esc(target.key)}" maxlength="2"></div>` +
+            `<div class="field"><label for="f-label">唱片公司（選填）</label><input id="f-label" value="${esc(target.label ?? '')}"></div></div>` +
+            `<div class="field"><label>媒體資料夾</label><div class="readonly"><code>${esc(folderOf(target))}</code></div>` +
+            `<div class="sub" style="margin-top: 4px">由類別、序號及專輯 id 組成。將這隻碟的音檔、歌詞檔、MV 及封面放入這個資料夾，然後掃描。</div></div>` +
+            `<div class="field"><label for="f-colour">專輯色（亮燈顏色跟隨）</label><div class="swatch"><i></i><input id="f-colour" value="${target.accent}"></div></div>` +
+            `<div class="row"><button class="key primary" data-act="save-album">儲存</button><span class="sub">由封面 1 自動抽色，可以自行修改</span></div></div>`,
         );
+        const list = tracks.length
+            ? `<p class="sub" style="margin: 8px 0 0">歌曲由掃描新增：有音檔才有歌曲。歌號跟隨檔案名稱的號碼，可以不連續。</p>` +
+              `<ul class="tracks">${tracks.map(trackRow).join('')}` +
+              `<li class="${state.adding ? 'open' : ''}"><button class="add" data-act="add" aria-expanded="${state.adding}">＋ 手動新增歌曲</button>${state.adding ? editor({}, { blank: true }) : ''}</li></ul>`
+            : `<div class="empty-list"><b>尚未有歌曲</b>將音檔（<span class="path">01 歌名.m4a</span>）、歌詞檔（<span class="path">01 歌名.txt</span>）及 MV（<span class="path">01 歌名.mp4</span>）放入媒體資料夾<br><span class="path">${esc(folderOf(target))}/</span>，然後按「掃描」。` +
+              `<div style="margin-top: 16px"><button class="key primary" data-act="scan">掃描媒體資料夾</button></div></div>`;
         const right = plate(
             `<div class="row">${roundButton('back', '返回專輯', 'home')}` +
-            `<h1 class="${isLatin(DEMO.title) ? 'latin' : ''}" style="font-weight: 400; font-size: 30px">${esc(DEMO.title)}</h1><span class="spacer"></span>` +
-            `<span class="leds">${led(true, `音檔 ${audio}／${DEMO.tracks}`)}${led(true, `MV ${mv}`)}${led(true, `歌詞 ${lyrics}／${DEMO.tracks}`)}</span></div>` +
-            `<div class="well" style="margin-top: 14px"><div class="row"><h2>歌曲</h2><span class="spacer"></span><span class="sub">掃描媒體檔</span>${roundButton('scan', '掃描媒體檔', 'scan')}</div>` +
-            `<ul class="tracks">${DATA.tracks.map(trackRow).join('')}` +
-            `<li class="${state.adding ? 'open' : ''}"><button class="add" data-act="add" aria-expanded="${state.adding}">＋ 新增歌曲</button>${state.adding ? editor({}, { blank: true }) : ''}</li></ul></div>`,
+            `<h1 class="${isLatin(target.title) ? 'latin' : ''}" style="font-weight: ${isLatin(target.title) ? 400 : 900}; font-size: 30px">${esc(target.title)}</h1><span class="spacer"></span>` +
+            `<span class="leds">${led(songs > 0, `歌曲 ${songs}`)}${led(lyrics > 0, `歌詞 ${lyrics}／${songs}`)}${led(mv > 0, `MV ${mv}`)}</span></div>` +
+            `<div class="well" style="margin-top: 14px"><div class="row"><h2>歌曲</h2><span class="spacer"></span><span class="sub">掃描媒體資料夾</span>${roundButton('scan', '掃描媒體資料夾', 'scan')}</div>${list}</div>`,
         );
-        return `<div class="album" style="--accent: ${DEMO.accent}">${left}${right}</div>`;
+        return `<div class="album" style="--accent: ${target.accent}">${left}${right}</div>`;
     };
 
-    const SCAN = [
-        ['ok', `01 ${DATA.tracks[0].title}.m4a`, '第 01 首 · 音檔', '已配對'], ['ok', `01 ${DATA.tracks[0].title}.mp4`, '第 01 首 · MV', '已配對'], ['ok', `02 ${DATA.tracks[1].title}.m4a`, '第 02 首 · 音檔', '已配對'],
-        ['warn', '07 a.m4a、07 b.m4a', '第 07 首 · 音檔有兩個檔案', '請選擇'], ['none', 'bonus-demo.m4a', '找不到對應的歌號', '未配對'],
-    ];
-    const scanDialog = () =>
-        `<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-label="掃描結果">` +
-        plate(`<h1>掃描結果</h1><p class="sub" style="margin: 4px 0 12px">在 R2 的「apollo-18/」找到 31 個檔案：28 個已配對、1 個要選擇、2 個未配對。</p>` +
-            `<div class="well"><ul class="scan">${SCAN.map(([kind, file, target, tag]) =>
-                `<li><span class="led ${kind === 'ok' ? 'on' : ''}"><i></i></span><span><code>${esc(file)}</code><br><span class="sub">${target}</span></span><span class="tag ${kind === 'ok' ? '' : 'warn'}">${tag}</span></li>`).join('')}</ul></div>` +
-            `<div class="row" style="margin-top: 16px"><button class="key primary" data-act="apply-scan">套用已配對的 28 個</button><button class="key" data-act="close-scan">取消</button></div>`) +
-        `</div></div>`;
+    /* ---------- 掃描結果（CR-004／005／006）：未按「套用」之前唔會改任何資料 ---------- */
+    const title = (no) => DATA.titles[no] ?? '';
+    const file = (no, ext, suffix = '') => `${pad(no)} ${title(no)}${suffix}.${ext}`;
+    const scanRow = ({ lead, files, target, tag, kind = '' }) =>
+        `<li>${lead}<span>${files.map((name) => `<code>${esc(name)}</code>`).join('<br>')}<br><span class="sub">${target}</span></span>${tag ? `<span class="tag ${kind}">${tag}</span>` : '<span></span>'}</li>`;
+    const tick = (label, checked = true) => `<input type="checkbox" aria-label="${label}" ${checked ? 'checked' : ''}>`;
+    const scanGroup = (name, count, note, rows) =>
+        `<div class="scan-group"><h2>${name}<small>${count}</small></h2><div class="sub">${note}</div><ul class="scan">${rows.map(scanRow).join('')}</ul></div>`;
+    const scanDialog = () => {
+        const created = [
+            { lead: tick('新增第 04 首'), files: [file(4, 'm4a'), file(4, 'txt')], target: `新增第 04 首「${esc(title(4))}」· 歌名、曲詞編監及歌詞取自文字檔`, tag: '新增', kind: 'new' },
+            { lead: tick('新增第 06 首'), files: [file(6, 'm4a')], target: `新增第 06 首「${esc(title(6))}」· 沒有文字檔，歌名取自檔案名稱`, tag: '新增', kind: 'new' },
+        ];
+        const updated = [
+            { lead: tick('更新第 02 首的歌詞'), files: [file(2, 'txt')], target: '第 02 首 · 歌詞有改動（42 行，全部有時間標記）', tag: '更新' },
+            { lead: tick('加入第 07 首的 MV'), files: [file(7, 'mp4')], target: '第 07 首 · 新的 MV', tag: '更新' },
+            { lead: tick('加入封面 2'), files: ['cover2.jpg'], target: '封面 2 · 1000 × 1000，會放大到 1200 × 1200', tag: '更新' },
+        ];
+        const choose = [
+            { lead: '<span class="dot"></span>', files: [file(9, 'm4a'), file(9, 'm4a', ' (remaster)')], target: `第 09 首 · 有兩個音檔：<select aria-label="第 09 首用哪一個音檔"><option>${esc(file(9, 'm4a'))}</option><option>${esc(file(9, 'm4a', ' (remaster)'))}</option></select>`, tag: '請選擇', kind: 'warn' },
+        ];
+        const skipped = [
+            { lead: '<span class="dot"></span>', files: [file(8, 'txt')], target: '第 08 首沒有音檔：有音檔才會新增歌曲', tag: '已略過' },
+            { lead: '<span class="dot"></span>', files: [file(11, 'mp4')], target: '第 11 首沒有音檔：有音檔才會新增歌曲', tag: '已略過' },
+            { lead: '<span class="dot"></span>', files: ['notes.docx'], target: '不認識的檔案類型', tag: '已略過' },
+        ];
+        const gone = [
+            { lead: tick('清除第 12 首的音檔連結', false), files: [file(12, 'm4a')], target: `第 12 首「${esc(title(12))}」的音檔已不在資料夾。剔選 = 清除音檔連結；歌曲、歌詞及收藏會保留`, tag: '音檔不見了', kind: 'gone' },
+        ];
+        return (
+            `<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-label="掃描結果">` +
+            plate(`<h1>掃描結果</h1><p class="sub" style="margin: 4px 0 12px">在媒體資料夾 <span class="path">${esc(folderOf(DEMO))}/</span> 找到 24 個檔案。未按「套用」之前不會改動任何資料。</p>` +
+                `<div class="well">` +
+                scanGroup('將會新增歌曲', created.length, '有音檔而未有這個歌號的歌曲。歌號跟隨檔案名稱。', created) +
+                scanGroup('將會更新', updated.length, '檔案與上次掃描不同，或者是新加入的 MV／封面。', updated) +
+                scanGroup('要選擇', choose.length, '同一個歌號有多於一個檔案。', choose) +
+                scanGroup('音檔已不在資料夾', gone.length, '掃描不會自動刪除歌曲。', gone) +
+                scanGroup('已略過', skipped.length, '不會匯入；修正後可以再掃描。', skipped) +
+                `<div class="scan-group"><h2>沒有改動<small>14</small></h2><div class="sub">與上次掃描相同的檔案，不會重新讀取。</div></div>` +
+                `</div>` +
+                `<div class="row" style="margin-top: 16px"><button class="key primary" data-act="apply-scan">套用所選的 6 項</button><button class="key" data-act="close-scan">取消</button></div>`) +
+            `</div></div>`
+        );
+    };
 
     const GOOGLE = '<svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.2C12.400 13.700 17.700 9.500 24 9.500z"/><path fill="#4285F4" d="M46.100 24.500c0-1.600-.100-3.100-.400-4.500H24v9h12.400c-.500 2.900-2.200 5.300-4.600 7l7.200 5.600c4.200-3.900 7.100-9.600 7.100-17.100z"/><path fill="#FBBC05" d="M10.500 28.600A14.500 14.500 0 0 1 9.500 24c0-1.600.300-3.200.800-4.600l-7.900-6.200A24 24 0 0 0 0 24c0 3.900.900 7.500 2.600 10.800z"/><path fill="#34A853" d="M24 48c6.500 0 11.900-2.100 15.900-5.800l-7.200-5.600c-2.200 1.500-5 2.400-8.700 2.400-6.300 0-11.600-4.200-13.500-9.900l-7.900 6.200C6.500 42.600 14.600 48 24 48z"/></svg>';
     const login = (denied) =>
@@ -425,7 +510,8 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
                 : `<p class="sub" style="margin: 0">只限管理員使用</p><button class="key google" data-act="home">${GOOGLE} 使用 Google 帳戶登入</button>`) +
             `</div><p class="sub" style="margin: 14px 0 0">歌迷自製 · 非官方</p>`)}</div>`;
 
-    const BODY = { albums, album, edit: album, bad: album, add: album, scan: album };
+    const demoAlbum = () => album(DEMO, DATA.tracks);
+    const BODY = { albums, album: demoAlbum, empty: () => album(EMPTY, []), edit: demoAlbum, bad: demoAlbum, add: demoAlbum, scan: demoAlbum };
     const render = () => {
         document.getElementById('switch').innerHTML = SCREENS.map(([id, name]) => `<button data-screen="${id}" aria-pressed="${state.screen === id}">${name}</button>`).join('');
         const screen = state.screen;
@@ -434,7 +520,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     };
 
     const TOAST_MS = 2200;
-    const DEMO_OPEN_TRACK = 2;
+    const DEMO_OPEN_TRACK = 7;
     const flash = (text) => { state.toast = text; setTimeout(() => { state.toast = ''; render(); }, TOAST_MS); };
     const go = (screen) => Object.assign(state, { screen, open: screen === 'edit' || screen === 'bad' ? DEMO_OPEN_TRACK : null, bad: screen === 'bad', adding: screen === 'add' });
     const SAVED = '已儲存，播放端已更新';
@@ -449,9 +535,9 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
         'save-album': () => flash(SAVED),
         scan: () => go('scan'),
         'close-scan': () => go('album'),
-        'apply-scan': () => { go('album'); flash('已套用 28 個檔案，播放端已更新'); },
-        'toast-new': () => flash('示意：新增一隻空白的碟，然後填寫資料'),
-        'toast-cover': () => flash('示意：選擇圖片，裁切成正方形，然後儲存'),
+        'apply-scan': () => { go('album'); flash('已套用 6 項，播放端已更新'); },
+        'toast-new': () => flash('示意：新增一隻空白的碟，填寫類別及序號，然後將檔案放入媒體資料夾並掃描'),
+        'toast-cover': () => flash('示意：選擇圖片，裁切成正方形（小於 1200 × 1200 會放大），然後儲存'),
         'toast-delete': () => flash('示意：先確認，然後刪除'),
     };
     document.addEventListener('click', (event) => {
