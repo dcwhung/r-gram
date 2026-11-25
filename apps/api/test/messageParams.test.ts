@@ -3,6 +3,12 @@
  * 行勻每個 reason / 情況嘅 message builder，確認冇 `{` / `}` 剩低
  */
 import { reasonMessage } from '../src/albums/errors';
+import {
+    assetErrorMessage,
+    assetReasonMessage,
+    type AssetReason,
+    type AssetSituation,
+} from '../src/assets/errors';
 import type { Reason } from '../src/albums/fieldRules';
 import { zhHant } from '../src/i18n/zh-Hant';
 import { trackErrorMessage, trackReasonMessage } from '../src/tracks/errors';
@@ -30,5 +36,14 @@ describe('locale messages after filling parameters', () => {
     it('should have no placeholder in messages that are used without parameters', () => {
         const plain = [...Object.values(zhHant.errors), ...Object.values(zhHant.albums.errors)];
         for (const message of plain) expect(message, message).not.toMatch(BRACE);
+    });
+
+    it('should leave no placeholder in any asset error or reason message', () => {
+        const situations = Object.keys(zhHant.assets.errors) as AssetSituation[];
+        for (const situation of situations) {
+            expect(assetErrorMessage(situation), situation).not.toMatch(BRACE);
+        }
+        const reasons = Object.keys(zhHant.assets.reasons) as AssetReason[];
+        for (const reason of reasons) expect(assetReasonMessage(reason), reason).not.toMatch(BRACE);
     });
 });
