@@ -14,7 +14,9 @@
 set -euo pipefail
 
 readonly BASE_REF='origin/main'
-readonly DOCS_ONLY_PATTERN='^(\.proj-docs/|\.tickets/|\.claude/|_mockups_/|_design_/|docs/|LICENSE)|\.md$'
+# 「淨文件」= 冇任何 CI 檢查會驗嘅路徑（同 .prettierignore / eslint ignores 一致）。
+# 其他 .md（README、.claude/CLAUDE.md）有 `prettier --check`，淨改佢哋都要跑
+readonly DOCS_ONLY_PATTERN='^(\.proj-docs/|_mockups_/|_design_/)|^LICENSE$'
 readonly EXIT_USAGE=2
 
 if [[ -z "${GITHUB_SHA:-}" || -z "${GITHUB_OUTPUT:-}" ]]; then
