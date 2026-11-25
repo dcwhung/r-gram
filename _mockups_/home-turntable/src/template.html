@@ -970,7 +970,10 @@ tr:last-child td { border-bottom: 0; }
         line.split(/(?<=[　 ])/).forEach((word) => {
             if (row && textWidth((row + word).trimEnd(), size) > width - indent) push();
             [...word].forEach((ch) => {
-                if (row && textWidth(row + ch, size) > width - indent) push();
+                const space = ch === ' ' || ch === '\u3000';
+                // 行尾嘅空格唔計闊度，亦唔會帶去下一列嘅開頭
+                if (!space && row && textWidth(row + ch, size) > width - indent) push();
+                if (space && !row) return;
                 row += ch;
             });
         });
