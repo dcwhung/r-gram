@@ -1,5 +1,5 @@
 /*
- * LRC 歌詞 parser（全 project 只有呢一份）：管理端即時驗證、API 儲存驗證、轉歌詞 JSON 都用佢。
+ * LRC 歌詞 parser（全 project 只有呢一份）：歌曲文字（`song-text/`）嘅同步歌詞交畀佢；轉歌詞 JSON 都喺度。
  * 時間戳：`[mm:ss]`、`[mm:ss.x]`、`[mm:ss.xx]`、`[mm:ss.xxx]`；一行可以有幾個；`[offset:±毫秒]` 會套用。
  * Metadata（`[ti:…]`、`[ar:…]` 等）要獨立一行先會被忽略；其他以 `[` 開頭而讀唔到時間戳嘅行一律報錯。
  */
@@ -25,9 +25,14 @@ export interface LrcResult {
     errors: LrcError[];
 }
 
-export interface LyricsJson {
-    lines: LyricLine[];
+/** 純文字歌詞嘅一行（Functional Spec D32）：冇時間；空白 = 分段 */
+export interface PlainLyricLine {
+    text: string;
 }
+
+/** 歌詞檔（`/catalog/v1/lyrics/<hash>.json`）內容：`synced` = 有冇時間標記（播放端只喺同步歌詞跟歌行） */
+export type LyricsJson =
+    { synced: true; lines: LyricLine[] } | { synced: false; lines: PlainLyricLine[] };
 
 const MS_PER_SECOND = 1000;
 const SECONDS_PER_MINUTE = 60;
@@ -87,6 +92,10 @@ const parseUntimedLine = (source: string): ParsedLine => {
     return { kind: 'error', code: LEADING_TAG.test(source) ? 'INVALID_TIMESTAMP' : 'NO_TIMESTAMP' };
 };
 
+/** 呢行（trim 之後）係咪以時間標記開頭；格式錯嘅時間標記（`[00:60.00]`）都算，metadata 唔算 */
+export const startsWithTimestamp = (source: string): boolean =>
+    readTimestamps(source.trim()).times.length > 0;
+
 const parseLine = (source: string): ParsedLine => {
     if (source === '') return { kind: 'blank' };
     const offset = OFFSET_TAG.exec(LEADING_TAG.exec(source)?.[1] ?? '');
@@ -130,7 +139,8 @@ export const parseLrc = (source: string): LrcResult => {
     return { lines: applyOffset(lines, offsetMs), errors };
 };
 
-/** 已發佈嘅歌詞檔（`/catalog/v1/lyrics/<hash>.json`）內容 */
-export const toLyricsJson = (lines: LyricLine[]): LyricsJson => ({
-    lines: lines.map(({ t, text }) => ({ t, text })),
-});
+/** 歌詞檔內容：只抄已知欄位（同步：`t`、`text`；純文字：`text`） */
+export const toLyricsJson = (lyrics: LyricsJson): LyricsJson =>
+    lyrics.synced
+        ? { synced: true, lines: lyrics.lines.map(({ t, text }) => ({ t, text })) }
+        : { synced: false, lines: lyrics.lines.map(({ text }) => ({ text })) };

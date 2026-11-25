@@ -1,5 +1,5 @@
 /*
- * @r-gram/catalog public API：內容資料嘅純邏輯（catalog 型別同驗證、LRC、掃描配對、字母盤標記、顏色、初始資料）。
+ * @r-gram/catalog public API：內容資料嘅純邏輯（catalog 型別同驗證、LRC、歌曲文字、掃描配對、字母盤標記、顏色、初始資料）。
  * 唔掂 DOM、唔用 Vite / Worker API；播放端、管理端、Backend 共用，保證「管理端驗得過 = 播放端讀得到」。
  */
 export { dominantColor, glowColor, NEUTRAL_ACCENT, NEUTRAL_GLOW } from './color/color';
@@ -11,6 +11,7 @@ export {
     type LrcResult,
     type LyricLine,
     type LyricsJson,
+    type PlainLyricLine,
 } from './lrc/parseLrc';
 export {
     matchMediaFiles,
@@ -44,4 +45,21 @@ export type {
     SeedDiscography,
     SeedTrack,
 } from './seed/types';
+export { formatSongText } from './song-text/formatSongText';
+export {
+    CREDIT_MAX_CHARS,
+    LYRIC_LINE_MAX_CHARS,
+    SONG_TEXT_MAX_BYTES,
+    SONG_TEXT_MAX_LINES,
+    TITLE_MAX_CHARS,
+} from './song-text/limits';
+export { parseSongText } from './song-text/parseSongText';
+export type {
+    SongLyrics,
+    SongText,
+    SongTextError,
+    SongTextErrorCode,
+    SongTextFields,
+    SongTextResult,
+} from './song-text/types';
 export { WHEEL_KEY_FALLBACK, wheelKeyFor } from './wheel/wheelKeyFor';
