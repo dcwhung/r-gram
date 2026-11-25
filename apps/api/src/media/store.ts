@@ -30,23 +30,22 @@ export const linkMedia = async (
 };
 
 /**
- * 清走消失咗嘅音檔連結：只喺 audio_key 仲係 `audioKey`、而且唔係手動指定時清；`clearMv` = MV 都唔喺資料夾，
- * 一齊清（手動指定嘅 MV 唔清）。其他欄唔郁。改唔到 → null
+ * 清走消失咗嘅音檔連結：只喺 audio_key 仲係 `audioKey`、而且唔係手動指定時清；冇音檔就冇 MV（D54；S-135），
+ * 所以掃描配對嘅 MV 連結一齊清（MV 檔仲喺資料夾都清）；手動指定嘅 MV 唔清。歌本身同其他欄唔郁。改唔到 → null
  */
 export const clearAudioLink = async (
     db: D1Database,
     trackId: string,
     audioKey: string,
-    clearMv: boolean,
     previous: string,
 ): Promise<string | null> =>
     db
         .prepare(
             `UPDATE tracks SET audio_key = NULL,
-                 mv_key = CASE WHEN ?1 = 1 AND mv_manual = 0 THEN NULL ELSE mv_key END,
-                 updated_at = ?2
-             WHERE id = ?3 AND audio_manual = 0 AND audio_key = ?4
+                 mv_key = CASE WHEN mv_manual = 0 THEN NULL ELSE mv_key END,
+                 updated_at = ?1
+             WHERE id = ?2 AND audio_manual = 0 AND audio_key = ?3
              RETURNING updated_at`,
         )
-        .bind(clearMv ? 1 : 0, nextUpdatedAt(previous), trackId, audioKey)
+        .bind(nextUpdatedAt(previous), trackId, audioKey)
         .first<string>('updated_at');

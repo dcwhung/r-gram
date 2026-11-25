@@ -2,7 +2,9 @@
  * 掃描：資料庫已有嘅歌（Technical Spec「CR-006 → 掃描建立歌曲 → 分類次序」步驟 3、4）。按歌號配對：
  * - 音檔／MV（非手動指定）→ matched（change：new／replace／same）；手動指定嘅唔郁 → manualKept
  * - 有音檔嘅歌號嘅 .txt → songTexts（ETag 同上次套用一樣 = unchanged）
- * - 記住嘅音檔（非手動）喺資料夾冇咗、同歌號亦冇第二個音檔 → audioMissing（永遠唔刪歌，D62）
+ * - 記住嘅音檔（非手動）喺資料夾冇咗、同歌號亦冇第二個音檔 → audioMissing（永遠唔刪歌，D62）；
+ *   `mvKey` = 清音檔連結時一齊清嘅 MV 連結：冇音檔就冇 MV（D54；S-135），MV 檔仲喺資料夾都清；
+ *   手動指定嘅 MV 同手動指定嘅音檔一樣，掃描永遠唔郁 → null
  */
 import { etagChange } from './scanCovers';
 import { groupKey, singleOf, type FileGroups, type NumberedFile } from './scanFiles';
@@ -32,8 +34,7 @@ const manualOf = (track: ScanTrackState) => {
 const missingOf = (track: ScanTrackState, groups: FileGroups, hasAudioFiles: boolean) => {
     const { id, no, title, audioKey, mvKey, audioManual, mvManual } = track;
     if (audioManual || audioKey === null || hasAudioFiles || groups.keys.has(audioKey)) return [];
-    const mvGone = !mvManual && mvKey !== null && !groups.keys.has(mvKey);
-    return [{ trackId: id, no, title, key: audioKey, mvKey: mvGone ? mvKey : null }];
+    return [{ trackId: id, no, title, key: audioKey, mvKey: mvManual ? null : mvKey }];
 };
 
 const textOf = (track: ScanTrackState, groups: FileGroups) => {

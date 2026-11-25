@@ -106,6 +106,7 @@ export interface ScanPlan {
         no: number;
         title: string;
         key: string;
+        /** 套用 clearAudio 時一齊清嘅 MV 連結（MV 檔仲喺資料夾都清，S-135）；冇 MV 或者手動指定 = null */
         mvKey: string | null;
     }[];
     manualKept: { trackId: string; kind: MediaKind; key: string }[];

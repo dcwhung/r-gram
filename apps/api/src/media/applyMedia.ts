@@ -1,8 +1,9 @@
 /*
  * API-031 `media`（媒體配對）同 `clearAudio`（音檔已不在資料夾，Functional Spec D62）逐項套用：
  * - media：檔仲喺資料夾（唔係 → STALE）；手動指定嘅唔郁（MANUAL_KEPT）；MV 要嗰個歌號有音檔（NO_AUDIO，D54）
+ * - clearAudio：audio_key 仲係預覽嗰個、唔係手動指定、個檔仲係唔喺資料夾，先清（否則 STALE）；冇音檔就冇 MV，
+ *   掃描配對嘅 MV 連結一齊清（MV 檔仲喺資料夾都清，S-135）；手動指定嘅 MV 同手動指定嘅音檔一樣唔郁
  * 一項出 exception → 嗰項 INTERNAL，其他照做（applyGuard.ts）
- * - clearAudio：audio_key 仲係預覽嗰個、唔係手動指定、個檔仲係唔喺資料夾，先清（否則 STALE）；MV 都唔喺度就一齊清
  */
 import type { ApplyContext } from './applyContext';
 import type { ClearItem, MediaItem } from './applyShape';
@@ -49,10 +50,10 @@ const clearOne = async (db: D1Database, context: ApplyContext, item: ClearItem) 
         track.audioKey === item.audioKey &&
         !context.files.has(item.audioKey);
     if (!track || !current) return failedItem('STALE');
-    const clearMv = track.mvKey !== null && !context.files.has(track.mvKey);
-    const updatedAt = await clearAudioLink(db, track.id, item.audioKey, clearMv, track.updatedAt);
+    const updatedAt = await clearAudioLink(db, track.id, item.audioKey, track.updatedAt);
     if (updatedAt === null) return failedItem('STALE');
-    context.tracks.set(track.id, { ...track, audioKey: null, updatedAt });
+    const mvKey = track.mvManual ? track.mvKey : null;
+    context.tracks.set(track.id, { ...track, audioKey: null, mvKey, updatedAt });
     return { ok: true as const };
 };
 
