@@ -39,8 +39,11 @@ const LEADING_TAG = /^\[([^\]]*)\]/;
 const TIMESTAMP = /^(\d{2,3}):(\d{2})(?:\.(\d{1,3}))?$/;
 /** 只有數字、冒號同點但格式錯（例如 `1:2`、`00:60.00`）：當錯誤，唔當 metadata（metadata 係 `字母:內容`） */
 const TIMESTAMP_LIKE = /^[\d:.]+$/;
-/** Metadata（ID tag）：成行只有一個 `[key:value]`，key 由字母或者 `#` 開頭（ti、ar、by、length…） */
-const METADATA_LINE = /^\[[A-Za-z#][^:\]]*:[^\]]*\]$/;
+/**
+ * Metadata（ID tag）：成行只有一個 `[key:value]`。key 係純英文字母或者 `#`（ti、ar、by、length…），
+ * 所以有數字嘅 key（`[O0:16.80]`：時間戳打錯字）唔算；value 可以有方括號（`[ti:發現號 [Live]]`）。
+ */
+const METADATA_LINE = /^\[(?:[A-Za-z]+|#):.*\]$/;
 const OFFSET_TAG = /^offset:(.*)$/i;
 /** offset 係微調：最多 7 位毫秒（約 2.7 小時），再大當係打錯 */
 const OFFSET_VALUE = /^[+-]?\d{1,7}$/;

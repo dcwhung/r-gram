@@ -145,6 +145,24 @@ describe('parseLrc', () => {
         },
     );
 
+    // S-014：metadata 嘅內容可以有方括號（例如歌名「發現號 [Live]」）
+    it('should ignore a metadata line whose value contains brackets', () => {
+        expect(parseLrc('[ti:發現號 [Live]]\n[00:01.00]a')).toEqual({
+            lines: [{ t: 1_000, text: 'a' }],
+            errors: [],
+        });
+    });
+
+    // S-015：獨立一行、第一個字打錯做字母嘅時間戳（間奏行）唔可以當 metadata
+    it.each(['[O0:16.80]', '[l2:30.00]'])(
+        'should report the mistyped stand-alone timestamp %j',
+        (source) => {
+            expect(parseLrc(`[00:01.00]a\n${source}`).errors).toEqual([
+                { line: 2, code: 'INVALID_TIMESTAMP', text: source },
+            ]);
+        },
+    );
+
     it('should treat a two-letter tag as metadata, not as a broken timestamp', () => {
         // `[by:me]` 係合法 metadata；唔可以因為似 `aa:bb` 就報錯
         expect(parseLrc('[by:me]\n[00:01.00]a')).toEqual({
