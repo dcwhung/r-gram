@@ -109,6 +109,19 @@ describe('scan limits: listing pages', () => {
     });
 });
 
+describe('scan limits: manual files in the album folder', () => {
+    it('should check them against the listing, or leave them unchecked when it is incomplete', async () => {
+        const manual = { trackId: 'komorebi-02', kind: 'mv', key: mediaKey('02 old.mp4') };
+        await insertScanTrack(2, { mv_key: manual.key, mv_manual: 1 });
+        await putMediaFiles(['01 a.m4a']);
+        const path = `/api/albums/${ALBUM_ID}/scan`;
+        const complete = (await call('GET', path, env.MEDIA)).body;
+        expect(complete).toMatchObject({ manualMissing: [manual], manualUnchecked: [] });
+        const partial = (await call('GET', path, endlessList().bucket)).body;
+        expect(partial).toMatchObject({ manualMissing: [], manualUnchecked: [manual] });
+    });
+});
+
 describe('scan limits: manual files in other folders', () => {
     it('should head at most the limit and list the rest as unchecked', async () => {
         const count = SCAN_MANUAL_HEADS_MAX + 1;
