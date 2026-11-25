@@ -75,6 +75,14 @@ describe('GET /api/albums', () => {
         });
     });
 
+    it('should count an empty-string MV key as no MV in completeness and statistics', async () => {
+        await insertAlbum('c', 1);
+        await insertTrack('c-01', 'c', 1, { audio_key: 'c/01 x.m4a', mv_key: '' });
+        const body = await list();
+        expect(body.albums[0]?.completeness).toEqual({ tracks: 1, audio: 1, mv: 0, lyrics: 0 });
+        expect(body.stats).toMatchObject({ tracks: 1, tracksWithAudio: 1, tracksWithMv: 0 });
+    });
+
     it('should break sort order ties by id', async () => {
         await insertAlbum('z', 1);
         await insertAlbum('m', 1);

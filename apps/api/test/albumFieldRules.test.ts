@@ -92,3 +92,28 @@ describe('shared character rule for text fields and wheelKey (S-054)', () => {
         expect(reasonOf('wheelKey', '中')).toBe('OK');
     });
 });
+
+describe('control characters other than a line feed (S-055)', () => {
+    const TAB = String.fromCodePoint(0x09);
+    const BELL = String.fromCodePoint(0x07);
+    const CARRIAGE_RETURN = String.fromCodePoint(0x0d);
+
+    it('should refuse tab, bell and carriage return through the API', async () => {
+        for (const char of [TAB, BELL, CARRIAGE_RETURN]) {
+            const response = await api('POST', '/api/albums', {
+                id: 'x',
+                title: `A${char}B`,
+                wheelKey: `A${char}`,
+            });
+            const body = await json<{ error: { details: { path: string; reason: string }[] } }>(
+                response,
+            );
+            const label = `U+${char.codePointAt(0)?.toString(16)}`;
+            expect(response.status, label).toBe(400);
+            expect(body.error.details.map((d) => `${d.path}:${d.reason}`).sort(), label).toEqual([
+                'title:INVALID_TEXT',
+                'wheelKey:INVALID_WHEEL_KEY',
+            ]);
+        }
+    });
+});
