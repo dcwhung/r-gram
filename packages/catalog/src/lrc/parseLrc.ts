@@ -35,13 +35,15 @@ const FRACTION_DIGITS = 3;
 
 /** 行頭嘅一個 `[…]` */
 const LEADING_TAG = /^\[([^\]]*)\]/;
-const TIMESTAMP = /^(\d{2,}):(\d{2})(?:\.(\d{1,3}))?$/;
+/** 分鐘 2–3 位（一首歌唔會長過 999 分鐘），秒 2 位，小數 1–3 位 */
+const TIMESTAMP = /^(\d{2,3}):(\d{2})(?:\.(\d{1,3}))?$/;
 /** 只有數字、冒號同點但格式錯（例如 `1:2`、`00:60.00`）：當錯誤，唔當 metadata（metadata 係 `字母:內容`） */
 const TIMESTAMP_LIKE = /^[\d:.]+$/;
 /** Metadata（ID tag）：成行只有一個 `[key:value]`，key 由字母或者 `#` 開頭（ti、ar、by、length…） */
 const METADATA_LINE = /^\[[A-Za-z#][^:\]]*:[^\]]*\]$/;
 const OFFSET_TAG = /^offset:(.*)$/i;
-const SIGNED_INTEGER = /^[+-]?\d+$/;
+/** offset 係微調：最多 7 位毫秒（約 2.7 小時），再大當係打錯 */
+const OFFSET_VALUE = /^[+-]?\d{1,7}$/;
 
 /** `mm:ss.xxx` → 毫秒；格式或者範圍錯就 null */
 const timestampToMs = (tag: string): number | null => {
@@ -68,7 +70,7 @@ const readTimestamps = (source: string): { times: (number | null)[]; rest: strin
         const ms = timestampToMs(inner);
         if (ms === null && !TIMESTAMP_LIKE.test(inner)) break;
         times.push(ms);
-        rest = rest.slice(tag[0].length);
+        rest = rest.slice(tag[0].length).trimStart(); // 時間戳之間可以有空格
     }
     return { times, rest };
 };
@@ -87,7 +89,7 @@ const parseLine = (source: string): ParsedLine => {
     const offset = OFFSET_TAG.exec(LEADING_TAG.exec(source)?.[1] ?? '');
     if (offset) {
         const value = (offset[1] ?? '').trim();
-        return SIGNED_INTEGER.test(value)
+        return OFFSET_VALUE.test(value)
             ? { kind: 'offset', ms: Number(value) }
             : { kind: 'error', code: 'INVALID_OFFSET' };
     }
@@ -120,8 +122,9 @@ export const parseLrc = (source: string): LrcResult => {
     });
     if (lines.length === 0 && errors.length === 0)
         errors.push({ line: 0, code: 'EMPTY', text: '' });
-    // Array.prototype.sort 係 stable：同一時間保持原文次序
-    return { lines: applyOffset(lines, offsetMs).sort((a, b) => a.t - b.t), errors };
+    // 先排序後套 offset：壓到 0 嘅行仍然跟原本時間先後。sort 係 stable：同一時間保持原文次序
+    lines.sort((a, b) => a.t - b.t);
+    return { lines: applyOffset(lines, offsetMs), errors };
 };
 
 /** 已發佈嘅歌詞檔（`/catalog/v1/lyrics/<hash>.json`）內容 */

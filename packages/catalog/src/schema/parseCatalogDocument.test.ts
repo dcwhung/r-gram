@@ -159,6 +159,75 @@ describe('parseCatalogDocument', () => {
         expect(errorPaths(input)).toEqual(['albums[0].tracks[1].no']);
     });
 
+    // S-001：base 之後會直接駁 R2 key，唔可以有 query、fragment 或者 userinfo
+    it.each([
+        'https://m.example/?x=/',
+        'https://m.example/#/',
+        'https://user@evil.example/',
+        'https://m.example/a b/',
+        'https:///',
+    ])('should reject the base URL %j', (mediaBase) => {
+        expect(errorPaths({ ...document(), mediaBase })).toEqual(['mediaBase']);
+    });
+
+    it.each([
+        'https://m.example/',
+        'https://api.example/catalog/v1/img/',
+        'https://m.example:8443/a/',
+    ])('should accept the base URL %j', (mediaBase) => {
+        expect(parseCatalogDocument({ ...document(), mediaBase }).ok).toBe(true);
+    });
+
+    // S-002
+    it.each([' ', '\n', ' A'])('should reject the blank or padded wheel key %j', (wheelKey) => {
+        expect(errorPaths(document({ albums: [album({ wheelKey })] }))).toEqual([
+            'albums[0].wheelKey',
+        ]);
+    });
+
+    it.each(['2008-13-45', '2008-02-30', '2008-00-10'])(
+        'should reject the impossible release date %j',
+        (releaseDate) => {
+            expect(errorPaths(document({ albums: [album({ releaseDate })] }))).toEqual([
+                'albums[0].releaseDate',
+            ]);
+        },
+    );
+
+    it('should accept a leap day', () => {
+        expect(
+            parseCatalogDocument(document({ albums: [album({ releaseDate: '2024-02-29' })] })).ok,
+        ).toBe(true);
+    });
+
+    it.each(['1', 'Nov 24 2026', '2026-11-24', '2026-11-24T16:50:00'])(
+        'should reject generatedAt %j that is not a full ISO 8601 instant',
+        (generatedAt) => {
+            expect(errorPaths({ ...document(), generatedAt })).toEqual(['generatedAt']);
+        },
+    );
+
+    it.each(['2026-11-24T16:50:00Z', '2026-11-24T16:50:00.000Z', '2026-11-25T00:50:00+08:00'])(
+        'should accept generatedAt %j',
+        (generatedAt) => {
+            expect(parseCatalogDocument({ ...document(), generatedAt }).ok).toBe(true);
+        },
+    );
+
+    // S-003：結構錯（唔係 array / object）
+    it.each([
+        [{ albums: {} }, ['albums']],
+        [{ albums: [null] }, ['albums[0]']],
+        [{ albums: [{ ...album(), tracks: 'x' }] }, ['albums[0].tracks']],
+        [{ albums: [{ ...album(), tracks: [42] }] }, ['albums[0].tracks[0]']],
+        [
+            { albums: [album({ tracks: [track({ credits: [] as never })] })] },
+            ['albums[0].tracks[0].credits'],
+        ],
+    ])('should report the structural error in %j', (overrides, expected) => {
+        expect(errorPaths({ ...document(), ...overrides })).toEqual(expected);
+    });
+
     it('should describe each error with a code', () => {
         const result = parseCatalogDocument({ ...document(), version: 2 });
         expect(result).toEqual({

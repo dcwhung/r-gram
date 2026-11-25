@@ -34,7 +34,10 @@ const hexToRgb = (hex: string): Rgb => {
 const rgbToHex = (rgb: Rgb): string =>
     `#${rgb.map((value) => value.toString(16).padStart(2, '0')).join('')}`;
 
-/** h、s、l 都係 0–1 */
+/**
+ * h、s、l 都係 0–1。標準 HSL → RGB 公式（CSS Color 4 §7.1）：入面嘅 12、3、9 同 0／8／4 係公式本身嘅常數
+ *（色環分 12 格，紅綠藍各偏移 0、8、4 格），同設計稿逐字一致，所以唔另外改名。
+ */
 const hslToRgb = (h: number, s: number, l: number): Rgb => {
     const channel = (n: number) => {
         const k = (n + h * 12) % 12;

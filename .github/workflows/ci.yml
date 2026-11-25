@@ -34,7 +34,8 @@ jobs:
     check:
         name: Lint, type check & unit
         needs: changes
-        if: needs.changes.outputs.code == 'true'
+        # `changes` job 失敗（判斷唔到）都照跑：只有明確係淨文件（code == 'false'）先跳過
+        if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v7
@@ -51,4 +52,5 @@ jobs:
             # 全部 workspace 嘅 type check
             - run: npm run typecheck
 
-            - run: npm test
+            # 連覆蓋率門檻（80%）一齊驗
+            - run: npm run coverage

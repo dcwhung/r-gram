@@ -45,6 +45,15 @@ describe('dominantColor', () => {
         expect(result).toBe('#ff0000');
     });
 
+    // 期望值同設計稿 dominantColor() 一致：太暗嘅色提到亮度下限 0.34，太灰嘅色提到飽和下限 0.45
+    it('should lift a very dark colour to the lightness floor', () => {
+        expect(dominantColor(pixelsOf([16, [0, 0, 40, 255]]))).toBe('#0000ad');
+    });
+
+    it('should lift a washed-out colour to the saturation floor', () => {
+        expect(dominantColor(pixelsOf([16, [120, 100, 100, 255]]))).toBe('#a03d3d');
+    });
+
     it('should pick the most colourful hue, not the most common pixel', () => {
         const result = dominantColor(pixelsOf([70, [255, 255, 255, 255]], [30, [0, 0, 255, 255]]));
         expect(result).toBe('#0000ff');

@@ -1,6 +1,7 @@
 /*
  * 已發佈內容（`/catalog/v1/catalog.json`）嘅型別。Technical Spec API-070。
  * 只包已上架嘅專輯同歌，次序 = 管理端次序。
+ * 「冇值」一律用 null：除咗 `type` 同 `label`，空字串唔合法（發佈時要將草稿入面嘅 '' 轉做 null）。
  */
 export const CATALOG_VERSION = 1;
 

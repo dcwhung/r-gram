@@ -57,6 +57,37 @@ describe('parseLrc', () => {
         expect(parseLrc('[offset:5000]\n[00:02.00]a').lines).toEqual([{ t: 0, text: 'a' }]);
     });
 
+    // S-005：offset 大過頭幾行嘅時間時，壓到 0 嘅行仍然要跟原本時間先後
+    it('should keep time order among lines clamped to zero', () => {
+        const { lines } = parseLrc('[offset:5000]\n[00:30.00][00:02.00]chorus\n[00:01.00]verse');
+        expect(lines).toEqual([
+            { t: 0, text: 'verse' },
+            { t: 0, text: 'chorus' },
+            { t: 25_000, text: 'chorus' },
+        ]);
+    });
+
+    // S-006
+    it('should accept spaces between the timestamps of one line', () => {
+        expect(parseLrc('[00:01.00] [00:02.00]text').lines).toEqual([
+            { t: 1_000, text: 'text' },
+            { t: 2_000, text: 'text' },
+        ]);
+    });
+
+    it('should reject a minute count longer than three digits', () => {
+        expect(parseLrc('[99999999999999999999:00]a')).toEqual({
+            lines: [],
+            errors: [{ line: 1, code: 'INVALID_TIMESTAMP', text: '[99999999999999999999:00]a' }],
+        });
+    });
+
+    it('should reject an offset too large to be a correction', () => {
+        expect(parseLrc('[offset:99999999]\n[00:01.00]a').errors).toEqual([
+            { line: 1, code: 'INVALID_OFFSET', text: '[offset:99999999]' },
+        ]);
+    });
+
     it('should report a line without a timestamp', () => {
         const { lines, errors } = parseLrc('[00:01.00]a\n冇時間嘅一行\n[00:03.00]c');
         expect(lines).toHaveLength(2);
