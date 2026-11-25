@@ -293,6 +293,61 @@ describe('parseCatalogDocument', () => {
         });
     });
 
+    // CR-005（D55、FR-125）：可選嘅第二張封面；要成對，亦要有第一張。冇呢兩個欄嘅舊 document 照收
+    describe('second cover', () => {
+        const SECOND = { cover2: 'c2c2c2c2c2c2c2c2.webp', thumb2: 't2t2t2t2t2t2t2t2.webp' };
+
+        it('should accept an album without the second cover fields', () => {
+            const input = document();
+            expect('cover2' in input.albums[0]!).toBe(false);
+            expect(parseCatalogDocument(input).ok).toBe(true);
+        });
+
+        it('should accept a second cover with its thumb next to a first cover', () => {
+            expect(parseCatalogDocument(document({ albums: [album(SECOND)] })).ok).toBe(true);
+        });
+
+        it('should accept both second cover fields being null, with or without a first cover', () => {
+            const cleared = { cover2: null, thumb2: null };
+            const albums = [
+                album(cleared),
+                album({ ...cleared, id: 'beaming', cover: null, thumb: null, tracks: [] }),
+            ];
+            expect(parseCatalogDocument(document({ albums })).ok).toBe(true);
+        });
+
+        it('should reject a second cover without its thumb, and a thumb without its cover', () => {
+            const albums = [
+                album({ cover2: SECOND.cover2 }),
+                album({ id: 'beaming', cover2: SECOND.cover2, thumb2: null, tracks: [] }),
+                album({ id: 'room', thumb2: SECOND.thumb2, tracks: [] }),
+            ];
+            expect(parseCatalogDocument(document({ albums }))).toEqual({
+                ok: false,
+                errors: [
+                    { path: 'albums[0].thumb2', code: 'UNPAIRED_COVER2' },
+                    { path: 'albums[1].thumb2', code: 'UNPAIRED_COVER2' },
+                    { path: 'albums[2].cover2', code: 'UNPAIRED_COVER2' },
+                ],
+            });
+        });
+
+        it('should reject a second cover on an album without a first cover', () => {
+            const input = document({ albums: [album({ ...SECOND, cover: null })] });
+            expect(parseCatalogDocument(input)).toEqual({
+                ok: false,
+                errors: [{ path: 'albums[0].cover2', code: 'COVER2_WITHOUT_COVER' }],
+            });
+        });
+
+        it.each(['', '  ', 3])('should reject the second cover name %j', (name) => {
+            const input = document({
+                albums: [album({ cover2: name as never, thumb2: name as never })],
+            });
+            expect(errorPaths(input)).toEqual(['albums[0].cover2', 'albums[0].thumb2']);
+        });
+    });
+
     it('should describe each error with a code', () => {
         const result = parseCatalogDocument({ ...document(), version: 2 });
         expect(result).toEqual({
