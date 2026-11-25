@@ -1,10 +1,10 @@
-/* 舞台：闊 1080 單位；高度最少 1920 單位，高啲嘅手機會填滿成個畫面 */
+/* 舞台：闊度同高度（設計單位）由 Stage.tsx 設定：闊 = 設計闊度；高度最少係設計高度，高啲嘅手機會填滿安全區 */
 .stage {
     position: absolute;
     top: var(--stage-offset-y, 0);
     left: var(--stage-offset-x, 0);
-    width: calc(var(--u) * 1080);
-    height: calc(var(--u) * (1920 + var(--stage-extra, 0)));
+    width: calc(var(--u) * var(--stage-width-units));
+    height: calc(var(--u) * var(--stage-height-units));
     overflow: hidden;
     background: var(--color-stage);
     color: var(--color-ink);

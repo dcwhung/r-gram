@@ -49,6 +49,17 @@ describe('Stage', () => {
         );
     });
 
+    it('should size itself from the design width and the fitted height', () => {
+        setViewport(393, 852);
+        render(<Stage>content</Stage>);
+        const stage = screen.getByTestId('stage');
+        expect(stage.style.getPropertyValue('--stage-width-units')).toBe('1080');
+        expect(Number.parseFloat(stage.style.getPropertyValue('--stage-height-units'))).toBeCloseTo(
+            852 / (393 / 1080),
+            1,
+        );
+    });
+
     it('should refit when the viewport changes', () => {
         setViewport(393, 852);
         render(<Stage>content</Stage>);

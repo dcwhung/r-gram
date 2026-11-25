@@ -1,4 +1,5 @@
 import { DESIGN_HEIGHT, DESIGN_WIDTH } from '../fitStage';
+import { circleLeftAt } from '../geometry';
 import type { StageLayout } from './types';
 
 /*
@@ -12,9 +13,6 @@ const KNOB_Y = 1784;
 const KNOB_RADIUS = 76;
 const BUTTON_COLUMN_X = 112;
 const SCREW_INSET = 62;
-
-/** 轉盤喺高度 y 嘅左邊緣 */
-const platterLeftAt = (y: number) => DISC.x - Math.sqrt(PLATTER_RADIUS ** 2 - (y - DISC.y) ** 2);
 
 export const PHONE_LAYOUT: StageLayout = {
     id: 'phone',
@@ -35,7 +33,12 @@ export const PHONE_LAYOUT: StageLayout = {
         ],
     },
     // 旋鈕喺畫面左邊同轉盤邊嘅正中間：位置由轉盤計出嚟，唔寫死
-    knob: { x: Math.round(platterLeftAt(KNOB_Y) / 2), y: KNOB_Y, r: KNOB_RADIUS },
+    knob: {
+        x: Math.round(circleLeftAt(DISC, PLATTER_RADIUS, KNOB_Y) / 2),
+        y: KNOB_Y,
+        r: KNOB_RADIUS,
+        heartHitGap: 10,
+    },
     scale: {
         fromDeg: 185,
         stepDeg: 11.25,

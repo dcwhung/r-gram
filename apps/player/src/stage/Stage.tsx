@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { DESIGN_WIDTH } from './fitStage';
 import './stage.css';
 import { useStageFit } from './useStageFit';
 
@@ -14,6 +15,8 @@ export const Stage = ({ children }: { children: ReactNode }) => {
     const fit = useStageFit();
     const style = {
         '--u': `${fit.unit.toFixed(CSS_PRECISION)}px`,
+        '--stage-width-units': DESIGN_WIDTH,
+        '--stage-height-units': fit.heightUnits.toFixed(CSS_PRECISION),
         '--stage-extra': fit.extraUnits.toFixed(CSS_PRECISION),
         '--stage-offset-x': `${fit.offsetX.toFixed(CSS_PRECISION)}px`,
         '--stage-offset-y': `${fit.offsetY.toFixed(CSS_PRECISION)}px`,

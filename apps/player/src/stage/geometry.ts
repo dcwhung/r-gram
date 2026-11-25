@@ -16,9 +16,13 @@ export const polar = (centre: Point, radius: number, deg: number): Point => ({
     y: centre.y + radius * Math.sin(deg * DEG_TO_RAD),
 });
 
+/** 圓喺高度 y 嘅左邊緣（x 座標） */
+export const circleLeftAt = (centre: Point, radius: number, y: number): number =>
+    centre.x - Math.sqrt(radius ** 2 - (y - centre.y) ** 2);
+
 /** 轉盤喺高度 y 嘅左邊緣（x 座標） */
 export const platterLeftAt = ({ disc, platter }: StageLayout, y: number): number =>
-    disc.x - Math.sqrt(platter.r ** 2 - (y - disc.y) ** 2);
+    circleLeftAt(disc, platter.r, y);
 
 /** 第 pos 格刻度（由 0 開始）嘅角度 */
 export const scaleAngle = ({ scale }: StageLayout, pos: number): number =>
@@ -44,8 +48,7 @@ export const heartPoint = (layout: StageLayout, positions: number, open = 0): Po
 /** ♥ 細，所以感應方格由旋鈕邊向外伸（唔同旋鈕重疊）；轉碟時跟住心形 */
 export const heartHitPoint = (layout: StageLayout, positions: number, open = 0): Point => {
     const { knob, dial } = layout;
-    const HIT_OFFSET_FROM_KNOB = 10;
-    const closed = knob.r + HIT_OFFSET_FROM_KNOB + hitSizeUnits(layout) / 2;
+    const closed = knob.r + knob.heartHitGap + hitSizeUnits(layout) / 2;
     return polar(knob, lerp(closed, dial.letters, open), scaleAngle(layout, positions - 1));
 };
 

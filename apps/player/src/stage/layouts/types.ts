@@ -38,8 +38,8 @@ export interface StageLayout {
         iconSize: number;
         items: readonly (Point & { id: ButtonId })[];
     };
-    /** 轉碟旋鈕 */
-    knob: Point & { r: number };
+    /** 轉碟旋鈕；`heartHitGap` = ♥ 嘅感應方格離旋鈕邊幾遠（方格由旋鈕邊向外伸，唔同旋鈕重疊） */
+    knob: Point & { r: number; heartHitGap: number };
     /** 刻度弧：每格一隻碟，最尾一格係 ♥ */
     scale: {
         fromDeg: number;
