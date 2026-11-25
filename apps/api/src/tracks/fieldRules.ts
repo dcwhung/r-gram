@@ -38,7 +38,13 @@ const blankAsNull =
 const isHttpsUrl = (value: string): boolean => {
     try {
         const url = new URL(value);
-        return url.protocol === 'https:' && url.hostname !== '';
+        // 唔收 userinfo：`https://google.com@evil.example/` 睇落似第二個網站
+        return (
+            url.protocol === 'https:' &&
+            url.hostname !== '' &&
+            url.username === '' &&
+            url.password === ''
+        );
     } catch {
         return false;
     }

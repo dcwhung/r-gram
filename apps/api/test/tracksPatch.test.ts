@@ -81,7 +81,10 @@ describe('PATCH /api/tracks/:id', () => {
     });
 
     it('should refuse a link that is not https', async () => {
-        for (const url of ['http://a.example', 'javascript:alert(1)', 'https://', 'ftp://x', 42]) {
+        // S-067：有 userinfo 嘅網址（`https://google.com@evil.example/`）睇落似第二個網站，唔收
+        const withUserinfo = ['https://google.com@evil.example/', 'https://user:pw@a.example/x'];
+        const notHttps = ['http://a.example', 'javascript:alert(1)', 'https://', 'ftp://x', 42];
+        for (const url of [...notHttps, ...withUserinfo]) {
             expect(await reasonsOf(await patch({ lyricsSourceUrl: url })), String(url)).toEqual([
                 'lyricsSourceUrl:INVALID_URL',
             ]);
