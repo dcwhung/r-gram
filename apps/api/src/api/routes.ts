@@ -11,6 +11,8 @@ import { requireSameOrigin, requireSession } from '../auth/middleware';
 import { catalogAdminRoutes, rebuildAfterWrite } from '../catalog/rebuildRoute';
 import { albumTrackRoutes } from '../tracks/albumTrackRoutes';
 import { trackRoutes } from '../tracks/routes';
+import { mediaRoutes } from '../media/mediaRoutes';
+import { scanRoutes } from '../media/routes';
 import { afterWrite } from './afterWrite';
 
 export const apiRoutes = new Hono<AppEnv>();
@@ -23,7 +25,9 @@ apiRoutes.use('*', afterWrite(rebuildAfterWrite));
 
 apiRoutes.get('/me', (c) => c.json({ email: c.get('email') }));
 apiRoutes.route('/albums/:albumId/tracks', albumTrackRoutes);
+apiRoutes.route('/albums/:albumId/scan', scanRoutes);
 apiRoutes.route('/albums', albumRoutes);
 apiRoutes.route('/tracks', trackRoutes);
 apiRoutes.route('/assets', assetRoutes);
+apiRoutes.route('/media', mediaRoutes);
 apiRoutes.route('/catalog', catalogAdminRoutes);

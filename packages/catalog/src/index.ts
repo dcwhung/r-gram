@@ -14,13 +14,34 @@ export {
     type PlainLyricLine,
 } from './lrc/parseLrc';
 export {
-    matchMediaFiles,
-    type MatchedFile,
-    type MediaKind,
-    type ScanResult,
-    type ScanTrack,
+    classifyFile,
+    fileNameOf,
+    trackNoOf,
+    type CoverKind,
+    type FileClass,
+    type NumberedKind,
     type UnmatchedReason,
-} from './scan/matchMediaFiles';
+} from './scan/classifyFile';
+export { planScan } from './scan/planScan';
+export type { ScanFile } from './scan/scanFiles';
+export type {
+    CoverSource,
+    FileChange,
+    MatchedMedia,
+    MediaKind,
+    NewTrackPlan,
+    ScanAlbumState,
+    ScanConflict,
+    ScanInput,
+    ScanPlan,
+    ScanTrackState,
+    SkippedFile,
+    SkipReason,
+    TextCandidate,
+    TextSource,
+} from './scan/scanTypes';
+export { songTextChange, type SongTextComparison, type TextChange } from './scan/songTextChange';
+export { titleFromFileName } from './scan/titleFromFileName';
 export {
     FAVOURITES_ALBUM_ID,
     isAlbumId,
@@ -50,6 +71,12 @@ export {
     type TrackCredits,
 } from './schema/types';
 export { matchCredits, type CreditMatchResult, type MatchedCredits } from './seed/matchCredits';
+export {
+    planAlbumSeed,
+    type AlbumSeedPlan,
+    type ExistingAlbum,
+    type OrdinalTaken,
+} from './seed/planAlbumSeed';
 export { seedToCatalog, type SeedCatalogOptions } from './seed/seedToCatalog';
 export type {
     SeedAlbum,

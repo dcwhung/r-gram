@@ -96,46 +96,73 @@ export const nextTrackNo = async (db: D1Database, albumId: string): Promise<numb
         .bind(albumId)
         .first<number>('next')) ?? TRACK_NO_MIN;
 
-/** API-020：新增一首歌；冇呢張碟 → null。id 或者歌號撞咗會 throw（isIdTaken / isNumberTaken） */
+/** 新歌連埋嘅檔（掃描建立歌曲，CR-006 FR-126）；API-020 人手新增 = 全部 NULL */
+export interface TrackFiles {
+    audioKey: string | null;
+    mvKey: string | null;
+    /** 套用咗嘅 `.txt` 嘅 ETag（Technical Spec「tracks.text_source_etag」） */
+    textSourceEtag: string | null;
+}
+
+export const NO_FILES: TrackFiles = { audioKey: null, mvKey: null, textSourceEtag: null };
+
+const INSERT_SQL = `
+    INSERT INTO tracks (id, album_id, "no", title, subtitle, composer, lyricist, arranger,
+        producer, audio_key, mv_key, text_source_etag, created_at, updated_at)
+    SELECT ?1, a.id, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13
+    FROM albums a WHERE a.id = ?2
+    RETURNING ${TRACK_RETURNING}`;
+
+interface TrackIds {
+    id: string;
+    albumId: string;
+    no: number;
+}
+
+/** API-020 / 掃描建立歌曲：新增一首歌；冇呢張碟 → null。id 或者歌號撞咗會 throw（isIdTaken / isNumberTaken） */
 export const insertTrack = async (
     db: D1Database,
-    ids: { id: string; albumId: string; no: number },
+    ids: TrackIds,
     song: SongText,
     lyrics: StoredLyrics | null,
+    files: TrackFiles = NO_FILES,
 ): Promise<TrackRow | null> => {
     const now = new Date().toISOString();
+    const { audioKey, mvKey, textSourceEtag } = files;
+    const { id, albumId, no } = ids;
+    const songValues = [song.title, song.subtitle, ...creditValues(song)];
     const insert = db
-        .prepare(
-            `INSERT INTO tracks (id, album_id, "no", title, subtitle,
-                 composer, lyricist, arranger, producer, created_at, updated_at)
-             SELECT ?1, a.id, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?10
-             FROM albums a WHERE a.id = ?2
-             RETURNING ${TRACK_RETURNING}`,
-        )
-        .bind(ids.id, ids.albumId, ids.no, song.title, song.subtitle, ...creditValues(song), now);
-    const statements = lyrics ? [insert, lyricsWrite(db, ids.id, lyrics, now)] : [insert];
+        .prepare(INSERT_SQL)
+        .bind(id, albumId, no, ...songValues, audioKey, mvKey, textSourceEtag, now);
+    const statements = lyrics ? [insert, lyricsWrite(db, id, lyrics, now)] : [insert];
     const [inserted] = await db.batch<TrackRow>(statements);
     const row = inserted?.results[0];
     return row ? withLyrics(row, lyrics) : null;
 };
 
-/** API-041：歌名、副題、credit + 歌詞一個 batch；If-Match 過時或者冇呢首歌 → null */
+/**
+ * API-041：歌名、副題、credit + 歌詞一個 batch；If-Match 過時或者冇呢首歌 → null。
+ * `textSourceEtag`：掃描套用（API-031）先畀，一齊記低；人手儲存唔改佢（bucket 嗰個檔冇再改，掃描唔會再建議）
+ */
 export const saveSongText = async (
     db: D1Database,
     id: string,
     expected: string,
     song: SongText,
     lyrics: StoredLyrics | null,
+    textSourceEtag?: string,
 ): Promise<TrackRow | null> => {
     const updatedAt = nextUpdatedAt(expected);
+    const source = textSourceEtag === undefined ? [] : [textSourceEtag];
     const update = db
         .prepare(
             `UPDATE tracks SET title = ?1, subtitle = ?2, composer = ?3, lyricist = ?4,
                  arranger = ?5, producer = ?6, updated_at = ?7
+                 ${source.length > 0 ? ', text_source_etag = ?10' : ''}
              WHERE id = ?8 AND updated_at = ?9
              RETURNING ${TRACK_RETURNING}`,
         )
-        .bind(song.title, song.subtitle, ...creditValues(song), updatedAt, id, expected);
+        .bind(song.title, song.subtitle, ...creditValues(song), updatedAt, id, expected, ...source);
     const [updated] = await db.batch<TrackRow>([update, lyricsWrite(db, id, lyrics, updatedAt)]);
     const row = updated?.results[0];
     return row ? withLyrics(row, lyrics) : null;

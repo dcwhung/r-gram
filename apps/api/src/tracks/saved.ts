@@ -9,15 +9,21 @@ import { toTrack, type TrackRow } from './rows';
 import type { ReadSong, StoredLyrics } from './songText';
 import type { TrackTextRow } from './store';
 
+/** formatSongText() 要嘅 D1 欄（tracks + lyrics.source）；掃描（media/state.ts）亦用 */
+export type SongTextColumns = Pick<
+    TrackTextRow,
+    'title' | 'subtitle' | 'source' | (typeof CREDIT_FIELDS)[number]
+>;
+
 /** 四項 credit 都冇 = null（同 parseSongText() 一樣） */
-const creditsOf = (row: TrackTextRow): TrackCredits | null =>
+const creditsOf = (row: SongTextColumns): TrackCredits | null =>
     CREDIT_FIELDS.some((field) => row[field] !== null)
         ? (Object.fromEntries(
               CREDIT_FIELDS.map((field) => [field, row[field]]),
           ) as unknown as TrackCredits)
         : null;
 
-export const songFieldsOf = (row: TrackTextRow): SongTextFields => ({
+export const songFieldsOf = (row: SongTextColumns): SongTextFields => ({
     title: row.title,
     subtitle: row.subtitle,
     credits: creditsOf(row),
