@@ -43,11 +43,11 @@ export interface CatalogAlbum {
     year: number | null;
     type: string;
     /**
-     * CR-004（FR-124）：發行類別同類別內序號（由 1 起）。播放端唔顯示；兩個一齊出現或者一齊冇。
-     * Backend 生成嘅 catalog 一定有；選填只係因為舊 fixture 冇（未部署過，冇舊播放端要兼容）
+     * CR-004（FR-124）、Technical Spec API-072：發行類別同類別內序號（由 1 起），必填。播放端唔顯示。
+     * 舊版 app 存喺本機、冇呢兩個欄嘅 catalog 驗唔過，播放端當冇本機副本（未部署過，冇舊播放端要兼容）
      */
-    category?: ReleaseCategory;
-    categoryNo?: number;
+    category: ReleaseCategory;
+    categoryNo: number;
     label: string;
     /** 專輯色 `#rrggbb` */
     accent: string;
