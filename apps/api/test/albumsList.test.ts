@@ -104,13 +104,36 @@ describe('GET /api/albums', () => {
         });
     });
 
-    it('should include the catalog generation state', async () => {
-        await insertCatalogState({ status: 'failed', error: 'R2 write failed' });
+    // backlog B-046 ②：同寫入回應嘅 `catalog` 同一個形狀（T-026）
+    it('should include the catalog generation state in the write-response shape', async () => {
+        await insertCatalogState({ status: 'failed', error: 'CATALOG_WRITE_FAILED' });
         expect((await list()).catalog).toEqual({
-            status: 'failed',
+            ok: false,
+            hash: null,
             generatedAt: null,
+            albumCount: null,
+            trackCount: null,
             updatedAt: '2026-11-25T00:00:00.000Z',
-            error: 'R2 write failed',
+            error: 'CATALOG_WRITE_FAILED',
+        });
+    });
+
+    it('should report the values of the live catalog after a success', async () => {
+        await insertCatalogState({
+            status: 'ok',
+            hash: 'a'.repeat(64),
+            generated_at: '2026-11-24T00:00:00.000Z',
+            album_count: 3,
+            track_count: 30,
+        });
+        expect((await list()).catalog).toEqual({
+            ok: true,
+            hash: 'a'.repeat(64),
+            generatedAt: '2026-11-24T00:00:00.000Z',
+            albumCount: 3,
+            trackCount: 30,
+            updatedAt: '2026-11-25T00:00:00.000Z',
+            error: null,
         });
     });
 });

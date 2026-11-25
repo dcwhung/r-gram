@@ -52,6 +52,7 @@ describe('DELETE /api/albums/:id', () => {
         expect(response.status).toBe(200);
         expect(await json(response)).toEqual({
             deleted: { albumId: 'apollo-18', trackIds: ['apollo-18-01', 'apollo-18-02'] },
+            catalog: expect.objectContaining({ ok: true }),
         });
         expect(await albumRow('apollo-18')).toBeNull();
         expect(await countOf('tracks')).toBe(1);

@@ -47,6 +47,7 @@ describe('DELETE /api/tracks/:id', () => {
         expect(response.status).toBe(200);
         expect(await json(response)).toEqual({
             deleted: { trackId: 'apollo-18-02', albumId: 'apollo-18' },
+            catalog: expect.objectContaining({ ok: true }),
         });
         expect(await numbersOf('apollo-18')).toEqual(['1:apollo-18-01', '2:apollo-18-03']);
         expect((await trackRow('apollo-18-03'))?.updated_at).toBe(NOW);
@@ -102,7 +103,10 @@ describe('PUT /api/albums/:id/tracks/order', () => {
         const ids = ['apollo-18-03', 'apollo-18-01', 'apollo-18-02'];
         const response = await order('apollo-18', { ids });
         expect(response.status).toBe(200);
-        expect(await json(response)).toEqual({ ids });
+        expect(await json(response)).toEqual({
+            ids,
+            catalog: expect.objectContaining({ ok: true }),
+        });
         expect(await numbersOf('apollo-18')).toEqual([
             '1:apollo-18-03',
             '2:apollo-18-01',

@@ -3,6 +3,7 @@
  * 內容 hash 檔名 = 永久 cache（immutable）；CORS 只回 PLAYER_ORIGINS；冇 cookie、唔使 session
  */
 import { env } from 'cloudflare:test';
+import { bucketWith } from './catalogFixtures';
 import { call } from './helpers';
 import { webpVp8l } from './imageFixtures';
 
@@ -13,8 +14,8 @@ const IMMUTABLE = 'public, max-age=31536000, immutable';
 const putImage = (name: string, bytes: Uint8Array, contentType = 'image/webp') =>
     env.CATALOG.put(`catalog/v1/img/${name}`, bytes, { httpMetadata: { contentType } });
 
-const get = (path: string, headers: Record<string, string> = {}, method = 'GET') =>
-    call(path, { method, headers });
+const get = (path: string, headers: Record<string, string> = {}, method = 'GET', bindings = env) =>
+    call(path, { method, headers }, bindings);
 
 describe('GET /catalog/v1/img/:name', () => {
     it('should serve a stored image with immutable cache, nosniff and an ETag', async () => {
@@ -56,6 +57,32 @@ describe('GET /catalog/v1/img/:name', () => {
         expect(response.status).toBe(200);
         expect(response.headers.get('cache-control')).toBe(IMMUTABLE);
         expect(await response.text()).toBe('');
+    });
+
+    // backlog B-051：HEAD 唔下載成個檔
+    it('should answer HEAD from head() without reading the image', async () => {
+        await putImage(NAME, webpVp8l(320, 320));
+        const { bucket, calls } = bucketWith();
+        const response = await get(`/catalog/v1/img/${NAME}`, {}, 'HEAD', {
+            ...env,
+            CATALOG: bucket,
+        });
+        expect(response.status).toBe(200);
+        expect(response.headers.get('content-type')).toBe('image/webp');
+        expect(response.headers.get('etag')).toMatch(/^".+"$/);
+        expect(calls.head).toBe(1);
+        expect(calls.get).toBeUndefined();
+    });
+
+    // backlog B-051：圖同管理端同一個 origin，直接開都唔可以行 script
+    it('should send a restrictive CSP and support If-None-Match', async () => {
+        await putImage(NAME, webpVp8l(320, 320));
+        const response = await get(`/catalog/v1/img/${NAME}`);
+        expect(response.headers.get('content-security-policy')).toBe("default-src 'none'; sandbox");
+        const etag = response.headers.get('etag') ?? '';
+        const again = await get(`/catalog/v1/img/${NAME}`, { 'if-none-match': etag });
+        expect(again.status).toBe(304);
+        expect(await again.text()).toBe('');
     });
 
     it('should answer 404 NOT_FOUND for a valid name that is not stored', async () => {

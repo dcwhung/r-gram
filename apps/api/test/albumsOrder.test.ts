@@ -20,7 +20,10 @@ describe('PUT /api/albums/order', () => {
     it('should store the new order as 1..n and answer with it', async () => {
         const response = await order({ ids: ['c', 'a', 'b'] });
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ ids: ['c', 'a', 'b'] });
+        expect(await response.json()).toEqual({
+            ids: ['c', 'a', 'b'],
+            catalog: expect.objectContaining({ ok: true }),
+        });
         expect(await listedIds()).toEqual(['c', 'a', 'b']);
         const rows = await env.DB.prepare('SELECT id, sort_order FROM albums ORDER BY id').all();
         expect(rows.results).toEqual([
@@ -81,6 +84,9 @@ describe('PUT /api/albums/order with no albums', () => {
     it('should accept the empty list and answer 200 with it (D1 batch refuses no statements)', async () => {
         const response = await order({ ids: [] });
         expect(response.status).toBe(200);
-        expect(await response.json()).toEqual({ ids: [] });
+        expect(await response.json()).toEqual({
+            ids: [],
+            catalog: expect.objectContaining({ ok: true }),
+        });
     });
 });
