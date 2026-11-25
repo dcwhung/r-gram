@@ -127,6 +127,19 @@ describe('App home scene', () => {
         expect(armLook()).toEqual(PLAYING);
     });
 
+    // S-073：電視開住時唱片夾㩒唔到：讀屏要講「已停用」，唔可以係一粒冇反應嘅「播放」掣
+    it('should disable the clamp while the MV is open', async () => {
+        const { button, armLook } = renderHome(catalogWithMv());
+        await userEvent.click(button('開啟歌單'));
+        await userEvent.click(button('播放'));
+        await userEvent.click(button('觀看 MV'));
+        expect(button('播放')).toHaveAttribute('aria-disabled', 'true');
+        await userEvent.click(button('觀看 MV'));
+        expect(button('播放')).not.toHaveAttribute('aria-disabled');
+        await userEvent.click(button('播放'));
+        expect(armLook()).toEqual(PLAYING);
+    });
+
     it('should keep the info, the top screws and the version on top and move the turntable down on tall phones', () => {
         Object.defineProperty(window, 'innerWidth', { configurable: true, value: 360 });
         Object.defineProperty(window, 'innerHeight', { configurable: true, value: 800 });

@@ -72,6 +72,8 @@ export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
                 mode={view.spindle}
                 progress={view.progress}
                 accent={view.accent}
+                // 電視開住時唱片夾喺電視後面（T-060），useHome 唔理；停用令讀屏用戶知（S-073）
+                disabled={view.mvOpen}
                 onPress={handlers.onSpindle}
             />
         </>
