@@ -9,8 +9,8 @@
     - AC-5 無障礙（TS 實現注意事項 14；FS 用詞表；FR-037；FR-010）：`role="button"`；`aria-label` 係語言檔嘅書面語；停用掣 `aria-disabled` 而且 focus 得到；`aria-pressed` 只喺開關掣（歌書）；Tab 去到全部控件、有 focus 圈；Enter／空白鍵 = 㩒，㩒住唔放只計一下；感應範圍 ≥ 44pt（390pt 闊做基準）
     - AC-6 減少動態（FS「過場動畫」最尾一行；TS 實現注意事項 11）：`prefers-reduced-motion: reduce` 下碟唔轉、唱臂冇過場，狀態照樣切換
 - Scope files:
-    - `apps/player/src/app/**`（`App.tsx`、`App.test.tsx`、`app.css`、`TurntableShell.tsx`、`stageReducer.ts`、`stageReducer.test.ts`）
-    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`）
+    - `apps/player/src/app/`：`App.tsx`、`App.test.tsx`、`app.css`、`stageReducer.ts`、`stageReducer.test.ts`（`TurntableShell.tsx` 已刪；主頁嘅其他檔屬 `player-home`，見 `plans/player-home.md`）
+    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`
     - `apps/player/src/stage/StageSvg.tsx`、`apps/player/src/stage/StageContext.ts`
 - Commands:
     - `npm run lint`

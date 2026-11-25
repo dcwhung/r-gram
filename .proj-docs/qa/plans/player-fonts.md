@@ -1,0 +1,24 @@
+# Test Plan — player-fonts
+
+- Chain: 播放端 slab 字體（`apps/player`）同 repo 字體守衛：兩個 slab family（`RB Slab`、`RB Slab Light`）、來源次序（本機 Lubalin → 可選 `VITE_FONT_URL` → 隨 app 嘅 Rokkitt）、build 時換入遠端網址、遠端字體執行期 cache、字體載入後重新量字（W-017）、只准兩個 Rokkitt 入 repo（W-027）。任務 T-044
+- AC（L1 來源：FS = Functional Spec v1.5 FR-041；TS = Technical Spec v1.3「CR-004 對技術設計嘅影響」字體部分、「字體載入」；review W-017、W-027）:
+    - AC-1 來源次序（FR-041）：build 出嚟嘅 CSS 每個 family 都係 `local()` Lubalin 名 → （有設定先有）遠端 `url()` → 隨 app 嘅 Rokkitt `url()`；冇設定唔會出空 `url()`
+    - AC-2 設定值（TS build 變數）：只收 https 絕對網址；`http:`、`javascript:` 等當冇設定兼 build 警告；引號、括號等唔可以打爆 CSS（瀏覽器照樣讀到兩條 `@font-face`）
+    - AC-3 隨 app 嘅字體：兩個 woff2 build 出嚟、server 得到、Service Worker precache；遠端字體載入唔到（CORS、離線、404）頁面照用 Rokkitt
+    - AC-4 用喺邊（設計稿 `SLAB`、`SLAB_LIGHT`、`MIXED`）：碟名、年份、歌號行、版本號真係用 slab 字體 render
+    - AC-5 W-017：字體遲到，左上碟名用真字體重新 fit，結果同字體一開始就有一樣
+    - AC-6 字體守衛（W-027）：repo 任何位置 track 咗其他字體檔（任何大細楷副檔名）測試就 fail；兩個 Rokkitt 嘅 SHA-256 同守衛表一樣；`.gitignore` 有 W-027 方案 A 嘅副檔名規則（`*.otf`、`*.ttf`、`*.ttc`、`*.woff`、`*.woff2`、`*.eot`），只放行兩個 Rokkitt
+- Scope files:
+    - `apps/player/src/styles/fonts.css`、`fontSource.ts`、`fontSource.test.ts`、`fonts.node.test.ts`
+    - `apps/player/src/assets/fonts/OFL.txt`、`rokkitt-extrabold-latin1.woff2`、`rokkitt-light-latin1.woff2`
+    - `apps/player/.env.example`
+    - `apps/player/src/utils/useFontsVersion.ts`、`useFontsVersion.test.ts`、`utils/testing/fakeFonts.ts`
+    - `scripts/ci/font-guard.mjs`、`scripts/ci/font-guard.test.mjs`
+    - 1-hop（屬其他鏈，唔喺呢度凍結）：`vite.config.ts`、`main.tsx`、`vite-env.d.ts`、`styles/tokens.css`（`player-foundation`）；`.gitignore`（`repo-scaffold`）；`app/App.tsx`（`player-core`）
+- Commands:
+    - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；包 `@r-gram/repo-scripts`）、`npm run build -w apps/player`
+    - 另外 build 去 scratchpad（`npx vite build --outDir <scratch>`，喺 `apps/player`）：`VITE_FONT_URL` 冇設定、`https://media.example.com/…`（假網址）、`http:`、`javascript:`、帶 `");}` 嘅值
+- Browser check：靜態 server 喺 `127.0.0.1`，封晒其他 host 並記數（遠端假網址一定被封 = 「載入唔到」）；CDP `CSS.getPlatformFontsForNode` 睇實際用嘅字體；字體延遲 2.5 秒嘅 server 驗 AC-5；容許 Service Worker 嘅 context 睇 precache
+- 守衛：喺 repo 以外嘅 scratch clone 加 / 改字體檔跑 `npx vitest run --project @r-gram/repo-scripts scripts/ci/font-guard.test.mjs`；`git check-ignore` 驗 `.gitignore`。唔喺工作樹做
+- PWA gate: 部分（`vite.config.ts` 加咗 runtime caching、precache 多咗 woff2）：驗 precache 清單同遠端字體嘅 cache 規則；vN → vN+1 自動更新等 T-039
+- Out of scope（已知、已接受）：W-026（兩個 family 宣告 `font-weight: 100 900`，瀏覽器唔會合成粗體；用戶未決定）；真媒體 bucket（唔准請求）；本機有裝 Lubalin 嘅情況（sandbox 冇）
