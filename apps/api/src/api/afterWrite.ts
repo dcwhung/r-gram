@@ -9,7 +9,7 @@
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../app';
-import { internalFailure, type CatalogStatus } from '../catalog/state';
+import { internalFailure, readCatalogStatus, type CatalogStatus } from '../catalog/state';
 import { dropReleasedLyrics } from '../tracks/lyricsCleanup';
 import { isJsonObject, type JsonObject } from '../lib/http';
 
@@ -35,8 +35,17 @@ const jsonBodyOf = async (response: Response): Promise<JsonObject | undefined> =
 
 /**
  * hook throw 都唔可以令已儲存嘅寫入變 500：D1 已儲存但 catalog.json 未更新（API-061、D30），寫入照回成功，
- * `catalog.ok = false`（error INTERNAL）。log 只寫錯誤名：message / stack 可能帶 R2 key 或內部細節
+ * `catalog.ok = false`（error INTERNAL，保留上一份成功嘅值，S-094）。log 只寫錯誤名：message / stack 可能帶 R2 key 或內部細節
  */
+/** 上一份成功嘅值（S-094）；catalog_state 讀唔到 → null */
+const lastKnownStatus = async (c: Context<AppEnv>): Promise<CatalogStatus | null> => {
+    try {
+        return await readCatalogStatus(c.env.DB);
+    } catch {
+        return null;
+    }
+};
+
 const runHook = async (
     hook: PostWriteHook,
     c: Context<AppEnv>,
@@ -46,7 +55,7 @@ const runHook = async (
     } catch (error) {
         const name = error instanceof Error ? error.name : typeof error;
         console.error('[api] post-write step failed', name);
-        return internalFailure(new Date().toISOString());
+        return internalFailure(new Date().toISOString(), await lastKnownStatus(c));
     }
 };
 

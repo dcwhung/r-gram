@@ -116,13 +116,20 @@ export const recordFailure = async (
     return toStatus(row as StateRow);
 };
 
-/** 生成步驟意外 throw（連 catalog_state 都寫唔到）：唔知上一份嘅值，同一個形狀照回 */
-export const internalFailure = (updatedAt: string): CatalogStatus => ({
+/**
+ * 生成步驟意外 throw（例如 catalog_state 寫唔到）：同其他失敗一樣保留上一份成功嘅值（review S-094）。
+ * `previous` = catalog_state 嗰行（api/afterWrite.ts 喺 catch 之後再讀一次）；
+ * null（未生成過，或者連讀都讀唔到）先係 hash / 時間 / 數目 null
+ */
+export const internalFailure = (
+    updatedAt: string,
+    previous: CatalogStatus | null,
+): CatalogStatus => ({
     ok: false,
-    hash: null,
-    generatedAt: null,
-    albumCount: null,
-    trackCount: null,
+    hash: previous?.hash ?? null,
+    generatedAt: previous?.generatedAt ?? null,
+    albumCount: previous?.albumCount ?? null,
+    trackCount: previous?.trackCount ?? null,
     updatedAt,
     error: ERROR_CODE.internal,
 });

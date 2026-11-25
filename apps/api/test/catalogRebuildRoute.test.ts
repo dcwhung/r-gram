@@ -12,6 +12,20 @@ import { SHA256_HEX, bucketWith, liveDocument, stateRow } from './catalogFixture
 
 const REBUILD = '/api/catalog/rebuild';
 
+/** D1 嘅 wrapper：SQL 有 `fragment` 嗰句一 prepare 就 throw（模擬 D1 出事），其他照行 */
+const dbFailingOn = (fragment: string): D1Database =>
+    new Proxy(env.DB, {
+        get(target, key: string) {
+            const value = (target as unknown as Record<string, unknown>)[key];
+            if (typeof value !== 'function') return value;
+            if (key !== 'prepare') return (value as () => unknown).bind(target);
+            return (sql: string) => {
+                if (sql.includes(fragment)) throw new Error('D1 down');
+                return target.prepare(sql);
+            };
+        },
+    });
+
 const CATALOG_STATUS_KEYS = [
     'albumCount',
     'error',
@@ -207,5 +221,35 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
         const body = await json<{ catalog: Record<string, unknown> }>(response);
         expect(Object.keys(body.catalog).sort()).toEqual(CATALOG_STATUS_KEYS);
         expect(body.catalog.ok).toBe(false);
+    });
+
+    // review S-094：INTERNAL 唔可以同「未生成過」分唔到：照回上一份成功嘅值
+    it('should keep the previous good values when the generation step throws unexpectedly', async () => {
+        vi.spyOn(console, 'error').mockImplementation(() => undefined);
+        await insertAlbum('a', 1);
+        const good = await json<Record<string, unknown>>(await api('POST', REBUILD));
+        await insertAlbum('b', 2);
+        // 記低成功嗰句（catalog_state）出錯：生成步驟 throw
+        const response = await api(
+            'PUT',
+            '/api/albums/order',
+            { ids: ['b', 'a'] },
+            {},
+            {
+                ...env,
+                DB: dbFailingOn("VALUES (1, 'ok'"),
+            },
+        );
+        expect(response.status).toBe(200);
+        const { catalog } = await json<{ catalog: Record<string, unknown> }>(response);
+        expect(catalog).toEqual({
+            ok: false,
+            hash: good.hash,
+            generatedAt: good.generatedAt,
+            albumCount: 1,
+            trackCount: 0,
+            updatedAt: expect.any(String),
+            error: 'INTERNAL',
+        });
     });
 });
