@@ -10,6 +10,7 @@
     - AC-7 顏色（TS 組件圖 `color/`）：`dominantColor` / `glowColor` 同設計稿（`_mockups_/r-gram/src/anim.js`、`src/tools/template.html`）輸出一致
     - AC-8 Seed（FS US-109、CR-004「內容資料」、D46、D47；TS「Seed credit 配對」、「內容資料重新生成（T-097）」）：~~17 張 262 首、187 / 22 / 53~~ CR-004：21 個發行、291 首歌、credit 252 行；配對 246 直接 / 0 同名 / 45 冇（當中 39 首屬《逆流大叔》原聲大碟；數字由 T-097 報告，S-122 等 PM 回寫 spec）；每個發行有 `category`、`categoryNo`，每個類別由 1 連續；初始次序先類別後序號；21 個預期資料夾名（`album-01-apollo-18` … `single-02-joeng-sai-gaai-dou-dung`）；之前 262 首歌入面 261 個 id（同歌名）不變，`singles` 冇咗（`seed/testing/previousTrackIds.json` 鎖住）；「—」當冇；seed 歌 id = `<albumId>-<兩位歌號>`；fixture catalog 通過 `parseCatalogDocument()`
     - AC-10 類別（CR-004，T-098；TS「資料夾名同發行類別」、API-070）：`RELEASE_CATEGORIES` 六個短名（串法 D43 待用戶確認）；`expectedFolder()` 序號補零到兩位、100 以上照出；catalog 文件 `category`、`categoryNo` 必填（W-028 方案 A），缺一個、錯值都唔收
+    - AC-11 第二張封面（CR-005，T-100；TS「CR-005 → 第二張封面」`packages/catalog`）：`cover2`、`thumb2` 可選；冇呢兩個欄、或者兩個都 `null` 嘅 document 照收；有就要成對（`UNPAIRED_COVER2` 報喺冇嗰個）、要有 `cover`（`COVER2_WITHOUT_COVER`）；唔係字串 / 空字串唔收；`version` 仍然係 1
 - Scope files:
     - `packages/catalog/`：`src/**`（`src/song-text/**` 除外，屬 `catalog-song-text`）、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
     - `apps/api/seed/discography.json`、`apps/api/seed/credits.json`（`seed.node.test.ts` 讀真資料；由 `seed-tools` 鏈嘅 script 生成）

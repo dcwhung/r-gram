@@ -13,15 +13,16 @@
     - AC-9 訊息（CLAUDE.md 介面文字規則；`zh-Hant.ts`）：專輯 API 嘅 `message` 同 `details[].message` 係中文書面語，冇未填 `{placeholder}`
     - AC-10 類別同序號（CR-004，T-098；FS FR-124、D43、D44；TS API-011、API-013、「資料夾名同發行類別」）：`category` 必填、六個短名之一（`INVALID_CATEGORY`）；`categoryNo` 1–999 整數（`INVALID_ORDINAL`）；冇畀 = 同類別 `MAX + 1`，到 999 就 400 `INVALID_ORDINAL`、乜都唔寫（S-118）；同類別撞號 400 `ORDINAL_TAKEN`；新增：id 撞 409 `CONFLICT` 先過 `ORDINAL_TAKEN`；修改：404 → 409 `STALE` → `ORDINAL_TAKEN`；淨改類別用而家嘅序號查；只改其他欄唔查；同時新增 / 修改唔會撞號
     - AC-11 資料夾同來源 ETag（CR-004；TS「資料夾名同發行類別」、B-045 ①、B-049 ②）：`folder` 任何位置 `..`、`_` 開頭 → `INVALID_FOLDER`；`null` = 用預期資料夾名；回應（API-010、012、013）帶 `category`、`categoryNo`、`coverSourceEtag`（≤ 128 字，`null` 清走）、`folder`、`expectedFolder`（`<category>-<NN>-<id>`，唔可以改）
+    - AC-12 第二張封面（CR-005，T-100；FS D55、FR-125；TS API-010–013、「CR-005 對技術設計嘅影響 → 第二張封面」）：新增 / 讀取 / 列表 / 修改帶 `cover2`、`thumb2`、`cover2SourceEtag`（≤ 128 字，`null` 清走）；兩個圖欄要係已上載嘅圖（`UNKNOWN_ASSET`）；改完之後 `cover2` / `thumb2` 一齊有或者一齊冇（`UNPAIRED_COVER2`）；有第二張一定有第一張（`COVER2_WITHOUT_COVER`，連清走第一張而第二張仲喺度）；同一個 PATCH 全部清走得；次序 400 欄位錯 → 404 → 409 `STALE` → 封面規則；同時兩個 PATCH = 一個 200 一個 409，唔會 500；套用第二張唔郁 `accent`
 - Scope files:
     - `apps/api/src/albums/**`、`src/api/afterWrite.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`；內容 API 共用（T-023 由專輯 code 抽出，歌曲 API 都用）：`src/api/errors.ts`、`src/lib/fields.ts`
-    - `apps/api/test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`
+    - `apps/api/test/album*.ts`、`test/afterWrite.test.ts`、`test/fillMessage.test.ts`（`album*.ts` 包括 T-100 嘅 `albumsSecondCover.test.ts`）
     - 1-hop 依賴（屬 `api-auth`，唔喺呢條鏈 freeze）：`src/api/routes.ts`、`src/config.ts`、`src/lib/http.ts`、`src/i18n/zh-Hant.ts`、`src/auth/middleware.ts`；`src/tracks/rows.ts`（屬 `api-tracks`；舊 `src/albums/tracks.ts`）；`@r-gram/catalog`（屬 `catalog-core`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
     - `npm run coverage`（全部 workspace 一次；門檻 80%）
-- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie。預期由 spec 寫，唔抄 developer 嘅 test。throw hook：scratch app 用 `afterWrite(throwingHook)` + `albumRoutes`。AC-10 並發：`Promise.all` 同類別多個新增 / 兩張碟改同一個序號；AC-10 / 11 成功寫入之後讀 `/catalog/v1/catalog.json`
+- Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie。預期由 spec 寫，唔抄 developer 嘅 test。throw hook：scratch app 用 `afterWrite(throwingHook)` + `albumRoutes`。AC-10 並發：`Promise.all` 同類別多個新增 / 兩張碟改同一個序號；AC-10 / 11 / 12 成功寫入之後讀 `/catalog/v1/catalog.json`；AC-12 並發：同一個 If-Match 兩個 PATCH（設第二張 / 清第一張 / 換第二張）多輪
 - HTTP smoke（改到 route 或者 middleware 先做）：同 `api-auth` 一樣，`wrangler dev --local --ip 127.0.0.1 --persist-to <scratch>`；proxy 指去 127.0.0.1:9，任何對外請求即刻失敗
 - PWA gate: no。Performance gate: no（D1 一條 GROUP BY，資料量細）。Security / Data gate: yes（AC-1、AC-5、AC-7）
 - Out of scope: 歌曲 API（T-023）；`rebuildCatalog()` 同 `catalog.ok` 嘅最終格式（T-026）；封面上載（T-024）；D35 統計項目確認（U-8）

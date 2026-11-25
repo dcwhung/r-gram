@@ -6,11 +6,12 @@
     - AC-2 失敗 fallback 同原因（FS US-001 最後一條；FR-008；TS「性能考量：首次載入」有 timeout）：冇設定網址、網絡錯、超時（包括 header 到咗 body 卡住）、非 2xx（包括 404 `NOT_READY`）、唔係 JSON、過唔到 validator → 有本機副本就用佢並報原因；冇就 `unavailable`（Preload 顯示錯誤同重試掣）
     - AC-3 失敗唔會蓋走上一份好嘅（FR-008「本機保留上次版本」）
     - AC-4 本機副本壞咗 / 被改過 = 冇（`storageKeys.ts`「讀取時驗 shape，壞咗就當冇」；TS validator 唔信任 cache）。CR-004（T-098）：CR-004 之前存低嘅副本（冇 `category` / `categoryNo`）同樣當冇，`loadCatalog` 照 resolve；網絡嚟嘅舊格式文件 = `invalid`，唔蓋走好嘅副本
+    - AC-4b 第二張封面（CR-005，T-100；TS「CR-005 → 第二張封面」）：冇 `cover2` / `thumb2` 嘅本機副本照讀、離線照用；網絡嚟嘅兩張封面 document 照存；唔成對嘅網絡 document = `invalid`，唔蓋走好嘅副本。隨機揀封面（D56）屬 T-046，唔喺呢度
     - AC-5 Storage 拋錯（私隱模式、封鎖網站資料、爆 quota）唔影響載入；注入嘅 store `write` 拋錯都唔影響（S-048）
     - AC-6 `loadCatalog` 永遠 resolve；超時 timer 一有回應就清走（S-044）
     - AC-7 Selectors（TS API-070「按管理端次序」、「`audio` 可以係 null，播放端顯示灰色」；FS D11；CR-003 決定 7 全部專輯都顯示）：專輯次序 = catalog 次序；專輯嘅歌按次序；歌連佢嗰隻碟；`audio === null` 唔播得；冇歌嘅專輯照列；唔改 document
 - Scope files:
-    - `apps/player/src/catalog/**`（`loader.ts`、`catalogStore.ts`、`defaultDeps.ts`、`selectors.ts`、`testing/catalogFixtures.ts` 同 `*.test.ts`）
+    - `apps/player/src/catalog/**`（`loader.ts`、`catalogStore.ts`、`defaultDeps.ts`、`selectors.ts`、`testing/catalogFixtures.ts`、`testing/catalogFixtures.test.ts` 同 `*.test.ts`）
     - `apps/player/src/config/storageKeys.ts`、`apps/player/src/config/limits.ts`
     - 1-hop importer：而家冇（T-034 接 UI 時加入呢度）
 - Commands:
