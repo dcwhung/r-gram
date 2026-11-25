@@ -10,6 +10,8 @@ export type CatalogErrorCode =
     | 'INVALID_COLOUR'
     | 'INVALID_WHEEL_KEY'
     | 'INVALID_CATEGORY'
+    | 'UNPAIRED_COVER2'
+    | 'COVER2_WITHOUT_COVER'
     | 'NOT_AN_ARRAY'
     | 'DUPLICATE';
 

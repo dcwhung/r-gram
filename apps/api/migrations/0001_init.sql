@@ -20,6 +20,9 @@ CREATE TABLE assets (
 --   category：發行類別短名（packages/catalog RELEASE_CATEGORIES；串法待用戶確認，Functional Spec D43）
 --   category_no：類別內序號，由 1 起；同類別唔可以重覆由 API 驗（唔加 UNIQUE：兩張碟對調序號要分兩步改）
 --   cover_source_etag：上次由掃描套用嘅封面來源（cover.jpg｜png）嘅 R2 ETag；NULL = 未套用過
+--   cover2 / thumb2：可選嘅第二張封面同縮圖（CR-005，Functional Spec D55）；冇第一張唔可以有第二張（CHECK）；
+--     兩個欄一齊有或者一齊冇由 API 驗
+--   cover2_source_etag：上次由掃描套用嘅第二張封面來源（cover2.jpg）嘅 R2 ETag；規則同 cover_source_etag
 --   folder：媒體 bucket rb-discography 入面嘅資料夾名（NULL = 用預期資料夾名 <category>-<NN>-<id>，
 --     由 packages/catalog expectedFolder() 計；字元規則由 API 驗）
 --   updated_at 兼做 If-Match
@@ -44,6 +47,9 @@ CREATE TABLE albums (
     cover TEXT REFERENCES assets (name),
     cover_source_etag TEXT,
     thumb TEXT REFERENCES assets (name),
+    cover2 TEXT REFERENCES assets (name) CHECK (cover2 IS NULL OR cover IS NOT NULL),
+    thumb2 TEXT REFERENCES assets (name),
+    cover2_source_etag TEXT,
     folder TEXT,
     sort_order INTEGER NOT NULL,
     created_at TEXT NOT NULL,

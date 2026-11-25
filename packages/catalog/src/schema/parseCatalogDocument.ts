@@ -95,6 +95,24 @@ const checkCategory = (issues: Issues, album: Fields, path: string): void => {
     issues.check(isPositiveInteger(album.categoryNo), `${path}.categoryNo`, 'INVALID_NUMBER');
 };
 
+const isPresent = (value: unknown): boolean => value !== undefined && value !== null;
+
+/**
+ * CR-005（D55）：第二張封面（可選）。兩個欄各自係字串或者冇（undefined / null）；
+ * 有一個冇另一個 → 冇嗰個報 UNPAIRED_COVER2；有第二張而冇第一張 → COVER2_WITHOUT_COVER
+ */
+const checkSecondCover = (issues: Issues, album: Fields, path: string): void => {
+    const names = { cover2: album.cover2 ?? null, thumb2: album.thumb2 ?? null };
+    issues.text(names.cover2, `${path}.cover2`, { nullable: true });
+    issues.text(names.thumb2, `${path}.thumb2`, { nullable: true });
+    const [hasCover2, hasThumb2] = [isPresent(names.cover2), isPresent(names.thumb2)];
+    if (hasCover2 !== hasThumb2) {
+        const missing = hasCover2 ? 'thumb2' : 'cover2';
+        issues.check(false, `${path}.${missing}`, 'UNPAIRED_COVER2');
+    }
+    if (hasCover2) issues.check(isPresent(album.cover), `${path}.cover2`, 'COVER2_WITHOUT_COVER');
+};
+
 const checkAlbumFields = (issues: Issues, album: Fields, path: string): void => {
     issues.text(album.title, `${path}.title`);
     issues.check(isWheelKey(album.wheelKey), `${path}.wheelKey`, 'INVALID_WHEEL_KEY');
@@ -112,6 +130,7 @@ const checkAlbumFields = (issues: Issues, album: Fields, path: string): void => 
     issues.check(validAccent, `${path}.accent`, 'INVALID_COLOUR');
     issues.text(album.cover, `${path}.cover`, { nullable: true });
     issues.text(album.thumb, `${path}.thumb`, { nullable: true });
+    checkSecondCover(issues, album, path);
 };
 
 const checkAlbum = (issues: Issues, value: unknown, path: string, seen: Seen): void => {

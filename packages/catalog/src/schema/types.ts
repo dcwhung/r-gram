@@ -54,6 +54,12 @@ export interface CatalogAlbum {
     /** 封面檔名（相對 `imageBase`） */
     cover: string | null;
     thumb: string | null;
+    /**
+     * CR-005（D55、FR-125）：可選嘅第二張封面同佢嘅縮圖（相對 `imageBase`）。冇呢兩個欄嘅舊 document 照樣有效；
+     * 有就一定成對，亦一定有 `cover`。專輯色永遠跟第一張（冇第二張專輯色）
+     */
+    cover2?: string | null;
+    thumb2?: string | null;
     tracks: CatalogTrack[];
 }
 
