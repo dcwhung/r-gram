@@ -4,9 +4,17 @@
     transform-origin: center;
 }
 
+/*
+ * 動畫長駐喺封面，播定停只切換 animation-play-state：暫停時停喺原位，再播由原位繼續
+ *（Technical Spec「碟」；Functional Spec US-004）。減少動態效果時成段唔生效，隻碟唔轉。
+ */
 @media (prefers-reduced-motion: no-preference) {
-    .disc-spinning {
-        animation: disc-spin var(--motion-scene-disc-rotation) linear infinite;
+    .disc-cover {
+        animation: disc-spin var(--motion-scene-disc-rotation) linear infinite paused;
+    }
+
+    .disc-cover[data-spinning='true'] {
+        animation-play-state: running;
     }
 }
 

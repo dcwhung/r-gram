@@ -2,19 +2,22 @@ import { render } from '@testing-library/react';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { Disc } from './Disc';
 
-const renderDisc = (props: Partial<Parameters<typeof Disc>[0]> = {}) =>
-    render(
-        <svg>
-            <Disc
-                r={700}
-                hub={PHONE_LAYOUT.hub}
-                coverUrl={null}
-                accent="#2f8f57"
-                spinning={false}
-                {...props}
-            />
-        </svg>,
-    ).container;
+type DiscProps = Parameters<typeof Disc>[0];
+
+const discIn = (props: Partial<DiscProps> = {}) => (
+    <svg>
+        <Disc
+            r={700}
+            hub={PHONE_LAYOUT.hub}
+            coverUrl={null}
+            accent="#2f8f57"
+            spinning={false}
+            {...props}
+        />
+    </svg>
+);
+
+const renderDisc = (props: Partial<DiscProps> = {}) => render(discIn(props)).container;
 
 describe('Disc', () => {
     it('should show the cover image when there is one', () => {
@@ -43,11 +46,17 @@ describe('Disc', () => {
         expect(clip?.getAttribute('d')).toContain('M-112 0');
     });
 
-    it('should spin the cover only while playing', () => {
-        expect(renderDisc().querySelector('[data-part="cover"]')).not.toHaveClass('disc-spinning');
-        expect(renderDisc({ spinning: true }).querySelector('[data-part="cover"]')).toHaveClass(
-            'disc-spinning',
-        );
+    // W-011：暫停要停喺原位。動畫長駐喺封面，播定停只改 data-spinning（CSS 用佢切換 animation-play-state）
+    it('should keep the same animated cover and only flag whether it is turning', () => {
+        const { container, rerender } = render(discIn({ spinning: true }));
+        const cover = container.querySelector('[data-part="cover"]');
+        expect(cover).toHaveClass('disc-cover');
+        expect(cover).toHaveAttribute('data-spinning', 'true');
+
+        rerender(discIn({ spinning: false }));
+        expect(container.querySelector('[data-part="cover"]')).toBe(cover);
+        expect(cover?.getAttribute('class')).toBe('disc-cover');
+        expect(cover).toHaveAttribute('data-spinning', 'false');
     });
 
     it('should give each disc its own clip path id', () => {

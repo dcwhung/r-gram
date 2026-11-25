@@ -20,7 +20,7 @@ interface DiscProps {
 }
 
 const Cover = ({ r, coverUrl, accent, spinning }: Omit<DiscProps, 'hub'>) => (
-    <g data-part="cover" className={spinning ? 'disc-cover disc-spinning' : 'disc-cover'}>
+    <g data-part="cover" className="disc-cover" data-spinning={spinning}>
         {coverUrl ? (
             <image
                 href={coverUrl}
