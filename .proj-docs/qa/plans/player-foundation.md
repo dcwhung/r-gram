@@ -8,7 +8,7 @@
     - AC-4 i18n（FS「介面語言同 i18n」同用詞表；FR-037；TS CR-002 i18n 三行）：文字集中喺 `zh-Hant.ts`；`t()` 有型別；預設同退路都係 `zh-Hant`；用詞同用詞表、設計稿 `T` / `BUTTON_LABEL` / `MODE_LABEL` 一樣；語言檔冇口語字；`src/app`、`src/components` 冇寫死中文；`<html lang>`、manifest `lang` = `zh-Hant`，`name` / `description` 用書面語
     - AC-5 動畫 token（FS「過場動畫」；TS 實現注意事項 10、11）：時長喺 `config/motion.ts`，同 `tokens.css` 同值；回饋類 ≤ 300ms；場景類 = 已確認嘅時長；減少動態效果時時長 = 0
     - AC-6 版本同搜尋引擎（FR-009；FR-011）：畫面版本號 = `apps/player/package.json` version（build 時注入）；`<meta name="robots" content="noindex, nofollow">`
-- Scope files: `apps/player/` 入面 git tracked 嘅檔案（`src/**`、`tests/setup.ts`、`index.html`、`package.json`、`tsconfig*.json`、`vite.config.ts`），唔包 `player-core` 鏈嘅檔：`src/app/**`、`src/components/**`、`src/stage/StageSvg.tsx`、`src/stage/StageContext.ts`（見 `plans/player-core.md`）
+- Scope files: `apps/player/` 入面 git tracked 嘅檔案（`src/**`、`tests/setup.ts`、`index.html`、`package.json`、`tsconfig*.json`、`vite.config.ts`），唔包 `player-core` 鏈嘅檔：`src/app/**`、`src/components/**`、`src/stage/StageSvg.tsx`、`src/stage/StageContext.ts`（見 `plans/player-core.md`）；亦唔包 `player-catalog` 鏈嘅檔：`src/catalog/**`、`src/config/storageKeys.ts`、`src/config/limits.ts`（見 `plans/player-catalog.md`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`

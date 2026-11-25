@@ -34,6 +34,7 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-034 | QA S1 player-core（Observation） | App 一開就停喺 Favourites 碟而又冇 `previousAlbumId` 時，㩒 ♥ 冇反應（spec 只寫「再㩒返回之前嗰隻碟」）。續播要決定：還原上一隻碟，定係用一隻預設碟 | T-038（續播 T-062） |
 | B-035 | Review T-031（S-045） | 播放端（Vercel）同 Worker（Cloudflare）唔同 origin：`ETag` 唔係 CORS 預設可讀嘅 response header，播放端讀到嘅永遠係 null（而家冇嘢用佢，行為冇影響）。對外 catalog 要加 `Access-Control-Expose-Headers: ETag` 同 `Vary: Origin`；播放端唔會自己帶 `If-None-Match`（避免 preflight），Worker 唔可以靠佢 | T-026（`serve.ts`） |
 | B-036 | Review T-031（S-047） | 未有 `apps/player/.env.example` 列出 `VITE_CATALOG_URL`；production build 漏咗呢個變數時，第一次開 app 嘅用戶會見到一粒永遠唔成功嘅重試掣。加 `.env.example`；`vite.config.ts` 喺 production build 冇設定時警告，或者 Preload 將 `notConfigured` 分開處理 | T-034（Preload）、T-041（部署） |
+| B-037 | QA S1 player-catalog（Minor） | 注入一個 `read` 會 throw 嘅 store，`loadCatalog` 會 reject（真嘅 `createCatalogStore` 唔會 throw，唔影響任何驗收條件）。喺 `CatalogStore` 介面寫明唔可以 throw，或者 `fallBack` 包 try。另：`CATALOG_FETCH_TIMEOUT_MS` 8 秒係開發時定嘅，Technical Spec 只寫「有逾時」，下次 CR 補數值 | T-034（下次改 `src/catalog`） |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 

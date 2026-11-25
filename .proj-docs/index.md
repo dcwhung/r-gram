@@ -37,6 +37,7 @@
 | 2026-11-25 | [qa/2026-11-25_03-25_qa_api-auth.md](qa/2026-11-25_03-25_qa_api-auth.md) | S1 pass（AC-1–AC-9；一條 Minor 入 backlog B-020） | 鏈 `api-auth`：T-020、T-021。Frozen plan：[qa/plans/api-auth.md](qa/plans/api-auth.md) |
 | 2026-11-25 | [qa/2026-11-25_03-25_qa_repo-scaffold_catalog-core.md](qa/2026-11-25_03-25_qa_repo-scaffold_catalog-core.md) | S1 pass | 新鏈 `repo-scaffold`（根設定檔、CI）；`catalog-core` 重驗。Frozen plans：[qa/plans/repo-scaffold.md](qa/plans/repo-scaffold.md) |
 | 2026-11-25 | [qa/2026-11-25_08-16_qa_player-core.md](qa/2026-11-25_08-16_qa_player-core.md) | S1 pass（AC-1–AC-6；冇阻擋性問題，一條 Observation 入 backlog B-034） | 新鏈 `player-core`：T-032、T-033；`player-foundation` 受影響嘅 AC-1／3／5／6 重驗。Frozen plan：[qa/plans/player-core.md](qa/plans/player-core.md) |
+| 2026-11-25 | [qa/2026-11-25_08-36_qa_player-catalog.md](qa/2026-11-25_08-36_qa_player-catalog.md) | S1 pass（AC-1–AC-7；冇阻擋性問題，一條 Minor 入 backlog B-037） | 新鏈 `player-catalog`：T-031；`player-foundation` 只重驗 `vite-env.d.ts`。Frozen plan：[qa/plans/player-catalog.md](qa/plans/player-catalog.md) |
 
 Backlog：[backlog.md](backlog.md)
 

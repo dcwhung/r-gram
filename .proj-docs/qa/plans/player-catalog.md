@@ -1,0 +1,27 @@
+# Test Plan — player-catalog
+
+- Chain: 播放端 catalog loader（`apps/player`）：`loadCatalog()`（GET `catalog.json` → validator → 存本機；失敗用本機上次嘅版本）、本機副本 `rgram.catalog.v1`、瀏覽器依賴（`VITE_CATALOG_URL`、`fetch`、`localStorage`）、catalog selectors。任務 T-031
+- AC（L1 來源：FS = Functional Spec v1.4、TS = Technical Spec v1.2；D30–D39 待確認，唔係 AC）:
+    - AC-1 新鮮載入（TS 數據流 A「GET … ─► 驗證 ─► 存本機 ─► render」；API-070；TS「播放端本機資料」`rgram.catalog.v1` = `{ etag, document }`）：成功 = 用網絡嗰份，經 `parseCatalogDocument()`，存 `{ etag, document }`
+    - AC-2 失敗 fallback 同原因（FS US-001 最後一條；FR-008；TS「性能考量：首次載入」有 timeout）：冇設定網址、網絡錯、超時（包括 header 到咗 body 卡住）、非 2xx（包括 404 `NOT_READY`）、唔係 JSON、過唔到 validator → 有本機副本就用佢並報原因；冇就 `unavailable`（Preload 顯示錯誤同重試掣）
+    - AC-3 失敗唔會蓋走上一份好嘅（FR-008「本機保留上次版本」）
+    - AC-4 本機副本壞咗 / 被改過 = 冇（`storageKeys.ts`「讀取時驗 shape，壞咗就當冇」；TS validator 唔信任 cache）
+    - AC-5 Storage 拋錯（私隱模式、封鎖網站資料、爆 quota）唔影響載入；注入嘅 store `write` 拋錯都唔影響（S-048）
+    - AC-6 `loadCatalog` 永遠 resolve；超時 timer 一有回應就清走（S-044）
+    - AC-7 Selectors（TS API-070「按管理端次序」、「`audio` 可以係 null，播放端顯示灰色」；FS D11；CR-003 決定 7 全部專輯都顯示）：專輯次序 = catalog 次序；專輯嘅歌按次序；歌連佢嗰隻碟；`audio === null` 唔播得；冇歌嘅專輯照列；唔改 document
+- Scope files:
+    - `apps/player/src/catalog/**`（`loader.ts`、`catalogStore.ts`、`defaultDeps.ts`、`selectors.ts`、`testing/catalogFixtures.ts` 同 `*.test.ts`）
+    - `apps/player/src/config/storageKeys.ts`、`apps/player/src/config/limits.ts`
+    - 1-hop importer：而家冇（T-034 接 UI 時加入呢度）
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npm run coverage`（全部 workspace 一次；門檻 80%）
+    - `npm run build -w apps/player`
+- Probe（scratchpad，唔入 repo）：esbuild bundle `loader.ts`、`catalogStore.ts`、`defaultDeps.ts`、`selectors.ts`，Node 22 真 `fetch` 對 `127.0.0.1` 本機 HTTP server：
+    - 真 seed（`apps/api/seed/*.json` → `seedToCatalog`，17 碟 / 262 首）新鮮載入 → 存本機 → 停 server → 用本機副本
+    - 每類失敗各一條 route（hang、header 後 body 卡住、404、500、304、HTML、空 body、http mediaBase、albums 唔係 array）× 有 / 冇本機副本；驗原因同本機副本 byte 不變
+    - 壞本機副本 8 種；storage 拋錯；`store.write` 拋錯；fetch 同步拋錯 / 回 null；`process.getActiveResourcesInfo()` 驗冇 timer 留低
+    - 全部 fetch 經 guard：唔係 `127.0.0.1` / `localhost` 就拒絕並計數
+- PWA gate: no（`vite.config.ts`、manifest、`sw` 冇改）。Security / Data gate: yes（外來輸入 = 網絡同本機 JSON，由 AC-2、AC-4 覆蓋）。Performance gate: no（冇 backend API 改動）
+- Out of scope：接 UI / Preload 進度 / 重試掣（T-034、T-035）；返回前景重新驗證（TS:627，T-034 / T-035）；Worker 端 `serve.ts` 嘅 ETag / CORS（S-045，T-026 / T-027）；validator 只收 https（B-001）；`.env.example`（S-047）
