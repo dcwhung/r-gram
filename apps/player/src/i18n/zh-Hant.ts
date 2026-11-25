@@ -11,6 +11,15 @@ export const zhHant = {
         unofficial: '歌迷自製　非官方',
         version: 'v{version}',
     },
+    preload: {
+        /** 進度線（role="progressbar"）嘅標籤 */
+        loading: '載入中',
+        /** 內容資料完全攞唔到（網絡同本機副本都冇；Functional Spec US-001） */
+        failed: '未能載入唱片資料',
+        retry: '重試',
+        /** 底部：非官方聲明 · 版本號（設計稿第 18 版 preloadCard()；兩邊各兩個半形空格） */
+        footer: '{notice}  ·  {version}',
+    },
     album: {
         trackCount: '{count} 首',
     },

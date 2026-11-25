@@ -66,7 +66,13 @@ export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesP
     return (
         <>
             <Bars info={info} accent={accent} top={fit.top} />
-            <text data-part="song-title" className="info-song" fontSize={fit.size}>
+            <text
+                data-part="song-title"
+                className="info-song"
+                fontSize={fit.size}
+                // 兩行之間冇空格、「…」截走咗嘅字：讀屏讀成個歌名（B-072 ①）
+                aria-label={track.title}
+            >
                 {fit.rows.map((row, index) => (
                     <tspan key={index} x={song.x} y={px(row.y)}>
                         {row.text}

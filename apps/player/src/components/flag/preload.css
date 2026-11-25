@@ -1,0 +1,118 @@
+/* Preload（T-034；設計稿第 18 版「Preload」、r-gram v16 旗幟）。全畫面，蓋住下面嘅主頁 */
+.preload {
+    position: absolute;
+    inset: 0;
+    background: var(--color-flag-bg);
+    transform-origin: 50% 50%;
+    /* v16：淡出時成塊旗放大 5 %（easeInOut） */
+    transition:
+        opacity var(--motion-scene-flag-fade) cubic-bezier(0.65, 0, 0.35, 1),
+        transform var(--motion-scene-flag-fade) cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.preload[data-exit='leaving'] {
+    opacity: 0;
+    transform: scale(1.05);
+    /* 淡出期間主頁已經喺下面：㩒落去嘅係主頁 */
+    pointer-events: none;
+}
+
+.preload-flag,
+.preload-svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* 進度線同百分比：開場之後先淡入（v16 seg(t, 0.2, 0.5)） */
+.preload-progress {
+    animation: preload-in var(--motion-scene-preload-bar-in) ease-out
+        var(--motion-scene-preload-bar-delay) both;
+}
+
+@keyframes preload-in {
+    from {
+        opacity: 0;
+    }
+}
+
+.preload-bar {
+    fill: none;
+    stroke: var(--color-paper);
+    stroke-linecap: round;
+}
+
+/* 完成一項向前行一步（v16 easeInOut） */
+.preload-bar-fill {
+    transition: stroke-dashoffset var(--motion-scene-preload-step) cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.preload-percent,
+.preload-name,
+.preload-notice,
+.preload-message,
+.preload-retry-text {
+    fill: var(--color-paper);
+    text-anchor: middle;
+}
+
+.preload-percent {
+    font-family: var(--font-slab-light);
+    /* v16：百分比比進度線淡少少 */
+    opacity: 0.8;
+}
+
+.preload-name {
+    font-family: var(--font-slab);
+}
+
+.preload-notice {
+    fill: var(--color-muted);
+    font-family: var(--font-mixed);
+    /* 「非官方  ·  版本」中間嘅兩個空格要保留（SVG 預設會合併空白） */
+    white-space: pre;
+}
+
+.preload-message {
+    font-family: var(--font-mixed);
+}
+
+.preload-retry {
+    cursor: pointer;
+    outline: none;
+}
+
+.preload-retry-hit {
+    fill: transparent;
+}
+
+.preload-retry-frame {
+    fill: none;
+    stroke: var(--color-paper);
+}
+
+.preload-retry-text {
+    font-family: var(--font-mixed);
+    dominant-baseline: central;
+}
+
+/* 鍵盤 focus：喺感應範圍畫一個圈（同 metal-button 一樣；SVG 元素嘅 outline 喺 Safari 唔可靠） */
+.preload-retry:focus-visible .preload-retry-hit {
+    stroke: var(--color-paper);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}
+
+/* 減少動態效果：冇淡入、冇過場（離開 Preload 嘅時間由 usePreloadExit 用 0 毫秒） */
+@media (prefers-reduced-motion: reduce) {
+    .preload,
+    .preload-bar-fill {
+        transition: none;
+    }
+
+    .preload-progress {
+        animation: none;
+    }
+}

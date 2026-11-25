@@ -75,4 +75,44 @@ describe('PHONE_LAYOUT', () => {
             secondRight: 470,
         });
     });
+
+    // T-034：設計稿第 18 版 preloadCard()：logo 560 闊、中心 (540, 860)；BAR = { x: 340, y: 1640, w: 400 }；
+    // 百分比 BAR.y + 56、「R Gram」1802、非官方 · 版本 1846
+    it('should carry the Preload text and progress line of the mockup', () => {
+        const { preload } = PHONE_LAYOUT;
+        expect(preload.bar).toEqual({ x: 340, y: 1640, width: 400, stroke: 4, trackOpacity: 0.25 });
+        expect(preload.percent).toEqual({ x: 540, y: 1696, size: 30, spacing: 6 });
+        expect(preload.name).toEqual({ x: 540, y: 1802, size: 34, spacing: 2 });
+        expect(preload.notice).toEqual({ x: 540, y: 1846, size: 22, spacing: 3 });
+        expect(preload.logo).toMatchObject({ x: 540, y: 860, width: 560 });
+    });
+
+    // v16 anim.js FLAG：布料 1760 × 2400、由 (−240, −240) 起、30 × 40 格、光暗圖 90 × 120、波幅 122、焦距 1500；
+    // logo 喺 v16 平放時嘅中心係 x = 838 − 240 = 598：布料摺皺會將佢拉返去畫面中間（第 18 版嘅 540）
+    it('should carry the cloth of the v16 flag and its logo offset', () => {
+        const { flag, logo } = PHONE_LAYOUT.preload;
+        expect(flag).toEqual({
+            width: 1760,
+            height: 2400,
+            x: -240,
+            y: -240,
+            cols: 30,
+            rows: 40,
+            lightCols: 90,
+            lightRows: 120,
+            amp: 122,
+            focal: 1500,
+        });
+        expect(logo.x + logo.drift).toBe(838 + flag.x);
+    });
+
+    // 冇 catalog 嘅錯誤同重試掣（設計稿冇畫，T-034 定）：喺進度線嘅位，唔撞「R Gram」；掣嘅感應範圍夠 44pt
+    it('should keep the retry button clear of the app name with a 44pt touch area', () => {
+        const { failure, name } = PHONE_LAYOUT.preload;
+        const { hitPt, viewportPt } = PHONE_LAYOUT.clearance;
+        const minHit = (hitPt * 1080) / viewportPt;
+        expect(failure.retry.hit).toBeGreaterThanOrEqual(minHit);
+        expect(failure.retry.y + failure.retry.hit / 2).toBeLessThan(name.y - name.size);
+        expect(failure.message.y).toBeLessThan(failure.retry.y - failure.retry.hit / 2);
+    });
 });

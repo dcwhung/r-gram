@@ -39,5 +39,20 @@ export const MOTION = {
         crtOffMs: 150,
         /** 電視向下收埋（熄機之後） */
         tvDropMs: 450,
+        /*
+         * Preload（T-034）：數值由設計稿 _mockups_/r-gram/src/anim.js（v16）嘅時間線 T 嚟
+         *（loadStart 0.25 → loadEnd 1.85 → flagFade0 2.05 → flagFade1 2.8）
+         */
+        /** 載入完成後成塊旗淡出（同時放大少少） */
+        flagFadeMs: 750,
+        /** 進度到 100 之後停一停先淡出 */
+        preloadHoldMs: 200,
+        /** 進度線每完成一項向前行一步（v16 由 0 行到 100 用 1.6 秒；三項各三分之一） */
+        preloadStepMs: 530,
+        /** 開頭嘅風由七成力加到全力 */
+        flagGustMs: 1000,
+        /** 進度線同百分比喺開場之後幾耐先淡入、淡入用幾耐 */
+        preloadBarDelayMs: 200,
+        preloadBarInMs: 300,
     },
 } as const;

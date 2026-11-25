@@ -1,7 +1,7 @@
 import type { CatalogDocument } from '@r-gram/catalog';
-import { type Dispatch, useReducer } from 'react';
+import { type Dispatch, useCallback, useReducer } from 'react';
 import type { CoverVariants } from '../catalog/coverVariants';
-import { findTrack, isPlayable } from '../catalog/selectors';
+import { dialAlbums, findTrack, isPlayable } from '../catalog/selectors';
 import { useCoverVariants } from '../catalog/useCoverVariants';
 import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
@@ -15,8 +15,8 @@ import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from '
 import type { HomeHandlers } from './Turntable';
 
 /**
- * 開 app 時嘅場景。T-034 之前嘅接口：有 catalog 就直接由第一隻碟嘅主頁開始。
- * T-034 嘅 Preload 會喺載入完之後自己 dispatch `preloadDone`（連重開 app 時回復嘅碟同歌，D12）。
+ * 開 app 時嘅場景：一開始已經有 catalog（測試、hook 直接用）就由第一隻碟嘅主頁開始；
+ * 冇就停喺 Preload，等 Preload 載入完叫 `finishPreload()`（T-034；重開 app 回復上次嘅碟同歌係 D12 嘅任務）。
  */
 export const initialStage = (catalog: CatalogDocument | null): StageState => {
     const first = catalog?.albums[0];
@@ -88,6 +88,11 @@ export interface Home {
     /** 未有 catalog = null */
     view: HomeView | null;
     handlers: HomeHandlers | null;
+    /**
+     * Preload 載入完：離開 Preload，開第一隻碟（review S-078：catalog 遲過 Preload 開始先到都得）。
+     * 未有 catalog 就乜都唔做
+     */
+    finishPreload: () => void;
 }
 
 /**
@@ -99,7 +104,11 @@ export const useHome = (catalog: CatalogDocument | null, random?: () => number):
     const [playback, play] = useReducer(playbackReducer, IDLE_PLAYBACK);
     const covers = useCoverVariants(catalog, random);
     usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
-    if (!catalog) return { stage, playback, covers, view: null, handlers: null };
+    const finishPreload = useCallback(() => {
+        const first = catalog ? dialAlbums(catalog)[0] : undefined;
+        if (first) dispatch({ type: 'preloadDone', albumId: first.id });
+    }, [catalog]);
+    if (!catalog) return { stage, playback, covers, view: null, handlers: null, finishPreload };
     const view = homeView(catalog, stage, playback, covers);
     return {
         stage,
@@ -107,5 +116,6 @@ export const useHome = (catalog: CatalogDocument | null, random?: () => number):
         covers,
         view,
         handlers: handlersFor({ catalog, stage, view, dispatch, play }),
+        finishPreload,
     };
 };
