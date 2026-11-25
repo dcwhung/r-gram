@@ -1,0 +1,54 @@
+name: CI
+
+# main 以外嘅 push：lint + type check + unit。（加咗 app 之後喺呢度加 build 同 e2e。）
+# 只用 push trigger：check run 掛喺 commit 上面，PR 頁照樣見到；同時用 pull_request 會令同一個 SHA 跑兩次。
+# 成條 branch（對 main 嘅 merge-base）淨係改文件 / 設計稿 → check job 被 `if` 跳過。GitHub 當跳過嘅 job 係 Success，
+# 所以 branch protection 嘅 required check 唔會卡住（workflow 層 paths-ignore 會令佢永遠 pending）。
+on:
+    push:
+        branches-ignore: [main]
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    changes:
+        name: Detect code changes
+        runs-on: ubuntu-latest
+        outputs:
+            code: ${{ steps.diff.outputs.code }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            # 一律比較成條 branch（同 origin/main 嘅 merge-base → 呢個 SHA），唔係今次 push 嘅 delta。
+            # 判斷唔到（未有 main、冇 base、diff 係空）一律當有 code 改動，照跑全套
+            - id: diff
+              run: bash scripts/ci/detect-code-changes.sh
+
+    check:
+        name: Lint, type check & unit
+        needs: changes
+        if: needs.changes.outputs.code == 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - run: npm ci
+
+            - run: npm run lint
+
+            # 全部 workspace 嘅 type check
+            - run: npm run typecheck
+
+            - run: npm test

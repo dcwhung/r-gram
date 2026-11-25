@@ -1,0 +1,15 @@
+node_modules
+dist/
+coverage/
+*.log
+.DS_Store
+.env*
+*.tsbuildinfo
+apps/*/e2e/screenshots/
+__pycache__/
+
+# agent worktrees (Claude Code isolation)
+.claude/worktrees/
+# apps/api（Cloudflare Worker）：本機 secret、wrangler / miniflare state
+.dev.vars
+.wrangler/

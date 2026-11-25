@@ -31,5 +31,5 @@
 | --- | --- |
 | [../\_design\_/HANDOFF.md](../_design_/HANDOFF.md) | 設計交接文件（motion preview v16）：設計規則、畫面規格、假設、未解決問題 |
 | [../\_mockups\_/r-gram/index.html](../_mockups_/r-gram/index.html) | 播放端動態設計稿（Design Origin） |
-| [../data/discography.json](../data/discography.json) | 初始歌單資料：17 張專輯、262 首歌 |
-| [../data/credits.json](../data/credits.json) | 歌曲 credit（曲 / 詞 / 編 / 監）：16 張專輯、193 行；由 `_design_/rubberband-credits.html` 用 `_design_/tools/parse_credits.py` 轉出 |
+| [../apps/api/seed/discography.json](../apps/api/seed/discography.json) | 初始歌單資料：17 張專輯、262 首歌 |
+| [../apps/api/seed/credits.json](../apps/api/seed/credits.json) | 歌曲 credit（曲 / 詞 / 編 / 監）：16 張專輯、193 行；由 `_design_/rubberband-credits.html` 用 `_design_/tools/parse_credits.py` 轉出 |

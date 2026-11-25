@@ -1,0 +1,12 @@
+dist
+coverage
+node_modules
+package-lock.json
+# 設計稿同設計來源：生成物 / 原始檔，唔 format
+_mockups_
+_design_
+# 項目文件：表格唔做對齊補位（format 會令每次改一格都變成成個表嘅 diff）
+.proj-docs
+# 初始資料：由 _design_/tools 嘅 script 生成，保持原樣
+apps/api/seed/*.json
+.claude/worktrees/

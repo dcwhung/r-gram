@@ -1,0 +1,17 @@
+{
+    "name": "@r-gram/catalog",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "test": "vitest run",
+        "test:watch": "vitest"
+    },
+    "devDependencies": {
+        "@types/node": "^26.6.5",
+        "typescript": "^6.0.3",
+        "vitest": "^5.0.5"
+    }
+}
