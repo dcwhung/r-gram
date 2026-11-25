@@ -121,6 +121,21 @@ describe('parseSongText', () => {
             expect(result.credits).toEqual({ ...NO_CREDITS, composer: '阿正', lyricist: '6號' });
         });
 
+        // W-012：`[1999]` 冇冒號，唔係時間標記，可以做歌名
+        it('should keep a title that starts with digits in brackets', () => {
+            const result = parseSongText('[1999] 歌\n曲：阿正');
+            expect(result.errors).toEqual([]);
+            expect(result.title).toBe('[1999] 歌');
+        });
+
+        // W-012：純文字歌詞用 `[1]` 做段落編號，唔可以令成段變成「有時間標記」
+        it('should keep lyrics plain when a line starts with a verse number in brackets', () => {
+            const result = parseSongText('歌名\n\n[1] 第一段\n第二句\n[2] 第二段');
+            expect(result.errors).toEqual([]);
+            expect(result.lyrics?.synced).toBe(false);
+            expect(result.lyrics?.lines).toHaveLength(3);
+        });
+
         it('should keep a title that contains a colon', () => {
             expect(parseSongText('Re: SimpleLoveSong\n副題：國語').title).toBe(
                 'Re: SimpleLoveSong',

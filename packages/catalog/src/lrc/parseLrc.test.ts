@@ -195,6 +195,9 @@ describe('startsWithTimestamp', () => {
         expect(startsWithTimestamp('[ti:歌名]')).toBe(false);
         expect(startsWithTimestamp('[offset:500]')).toBe(false);
         expect(startsWithTimestamp('[Chorus]副歌')).toBe(false);
+        // W-012：方括號入面淨係數字（冇冒號）係段落編號／年份，唔係時間標記
+        expect(startsWithTimestamp('[1] 第一段')).toBe(false);
+        expect(startsWithTimestamp('[1999] 歌')).toBe(false);
         expect(startsWithTimestamp('一早地下鐵 [00:12.30]')).toBe(false);
         expect(startsWithTimestamp('')).toBe(false);
     });

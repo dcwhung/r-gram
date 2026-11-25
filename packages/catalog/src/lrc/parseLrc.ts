@@ -92,9 +92,12 @@ const parseUntimedLine = (source: string): ParsedLine => {
     return { kind: 'error', code: LEADING_TAG.test(source) ? 'INVALID_TIMESTAMP' : 'NO_TIMESTAMP' };
 };
 
+/** 時間標記嘅形狀：`[數字:…]`，一定有冒號。`[1]`、`[1999]` 係段落編號／年份，唔係時間標記 */
+const TIMESTAMP_SHAPED = /^\[\d+:[\d:.]*\]/;
+
 /** 呢行（trim 之後）係咪以時間標記開頭；格式錯嘅時間標記（`[00:60.00]`）都算，metadata 唔算 */
 export const startsWithTimestamp = (source: string): boolean =>
-    readTimestamps(source.trim()).times.length > 0;
+    TIMESTAMP_SHAPED.test(source.trim());
 
 const parseLine = (source: string): ParsedLine => {
     if (source === '') return { kind: 'blank' };
