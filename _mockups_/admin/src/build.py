@@ -19,6 +19,9 @@ ACCENTS = {
     'komorebi': '#2f8a4f', 'singles': '#6e6e6e',
 }
 NEUTRAL = '#6e6e6e'
+# 同播放端設計稿用同一套字體（RB Slab）
+FONTS = HERE.parents[1] / 'home-turntable' / 'src' / 'fonts.css'
+FONTS_MARKER = '/*__FONTS__*/'
 
 
 def clean(value):
@@ -48,6 +51,8 @@ def main():
     data = json.dumps({'albums': albums, 'tracks': tracks}, ensure_ascii=False, separators=(',', ':'))
     html = (HERE / 'template.html').read_text(encoding='utf-8')
     assert html.count('/*__DATA__*/null') == 1
+    assert html.count(FONTS_MARKER) == 1
+    html = html.replace(FONTS_MARKER, FONTS.read_text(encoding='utf-8'))
     out = HERE.parent / 'index.html'
     out.write_text(html.replace('/*__DATA__*/null', data), encoding='utf-8')
     print(f'built {out.name} ({out.stat().st_size // 1024} KB), {len(albums)} albums, {len(tracks)} demo tracks')
