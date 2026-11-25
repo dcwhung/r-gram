@@ -7,6 +7,7 @@
  * - albums：專輯 API（T-022）錯誤回應嘅 message 同每個欄位錯誤（details[].reason）嘅 message；
  *   `{name}` 係參數，由 fillMessage() 填入
  * - tracks：歌曲 API（T-023）：同上，另加歌曲文字逐行錯誤（reason = packages/catalog 嘅錯誤碼）同唔擋儲存嘅提示
+ * - assets：封面上載（API-050）同公開圖（API-071）嘅錯誤（T-024）
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
@@ -122,6 +123,22 @@ export const zhHant = {
         hints: {
             LABEL_AFTER_BLANK_LINE:
                 '此行看似標籤，但前面有空行，因此已當作歌詞儲存。如屬標籤，請刪除前面的空行。',
+        },
+    },
+    assets: {
+        /** error.message（按情況） */
+        errors: {
+            invalid: '圖片無法使用，請重新裁切後再上載。',
+            unsupportedType: '只接受 WebP、JPEG 或 PNG 圖片，而且檔案內容必須與宣告的格式相符。',
+            /** `{max}` = IMAGE_MAX_BYTES 嘅 MB 數 */
+            tooLarge: '圖片超出 {max} MB 的上限。',
+            notFound: '找不到指定的圖片。',
+        },
+        /** details[].message：key = details[].reason */
+        reasons: {
+            INVALID_IMAGE: '無法讀取圖片的格式資料，檔案可能已損壞。',
+            /** `{cover}`、`{thumb}` = 兩個封面尺寸（像素） */
+            INVALID_DIMENSIONS: '圖片必須為 {cover} × {cover} 或 {thumb} × {thumb} 像素的正方形。',
         },
     },
 } as const;

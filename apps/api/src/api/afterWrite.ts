@@ -2,7 +2,8 @@
  * 寫入之後嘅後置步驟（Technical Spec API-061、「CR-003 對技術設計嘅影響 → 內容流程」）：
  * 每個成功（2xx）嘅 /api 寫入請求之後行一次 hook，各 route 唔使自己叫。
  * hook 有結果就加入回應 JSON 做 `catalog`（例如 `{ ok: false }` = 已儲存但生成失敗）。
- * T-022 只做接口：預設 noPostWrite（乜都唔做）；T-026 喺 api/routes.ts 換做 rebuildCatalog()
+ * T-022 只做接口：預設 noPostWrite（乜都唔做）；T-026 喺 api/routes.ts 換做 rebuildCatalog()。
+ * 唔改 catalog 內容嘅寫入 route 加 skipPostWrite（T-024：上載圖；T-026 嘅重新生成 endpoint 都應該用，backlog B-043 ③）
  */
 import type { Context } from 'hono';
 import { createMiddleware } from 'hono/factory';
@@ -17,6 +18,12 @@ export interface CatalogWriteResult {
 export type PostWriteHook = (c: Context<AppEnv>) => Promise<CatalogWriteResult | undefined>;
 
 export const noPostWrite: PostWriteHook = async () => undefined;
+
+/** route 級 middleware：呢個寫入唔使行後置步驟 */
+export const skipPostWrite = createMiddleware<AppEnv>(async (c, next) => {
+    c.set('skipPostWrite', true);
+    await next();
+});
 
 const WRITE_METHODS: readonly string[] = ['POST', 'PUT', 'PATCH', 'DELETE'];
 const JSON_TYPE = 'application/json';
@@ -51,6 +58,7 @@ export const afterWrite = (hook: PostWriteHook) =>
     createMiddleware<AppEnv>(async (c, next) => {
         await next();
         if (!WRITE_METHODS.includes(c.req.method) || !c.res.ok) return;
+        if (c.get('skipPostWrite') === true) return;
         const catalog = await runHook(hook, c);
         if (catalog === undefined) return;
         const body = await jsonBodyOf(c.res);

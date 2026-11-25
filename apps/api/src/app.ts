@@ -6,5 +6,7 @@ export interface AppEnv {
     Variables: {
         /** requireSession 驗過嘅 admin email */
         email: string;
+        /** 呢個寫入唔改 catalog 內容：afterWrite 唔行後置步驟（skipPostWrite 設；backlog B-043 ③） */
+        skipPostWrite: boolean;
     };
 }

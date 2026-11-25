@@ -43,6 +43,7 @@ export const HTTP_STATUS = {
     notFound: 404,
     conflict: 409,
     payloadTooLarge: 413,
+    unsupportedMediaType: 415,
     internalError: 500,
     badGateway: 502,
 } as const;
@@ -62,6 +63,8 @@ export const ERROR_CODE = {
     lyricsRemoved: 'LYRICS_REMOVED',
     /** body / 歌曲文字超出上限 */
     tooLarge: 'TOO_LARGE',
+    /** 上載嘅圖唔係 WebP / JPEG / PNG（Content-Type 或者檔頭 magic bytes） */
+    unsupportedType: 'UNSUPPORTED_TYPE',
     internal: 'INTERNAL',
 } as const;
 
@@ -75,6 +78,21 @@ export const LYRICS_KEY_PREFIX = 'catalog/v1/lyrics/';
 /** 歌詞檔名：內容 sha256 嘅頭 16 個 hex + `.json`（同封面圖一樣用 hash 檔名） */
 export const LYRICS_HASH_HEX_CHARS = 16;
 export const JSON_CONTENT_TYPE = 'application/json';
+
+/** r-gram-catalog 入面封面圖嘅 prefix（Technical Spec「R2 key layout」）；公開網址 /catalog/v1/img/<name> */
+export const IMAGE_KEY_PREFIX = 'catalog/v1/img/';
+/** 圖檔名：內容 sha256 嘅頭 16 個 hex + 副檔名（Technical Spec「assets」） */
+export const IMAGE_HASH_HEX_CHARS = 16;
+const BYTES_PER_MB = 1024 * 1024;
+export const IMAGE_MAX_MB = 2;
+/** 上載圖大細上限（Technical Spec「安全設計 → 上載」IMAGE_MAX_BYTES） */
+export const IMAGE_MAX_BYTES = IMAGE_MAX_MB * BYTES_PER_MB;
+/** 封面兩個尺寸（正方形，Technical Spec「albums」、「性能 → 圖片」）：揀中嘅碟 / 縮圖 */
+export const COVER_SIDE_PX = 1200;
+export const THUMB_SIDE_PX = 320;
+const YEAR_SECONDS = 365 * DAY_SECONDS;
+/** hash 檔名 = 內容不變：永久 cache（Technical Spec「核心原則 2」） */
+export const IMMUTABLE_CACHE = `public, max-age=${YEAR_SECONDS}, immutable`;
 
 /** Worker 所有回應：唔畀搜尋引擎收錄 */
 export const ROBOTS_HEADER_VALUE = 'noindex';
