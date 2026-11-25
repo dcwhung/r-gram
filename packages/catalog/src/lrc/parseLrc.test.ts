@@ -63,7 +63,7 @@ describe('parseLrc', () => {
         expect(errors).toEqual([{ line: 2, code: 'NO_TIMESTAMP', text: '冇時間嘅一行' }]);
     });
 
-    it.each(['[00:60.00]a', '[1:2]a', '[00:12.3456]a', '[aa:bb]a'])(
+    it.each(['[00:60.00]a', '[1:2]a', '[00:12.3456]a', '[12]a'])(
         'should report the malformed timestamp in %j',
         (source) => {
             const { lines, errors } = parseLrc(source);
@@ -87,6 +87,14 @@ describe('parseLrc', () => {
             });
         },
     );
+
+    it('should treat a two-letter tag as metadata, not as a broken timestamp', () => {
+        // `[by:me]` 係合法 metadata；唔可以因為似 `aa:bb` 就報錯
+        expect(parseLrc('[by:me]\n[00:01.00]a')).toEqual({
+            lines: [{ t: 1_000, text: 'a' }],
+            errors: [],
+        });
+    });
 
     it('should accept minutes above 59 for long tracks', () => {
         expect(parseLrc('[75:00.00]a').lines).toEqual([{ t: 4_500_000, text: 'a' }]);

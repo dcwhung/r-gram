@@ -5,11 +5,12 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
     test: {
         projects: ['packages/catalog'],
-        // projects 模式下 coverage 只認 root 設定；include / exclude 相對各 project root
+        // projects 模式下 coverage 只認 root 設定；冇 --project 時 include / exclude 相對 repo 根
         coverage: {
             provider: 'v8',
-            include: ['src/**/*.{ts,tsx}'],
-            exclude: ['src/main.tsx', '**/*.test.{ts,tsx}', '**/*.d.ts', 'src/**/index.ts'],
+            include: ['packages/*/src/**/*.{ts,tsx}', 'apps/*/src/**/*.{ts,tsx}'],
+            exclude: ['**/src/main.tsx', '**/*.test.{ts,tsx}', '**/*.d.ts', '**/src/index.ts'],
+            thresholds: { statements: 80, branches: 80, functions: 80, lines: 80 },
         },
     },
 });
