@@ -20,6 +20,8 @@ const album = (overrides: Partial<CatalogAlbum> = {}): CatalogAlbum => ({
     releaseDate: '2008-09-26',
     year: 2008,
     type: '錄音室專輯',
+    category: 'album',
+    categoryNo: 1,
     label: '金牌娛樂',
     accent: '#c8442b',
     cover: '9f2c1a7b3d4e5f60.webp',
@@ -37,6 +39,13 @@ const document = (overrides: Partial<CatalogDocument> = {}): CatalogDocument => 
     albums: [album()],
     ...overrides,
 });
+
+/** 刪走某啲（選填）欄位 */
+const without = (value: CatalogAlbum, ...keys: ('category' | 'categoryNo')[]): CatalogAlbum => {
+    const copy = { ...value };
+    keys.forEach((key) => delete copy[key]);
+    return copy;
+};
 
 /** 驗證失敗時攞返 error 嘅 path */
 const errorPaths = (input: unknown) => {
@@ -226,6 +235,54 @@ describe('parseCatalogDocument', () => {
         ],
     ])('should report the structural error in %j', (overrides, expected) => {
         expect(errorPaths({ ...document(), ...overrides })).toEqual(expected);
+    });
+
+    // CR-004（FR-124）：發行類別同類別內序號；播放端唔顯示，但驗證要收
+    describe('release category and ordinal', () => {
+        it('should accept every release category with a positive ordinal', () => {
+            const albums = ['album', 'ep', 'best', 'live', 'ost', 'single'].map((category, i) =>
+                album({
+                    id: `a${i}`,
+                    category: category as CatalogAlbum['category'],
+                    categoryNo: i + 1,
+                    tracks: [],
+                }),
+            );
+            expect(parseCatalogDocument(document({ albums })).ok).toBe(true);
+        });
+
+        it('should still accept an album without both fields', () => {
+            const bare = without(album(), 'category', 'categoryNo');
+            expect(parseCatalogDocument(document({ albums: [bare] })).ok).toBe(true);
+        });
+
+        it.each(['Album', 'compilation', '', null, 3])(
+            'should reject the category %j with INVALID_CATEGORY',
+            (category) => {
+                const input = document({ albums: [album({ category: category as never })] });
+                expect(parseCatalogDocument(input)).toEqual({
+                    ok: false,
+                    errors: [{ path: 'albums[0].category', code: 'INVALID_CATEGORY' }],
+                });
+            },
+        );
+
+        it.each([0, -1, 1.5, '1', null])('should reject the ordinal %j', (categoryNo) => {
+            const input = document({ albums: [album({ categoryNo: categoryNo as never })] });
+            expect(parseCatalogDocument(input)).toEqual({
+                ok: false,
+                errors: [{ path: 'albums[0].categoryNo', code: 'INVALID_NUMBER' }],
+            });
+        });
+
+        it('should require the ordinal with a category and the category with an ordinal', () => {
+            const noOrdinal = without(album(), 'categoryNo');
+            const noCategory = without(album({ id: 'beaming', tracks: [] }), 'category');
+            expect(errorPaths(document({ albums: [noOrdinal, noCategory] }))).toEqual([
+                'albums[0].categoryNo',
+                'albums[1].category',
+            ]);
+        });
     });
 
     it('should describe each error with a code', () => {

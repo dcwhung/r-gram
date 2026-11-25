@@ -72,7 +72,12 @@ export const zhHant = {
             INVALID_DATE: '日期必須為 YYYY-MM-DD 格式的有效日期。',
             INVALID_COLOUR: '顏色必須為 #rrggbb 格式。',
             INVALID_FOLDER:
-                '資料夾名稱不可為空白、「.」或「..」，亦不可包含斜線、反斜線、?、#、%、換行、控制字元或不可見的格式字元。',
+                '資料夾名稱不可為空白或「.」，不可包含「..」，不可以「_」開頭（保留給非專輯資料夾），亦不可包含斜線、反斜線、?、#、%、換行、控制字元或不可見的格式字元。',
+            /** `{list}` = RELEASE_CATEGORIES（errors.ts 填入） */
+            INVALID_CATEGORY: '發行類別必須為以下其中一個：{list}。',
+            /** `{max}` = CATEGORY_NO_MAX（errors.ts 填入） */
+            INVALID_ORDINAL: '序號必須為 1 至 {max} 的整數。',
+            ORDINAL_TAKEN: '同一發行類別內已有專輯使用此序號，請改用其他序號。',
             UNKNOWN_ASSET: '找不到此圖片，請重新上載。',
             INVALID_LIST: '必須為不重複的專輯 ID 列表。',
         },

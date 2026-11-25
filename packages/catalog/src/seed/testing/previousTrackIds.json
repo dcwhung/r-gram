@@ -1,0 +1,1315 @@
+{
+    "about": "Track ids of apps/api/seed/discography.json before CR-004 (commit bce4dde, rubberband-discography.html (updated 2026-11-20)). Frozen: favourites and resume on listeners' devices refer to them.",
+    "tracks": [
+        {
+            "id": "apollo-18-01",
+            "albumId": "apollo-18",
+            "title": "一早地下鐵"
+        },
+        {
+            "id": "apollo-18-02",
+            "albumId": "apollo-18",
+            "title": "Hero"
+        },
+        {
+            "id": "apollo-18-03",
+            "albumId": "apollo-18",
+            "title": "遊車河"
+        },
+        {
+            "id": "apollo-18-04",
+            "albumId": "apollo-18",
+            "title": "電玩男"
+        },
+        {
+            "id": "apollo-18-05",
+            "albumId": "apollo-18",
+            "title": "Tears"
+        },
+        {
+            "id": "apollo-18-06",
+            "albumId": "apollo-18",
+            "title": "小涼伴"
+        },
+        {
+            "id": "apollo-18-07",
+            "albumId": "apollo-18",
+            "title": "零度聖誕"
+        },
+        {
+            "id": "apollo-18-08",
+            "albumId": "apollo-18",
+            "title": "在森林和原野"
+        },
+        {
+            "id": "apollo-18-09",
+            "albumId": "apollo-18",
+            "title": "潛"
+        },
+        {
+            "id": "apollo-18-10",
+            "albumId": "apollo-18",
+            "title": "Secret"
+        },
+        {
+            "id": "apollo-18-11",
+            "albumId": "apollo-18",
+            "title": "夜不眠"
+        },
+        {
+            "id": "apollo-18-12",
+            "albumId": "apollo-18",
+            "title": "最後…那"
+        },
+        {
+            "id": "apollo-18-13",
+            "albumId": "apollo-18",
+            "title": "城記"
+        },
+        {
+            "id": "apollo-18-14",
+            "albumId": "apollo-18",
+            "title": "脫逃"
+        },
+        {
+            "id": "apollo-18-15",
+            "albumId": "apollo-18",
+            "title": "認錯"
+        },
+        {
+            "id": "beaming-01",
+            "albumId": "beaming",
+            "title": "天台飛人"
+        },
+        {
+            "id": "beaming-02",
+            "albumId": "beaming",
+            "title": "阿波羅"
+        },
+        {
+            "id": "beaming-03",
+            "albumId": "beaming",
+            "title": "Try…"
+        },
+        {
+            "id": "beaming-04",
+            "albumId": "beaming",
+            "title": "夾硬泥"
+        },
+        {
+            "id": "beaming-05",
+            "albumId": "beaming",
+            "title": "夏令時間"
+        },
+        {
+            "id": "beaming-06",
+            "albumId": "beaming",
+            "title": "衝"
+        },
+        {
+            "id": "beaming-07",
+            "albumId": "beaming",
+            "title": "Tears"
+        },
+        {
+            "id": "beaming-08",
+            "albumId": "beaming",
+            "title": "電玩男"
+        },
+        {
+            "id": "beaming-09",
+            "albumId": "beaming",
+            "title": "小涼伴"
+        },
+        {
+            "id": "beaming-10",
+            "albumId": "beaming",
+            "title": "最後…那"
+        },
+        {
+            "id": "beaming-11",
+            "albumId": "beaming",
+            "title": "城記"
+        },
+        {
+            "id": "beaming-12",
+            "albumId": "beaming",
+            "title": "一早地下鐵"
+        },
+        {
+            "id": "beaming-13",
+            "albumId": "beaming",
+            "title": "夜不眠"
+        },
+        {
+            "id": "beaming-14",
+            "albumId": "beaming",
+            "title": "零度聖誕"
+        },
+        {
+            "id": "beaming-15",
+            "albumId": "beaming",
+            "title": "潛"
+        },
+        {
+            "id": "beaming-16",
+            "albumId": "beaming",
+            "title": "遊車河"
+        },
+        {
+            "id": "beaming-17",
+            "albumId": "beaming",
+            "title": "Hero"
+        },
+        {
+            "id": "rubberband-concert-1-01",
+            "albumId": "rubberband-concert-1",
+            "title": "認錯"
+        },
+        {
+            "id": "rubberband-concert-1-02",
+            "albumId": "rubberband-concert-1",
+            "title": "電玩男"
+        },
+        {
+            "id": "rubberband-concert-1-03",
+            "albumId": "rubberband-concert-1",
+            "title": "潛"
+        },
+        {
+            "id": "rubberband-concert-1-04",
+            "albumId": "rubberband-concert-1",
+            "title": "在森林和原野"
+        },
+        {
+            "id": "rubberband-concert-1-05",
+            "albumId": "rubberband-concert-1",
+            "title": "夜不眠"
+        },
+        {
+            "id": "rubberband-concert-1-06",
+            "albumId": "rubberband-concert-1",
+            "title": "零度聖誕"
+        },
+        {
+            "id": "rubberband-concert-1-07",
+            "albumId": "rubberband-concert-1",
+            "title": "Secret"
+        },
+        {
+            "id": "rubberband-concert-1-08",
+            "albumId": "rubberband-concert-1",
+            "title": "I'm Yours"
+        },
+        {
+            "id": "rubberband-concert-1-09",
+            "albumId": "rubberband-concert-1",
+            "title": "遊車河"
+        },
+        {
+            "id": "rubberband-concert-1-10",
+            "albumId": "rubberband-concert-1",
+            "title": "一早地下鐵 / 幾分鐘的約會"
+        },
+        {
+            "id": "rubberband-concert-1-11",
+            "albumId": "rubberband-concert-1",
+            "title": "Come Together"
+        },
+        {
+            "id": "rubberband-concert-1-12",
+            "albumId": "rubberband-concert-1",
+            "title": "脫逃 / 沙灘"
+        },
+        {
+            "id": "rubberband-concert-1-13",
+            "albumId": "rubberband-concert-1",
+            "title": "夏令時間"
+        },
+        {
+            "id": "rubberband-concert-1-14",
+            "albumId": "rubberband-concert-1",
+            "title": "Here We Are"
+        },
+        {
+            "id": "rubberband-concert-1-15",
+            "albumId": "rubberband-concert-1",
+            "title": "Hero"
+        },
+        {
+            "id": "rubberband-concert-1-16",
+            "albumId": "rubberband-concert-1",
+            "title": "夾硬泥"
+        },
+        {
+            "id": "rubberband-concert-1-17",
+            "albumId": "rubberband-concert-1",
+            "title": "最後…那"
+        },
+        {
+            "id": "rubberband-concert-1-18",
+            "albumId": "rubberband-concert-1",
+            "title": "城記"
+        },
+        {
+            "id": "rubberband-concert-1-19",
+            "albumId": "rubberband-concert-1",
+            "title": "Tears"
+        },
+        {
+            "id": "rubberband-concert-1-20",
+            "albumId": "rubberband-concert-1",
+            "title": "發現號"
+        },
+        {
+            "id": "rubberband-concert-1-21",
+            "albumId": "rubberband-concert-1",
+            "title": "衝"
+        },
+        {
+            "id": "rubberband-concert-1-22",
+            "albumId": "rubberband-concert-1",
+            "title": "天台飛人"
+        },
+        {
+            "id": "rubberband-concert-1-23",
+            "albumId": "rubberband-concert-1",
+            "title": "小涼伴"
+        },
+        {
+            "id": "rubberband-concert-1-24",
+            "albumId": "rubberband-concert-1",
+            "title": "阿波羅"
+        },
+        {
+            "id": "rubberband-concert-1-25",
+            "albumId": "rubberband-concert-1",
+            "title": "發現號"
+        },
+        {
+            "id": "connected-01",
+            "albumId": "connected",
+            "title": "天連地"
+        },
+        {
+            "id": "connected-02",
+            "albumId": "connected",
+            "title": "金獅同學會"
+        },
+        {
+            "id": "connected-03",
+            "albumId": "connected",
+            "title": "細街盃"
+        },
+        {
+            "id": "connected-04",
+            "albumId": "connected",
+            "title": "3字頭"
+        },
+        {
+            "id": "connected-05",
+            "albumId": "connected",
+            "title": "阿藍的故事"
+        },
+        {
+            "id": "connected-06",
+            "albumId": "connected",
+            "title": "一轉身卻天亮了"
+        },
+        {
+            "id": "connected-07",
+            "albumId": "connected",
+            "title": "田鼠論壇"
+        },
+        {
+            "id": "connected-08",
+            "albumId": "connected",
+            "title": "SimpleLoveSong"
+        },
+        {
+            "id": "connected-09",
+            "albumId": "connected",
+            "title": "hello ?"
+        },
+        {
+            "id": "connected-10",
+            "albumId": "connected",
+            "title": "囍宴樂隊"
+        },
+        {
+            "id": "connected-11",
+            "albumId": "connected",
+            "title": "海．地"
+        },
+        {
+            "id": "connected-12",
+            "albumId": "connected",
+            "title": "雙城記"
+        },
+        {
+            "id": "dedicated-to-01",
+            "albumId": "dedicated-to",
+            "title": "More Than A Woman"
+        },
+        {
+            "id": "dedicated-to-02",
+            "albumId": "dedicated-to",
+            "title": "擦身情緣"
+        },
+        {
+            "id": "dedicated-to-03",
+            "albumId": "dedicated-to",
+            "title": "長夜 My Love Goodnight"
+        },
+        {
+            "id": "dedicated-to-04",
+            "albumId": "dedicated-to",
+            "title": "同桌的你／What's Up"
+        },
+        {
+            "id": "dedicated-to-05",
+            "albumId": "dedicated-to",
+            "title": "記念"
+        },
+        {
+            "id": "dedicated-to-06",
+            "albumId": "dedicated-to",
+            "title": "陪著你走"
+        },
+        {
+            "id": "dedicated-to-07",
+            "albumId": "dedicated-to",
+            "title": "我只在乎你"
+        },
+        {
+            "id": "dedicated-to-08",
+            "albumId": "dedicated-to",
+            "title": "畫出彩虹"
+        },
+        {
+            "id": "dedicated-to-09",
+            "albumId": "dedicated-to",
+            "title": "(Just Like) Starting Over"
+        },
+        {
+            "id": "dedicated-to-10",
+            "albumId": "dedicated-to",
+            "title": "Dedicated To…"
+        },
+        {
+            "id": "dedicated-to-11",
+            "albumId": "dedicated-to",
+            "title": "Re: SimpleLoveSong"
+        },
+        {
+            "id": "easy-01",
+            "albumId": "easy",
+            "title": "睜開眼"
+        },
+        {
+            "id": "easy-02",
+            "albumId": "easy",
+            "title": "豬籠墟事變"
+        },
+        {
+            "id": "easy-03",
+            "albumId": "easy",
+            "title": "無名英雄進行曲"
+        },
+        {
+            "id": "easy-04",
+            "albumId": "easy",
+            "title": "M.A.M.A."
+        },
+        {
+            "id": "easy-05",
+            "albumId": "easy",
+            "title": "Easy"
+        },
+        {
+            "id": "easy-06",
+            "albumId": "easy",
+            "title": "Slow & Easy"
+        },
+        {
+            "id": "easy-07",
+            "albumId": "easy",
+            "title": "生於1月17"
+        },
+        {
+            "id": "easy-08",
+            "albumId": "easy",
+            "title": "進化論"
+        },
+        {
+            "id": "easy-09",
+            "albumId": "easy",
+            "title": "倒行詩"
+        },
+        {
+            "id": "easy-10",
+            "albumId": "easy",
+            "title": "快樂鐳射舖"
+        },
+        {
+            "id": "easy-11",
+            "albumId": "easy",
+            "title": "(Simple, but not) Easy"
+        },
+        {
+            "id": "frank-01",
+            "albumId": "frank",
+            "title": "前面尚有一萬里"
+        },
+        {
+            "id": "frank-02",
+            "albumId": "frank",
+            "title": "成長說明書"
+        },
+        {
+            "id": "frank-03",
+            "albumId": "frank",
+            "title": "是時候"
+        },
+        {
+            "id": "frank-04",
+            "albumId": "frank",
+            "title": "坦白"
+        },
+        {
+            "id": "frank-05",
+            "albumId": "frank",
+            "title": "大話西遊"
+        },
+        {
+            "id": "frank-06",
+            "albumId": "frank",
+            "title": "放"
+        },
+        {
+            "id": "frank-07",
+            "albumId": "frank",
+            "title": "黑雞"
+        },
+        {
+            "id": "frank-08",
+            "albumId": "frank",
+            "title": "把酒當歌"
+        },
+        {
+            "id": "frank-09",
+            "albumId": "frank",
+            "title": "人生有個真正朋友"
+        },
+        {
+            "id": "frank-10",
+            "albumId": "frank",
+            "title": "童稚萬歲"
+        },
+        {
+            "id": "frank-11",
+            "albumId": "frank",
+            "title": "We are One"
+        },
+        {
+            "id": "frank-12",
+            "albumId": "frank",
+            "title": "心照一生"
+        },
+        {
+            "id": "frank-ep-01",
+            "albumId": "frank-ep",
+            "title": "寂寞島嶼"
+        },
+        {
+            "id": "frank-ep-02",
+            "albumId": "frank-ep",
+            "title": "怪物"
+        },
+        {
+            "id": "frank-ep-03",
+            "albumId": "frank-ep",
+            "title": "語言藝術"
+        },
+        {
+            "id": "frank-ep-04",
+            "albumId": "frank-ep",
+            "title": "瞬間看地球"
+        },
+        {
+            "id": "frank-ep-05",
+            "albumId": "frank-ep",
+            "title": "你和我"
+        },
+        {
+            "id": "we-are-rubberband-01",
+            "albumId": "we-are-rubberband",
+            "title": "發現號"
+        },
+        {
+            "id": "we-are-rubberband-02",
+            "albumId": "we-are-rubberband",
+            "title": "Slow & Easy"
+        },
+        {
+            "id": "we-are-rubberband-03",
+            "albumId": "we-are-rubberband",
+            "title": "陪著你走"
+        },
+        {
+            "id": "we-are-rubberband-04",
+            "albumId": "we-are-rubberband",
+            "title": "小涼伴 (Live)"
+        },
+        {
+            "id": "we-are-rubberband-05",
+            "albumId": "we-are-rubberband",
+            "title": "睜開眼"
+        },
+        {
+            "id": "we-are-rubberband-06",
+            "albumId": "we-are-rubberband",
+            "title": "夜不眠 (Live)"
+        },
+        {
+            "id": "we-are-rubberband-07",
+            "albumId": "we-are-rubberband",
+            "title": "一轉身卻天亮了"
+        },
+        {
+            "id": "we-are-rubberband-08",
+            "albumId": "we-are-rubberband",
+            "title": "長夜 My Love Goodnight"
+        },
+        {
+            "id": "we-are-rubberband-09",
+            "albumId": "we-are-rubberband",
+            "title": "3字頭"
+        },
+        {
+            "id": "we-are-rubberband-10",
+            "albumId": "we-are-rubberband",
+            "title": "囍宴樂隊"
+        },
+        {
+            "id": "we-are-rubberband-11",
+            "albumId": "we-are-rubberband",
+            "title": "夥伙"
+        },
+        {
+            "id": "we-are-rubberband-12",
+            "albumId": "we-are-rubberband",
+            "title": "Tears (Live)"
+        },
+        {
+            "id": "we-are-rubberband-13",
+            "albumId": "we-are-rubberband",
+            "title": "進化論"
+        },
+        {
+            "id": "we-are-rubberband-14",
+            "albumId": "we-are-rubberband",
+            "title": "Easy"
+        },
+        {
+            "id": "we-are-rubberband-15",
+            "albumId": "we-are-rubberband",
+            "title": "田鼠論壇"
+        },
+        {
+            "id": "we-are-rubberband-16",
+            "albumId": "we-are-rubberband",
+            "title": "SimpleLoveSong"
+        },
+        {
+            "id": "we-are-rubberband-17",
+            "albumId": "we-are-rubberband",
+            "title": "More Than A Woman"
+        },
+        {
+            "id": "we-are-rubberband-18",
+            "albumId": "we-are-rubberband",
+            "title": "電玩男 (Live)"
+        },
+        {
+            "id": "we-are-rubberband-19",
+            "albumId": "we-are-rubberband",
+            "title": "細街盃"
+        },
+        {
+            "id": "we-are-rubberband-20",
+            "albumId": "we-are-rubberband",
+            "title": "擦身情緣"
+        },
+        {
+            "id": "we-are-rubberband-21",
+            "albumId": "we-are-rubberband",
+            "title": "阿藍的故事"
+        },
+        {
+            "id": "we-are-rubberband-22",
+            "albumId": "we-are-rubberband",
+            "title": "天連地"
+        },
+        {
+            "id": "we-are-rubberband-23",
+            "albumId": "we-are-rubberband",
+            "title": "阿波羅 (Live)"
+        },
+        {
+            "id": "we-are-rubberband-24",
+            "albumId": "we-are-rubberband",
+            "title": "Here We Are (Live)"
+        },
+        {
+            "id": "we-are-rubberband-25",
+            "albumId": "we-are-rubberband",
+            "title": "倒行詩"
+        },
+        {
+            "id": "we-are-rubberband-26",
+            "albumId": "we-are-rubberband",
+            "title": "畫出彩虹"
+        },
+        {
+            "id": "we-are-rubberband-27",
+            "albumId": "we-are-rubberband",
+            "title": "海．地"
+        },
+        {
+            "id": "we-are-rubberband-28",
+            "albumId": "we-are-rubberband",
+            "title": "最後... 那"
+        },
+        {
+            "id": "we-are-rubberband-29",
+            "albumId": "we-are-rubberband",
+            "title": "Dedicated To..."
+        },
+        {
+            "id": "we-are-rubberband-30",
+            "albumId": "we-are-rubberband",
+            "title": "無名英雄進行曲"
+        },
+        {
+            "id": "gotta-go-01",
+            "albumId": "gotta-go",
+            "title": "Gotta Go!"
+        },
+        {
+            "id": "gotta-go-02",
+            "albumId": "gotta-go",
+            "title": "挾持"
+        },
+        {
+            "id": "gotta-go-03",
+            "albumId": "gotta-go",
+            "title": "許多年以後"
+        },
+        {
+            "id": "gotta-go-04",
+            "albumId": "gotta-go",
+            "title": "Alive"
+        },
+        {
+            "id": "gotta-go-05",
+            "albumId": "gotta-go",
+            "title": "#sorrynotsorry#"
+        },
+        {
+            "id": "gotta-go-06",
+            "albumId": "gotta-go",
+            "title": "休眠"
+        },
+        {
+            "id": "gotta-go-07",
+            "albumId": "gotta-go",
+            "title": "七"
+        },
+        {
+            "id": "gotta-go-08",
+            "albumId": "gotta-go",
+            "title": "堅彌地城"
+        },
+        {
+            "id": "gotta-go-09",
+            "albumId": "gotta-go",
+            "title": "我是樂隊"
+        },
+        {
+            "id": "gotta-go-10",
+            "albumId": "gotta-go",
+            "title": "我是未來"
+        },
+        {
+            "id": "gotta-go-11",
+            "albumId": "gotta-go",
+            "title": "G.I."
+        },
+        {
+            "id": "hours-01",
+            "albumId": "hours",
+            "title": "脫軌時刻"
+        },
+        {
+            "id": "hours-02",
+            "albumId": "hours",
+            "title": "城市當代配樂團"
+        },
+        {
+            "id": "hours-03",
+            "albumId": "hours",
+            "title": "阿發好風光"
+        },
+        {
+            "id": "hours-04",
+            "albumId": "hours",
+            "title": "那一端"
+        },
+        {
+            "id": "hours-05",
+            "albumId": "hours",
+            "title": "動物凶猛"
+        },
+        {
+            "id": "hours-06",
+            "albumId": "hours",
+            "title": "發麻"
+        },
+        {
+            "id": "hours-07",
+            "albumId": "hours",
+            "title": "你會有一天學會面對"
+        },
+        {
+            "id": "hours-08",
+            "albumId": "hours",
+            "title": "未來見"
+        },
+        {
+            "id": "hours-09",
+            "albumId": "hours",
+            "title": "逆流之歌"
+        },
+        {
+            "id": "i-01",
+            "albumId": "i",
+            "title": "¿醒未?"
+        },
+        {
+            "id": "i-02",
+            "albumId": "i",
+            "title": "孤島人"
+        },
+        {
+            "id": "i-03",
+            "albumId": "i",
+            "title": "每道微小"
+        },
+        {
+            "id": "i-04",
+            "albumId": "i",
+            "title": "朝著大海"
+        },
+        {
+            "id": "i-05",
+            "albumId": "i",
+            "title": "First Date"
+        },
+        {
+            "id": "i-06",
+            "albumId": "i",
+            "title": "漫長"
+        },
+        {
+            "id": "i-07",
+            "albumId": "i",
+            "title": "百毒不侵"
+        },
+        {
+            "id": "i-08",
+            "albumId": "i",
+            "title": "健兒"
+        },
+        {
+            "id": "i-09",
+            "albumId": "i",
+            "title": "練習說再見"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-01",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "Opening"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-02",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "Dedicated To…"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-03",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "¿醒未?"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-04",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "每道微小"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-05",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "一早地下鐵"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-06",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "小涼伴"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-07",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "阿波羅"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-08",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "天台飛人"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-09",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "百毒不侵"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-10",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "漫長"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-11",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "堅彌地城"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-12",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "睜開眼"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-13",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "挾持"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-14",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "山河故人"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-15",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "倒行詩"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-16",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "練習說再見"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-17",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "心照一生"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-18",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "hello?"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-19",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "M.A.M.A."
+        },
+        {
+            "id": "rubberband-ciao-2021-live-20",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "夥伙"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-21",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "逆流之歌"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-22",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "發現號"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-23",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "未來見"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-24",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "你和我"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-25",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "夏令時間"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-26",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "Easy"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-27",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "SimpleLoveSong"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-28",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "Ciao"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-29",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "田鼠論壇"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-30",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "健兒"
+        },
+        {
+            "id": "rubberband-ciao-2021-live-31",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "G.I."
+        },
+        {
+            "id": "rubberband-ciao-2021-live-32",
+            "albumId": "rubberband-ciao-2021-live",
+            "title": "你會有一天學會面對"
+        },
+        {
+            "id": "men-on-the-dragon-ost-01",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "槍頭向外"
+        },
+        {
+            "id": "men-on-the-dragon-ost-02",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "打倒獅子山下"
+        },
+        {
+            "id": "men-on-the-dragon-ost-03",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "拆肉清蒸"
+        },
+        {
+            "id": "men-on-the-dragon-ost-04",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "鄰居囉"
+        },
+        {
+            "id": "men-on-the-dragon-ost-05",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "陳自豪"
+        },
+        {
+            "id": "men-on-the-dragon-ost-06",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "明刀明槍"
+        },
+        {
+            "id": "men-on-the-dragon-ost-07",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "劉德華開演唱會"
+        },
+        {
+            "id": "men-on-the-dragon-ost-08",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "我係黃淑儀"
+        },
+        {
+            "id": "men-on-the-dragon-ost-09",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "威廉的背肌"
+        },
+        {
+            "id": "men-on-the-dragon-ost-10",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "豹紋泳褲"
+        },
+        {
+            "id": "men-on-the-dragon-ost-11",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "Tickets"
+        },
+        {
+            "id": "men-on-the-dragon-ost-12",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "冤家路窄"
+        },
+        {
+            "id": "men-on-the-dragon-ost-13",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "入拉抽回"
+        },
+        {
+            "id": "men-on-the-dragon-ost-14",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "萬箭穿心局"
+        },
+        {
+            "id": "men-on-the-dragon-ost-15",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "Mark哥唔會喊"
+        },
+        {
+            "id": "men-on-the-dragon-ost-16",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "夜視鏡"
+        },
+        {
+            "id": "men-on-the-dragon-ost-17",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "水底下的泰哥"
+        },
+        {
+            "id": "men-on-the-dragon-ost-18",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "錢銀女人"
+        },
+        {
+            "id": "men-on-the-dragon-ost-19",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "隻抽"
+        },
+        {
+            "id": "men-on-the-dragon-ost-20",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "炒甩龍頭"
+        },
+        {
+            "id": "men-on-the-dragon-ost-21",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "前哨戰"
+        },
+        {
+            "id": "men-on-the-dragon-ost-22",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "跟著鼓聲向前行"
+        },
+        {
+            "id": "men-on-the-dragon-ost-23",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "坐亞望冠"
+        },
+        {
+            "id": "men-on-the-dragon-ost-24",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "同居的希望"
+        },
+        {
+            "id": "men-on-the-dragon-ost-25",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "Dorothy的洗澡水"
+        },
+        {
+            "id": "men-on-the-dragon-ost-26",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "淑儀的戀愛"
+        },
+        {
+            "id": "men-on-the-dragon-ost-27",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "多謝你送個海畀我"
+        },
+        {
+            "id": "men-on-the-dragon-ost-28",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "泰哥的尊嚴"
+        },
+        {
+            "id": "men-on-the-dragon-ost-29",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "浪漫的粉腸與深情的人渣"
+        },
+        {
+            "id": "men-on-the-dragon-ost-30",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "急彎"
+        },
+        {
+            "id": "men-on-the-dragon-ost-31",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "我與你,兩個人的事"
+        },
+        {
+            "id": "men-on-the-dragon-ost-32",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "隔牆的阿龍"
+        },
+        {
+            "id": "men-on-the-dragon-ost-33",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "阿龍的眼淚"
+        },
+        {
+            "id": "men-on-the-dragon-ost-34",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "龍舟式罷工"
+        },
+        {
+            "id": "men-on-the-dragon-ost-35",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "至少當一個男人"
+        },
+        {
+            "id": "men-on-the-dragon-ost-36",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "英雄本色,是永恆的"
+        },
+        {
+            "id": "men-on-the-dragon-ost-37",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "大叔的萬水千山"
+        },
+        {
+            "id": "men-on-the-dragon-ost-38",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "無忘初衷"
+        },
+        {
+            "id": "men-on-the-dragon-ost-39",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "阿龍的祝福"
+        },
+        {
+            "id": "men-on-the-dragon-ost-40",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "逆流之歌"
+        },
+        {
+            "id": "men-on-the-dragon-ost-41",
+            "albumId": "men-on-the-dragon-ost",
+            "title": "大叔情歌"
+        },
+        {
+            "id": "juntos-01",
+            "albumId": "juntos",
+            "title": "Juntos"
+        },
+        {
+            "id": "juntos-02",
+            "albumId": "juntos",
+            "title": "戀人日常（的直線抽擊）"
+        },
+        {
+            "id": "juntos-03",
+            "albumId": "juntos",
+            "title": "不如散步"
+        },
+        {
+            "id": "juntos-04",
+            "albumId": "juntos",
+            "title": "主僕關係"
+        },
+        {
+            "id": "juntos-05",
+            "albumId": "juntos",
+            "title": "過度關注組"
+        },
+        {
+            "id": "juntos-06",
+            "albumId": "juntos",
+            "title": "宇宙大王"
+        },
+        {
+            "id": "juntos-07",
+            "albumId": "juntos",
+            "title": "只能給你奏著"
+        },
+        {
+            "id": "juntos-08",
+            "albumId": "juntos",
+            "title": "晚了"
+        },
+        {
+            "id": "juntos-09",
+            "albumId": "juntos",
+            "title": "Be Right Back"
+        },
+        {
+            "id": "komorebi-01",
+            "albumId": "komorebi",
+            "title": "下一位參賽者"
+        },
+        {
+            "id": "komorebi-02",
+            "albumId": "komorebi",
+            "title": "跟住去邊度"
+        },
+        {
+            "id": "komorebi-03",
+            "albumId": "komorebi",
+            "title": "搲撈HK"
+        },
+        {
+            "id": "komorebi-04",
+            "albumId": "komorebi",
+            "title": "毒蟲圖鑑"
+        },
+        {
+            "id": "komorebi-05",
+            "albumId": "komorebi",
+            "title": "太平門"
+        },
+        {
+            "id": "komorebi-06",
+            "albumId": "komorebi",
+            "title": "理想的下午"
+        },
+        {
+            "id": "komorebi-07",
+            "albumId": "komorebi",
+            "title": "我永遠記得"
+        },
+        {
+            "id": "komorebi-08",
+            "albumId": "komorebi",
+            "title": "揀睇誌"
+        },
+        {
+            "id": "komorebi-09",
+            "albumId": "komorebi",
+            "title": "一杯"
+        },
+        {
+            "id": "komorebi-10",
+            "albumId": "komorebi",
+            "title": "想寫好的功課"
+        },
+        {
+            "id": "komorebi-11",
+            "albumId": "komorebi",
+            "title": "G’night"
+        },
+        {
+            "id": "komorebi-12",
+            "albumId": "komorebi",
+            "title": "木漏日"
+        },
+        {
+            "id": "singles-01",
+            "albumId": "singles",
+            "title": "Ciao"
+        }
+    ]
+}

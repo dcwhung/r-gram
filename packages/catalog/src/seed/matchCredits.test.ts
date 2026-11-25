@@ -20,6 +20,8 @@ const DISCOGRAPHY: SeedDiscography = {
         {
             order: 0,
             id: 'apollo-18',
+            category: 'album',
+            categoryNo: 1,
             wheelKey: 'A',
             title: 'Apollo 18',
             releaseDate: '2008-09-26',
@@ -34,6 +36,8 @@ const DISCOGRAPHY: SeedDiscography = {
         {
             order: 1,
             id: 'beaming',
+            category: 'best',
+            categoryNo: 2,
             wheelKey: 'B',
             title: 'Beaming',
             releaseDate: null,
@@ -129,6 +133,15 @@ describe('seedToCatalog', () => {
             year: null,
             cover: null,
         });
+    });
+
+    // CR-004（FR-124）：類別同序號照抄入 catalog
+    it('should copy the release category and ordinal', () => {
+        const document = seedToCatalog(DISCOGRAPHY, CREDITS, options);
+        expect(document.albums.map((album) => [album.category, album.categoryNo])).toEqual([
+            ['album', 1],
+            ['best', 2],
+        ]);
     });
 
     it('should attach matched credits and leave the rest null', () => {

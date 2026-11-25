@@ -15,7 +15,7 @@ const readSeed = <T>(name: string): T =>
         ),
     ) as T;
 
-const EXPECTED_TRACKS = 262;
+const EXPECTED_TRACKS = 291;
 
 const tracks = seedToCatalog(
     readSeed<SeedDiscography>('discography.json'),

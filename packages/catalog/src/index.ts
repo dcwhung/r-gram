@@ -24,6 +24,12 @@ export {
 export { FAVOURITES_ALBUM_ID, isAlbumId, isTrackId } from './schema/ids';
 export type { CatalogError, CatalogErrorCode } from './schema/issues';
 export { mediaUrl } from './schema/mediaUrl';
+export {
+    expectedFolder,
+    isReleaseCategory,
+    RELEASE_CATEGORIES,
+    type ReleaseCategory,
+} from './schema/releaseCategory';
 export { parseCatalogDocument, type CatalogParseResult } from './schema/parseCatalogDocument';
 export {
     CATALOG_VERSION,

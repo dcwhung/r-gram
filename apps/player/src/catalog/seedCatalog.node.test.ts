@@ -13,7 +13,7 @@ const readSeed = <T>(name: string): T =>
         readFileSync(fileURLToPath(new URL(`../../../api/seed/${name}`, import.meta.url)), 'utf8'),
     ) as T;
 
-const EXPECTED_ALBUMS = 17;
+const EXPECTED_ALBUMS = 21;
 const TIMEOUT_MS = 1000;
 
 /** 每隻碟淨係第 1 首有音檔，其餘係灰色行 */

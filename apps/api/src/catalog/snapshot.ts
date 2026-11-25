@@ -1,9 +1,9 @@
 /*
  * 生成 catalog 要讀嘅 D1 資料：全部專輯（管理端次序）同全部歌（歌號次序）連歌詞檔名。
  * 兩句喺同一個 batch（一個 transaction）讀：專輯同歌係同一刻嘅資料，唔會一半新一半舊。
- * 參考欄（歌詞參考連結、備註、YouTube）同 folder 唔入 catalog，唔讀
+ * 參考欄（歌詞參考連結、備註、YouTube）、folder 同來源 ETag 唔入 catalog，唔讀
  */
-import { CREDIT_FIELDS } from '@r-gram/catalog';
+import { CREDIT_FIELDS, type ReleaseCategory } from '@r-gram/catalog';
 
 export interface AlbumSnapshot {
     id: string;
@@ -12,6 +12,8 @@ export interface AlbumSnapshot {
     release_date: string | null;
     year: number | null;
     type: string;
+    category: ReleaseCategory;
+    category_no: number;
     label: string;
     accent: string;
     cover: string | null;
@@ -35,7 +37,8 @@ export interface CatalogSnapshot {
 }
 
 const ALBUMS_SQL = `
-    SELECT id, title, wheel_key, release_date, year, type, label, accent, cover, thumb
+    SELECT id, title, wheel_key, release_date, year, type, category, category_no, label, accent,
+        cover, thumb
     FROM albums
     ORDER BY sort_order, id`;
 

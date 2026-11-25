@@ -1,4 +1,5 @@
 /* albums 表嘅行 ⇄ API 物件（camelCase）；欄位名對照集中喺度，SQL 只用呢度嘅常數砌欄位名 */
+import { expectedFolder, type ReleaseCategory } from '@r-gram/catalog';
 import type { EditableField } from './fieldRules';
 
 export interface AlbumRow {
@@ -8,9 +9,12 @@ export interface AlbumRow {
     release_date: string | null;
     year: number | null;
     type: string;
+    category: ReleaseCategory;
+    category_no: number;
     label: string;
     accent: string;
     cover: string | null;
+    cover_source_etag: string | null;
     thumb: string | null;
     folder: string | null;
     updated_at: string;
@@ -22,6 +26,9 @@ export const COLUMN_OF: Record<EditableField, string> = {
     wheelKey: 'wheel_key',
     releaseDate: 'release_date',
     type: 'type',
+    category: 'category',
+    categoryNo: 'category_no',
+    coverSourceEtag: 'cover_source_etag',
     label: 'label',
     accent: 'accent',
     cover: 'cover',
@@ -29,8 +36,10 @@ export const COLUMN_OF: Record<EditableField, string> = {
     folder: 'folder',
 };
 
-export const ALBUM_COLUMNS =
-    'id, title, wheel_key, release_date, year, type, label, accent, cover, thumb, folder, updated_at';
+export const ALBUM_COLUMNS = [
+    'id, title, wheel_key, release_date, year, type, category, category_no',
+    'label, accent, cover, cover_source_etag, thumb, folder, updated_at',
+].join(', ');
 
 /** 顯示用年份 = 發行日期嘅年；冇日期就冇年份 */
 const YEAR_DIGITS = 4;
@@ -44,11 +53,16 @@ export const toAlbum = (row: AlbumRow) => ({
     releaseDate: row.release_date,
     year: row.year,
     type: row.type,
+    category: row.category,
+    categoryNo: row.category_no,
     label: row.label,
     accent: row.accent,
     cover: row.cover,
+    coverSourceEtag: row.cover_source_etag,
     thumb: row.thumb,
+    // folder：手動改綁嘅名（NULL = 用預期資料夾名）；expectedFolder：計出嚟，唔可以改（CR-004）
     folder: row.folder,
+    expectedFolder: expectedFolder(row.category, row.category_no, row.id),
     updatedAt: row.updated_at,
 });
 

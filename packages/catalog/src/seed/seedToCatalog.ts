@@ -59,6 +59,8 @@ const toAlbum = (
     releaseDate: album.releaseDate,
     year: album.year,
     type: album.type,
+    category: album.category,
+    categoryNo: album.categoryNo,
     label: album.label,
     accent: accentFor(album.id, options.accents),
     cover: null,

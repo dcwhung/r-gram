@@ -1,4 +1,7 @@
-/* API-010 GET /api/albums、API-012 GET /api/albums/:id：列表、完整度、全站統計（FR-114、D35）、catalog 狀態 */
+/*
+ * API-010 GET /api/albums、API-012 GET /api/albums/:id：列表、完整度、全站統計（FR-114、D35）、catalog 狀態；
+ * CR-004：發行類別、序號、封面來源 ETag、預期資料夾名
+ */
 import { zhHant } from '../src/i18n/zh-Hant';
 import {
     api,
@@ -41,11 +44,15 @@ describe('GET /api/albums', () => {
             releaseDate: null,
             year: null,
             type: '',
+            category: 'album',
+            categoryNo: 3,
             label: '',
             accent: '#c8442b',
             cover: 'cover0000000000a.webp',
+            coverSourceEtag: null,
             thumb: null,
             folder: null,
+            expectedFolder: 'album-03-b',
             updatedAt: '2026-11-25T00:00:00.000Z',
             completeness: { tracks: 3, audio: 2, mv: 1, lyrics: 1 },
         });
@@ -81,6 +88,23 @@ describe('GET /api/albums', () => {
         const body = await list();
         expect(body.albums[0]?.completeness).toEqual({ tracks: 1, audio: 1, mv: 0, lyrics: 0 });
         expect(body.stats).toMatchObject({ tracks: 1, tracksWithAudio: 1, tracksWithMv: 0 });
+    });
+
+    // CR-004：folder 係手動改綁嘅名（NULL = 用預期資料夾名）；expectedFolder 永遠由類別、序號、id 計
+    it('should show a manual folder next to the expected folder name', async () => {
+        await insertAlbum('live-two', 1, {
+            category: 'live',
+            category_no: 2,
+            folder: 'Ciao 2021',
+            cover_source_etag: '"e1"',
+        });
+        expect((await list()).albums[0]).toMatchObject({
+            category: 'live',
+            categoryNo: 2,
+            folder: 'Ciao 2021',
+            expectedFolder: 'live-02-live-two',
+            coverSourceEtag: '"e1"',
+        });
     });
 
     it('should break sort order ties by id', async () => {
@@ -145,7 +169,14 @@ describe('GET /api/albums/:id', () => {
         const body = await json<{ tracks: Record<string, unknown>[] }>(
             await api('GET', '/api/albums/b'),
         );
-        expect(body).toMatchObject({ id: 'b', title: 'Beaming', cover: 'cover0000000000a.webp' });
+        expect(body).toMatchObject({
+            id: 'b',
+            title: 'Beaming',
+            cover: 'cover0000000000a.webp',
+            category: 'album',
+            categoryNo: 3,
+            expectedFolder: 'album-03-b',
+        });
         expect(body).not.toHaveProperty('completeness');
         expect(body.tracks.map((track) => track.id)).toEqual(['b-00', 'b-01', 'b-02', 'b-03']);
     });

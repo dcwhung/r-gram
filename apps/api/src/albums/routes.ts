@@ -3,11 +3,11 @@
  * 掛喺 /api/albums，喺 api/routes.ts 嘅 session + same-origin 守門之後（backlog B-019 ①）。
  * 寫入成功之後生成 catalog 唔喺度做：api/afterWrite.ts 嘅後置步驟（T-026 接上 rebuildCatalog()）
  */
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import type { AppEnv } from '../app';
 import { FORCE_CONFIRMED, HTTP_STATUS } from '../config';
 import { readIfMatch, readJsonObject } from '../lib/http';
-import { albumError, notAnObject, validationError } from './errors';
+import { albumError, notAnObject, ordinalTaken, validationError } from './errors';
 import { albumOverview } from './overview';
 import { readOrder } from './order';
 import { toAlbum } from './rows';
@@ -17,6 +17,16 @@ import { tracksOf } from '../tracks/rows';
 import { parseCreate, parseFields, unknownAssetIssues } from './validate';
 
 export const albumRoutes = new Hono<AppEnv>();
+
+/**
+ * PATCH 改唔到：冇呢張碟 → 404；If-Match 過時（包括同時另一個請求先改咗）→ 409 STALE；
+ * 兩樣都唔係 = 改完之後嘅序號同類別入面另一張碟撞咗（CR-004）
+ */
+const whyNotUpdated = async (c: Context<AppEnv>, id: string, expected: string) => {
+    const current = await store.findAlbum(c.env.DB, id);
+    if (!current) return albumError(c, 'notFound');
+    return current.updated_at === expected ? ordinalTaken(c) : albumError(c, 'stale');
+};
 
 albumRoutes.get('/', async (c) => c.json(await albumOverview(c.env.DB)));
 
@@ -38,7 +48,9 @@ albumRoutes.post('/', async (c) => {
     const { id, fields, issues } = parseCreate(body);
     issues.push(...(await unknownAssetIssues(c.env.DB, fields)));
     if (issues.length > 0) return validationError(c, issues);
-    if (!(await store.insertAlbum(c.env.DB, id, fields))) return albumError(c, 'idTaken');
+    const outcome = await store.insertAlbum(c.env.DB, id, fields);
+    if (outcome === 'idTaken') return albumError(c, 'idTaken');
+    if (outcome === 'ordinalTaken') return ordinalTaken(c);
     const row = await store.findAlbum(c.env.DB, id);
     return c.json(row && toAlbum(row), HTTP_STATUS.created);
 });
@@ -61,9 +73,7 @@ albumRoutes.patch('/:id', async (c) => {
     if (issues.length > 0) return validationError(c, issues);
     const updated = await store.updateAlbum(c.env.DB, id, fields, expected);
     if (updated) return c.json(toAlbum(updated));
-    // 改唔到但張碟仲喺度 = If-Match 過時（包括同時另一個請求先改咗）
-    if (!(await store.findAlbum(c.env.DB, id))) return albumError(c, 'notFound');
-    return albumError(c, 'stale');
+    return whyNotUpdated(c, id, expected);
 });
 
 albumRoutes.delete('/:id', async (c) => {

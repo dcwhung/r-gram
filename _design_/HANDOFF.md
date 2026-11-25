@@ -206,6 +206,8 @@ r-gram-handoff/
 
 ## 9. 資料（`data/discography.json`）
 
+> ⚠️ **已由 CR-004 取代（2026-11-25）**：資料而家喺 `apps/api/seed/discography.json`、`credits.json`，由 `_design_/tools/parse_discography.py`、`parse_credits.py` 由新版來源檔生成（唔人手改）：21 個發行、291 首歌，每個發行加 `category`、`categoryNo`；假專輯 `singles` 已取消（佢嗰首 Ciao 係迷你專輯《在一起》第 1 首）。下面係交接時嘅舊版樣本同數字，只作參考。
+
 結構：
 
 ```json

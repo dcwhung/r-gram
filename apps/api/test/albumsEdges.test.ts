@@ -41,6 +41,7 @@ describe('album edge cases', () => {
         const response = await api('POST', '/api/albums', {
             id: 'x',
             title: 'X',
+            category: 'album',
             folder: 'f'.repeat(201),
             releaseDate: '26/09/2008',
         });
