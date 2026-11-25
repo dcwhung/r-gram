@@ -1,7 +1,7 @@
 # Technical Spec：R Gram（播放端 PWA + 內容管理 Backend）
 
 **版本**：v1.1
-**日期**：2026-11-24 23:52（v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
+**日期**：2026-11-25 00:01（v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
 **作者**：Architect Agent
 **關聯 Functional Spec**：v1.3（包括 CR-001 歌曲 credit、CR-002 播放端介面定稿）`2026-11-24_16-13_functional-spec_r-gram.md`
 **狀態**：v1.0 Approved；v1.1 = 跟 CR-002 更新（見文末「CR-002 對技術設計嘅影響」），等用戶確認
@@ -743,8 +743,9 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | 淨空規則 | — | `stage/layouts/*.test.ts`：對每份幾何表驗 Functional Spec CR-002 嘅淨空規則（掣同 CD ≥ 16、控件同轉盤 ≥ 40、細掣同旋鈕 ≥ 40、螺絲周圍 120、旋鈕左右空白相差 ≤ 2、感應範圍 ≥ 44pt 唔重疊）。加裝置版面時同一組測試照跑 |
 | 動畫 | scene token | 新增：轉碟 0.5s（字母盤、其他碟滑入、唱臂同細掣淡出）、指針轉動 0.5s；全部用現有 `--motion-scene-*`；preview 嘅做法（只改 `transform`／`opacity`，靠 CSS transition）可以照用 |
 | 字母盤過場（FR-038） | — | 底盤：`scale` 由 0.42（內圈貼旋鈕邊）去 1，0.5s，打開用回彈曲線；字母：每個獨立 `transform` + `opacity`，0.26s，用 `transition-delay` 做順時針逐個出（打開每格 14ms、收返每格 8ms，由最尾一格先收）。延遲由格數計，唔寫死 17 |
-| MV 電視過場（FR-038） | 升起 + CRT 開熄（v16） | CSS keyframes：`tvRise` 0.8s（回彈）→ `crtOn` 0.45s；`crtOff` 0.28s → `tvDrop` 0.45s；天線 `scale` 彈出／縮返；背後模糊層疊喺清晰層上面做 `opacity` 淡入淡出（唔對 `filter: blur` 做動畫，慳 GPU）。熄機期間（約 0.78s）鎖住電視掣，完咗先轉場景狀態。時長全部入 `config/motion.ts` |
-| 減少動態效果 | `prefersReducedMotion` | 上面兩組過場喺 `prefers-reduced-motion: reduce` 下時長 = 0，狀態即時切換 |
+| MV 電視過場（FR-038） | 升起 + CRT 開熄（v16） | CSS keyframes：`tvRise` 0.8s（回彈）→ `crtOn` 0.22s（0.7s 開始）；`crtOff` 0.15s → `tvDrop` 0.45s；天線 `scale` 彈出／縮返；背後模糊層疊喺清晰層上面做 `opacity` 淡入淡出（唔對 `filter: blur` 做動畫，慳 GPU）。熄機期間（約 0.63s）鎖住電視掣，完咗先轉場景狀態。時長全部入 `config/motion.ts` |
+| 歌書過場（FR-038） | — | 打開 0.4s：暗層 `opacity`；框線以唱片夾嗰邊做原點 `scaleX(0 → 1)`（`vector-effect: non-scaling-stroke`）；歌詞每行以碟心做原點 `rotate(k × step → 0)` + `opacity`；曲詞編監逐行 `translateX` + `opacity`（每行遲 40ms）；左上資訊黑字墊底、白字淡入。收返 0.24s 倒轉，期間鎖住 i 掣，完咗先轉場景狀態。歌單日後要加過場可以重用同一組（`arcRows()` 已經以碟心做原點） |
+| 減少動態效果 | `prefersReducedMotion` | 上面三組過場喺 `prefers-reduced-motion: reduce` 下時長 = 0，狀態即時切換 |
 | i18n（FR-037） | 管理端 `apps/admin/src/i18n/zh-HK.ts` | 播放端加 `apps/player/src/i18n/`：`zh-Hant.ts`（語言檔，`as const`）、`t.ts`（有型別嘅 `t(key, params)`，key 打錯 = 編譯錯）、`locale.ts`（揀語言：而家固定 `zh-Hant`；之後按 `navigator.languages` 揀，冇對應就退返 `zh-Hant`）。管理端語言檔改名 `zh-Hant.ts`，同一套 `t()`。唔用第三方 i18n 套件（同 903-player 一樣，文字量少） |
 | 書面語測試（FR-037） | 只限管理端 | 兩個 app 各一個 `writtenChinese.test.ts`：掃語言檔每一句，見到口語字（`嘅咗唔喺嚟啲佢冇睇嗰咁啱俾嘢揾搵乜咩撳㩒㗎囉嘞噉`）就 fail。只掃語言檔，唔掃 catalog 資料（歌名可以有口語字） |
 | 寫死文字測試（FR-037） | — | `apps/player` 加一個 test：`src/components/**` 同 `src/app/**` 嘅 `.tsx` 唔可以出現中文字面值（要經 `t()`）；`aria-label` 一樣 |
@@ -762,7 +763,7 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | FR-035 刻度同字母盤自動生成 | `components/knob`、`components/dial-ring`、catalog `albums[].wheelKey` |
 | FR-036 超長文字 | `utils/fitText.ts` |
 | FR-037 介面語言同 i18n | `apps/player/src/i18n/`、`apps/admin/src/i18n/`、兩邊嘅 `writtenChinese.test.ts`、寫死文字測試 |
-| FR-038 過場動畫 | `components/dial-ring`、`components/tv`、`config/motion.ts`、`utils/motion.ts` |
+| FR-038 過場動畫 | `components/dial-ring`、`components/booklet`、`components/tv`、`config/motion.ts`、`utils/motion.ts` |
 | FR-017 Info | 刪 |
 
 ## 修訂記錄
@@ -772,3 +773,4 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 | v1.0 | 2026-11-24 16:50 | 初稿 |
 | v1.1 | 2026-11-24 23:18 | 跟 Functional Spec v1.3（CR-002）更新：加「CR-002 對技術設計嘅影響」一節。只影響 `apps/player`；Backend、API、資料庫、部署不變 |
 | v1.1（補） | 2026-11-24 23:52 | 跟 CR-002 補充：i18n（播放端加 `src/i18n/`、兩邊書面語測試、寫死文字測試、`lang`）；字母盤同 MV 電視過場嘅做法。管理端語言檔改名 `zh-Hant.ts` |
+| v1.1（補二） | 2026-11-25 00:01 | 跟 CR-002 補充（preview 第 15 版）：歌書過場嘅做法；CRT 開機 0.22s、熄機 0.15s |

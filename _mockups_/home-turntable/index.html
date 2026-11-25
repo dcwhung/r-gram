@@ -7,6 +7,7 @@
 <title>R Gram 播放端場景</title>
 <!--
     R Gram — 主頁改版 preview（Functional Spec v1.2 §Design Proposal P-4，FR-025）
+    第 15 版（2026-11-25）。用戶意見：電視第二粒旋鈕 icon 要表示快轉同倒轉；屏幕開機 / 熄機加快；開關歌書要有過場；「尚未收藏歌曲」下面唔要提示。
     第 14 版（2026-11-24）。用戶意見：MV 電視欠立體感、電視腳光暗唔啱（參考附圖）；電視出現要有向上升起嘅過場；
     所有介面文字用中文書面語、支援 i18n、預設繁體中文。
     第 13 版：加歌單、Favourites 歌單、MV 電視（主頁第 12 版已確認）。
@@ -87,17 +88,31 @@ tr:last-child td { border-bottom: 0; }
     svg.live [data-anim="dialplate"] { transition: transform .5s, opacity .22s ease; }
     svg.live .tv-rise { animation: tvRise .8s cubic-bezier(.3, 1.45, .55, 1) both; }
     svg.live .tv-rise .tv-antenna { animation: antennaOut .35s cubic-bezier(.3, 1.6, .5, 1) .5s both; }
-    svg.live .tv-drop .tv-antenna { animation: antennaIn .26s ease-in both; }
-    svg.live .tv-drop { animation: tvDrop .45s cubic-bezier(.55, 0, .9, .4) .3s both; }
+    svg.live .tv-drop .tv-antenna { animation: antennaIn .15s ease-in both; }
+    svg.live .tv-drop { animation: tvDrop .45s cubic-bezier(.55, 0, .9, .4) .17s both; }
     svg.live .tv-veil-in { animation: veilIn .5s ease both; }
-    svg.live .tv-veil-out { animation: veilOut .45s ease .3s both; }
-    svg.live .crt-on { animation: crtOn .45s ease-out .8s both; }
-    svg.live .crt-on .crt-white { animation: veilOut .4s ease-out .85s both; }
-    svg.live .crt-off { animation: crtOff .28s ease-in both; }
+    svg.live .tv-veil-out { animation: veilOut .45s ease .17s both; }
+    svg.live .crt-on { animation: crtOn .22s ease-out .7s both; }
+    svg.live .crt-on .crt-white { animation: veilOut .2s ease-out .72s both; }
+    svg.live .crt-off { animation: crtOff .15s ease-in both; }
+    /* 歌書過場：打開 0.4s（暗層淡入、框線由唱片夾伸出、歌詞由而家嗰行沿弧線展開、曲詞編監逐行滑入）；收返 0.24s */
+    svg.live .book-in .book-dim, svg.live .book-info-in { animation: veilIn .3s ease both; }
+    svg.live .book-in .book-frame { animation: frameOut .3s cubic-bezier(.2, .8, .3, 1) both; }
+    svg.live .book-in .book-line { animation: lineFan .34s cubic-bezier(.2, .8, .3, 1) .06s both; }
+    svg.live .book-in .book-credit { animation: creditIn .24s ease-out calc(var(--i) * 40ms + 40ms) both; }
+    svg.live .book-out .book-dim, svg.live .book-info-out { animation: veilOut .24s ease both; }
+    svg.live .book-out .book-frame { animation: frameIn .22s ease-in both; }
+    svg.live .book-out .book-line { animation: lineFold .22s ease-in both; }
+    svg.live .book-out .book-credit { animation: veilOut .16s ease both; }
     svg.live .crt-off .crt-white { animation: veilIn .1s linear both; }
 }
 @keyframes tvRise { from { transform: translateY(1090px); } to { transform: translateY(0); } }
 @keyframes tvDrop { from { transform: translateY(0); } to { transform: translateY(1090px); } }
+@keyframes frameOut { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes frameIn { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@keyframes lineFan { from { transform: rotate(var(--spread)); opacity: 0; } to { transform: rotate(0deg); opacity: 1; } }
+@keyframes lineFold { from { transform: rotate(0deg); opacity: 1; } to { transform: rotate(var(--spread)); opacity: 0; } }
+@keyframes creditIn { from { transform: translateX(-16px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes antennaOut { from { transform: scale(0); } to { transform: scale(1); } }
 @keyframes antennaIn { from { transform: scale(1); } to { transform: scale(0); } }
 @keyframes veilIn { from { opacity: 0; } to { opacity: 1; } }
@@ -110,7 +125,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede">第 14 版。MV 電視照 v16 重畫層次同光暗（倒角機殼、凹入面板、斜邊框、玻璃反光），電視腳改做向外斜嘅錐形腳連黑色膠腳；互動格入面電視會由底部升起、開機，㩒 ■ 會熄機再向下收埋。畫面入面所有介面文字改咗做中文書面語（例如「我的收藏」「第 07 首」「尚未收藏歌曲」）。</p>
+    <p class="lede">第 15 版。電視第二粒旋鈕 icon 改做 ◀◀ ▶▶（快轉同倒轉都用佢）；屏幕開機 0.22 秒、熄機 0.15 秒（之前 0.45／0.28）；歌書開關加咗過場（暗層淡入、框線由唱片夾伸出、歌詞沿弧線展開）；「尚未收藏歌曲」下面嗰句提示刪走。</p>
     <p class="lede">封面同歌詞係佔位。</p>
 
     <div class="bar" role="group" aria-label="預覽設定">
@@ -130,7 +145,7 @@ tr:last-child td { border-bottom: 0; }
                         <tr><td>刻度最尾嘅 ♥</td><td>旋鈕指針轉去指住 ♥，隻碟換做 Favourites 碟；再㩒換返</td></tr>
                         <tr><td>碟面</td><td>打開歌單（唱片機壓暗，歌名沿碟弧線排）。㩒暗位收返</td></tr>
                         <tr><td>唱片夾</td><td>未揀歌：打開歌單。歌單入面：播揀中嗰首（落針）。播緊：暫停／繼續</td></tr>
-                        <tr><td>MV 掣</td><td>有歌先㩒得：電視由底部升起（0.8 秒，有回彈）再開機，唱片機停低兼變模糊。㩒 ■：熄機（0.28 秒）再向下收埋，唱片唔會自動續播</td></tr>
+                        <tr><td>MV 掣</td><td>有歌先㩒得：電視由底部升起（0.8 秒，有回彈）再開機（0.22 秒），唱片機停低兼變模糊。㩒 ■：熄機（0.15 秒）再向下收埋，唱片唔會自動續播</td></tr>
                         <tr><td><b>i</b></td><td>歌書：曲詞編監 + 沿碟弧線嘅歌詞。有歌先㩒得</td></tr>
                         <tr><td>歌名後面嘅心形</td><td>收藏／取消收藏呢首歌</td></tr>
                         <tr><td>播放模式掣</td><td>順序 → 重覆全部 → 重覆一首 → 隨機（播緊時外圈著燈）</td></tr>
@@ -155,7 +170,8 @@ tr:last-child td { border-bottom: 0; }
                 <tr><td>歌單</td><td>㩒暗位可以收返歌單（v16 冇講點樣唔揀歌就返出嚟）</td><td>要有路走</td></tr>
                 <tr><td>Favourites 歌單</td><td>歌號 = 收藏次序；左上角歌名下面顯示原本嗰隻碟；下架咗嘅歌變灰</td><td>Functional Spec D19</td></tr>
                 <tr><td>MV 電視</td><td>▶ ❚❚ ■ 三粒掣由右邊窄板搬去機身下面嗰條，放大咗</td><td>v16 三粒掣中心只隔 17pt，感應範圍一定重疊；而家每粒 44pt 唔重疊</td></tr>
-                <tr><td>MV 電視</td><td>右邊兩粒大旋鈕（音量、跳段）可以操作</td><td>你之前決定（C9）</td></tr>
+                <tr><td>MV 電視</td><td>右邊兩粒大旋鈕（音量；快轉／倒轉）可以操作</td><td>你之前決定（C9）</td></tr>
+                <tr><td>歌書</td><td>開關有過場：打開 0.4 秒（暗層淡入、框線由唱片夾伸出、歌詞由而家嗰行沿弧線展開、曲詞編監逐行滑入）；收返 0.24 秒（倒轉）</td><td>你今次嘅要求</td></tr>
                 <tr><td>字母盤</td><td>有過場（0.5 秒）：底盤由旋鈕邊向外擴開，字母由 A 開始順時針逐個彈出，♥ 由刻度滑出去；收返就倒轉</td><td>你今次嘅要求</td></tr>
                 <tr><td>全部畫面</td><td>介面文字用中文書面語：`FAVOURITES` → 我的收藏、`N TRACKS` → N 首、`TRACK 07` → 第 07 首、`Fan-made, unofficial` → 歌迷自製　非官方</td><td>你今次嘅要求。正式 app 用 i18n，預設繁體中文；英文留畀之後加語言檔</td></tr>
             </tbody>
@@ -310,7 +326,6 @@ tr:last-child td { border-bottom: 0; }
         trackCount: (count) => `${count} 首`,
         trackNumber: (no) => `第 ${String(no).padStart(2, '0')} 首`,
         emptyFavourites: '尚未收藏歌曲',
-        emptyFavouritesHint: '播放時點按歌名後的 ♥',
         unofficial: '歌迷自製　非官方',
         openList: '開啟歌單',
         play: '播放',
@@ -405,16 +420,16 @@ tr:last-child td { border-bottom: 0; }
         ['播緊', '落針、碟轉；唱片夾上面有 pause 同進度圈；歌名後面有心形；播放模式掣著燈', { album: 'komorebi', song: true, booklet: false, wheel: 0 }],
         ['歌書（㩒 i）', '唱片機壓暗；曲詞編監喺左邊一欄；歌詞沿碟弧線排，白色框線接住唱片夾', { album: 'komorebi', song: true, booklet: true, wheel: 0 }],
         ['歌單（㩒碟面）', '唱片機壓暗；歌名沿碟弧線排；唱片夾係 play 掣；灰色嗰行 = 未有音檔（示意）', { album: 'komorebi', song: false, list: true, wheel: 0 }],
-        ['MV 電視', '互動格入面會由底部升起再開機；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同跳段', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
+        ['MV 電視', '互動格入面會由底部升起再開機；唱片機停低兼變模糊；▶ ❚❚ ■ 喺機身下面，右邊兩粒旋鈕係音量同快轉／倒轉', { album: 'komorebi', song: true, mv: true, wheel: 0 }],
         ['MV 收返之後', '唱臂返回泊位；唱片夾係 play + 停住嘅進度圈；要㩒先續播', { album: 'komorebi', song: true, paused: true, wheel: 0 }],
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 已下架（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
-        ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」，下面一句提示', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
+        ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
     ];
     const ui = { fav: true, mode: 'order', showHit: false, showGap: false };
-    const live = { album: 'komorebi', song: false, paused: false, booklet: false, list: false, mv: false, mvPaused: false, mvFresh: false, mvClosing: false, wheel: 0 };
+    const live = { album: 'komorebi', song: false, paused: false, booklet: false, list: false, mv: false, mvPaused: false, mvFresh: false, mvClosing: false, bookFresh: false, bookClosing: false, wheel: 0 };
 
     /* ---------- 工具 ---------- */
     const n = (v) => Math.round(v * 10) / 10;
@@ -872,25 +887,36 @@ tr:last-child td { border-bottom: 0; }
             return Math.hypot(right - DISC.x, CREDITS.y + i * CREDITS.pitch - DISC.y) - PLATTER.r;
         }));
 
-    /** 唱片機壓暗但唔模糊；歌詞沿住同碟同心嘅弧線排，而家嗰行有白色框線接住唱片夾（v16 歌單嘅做法） */
+    /**
+     * 唱片機壓暗但唔模糊；歌詞沿住同碟同心嘅弧線排，而家嗰行有白色框線接住唱片夾（v16 歌單嘅做法）。
+     * 過場（只喺互動格）：bookFresh = 啱啱打開、bookClosing = 收返緊；每個部分有自己嘅 class，動畫寫喺 CSS。
+     */
     const booklet = (st) => {
         const { glow } = ALBUMS[st.album];
         // 暗層中間留返唱片夾個窿，播／停照睇得清
-        let out = dimLayer();
+        let out = `<g class="book-dim">${dimLayer()}</g>`;
         SONG.credits.forEach(([label, value], i) => {
             const y = CREDITS.y + i * CREDITS.pitch;
+            out += `<g class="book-credit" style="--i: ${i}">`;
             out += `<text x="${CREDITS.x}" y="${y}" font-family="${CJK}" font-weight="700" font-size="${CREDITS.label}" fill="${glow}">${label}</text>`;
-            out += `<text x="${CREDITS.x + 44}" y="${y}" font-family="${CJK}" font-size="${CREDITS.value}" fill="#d9d6ce">${value}</text>`;
+            out += `<text x="${CREDITS.x + 44}" y="${y}" font-family="${CJK}" font-size="${CREDITS.value}" fill="#d9d6ce">${value}</text></g>`;
         });
-        out += focusFrame(ARC.r, ARC.frame);
+        out += focusFrame(ARC.r, ARC.frame, 'book-frame');
+        // 歌詞：以碟心做原點，過場時每行由而家嗰行嘅位置沿弧線轉去自己嘅位置
+        let lines = '';
         LYRICS.forEach((text, i) => {
             const k = i - LYRIC_NOW;
             const now = k === 0;
-            const [x, y] = polar(DISC.x, DISC.y, ARC.r, 180 - k * ARC.step);
-            out += `<text x="${n(x)}" y="${n(y)}" dominant-baseline="central" font-family="${CJK}" font-weight="${now ? 700 : 500}" font-size="${now ? ARC.now : ARC.other}" fill="${PAPER}" opacity="${now ? 1 : n(Math.max(0.18, 0.7 - (Math.abs(k) - 1) * 0.2))}">${text}</text>`;
+            const [x, y] = polar(0, 0, ARC.r, 180 - k * ARC.step);
+            lines +=
+                `<g class="book-line" style="--spread: ${n(k * ARC.step)}deg">` +
+                `<text x="${n(x)}" y="${n(y)}" dominant-baseline="central" font-family="${CJK}" font-weight="${now ? 700 : 500}" font-size="${now ? ARC.now : ARC.other}" fill="${PAPER}" opacity="${now ? 1 : n(Math.max(0.18, 0.7 - (Math.abs(k) - 1) * 0.2))}">${text}</text></g>`;
         });
-        return out;
+        out += `<g transform="translate(${DISC.x} ${DISC.y})">${lines}</g>`;
+        return `<g class="${bookMotion(st, 'book')}">${out}</g>`;
     };
+    /** 歌書過場嘅 class：prefix-in（啱啱打開）／prefix-out（收返緊）／冇（靜止） */
+    const bookMotion = (st, prefix) => (st.bookClosing ? `${prefix}-out` : st.bookFresh ? `${prefix}-in` : '');
 
     /* ---------- 歌單（㩒碟面）：唱片機壓暗，歌名沿碟弧線排，白色框線接住唱片夾（= play 掣） ---------- */
 
@@ -901,12 +927,13 @@ tr:last-child td { border-bottom: 0; }
         return `<path fill-rule="evenodd" d="${d}" fill="#000" opacity=".8"${act ? ` data-act="${act}"` : ''}/>`;
     };
 
-    /** 白色框線：左邊圓頭，右邊接住碟芯 */
-    const focusFrame = (radius, height) => {
+    /** 白色框線：左邊圓頭，右邊接住碟芯。以碟芯嗰邊做原點，過場時由唱片夾伸出去 */
+    const focusFrame = (radius, height, motionClass = '') => {
         const [left] = polar(DISC.x, DISC.y, radius, 180);
         const right = DISC.x - DISC.r * HUB.clear;
         const half = height / 2;
-        return `<path d="M${n(right)} ${DISC.y - half}H${n(left - 6)}a${half} ${half} 0 0 0 0 ${height}H${n(right)}" fill="none" stroke="#fff" stroke-width="3" pointer-events="none"/>`;
+        const path = `<path d="M0 ${-half}H${n(left - 6 - right)}a${half} ${half} 0 0 0 0 ${height}H0" fill="none" stroke="#fff" stroke-width="3" vector-effect="non-scaling-stroke" pointer-events="none"/>`;
+        return `<g transform="translate(${n(right)} ${DISC.y})"><g${motionClass ? ` class="${motionClass}"` : ''}>${path}</g></g>`;
     };
 
     const listLayer = (st) => {
@@ -916,7 +943,6 @@ tr:last-child td { border-bottom: 0; }
         if (st.empty) {
             const [x] = polar(DISC.x, DISC.y, LIST.r, 180);
             out += `<text x="${n(x)}" y="${DISC.y}" dominant-baseline="central" font-family="${CJK}" font-weight="700" font-size="${LIST.focus}" fill="${PAPER}">${T.emptyFavourites}</text>`;
-            out += `<text x="${n(x)}" y="${DISC.y + 96}" dominant-baseline="central" font-family="${CJK}" font-size="26" fill="#b5b2aa">${T.emptyFavouritesHint}</text>`;
             return `<g data-swap="list">${out}</g>`;
         }
         rows.forEach(([title, flag], i) => {
@@ -1045,7 +1071,7 @@ tr:last-child td { border-bottom: 0; }
         out += `<path d="${bow}" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="5" stroke-linecap="round" filter="url(#fGlow)"/>`;
         out += `<path d="${bow}" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="5" stroke-linecap="round"/></g>`;
         out += sunk(glassShape);
-        // 右邊控制板：喇叭坑 + 兩粒大旋鈕（音量、跳段）
+        // 右邊控制板：喇叭坑 + 兩粒大旋鈕（音量；快轉／倒轉：向右扭快轉、向左扭倒轉，所以 icon 兩個方向都有）
         out += paint(roundBox(panel, 26), 'fill="url(#gPanel)" stroke="url(#gPanelEdge)" stroke-width="2"');
         for (let y = panel.y + 24; y < panel.y + 136; y += 15) {
             out += `<rect x="${panel.x + 22}" y="${y}" width="${panel.w - 44}" height="6" rx="3" fill="#050506"/>`;
@@ -1054,7 +1080,7 @@ tr:last-child td { border-bottom: 0; }
         out += tvDial(TV.knobX, TV.knobY[0], T.tvVolume, 26) + tvDial(TV.knobX, TV.knobY[1], T.tvSeek, -63);
         const glyph = (y, d) => `<path d="${d}" transform="translate(${TV.knobX} ${y})" fill="#fff" opacity=".78"/>`;
         out += glyph(TV.knobY[0] + TV.dialR + 26, 'M-15 -4h6l8 -6v20l-8 -6h-6zM4 -6a8 8 0 0 1 0 12l-2 -2a5 5 0 0 0 0 -8zM9 -11a14 14 0 0 1 0 22l-2 -2a11 11 0 0 0 0 -18z');
-        out += glyph(TV.knobY[1] + TV.dialR + 26, 'M-16 -8l11 8l-11 8zM-3 -8l11 8l-11 8zM11 -8h4v16h-4z');
+        out += glyph(TV.knobY[1] + TV.dialR + 26, 'M-5 -8v16l-10 -8zM-16 -8v16l-10 -8zM5 -8v16l10 -8zM16 -8v16l10 -8z'); // ◀◀ ▶▶
         // 機身下面：進度線、指示燈、MV + 歌名、時間、散熱坑
         out += `<rect x="${strip.lineX}" y="${strip.lineY}" width="${strip.lineW}" height="6" rx="3" fill="#000" opacity=".14"/>`;
         out += `<rect x="${strip.lineX}" y="${strip.lineY}" width="${n(strip.lineW * MV.progress)}" height="6" rx="3" fill="${accent}"/>`;
@@ -1229,7 +1255,11 @@ tr:last-child td { border-bottom: 0; }
         }
         // 歌單：三粒細掣一齊壓暗（喺暗層下面）；歌書：三粒細掣留喺暗層上面（i 著燈，㩒返就收起）
         if (st.list) return [turntable, buttons, listLayer(st), infoLayer].join('');
-        return [turntable, st.booklet ? booklet(st) : '', buttons, infoLayer, `<g data-swap="overlays">${overlays(st)}</g>`].join('');
+        if (!st.booklet) return [turntable, buttons, infoLayer, `<g data-swap="overlays">${overlays(st)}</g>`].join('');
+        // 歌書：左上資訊由黑字轉白字。過場期間喺暗層下面墊一份黑字，上面嗰份白字淡入 / 淡出
+        const moving = Boolean(st.bookFresh || st.bookClosing);
+        const inkInfo = moving ? info({ ...st, booklet: false }).replace(/ data-(swap|anim|act|follow)=/g, ' data-ghost-$1=') : '';
+        return [turntable, inkInfo, booklet(st), buttons, `<g class="${bookMotion(st, 'book-info')}">${infoLayer}</g>`, `<g data-swap="overlays">${overlays(st)}</g>`].join('');
     };
 
     const staticCard = ([label, caption, st], i) =>
@@ -1294,7 +1324,7 @@ tr:last-child td { border-bottom: 0; }
 
     const renderLive = () => {
         const html = scene(live, 'live');
-        const signature = `${live.booklet}|${live.list}|${live.mv}|${live.mvClosing}`; // 歌書 / 歌單 / 電視開關要成格重畫，其他都做動畫
+        const signature = `${live.booklet}|${live.bookClosing}|${live.list}|${live.mv}|${live.mvClosing}`; // 歌書 / 歌單 / 電視開關要成格重畫，其他都做動畫
         if (signature === liveSignature) morph(html);
         else liveSvg.innerHTML = html;
         liveSignature = signature;
@@ -1311,7 +1341,9 @@ tr:last-child td { border-bottom: 0; }
         renderStatic();
     };
 
-    const TV_CLOSE_MS = 780; // 熄機 0.28s + 停一停 + 收埋 0.45s
+    const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const TV_CLOSE_MS = 630; // 熄機 0.15s + 停一停 + 收埋 0.45s
+    const BOOK_CLOSE_MS = 240; // 歌書收返
     /** 主頁狀態（冇開歌單、電視、轉碟）先可以做主頁嘅動作 */
     const atHome = () => !live.list && !live.mv && live.wheel === 0;
     const ACTIONS = {
@@ -1331,16 +1363,21 @@ tr:last-child td { border-bottom: 0; }
             else if (!live.song) live.list = true; // 未揀歌：打開歌單
             else Object.assign(live, { paused: !live.paused, booklet: false });
         },
-        info: () => { if (atHome() && live.song) live.booklet = !live.booklet; },
+        // 歌書：打開有過場；收返先播收起動畫，完咗先真正閂
+        info: () => {
+            if (!atHome() || !live.song || live.bookClosing) return;
+            if (!live.booklet) { Object.assign(live, { booklet: true, bookFresh: true }); return; }
+            Object.assign(live, { bookClosing: true, bookFresh: false });
+            setTimeout(() => { Object.assign(live, { booklet: false, bookClosing: false }); render(); }, reducedMotion() ? 0 : BOOK_CLOSE_MS);
+        },
         mv: () => { if (atHome() && live.song) Object.assign(live, { mv: true, mvPaused: false, mvFresh: true, mvClosing: false, booklet: false }); },
         tvplay: () => { if (!live.mvClosing) Object.assign(live, { mvPaused: false, mvFresh: false }); },
         tvpause: () => { if (!live.mvClosing) Object.assign(live, { mvPaused: true, mvFresh: false }); },
-        // 熄機（0.28s）→ 電視向下收埋；之後唱片唔自動續播
+        // 熄機（0.15s）→ 電視向下收埋；之後唱片唔自動續播
         tvstop: () => {
             if (live.mvClosing) return;
             live.mvClosing = true;
-            const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true }); render(); }, reduced ? 0 : TV_CLOSE_MS);
+            setTimeout(() => { Object.assign(live, { mv: false, mvClosing: false, paused: true }); render(); }, reducedMotion() ? 0 : TV_CLOSE_MS);
         },
     };
     const LIVE_ONLY = new Set(['wheel', 'favourites', 'list', 'closelist', 'playpause', 'info', 'mv', 'tvplay', 'tvpause', 'tvstop']);
