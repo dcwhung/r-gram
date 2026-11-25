@@ -1,0 +1,106 @@
+import { parseLrc, toLyricsJson } from './parseLrc';
+
+describe('parseLrc', () => {
+    it('should parse the four timestamp precisions into milliseconds', () => {
+        const { lines, errors } = parseLrc('[00:12]a\n[00:12.3]b\n[00:12.34]c\n[01:02.345]d');
+        expect(errors).toEqual([]);
+        expect(lines).toEqual([
+            { t: 12_000, text: 'a' },
+            { t: 12_300, text: 'b' },
+            { t: 12_340, text: 'c' },
+            { t: 62_345, text: 'd' },
+        ]);
+    });
+
+    it('should split a line with several timestamps and sort by time', () => {
+        const { lines } = parseLrc('[00:30.00][00:10.00]副歌\n[00:20.00]主歌');
+        expect(lines).toEqual([
+            { t: 10_000, text: '副歌' },
+            { t: 20_000, text: '主歌' },
+            { t: 30_000, text: '副歌' },
+        ]);
+    });
+
+    it('should keep the source order for lines sharing a timestamp', () => {
+        const { lines } = parseLrc('[00:05.00]first\n[00:05.00]second');
+        expect(lines.map((line) => line.text)).toEqual(['first', 'second']);
+    });
+
+    it('should keep an empty text as an interlude line', () => {
+        expect(parseLrc('[00:16.80]').lines).toEqual([{ t: 16_800, text: '' }]);
+    });
+
+    it('should trim the text and accept CRLF line endings', () => {
+        expect(parseLrc('[00:01.00]  一早地下鐵  \r\n[00:02.00]b\r\n').lines).toEqual([
+            { t: 1_000, text: '一早地下鐵' },
+            { t: 2_000, text: 'b' },
+        ]);
+    });
+
+    it('should ignore metadata tags and blank lines', () => {
+        const { lines, errors } = parseLrc(
+            '[ti:歌名]\n[ar:RubberBand]\n\n[length:03:20]\n[00:01.00]a',
+        );
+        expect(errors).toEqual([]);
+        expect(lines).toEqual([{ t: 1_000, text: 'a' }]);
+    });
+
+    it('should apply a positive offset by showing lines earlier', () => {
+        expect(parseLrc('[offset:500]\n[00:02.00]a').lines).toEqual([{ t: 1_500, text: 'a' }]);
+    });
+
+    it('should apply a negative offset by showing lines later', () => {
+        expect(parseLrc('[offset:-250]\n[00:02.00]a').lines).toEqual([{ t: 2_250, text: 'a' }]);
+    });
+
+    it('should not move a line before zero', () => {
+        expect(parseLrc('[offset:5000]\n[00:02.00]a').lines).toEqual([{ t: 0, text: 'a' }]);
+    });
+
+    it('should report a line without a timestamp', () => {
+        const { lines, errors } = parseLrc('[00:01.00]a\n冇時間嘅一行\n[00:03.00]c');
+        expect(lines).toHaveLength(2);
+        expect(errors).toEqual([{ line: 2, code: 'NO_TIMESTAMP', text: '冇時間嘅一行' }]);
+    });
+
+    it.each(['[00:60.00]a', '[1:2]a', '[00:12.3456]a', '[aa:bb]a'])(
+        'should report the malformed timestamp in %j',
+        (source) => {
+            const { lines, errors } = parseLrc(source);
+            expect(lines).toEqual([]);
+            expect(errors).toEqual([{ line: 1, code: 'INVALID_TIMESTAMP', text: source }]);
+        },
+    );
+
+    it('should report a malformed offset', () => {
+        expect(parseLrc('[offset:abc]\n[00:01.00]a').errors).toEqual([
+            { line: 1, code: 'INVALID_OFFSET', text: '[offset:abc]' },
+        ]);
+    });
+
+    it.each(['', '  \n\n', '[ti:只有標題]'])(
+        'should report EMPTY when %j has no lyric line',
+        (source) => {
+            expect(parseLrc(source)).toEqual({
+                lines: [],
+                errors: [{ line: 0, code: 'EMPTY', text: '' }],
+            });
+        },
+    );
+
+    it('should accept minutes above 59 for long tracks', () => {
+        expect(parseLrc('[75:00.00]a').lines).toEqual([{ t: 4_500_000, text: 'a' }]);
+    });
+});
+
+describe('toLyricsJson', () => {
+    it('should wrap the lines in the published lyrics document', () => {
+        const { lines } = parseLrc('[00:12.30]一早地下鐵\n[00:16.80]');
+        expect(toLyricsJson(lines)).toEqual({
+            lines: [
+                { t: 12_300, text: '一早地下鐵' },
+                { t: 16_800, text: '' },
+            ],
+        });
+    });
+});
