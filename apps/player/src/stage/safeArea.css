@@ -1,0 +1,12 @@
+/* 用嚟讀安全區嘅 element（stage/safeArea.ts）：唔佔位、睇唔見、㩒唔到 */
+.safe-area-probe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    visibility: hidden;
+    pointer-events: none;
+}

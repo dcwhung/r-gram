@@ -1,7 +1,7 @@
 /* 舞台：闊 1080 單位；高度最少 1920 單位，高啲嘅手機會填滿成個畫面 */
 .stage {
     position: absolute;
-    top: 0;
+    top: var(--stage-offset-y, 0);
     left: var(--stage-offset-x, 0);
     width: calc(var(--u) * 1080);
     height: calc(var(--u) * (1920 + var(--stage-extra, 0)));

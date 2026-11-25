@@ -7,6 +7,7 @@ describe('fitStage', () => {
             heightUnits: 1920,
             extraUnits: 0,
             offsetX: 0,
+            offsetY: 0,
         });
     });
 
@@ -45,6 +46,42 @@ describe('fitStage', () => {
             heightUnits: 1920,
             extraUnits: 0,
             offsetX: 0,
+            offsetY: 0,
         });
+    });
+});
+
+// W-005：舞台只用安全區入面嘅位（狀態列 / 動態島同底部指示條以外）
+describe('fitStage with safe-area insets', () => {
+    const IPHONE_15 = { top: 59, bottom: 34 };
+
+    it('should fit the stage inside the safe area and start it below the top inset', () => {
+        const stage = fitStage(393, 852, IPHONE_15);
+        const unit = 393 / 1080;
+        expect(stage.unit).toBeCloseTo(unit);
+        expect(stage.heightUnits).toBeCloseTo((852 - 59 - 34) / unit);
+        expect(stage.extraUnits).toBeCloseTo((852 - 59 - 34) / unit - 1920);
+        expect(Math.round(stage.extraUnits)).toBe(166);
+        expect(stage.offsetY).toBe(59);
+    });
+
+    it('should scale by the safe height on a wider viewport', () => {
+        const stage = fitStage(1440, 1000, { top: 20, bottom: 20 });
+        expect(stage.unit).toBeCloseTo(0.5);
+        expect(stage.offsetX).toBeCloseTo((1440 - 540) / 2);
+        expect(stage.offsetY).toBe(20);
+    });
+
+    it.each([
+        [{ top: Number.NaN, bottom: 34 }, 34],
+        [{ top: -10, bottom: 0 }, 0],
+    ])('should ignore the unusable inset in %j', (insets, usedPx) => {
+        const stage = fitStage(393, 852, insets);
+        expect(stage.heightUnits).toBeCloseTo((852 - usedPx) / (393 / 1080));
+        expect(stage.offsetY).toBe(0);
+    });
+
+    it('should ignore insets that leave no room for the stage', () => {
+        expect(fitStage(393, 852, { top: 500, bottom: 500 })).toEqual(fitStage(393, 852));
     });
 });
