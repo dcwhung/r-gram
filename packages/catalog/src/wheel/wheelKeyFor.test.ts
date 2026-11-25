@@ -1,7 +1,7 @@
 import { WHEEL_KEY_FALLBACK, wheelKeyFor } from './wheelKeyFor';
 
 describe('wheelKeyFor', () => {
-    // 現有 17 張專輯（apps/api/seed/discography.json）嘅碟名 → 字母盤標記
+    // 初始資料 21 個發行（apps/api/seed/discography.json，CR-004）入面幾種碟名 → 字母盤標記
     it.each([
         ['Apollo 18', 'A'],
         ['Beaming', 'B'],
@@ -12,7 +12,9 @@ describe('wheelKeyFor', () => {
         ['i', 'I'],
         ['JUNTOS', 'J'],
         ['電影《逆流大叔》原聲大碟', '電'],
-        ['單曲（未收錄於專輯）', '單'],
+        ['呢度', '呢'],
+        ['橡芽', '橡'],
+        ['終於好天氣（方皓玟 × RubberBand）', '終'],
     ])('should map %j to %j', (title, expected) => {
         expect(wheelKeyFor(title)).toBe(expected);
     });
