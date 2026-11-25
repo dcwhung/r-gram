@@ -14,6 +14,8 @@ interface SmallButtonsProps {
     mvOpen: boolean;
     /** 播緊：播放模式掣著燈 */
     playing: boolean;
+    /** 歌單嘅暗層蓋住（S-074）：三粒掣 Tab 唔到、讀屏唔讀 */
+    covered?: boolean;
     onBooklet: () => void;
     onMv: () => void;
     onMode: () => void;
@@ -31,9 +33,10 @@ export const SmallButtons = (props: SmallButtonsProps) => {
         const item = layout.buttons.items.find((button) => button.id === id);
         return { x: item?.x ?? 0, y: item?.y ?? 0 };
     };
-    const common = { glow, metrics: layout.buttons, hitRadius: hitSizeUnits(layout) / 2 };
+    const { covered = false } = props;
+    const common = { glow, covered, metrics: layout.buttons, hitRadius: hitSizeUnits(layout) / 2 };
     return (
-        <g data-part="small-buttons">
+        <g data-part="small-buttons" aria-hidden={covered || undefined}>
             <MetalButton
                 {...common}
                 {...position('booklet')}

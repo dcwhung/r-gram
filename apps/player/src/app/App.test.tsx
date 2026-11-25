@@ -89,6 +89,23 @@ describe('App home scene', () => {
         expect(armLook()).toEqual(PARKED);
     });
 
+    // S-074：歌單開住時，暗層下面嘅三粒細掣 Tab 唔到、讀屏唔讀；用鍵盤收返歌單之後 focus 返唱片夾
+    it('should keep Tab off the buttons under the list and refocus the clamp when it closes', async () => {
+        const { button } = renderHome();
+        await userEvent.click(button('開啟歌單'));
+        const stops = new Set<string | null | undefined>();
+        for (let step = 0; step < 6; step += 1) {
+            await userEvent.tab();
+            stops.add(document.activeElement?.getAttribute('aria-label'));
+        }
+        expect([...stops].filter(Boolean).sort()).toEqual(['播放', '關閉歌單'].sort());
+        expect(screen.queryByRole('button', { name: '觀看 MV' })).toBeNull();
+        button('關閉歌單').focus();
+        await userEvent.keyboard('{Enter}');
+        expect(document.activeElement).toBe(button('開啟歌單'));
+        expect(button('觀看 MV')).toHaveAttribute('tabindex', '0');
+    });
+
     it('should light the mode button only while playing', async () => {
         const { button } = renderHome();
         const ring = () => button('播放模式：順序播放').querySelector('[data-part="glow-ring"]');
