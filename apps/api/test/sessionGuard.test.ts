@@ -45,6 +45,23 @@ describe('session guard', () => {
         }
     });
 
+    // W-016：歌曲 route 嘅守門靠註冊次序（B-019 ①）；逐條用佢自己嘅 method 試，GET 試唔到淨係收 POST／PUT 嘅 route
+    it('should answer 401 UNAUTHORIZED on every track route without a session', async () => {
+        const routes: [string, string][] = [
+            ['POST', '/api/albums/apollo-18/tracks'],
+            ['PUT', '/api/albums/apollo-18/tracks/order'],
+            ['GET', '/api/tracks/x/text'],
+            ['PUT', '/api/tracks/x/text'],
+            ['PATCH', '/api/tracks/x'],
+            ['DELETE', '/api/tracks/x'],
+        ];
+        for (const [method, path] of routes) {
+            const response = await call(path, { method, headers: { origin: ORIGIN } });
+            expect(response.status, `${method} ${path}`).toBe(401);
+            expect(await response.json(), `${method} ${path}`).toEqual(UNAUTHORIZED);
+        }
+    });
+
     it('should return the email for a valid session', async () => {
         const response = await call('/api/me', { headers: { cookie: await loginCookie() } });
         expect(response.status).toBe(200);
