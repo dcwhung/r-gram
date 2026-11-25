@@ -1,0 +1,20 @@
+# Test Plan — player-foundation
+
+- Chain: 播放端基礎（`apps/player`）：Vite + PWA plugin scaffold、design token、動畫時長 token、i18n（語言檔、有型別 `t()`、書面語同寫死文字測試）、舞台縮放（1080 × 1920）、手機幾何資料表同淨空規則測試。任務 T-030
+- AC（L1 來源：TS = Technical Spec、FS = Functional Spec、Plan = Implementation Plan）:
+    - AC-1 幾何表（TS「版面系統」；TS CR-002「幾何資料表」「旋鈕位置」；FS CR-002「版面」「控件」）：`layouts/phone.ts` 嘅數值 = 設計稿 `_mockups_/home-turntable/src/template.html` 嘅常數；旋鈕 x 由轉盤計出嚟（266）
+    - AC-2 淨空規則（FS CR-002「淨空規則」；FR-032）：掣同 CD ≥ 16、控件同轉盤 ≥ 40、細掣同旋鈕刻度 ≥ 40、左下螺絲 120 之內冇控件、旋鈕左右空白相差 ≤ 2、感應範圍 ≥ 44pt 互不重疊；有自動測試鎖住，量度方法同設計稿「量度」一節一致
+    - AC-3 舞台（TS「版面系統」；實現注意事項 13）：`--u` = 舞台闊 ÷ 1080；9:16 或者更高嘅畫面闊度填滿，高出嘅部分 = `--stage-extra`；闊過 9:16 按高度縮放、保持 9:16、置中；`100dvh`、頁面唔捲動；舞台只用安全區
+    - AC-4 i18n（FS「介面語言同 i18n」同用詞表；FR-037；TS CR-002 i18n 三行）：文字集中喺 `zh-Hant.ts`；`t()` 有型別；預設同退路都係 `zh-Hant`；用詞同用詞表、設計稿 `T` / `BUTTON_LABEL` / `MODE_LABEL` 一樣；語言檔冇口語字；`src/app`、`src/components` 冇寫死中文；`<html lang>`、manifest `lang` = `zh-Hant`，`name` / `description` 用書面語
+    - AC-5 動畫 token（FS「過場動畫」；TS 實現注意事項 10、11）：時長喺 `config/motion.ts`，同 `tokens.css` 同值；回饋類 ≤ 300ms；場景類 = 已確認嘅時長；減少動態效果時時長 = 0
+    - AC-6 版本同搜尋引擎（FR-009；FR-011）：畫面版本號 = `apps/player/package.json` version（build 時注入）；`<meta name="robots" content="noindex, nofollow">`
+- Scope files: `apps/player/` 入面 git tracked 嘅全部檔案（`src/**`、`tests/setup.ts`、`index.html`、`package.json`、`tsconfig*.json`、`vite.config.ts`）
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npx vitest run --project @r-gram/player --coverage --coverage.include='src/**/*.{ts,tsx}'`
+    - `npm run build -w apps/player`
+- Browser check（未有 e2e spec；T-040 加咗之後改跑 e2e）：`npx vite preview --port 4173 --strictPort`，Chromium 開 393 × 852、360 × 640、1280 × 800：舞台位置同 `--u` / `--stage-extra`、`lang`、robots meta、版本號、manifest、console 冇錯、頁面唔捲動、冇對外請求
+- PWA gate: 部分（scope 有 PWA plugin 同 manifest）：驗 Service Worker 註冊、precache、離線重新載入、版本號顯示；vN → vN+1 自動更新要等 `updateManager`（T-039）
+- Security / Data gate: no（冇外來輸入）。Performance gate: no
+- Out of scope（已知、已記錄）：`App.tsx` 係暫時外殼；PWA icon、`updateManager`、「請打直」（T-039）；字體未隨 app 提供；格數 8–10、15–18 以外嘅感應範圍（backlog B-010）；高身手機多出嘅高度點對位（B-009）；`npm audit` moderate（B-008）

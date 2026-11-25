@@ -1,0 +1,22 @@
+# Test Plan — api-auth
+
+- Chain: Backend 基礎同登入（`apps/api`）：Hono Worker、env 驗證、D1 migration（6 張表）、health、Google 登入（PKCE）、email 白名單、session、`/api` 守門、登出。任務 T-020、T-021
+- AC（L1 來源：TS = Technical Spec、FS = Functional Spec、Plan = Implementation Plan）:
+    - AC-1 白名單（FS US-101 第 1 點；TS「安全設計」認證、授權）：只有 `ADMIN_EMAILS` 入面、Google 已驗證嘅 email 開到 session；其他帳戶見到「沒有權限」頁，唔開 session
+    - AC-2 未登入（FS US-101 第 2 點；TS「API 設計」通則）：`/api/*`（`health` 除外）一律 401 `UNAUTHORIZED`
+    - AC-3 登出同期限（FS US-101 第 3 點；TS「安全設計」Session）：登出刪 session 兼清 cookie；session 30 日過期；32 bytes 隨機 token，D1 只存 SHA-256；cookie `__Host-session`：`HttpOnly; Secure; SameSite=Lax; Path=/`
+    - AC-4 返回原頁（FS US-101 第 4 點；TS「安全設計」`next` 參數）：登入後去 `next`；只收同站相對 path，其他一律當 `/`
+    - AC-5 OAuth（TS API-001、API-002；「安全設計」認證）：Authorization Code + PKCE S256；`state` + verifier 喺短期 `__Host-oauth` cookie；callback 驗 issuer、audience、`email_verified`
+    - AC-6 CSRF 同 header（TS「安全設計」CSRF、Header、搜尋引擎）：改資料嘅 method 要 `Origin` = `WORKER_ORIGIN`，唔啱 403 `FORBIDDEN_ORIGIN`；`/api`、`/auth` 有 `X-Frame-Options: DENY`、`frame-ancestors 'none'`、`Cache-Control: no-store`；所有回應 `X-Robots-Tag: noindex`
+    - AC-7 Health 同錯誤格式（TS API-004、API-005；「API 設計」錯誤格式）：`GET /api/health` → `{ ok, version }`（version = `apps/api/package.json`）；`GET /api/me` → `{ email }`；錯誤係 `{ error: { code, message } }`
+    - AC-8 資料庫（TS「數據庫設計」「索引設計」）：`albums`、`tracks`、`lyrics`、`assets`、`publishes`、`sessions` 嘅欄位、約束同四個索引
+    - AC-9 設定（Plan T-020；TS「部署架構」Bindings、`[vars]`；「安全設計」Secret）：`DB` / `CATALOG` / `MEDIA`、五個 var、兩個 secret；漏咗或者格式錯一律 500，log 只記名；secret 唔入 repo
+- Scope files: `apps/api/` 入面 git tracked 嘅全部檔案（`src/**`、`test/**`、`migrations/**`、`wrangler.toml`、`.dev.vars.example`、`package.json`、`tsconfig*.json`、`vitest.config.ts`），`seed/*.json` 除外（屬 `catalog-core`）
+- Commands:
+    - `npm run lint`
+    - `npm run typecheck`
+    - `npx vitest run --project @r-gram/api --coverage --coverage.include='src/**/*.ts'`（喺 workerd 跑）
+- HTTP smoke（改到 route、middleware 或者 `wrangler.toml` 先做）：臨時 `.dev.vars`（由 `.dev.vars.example` 抄，用完刪）+ `wrangler d1 migrations apply r-gram --local` + `wrangler dev --local-protocol https`，`curl -k` 打 `/api/health`、`/api/me`、`/auth/google/start`、`/auth/logout`。唔好跟住 redirect 去 Google
+- PWA gate: no。Performance gate: no（未有讀寫內容嘅 API）
+- Security / Data gate: yes（登入、session、redirect、輸入）；由上面嘅 test 覆蓋
+- Out of scope: 真 Google 來回（要用戶嘅 OAuth client：U-4、U-5）；部署（T-028；backlog B-016）；`/catalog/v1/*`（T-026）；專輯 / 歌曲 API（T-022 起）；`seed/*.json`
