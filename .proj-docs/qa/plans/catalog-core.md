@@ -10,7 +10,7 @@
     - AC-7 顏色（TS 組件圖 `color/`）：`dominantColor` / `glowColor` 同設計稿（`_mockups_/r-gram/src/anim.js`、`src/tools/template.html`）輸出一致
     - AC-8 Seed（FS US-109；TS「Seed credit 配對」；Plan Phase A）：17 張專輯 262 首歌 = 187 直接 / 22 同名 / 53 冇資料（當中 39 首屬《逆流大叔》原聲大碟）；「—」當冇；seed 歌 id = `<albumId>-<兩位歌號>`；fixture catalog 通過 `parseCatalogDocument()`
 - Scope files:
-    - `packages/catalog/`：`src/**`、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
+    - `packages/catalog/`：`src/**`（`src/song-text/**` 除外，屬 `catalog-song-text`）、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
     - `apps/api/seed/discography.json`、`apps/api/seed/credits.json`（`seed.node.test.ts` 讀真資料）
 - Commands:
     - `npm run lint`
