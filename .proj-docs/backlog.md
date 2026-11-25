@@ -39,6 +39,7 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-039 | Review T-029 / T-096（S-050、S-052） | 測試漏洞（mutant 冇被捉到）：錯誤排序嘅測試輸入本身已經順序；64 KiB 冇邊界測試；`.replace(BYTE_ORDER_MARK, '')` 係死 code（`trim` 已經會清走）；`LINE_TOO_LONG` 量嘅係 trim 之後嘅行。另：標籤值有 U+2028／U+2029 時嗰行唔會當標籤 | 下次改 `packages/catalog/src/song-text` |
 | B-040 | Review T-029 / T-096（S-051、Observation） | 長度上限喺正規化之前量：CRLF 同 BOM 嘅 byte 都計入 64 KiB；1000 行加一個結尾換行會報 `TOO_MANY_LINES`。貼入 20 MB 文字要約 0.7 秒先回 `TOO_LARGE`（可以先睇 `text.length`）。`TOO_LARGE` 由 parser 以第 0 行回報，API 要轉做 413；錯誤嘅 `text` 欄會回成行內容，API 要決定 400 嘅 details 包唔包；API-041 例子用 `reason`，package 用 `code`，要對應 | T-023 |
 | B-041 | Review T-029 / T-096 | Technical Spec 同步（下次 CR）：`parseSongText()` 規則寫返開發時定嘅細節——第一行如果係標籤行或者時間標記行 = `TITLE_REQUIRED`；重覆標籤報喺重覆嗰行、留第一個值；冒號前後可以有空格、值 = 第一個冒號之後；時間標記要有冒號（W-012）；正規化（CRLF、BOM、行尾空白、歌詞前後空行）；長度上限數值；四個 credit 全空時 `credits` 係 `null`；API-041 錯誤碼加 `BAD_OFFSET`、`TITLE_TOO_LONG`；`catalog_state` 嘅欄位同 CHECK；`toLyricsJson` 新簽名 | 下次 Change Request |
+| B-042 | QA S1 catalog-song-text（Minor、Observation） | ① 淨係 CR（`\r`，舊 Mac 格式）嘅換行唔會分行：成段變成一個歌名，冇報錯（瀏覽器文字框會轉做 LF，只有直接叫 API 先遇到）；分行規則加埋單獨嘅 CR，或者喺 API-041 先正規化。② 有時間標記嘅歌詞入面，`[1] 二` 報嘅係 `BAD_TIMESTAMP` 唔係 `MIXED_TIMESTAMPS`，寫錯誤訊息時要留意。③ `qa/plans/api-auth.md` AC-8 仲寫住 `publishes` 表，下次改嗰份 plan 時更新（改完要重新 freeze） | T-023 |
 
 ## CR-003 關閉嘅項目（2026-11-25；下次整理可以刪走呢段）
 
