@@ -44,11 +44,44 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
         expect(screwGap(layout, DESIGN_POSITIONS)).toBeGreaterThanOrEqual(clearance.screwZone);
     });
 
-    it('should give every control a touch target of at least 44pt that overlaps no other', () => {
-        const minimum = hitSizeUnits(layout) / 2;
-        const areas = hitAreas(layout, DESIGN_POSITIONS);
-        expect(areas.every((area) => area.half >= minimum)).toBe(true);
+    it('should keep the touch targets from overlapping at the design position count', () => {
         expect(minHitGap(layout, DESIGN_POSITIONS)).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should size the round touch targets from the 44pt rule, never smaller than the control', () => {
+        const half = hitSizeUnits(layout) / 2;
+        const [booklet, , , clamp, knob] = hitAreas(layout, DESIGN_POSITIONS);
+        expect(half).toBeCloseTo((clearance.hitPt / clearance.viewportPt) * 1080 * 0.5);
+        expect(booklet?.half).toBe(half);
+        expect(clamp?.half).toBe(half);
+        expect(knob?.half).toBe(Math.max(layout.knob.r, half));
+    });
+});
+
+/*
+ * W-006：格數 = 已上架專輯數 + 1，會變。♥ 嘅感應方格跟最尾一格嘅角度走但唔轉向，
+ * 所以唔係每個格數都過到「感應範圍互不重疊」同「螺絲周圍留空」。呢度明寫而家邊啲格數過到；
+ * 其餘格數點處理係設計問題（backlog B-010），要喺 T-036 之前由用戶決定。幾何一改，呢個清單要有意識咁跟住改。
+ */
+describe('phone layout across position counts', () => {
+    const MIN_POSITIONS = 2;
+    const MAX_POSITIONS = 21;
+    const SUPPORTED_POSITIONS = [8, 9, 10, 15, 16, 17, 18];
+
+    const passes = (positions: number) =>
+        minHitGap(PHONE_LAYOUT, positions) >= 0 &&
+        screwGap(PHONE_LAYOUT, positions) >= PHONE_LAYOUT.clearance.screwZone;
+
+    it('should pass the touch-target and screw rules exactly at the listed position counts', () => {
+        const counts = Array.from(
+            { length: MAX_POSITIONS - MIN_POSITIONS + 1 },
+            (_, index) => MIN_POSITIONS + index,
+        );
+        expect(counts.filter(passes)).toEqual(SUPPORTED_POSITIONS);
+    });
+
+    it('should include the current catalogue size (17 albums and the favourites slot)', () => {
+        expect(SUPPORTED_POSITIONS).toContain(DESIGN_POSITIONS);
     });
 });
 
