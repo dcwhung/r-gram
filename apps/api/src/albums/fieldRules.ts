@@ -20,7 +20,13 @@ const ACCENT = /^#[0-9a-f]{6}$/i;
 const CALENDAR_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
 /** 換行、tab 等控制字元：畫面上冇意義，亦可以砌出假 log 行 */
 const CONTROL = /\p{Cc}/u;
-const FOLDER_SEPARATOR = '/';
+/**
+ * 資料夾名係 R2 key 嘅 prefix，亦會砌入播放端網址（MEDIA_BASE + key）：
+ * 斜線 / 反斜線會變多層，`?` `#` `%` 令網址斷開或者被解碼（Technical Spec「安全設計 → R2 key 驗證」）
+ */
+const UNSAFE_IN_FOLDER = /[/\\?#%]/;
+/** `.` / `..`：網址正規化會當成「本層 / 上一層」，跳出 MEDIA_BASE 嘅 path */
+const DOT_SEGMENT = /^\.{1,2}$/;
 
 const ok = (value: unknown): RuleResult => ({ ok: true, value });
 const fail = (reason: Reason): RuleResult => ({ ok: false, reason });
@@ -78,11 +84,12 @@ const accent: Rule = (value) =>
 const assetName: Rule = (value) =>
     typeof value === 'string' && value !== '' ? ok(value) : fail('UNKNOWN_ASSET');
 
-/** R2 資料夾名（掃描用 `<folder>/` 做 prefix）：一層、唔可以空；null = 用專輯 id */
+/** R2 資料夾名（掃描用 `<folder>/` 做 prefix）：一層、唔可以空、唔可以係 `.` / `..`；null = 用專輯 id */
 const folder: Rule = (value) => {
     const result = text(true)(value);
     if (!result.ok) return result.reason === 'TOO_LONG' ? result : fail('INVALID_FOLDER');
-    return (result.value as string).includes(FOLDER_SEPARATOR) ? fail('INVALID_FOLDER') : result;
+    const name = result.value as string;
+    return UNSAFE_IN_FOLDER.test(name) || DOT_SEGMENT.test(name) ? fail('INVALID_FOLDER') : result;
 };
 
 /** 管理端可以改嘅欄位（API-013）；冇 `enabled`（CR-003）、`id` 建立後不變、`year` 跟 releaseDate */

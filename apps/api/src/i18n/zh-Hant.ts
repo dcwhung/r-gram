@@ -49,7 +49,8 @@ export const zhHant = {
             INVALID_WHEEL_KEY: '必須為一至兩個字，前後不可有空白。',
             INVALID_DATE: '日期必須為 YYYY-MM-DD 格式的有效日期。',
             INVALID_COLOUR: '顏色必須為 #rrggbb 格式。',
-            INVALID_FOLDER: '資料夾名稱不可為空白，亦不可包含斜線、換行或控制字元。',
+            INVALID_FOLDER:
+                '資料夾名稱不可為空白、「.」或「..」，亦不可包含斜線、反斜線、?、#、%、換行或控制字元。',
             UNKNOWN_ASSET: '找不到此圖片，請重新上載。',
             INVALID_LIST: '必須為不重複的專輯 ID 列表。',
         },
