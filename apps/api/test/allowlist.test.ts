@@ -28,6 +28,22 @@ describe('isAdminEmail', () => {
         for (const email of outsiders) expect(isAdminEmail(LIST, email), email).toBe(false);
     });
 
+    // W-008：toLowerCase() 會將 U+212A（Kelvin 符號）摺做 ASCII k，令唔喺白名單嘅地址變成相等
+    it('should not match an address that only equals an allowed one after Unicode case folding', () => {
+        const KELVIN_SIGN = String.fromCharCode(0x212a);
+        expect(isAdminEmail('kate@example.com', `${KELVIN_SIGN}ate@example.com`)).toBe(false);
+        expect(isAdminEmail('kate@example.com', 'KATE@example.com')).toBe(true);
+    });
+
+    it.each([
+        'ａdmin@example.com',
+        'admin@exämple.com',
+        'admin@example.com\u200b',
+        'ad min@example.com',
+    ])('should never match the non-ASCII or spaced address %j', (email) => {
+        expect(isAdminEmail(`${LIST},${email}`, email)).toBe(false);
+    });
+
     it('should never match an empty address or an empty list', () => {
         expect(isAdminEmail(LIST, '')).toBe(false);
         expect(isAdminEmail(LIST, '   ')).toBe(false);

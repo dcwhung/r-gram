@@ -36,6 +36,17 @@ describe('invalidEnvNames', () => {
         },
     );
 
+    // W-008：白名單只收 ASCII 地址（比較時唔會有 Unicode 大細楷摺疊嘅問題）
+    it('should reject a non-ASCII address in ADMIN_EMAILS', () => {
+        const KELVIN_SIGN = String.fromCharCode(0x212a);
+        expect(withEnv({ ADMIN_EMAILS: `${KELVIN_SIGN}ate@example.com` })).toEqual([
+            'ADMIN_EMAILS',
+        ]);
+        expect(withEnv({ ADMIN_EMAILS: 'admin@example.com,ａdmin@example.com' })).toEqual([
+            'ADMIN_EMAILS',
+        ]);
+    });
+
     it('should require a SESSION_SECRET of at least 32 characters', () => {
         expect(withEnv({ SESSION_SECRET: 'x'.repeat(31) })).toEqual(['SESSION_SECRET']);
         expect(withEnv({ SESSION_SECRET: 'x'.repeat(32) })).toEqual([]);

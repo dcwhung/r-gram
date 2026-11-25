@@ -7,7 +7,7 @@ import { createMiddleware } from 'hono/factory';
 import type { AppEnv } from '../app';
 import { ERROR_CODE, HTTP_STATUS, SESSION_SECRET_MIN_LENGTH } from '../config';
 import type { Env } from '../env';
-import { csvList } from './env';
+import { csvList, isAsciiAddress } from './env';
 import { errorJson } from './http';
 
 type EnvCheck = (env: Partial<Env>) => boolean;
@@ -44,7 +44,9 @@ const isHttpsBase = (value: unknown): boolean => {
 
 const isEmailList = (value: unknown): boolean => {
     const emails = isFilled(value) ? csvList(value) : [];
-    return emails.length > 0 && emails.every((email) => EMAIL_PATTERN.test(email));
+    // 只收 ASCII 地址：見 lib/env.ts isAdminEmail
+    const isValid = (email: string) => isAsciiAddress(email) && EMAIL_PATTERN.test(email);
+    return emails.length > 0 && emails.every(isValid);
 };
 
 /** 可以係空（未有播放端網址 = 唔開 CORS），但有嘅每個都要係 origin */
