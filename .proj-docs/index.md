@@ -22,6 +22,12 @@
 | 2026-11-25 | [reviews/2026-11-25_00-23_review_T-001_T-002.md](reviews/2026-11-25_00-23_review_T-001_T-002.md) | warn 85 / 100（W-001–W-003） | T-001 scaffold、T-002 `packages/catalog` |
 | 2026-11-25 | [reviews/2026-11-25_00-33_review_T-001_T-002_re-review.md](reviews/2026-11-25_00-33_review_T-001_T-002_re-review.md) | pass 100 / 100 | 同上（修正後） |
 
+## QA
+
+| 日期 | 文件 | 結果 | 範圍 |
+| --- | --- | --- | --- |
+| 2026-11-25 | [qa/2026-11-25_00-40_qa_catalog-core.md](qa/2026-11-25_00-40_qa_catalog-core.md) | S1 pass（AC-1–AC-9） | 鏈 `catalog-core`：T-001、T-002。Frozen plan：[qa/plans/catalog-core.md](qa/plans/catalog-core.md)；ledger：`qa/verification-ledger.tsv` |
+
 Backlog：[backlog.md](backlog.md)
 
 ## 待辦（阻住開發嘅 mockup）
