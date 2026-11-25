@@ -188,7 +188,7 @@ tr:last-child td { border-bottom: 0; }
                 <tr><td>歌單</td><td>隻碟唔放大，留喺轉盤上面；成部唱片機壓暗；歌名沿住同碟同心嘅弧線排（同歌書一樣）</td><td>唱片夾而家固定喺轉盤正中，隻碟放大就對唔返個孔</td></tr>
                 <tr><td>歌單</td><td>歌名最多約 8 個中文字，再長用「…」收尾</td><td>白色框線要接住唱片夾，闊度有限</td></tr>
                 <tr><td>歌單</td><td>㩒暗位可以收返歌單（v16 冇講點樣唔揀歌就返出嚟）</td><td>要有路走</td></tr>
-                <tr><td>Favourites 歌單</td><td>歌號 = 收藏次序；左上角歌名下面顯示原本嗰隻碟；下架咗嘅歌變灰</td><td>Functional Spec D19</td></tr>
+                <tr><td>Favourites 歌單</td><td>歌號 = 收藏次序；左上角歌名下面顯示原本嗰隻碟；未有音檔嘅歌變灰（CR-003：冇上下架）</td><td>Functional Spec D19</td></tr>
                 <tr><td>MV 電視</td><td>▶ ❚❚ ■ 三粒掣由右邊窄板搬去機身下面嗰條，放大咗</td><td>v16 三粒掣中心只隔 17pt，感應範圍一定重疊；而家每粒 44pt 唔重疊</td></tr>
                 <tr><td>MV 電視</td><td>右邊兩粒大旋鈕（音量；快轉／倒轉）可以操作</td><td>你之前決定（C9）</td></tr>
                 <tr><td>歌書</td><td>開關有過場：打開 0.4 秒（暗層淡入、框線由唱片夾伸出、歌詞由而家嗰行沿弧線展開、曲詞編監逐行滑入）；收返 0.24 秒（倒轉）</td><td>你今次嘅要求</td></tr>
@@ -383,7 +383,7 @@ tr:last-child td { border-bottom: 0; }
         no: 7, title: '我永遠記得', time: '0:41', progress: 0.19, // = 歌單揀中嗰首（TRACKS.komorebi.focus）
         credits: [['曲', 'RubberBand / 雷柏熹'], ['詞', 'Tim Lui'], ['編', 'RubberBand / 雷柏熹'], ['監', 'RubberBand / 雷柏熹']],
     };
-    // 歌單內容（示意）：[歌名, 'off' = 未有音檔 / 已下架, 原本嗰隻碟（Favourites 先有）]；focus = 揀中邊行
+    // 歌單內容（示意）：[歌名, 'off' = 未有音檔, 原本嗰隻碟（Favourites 先有）]；focus = 揀中邊行
     const TRACKS = {
         komorebi: {
             focus: 6,
@@ -459,7 +459,7 @@ tr:last-child td { border-bottom: 0; }
         ['轉碟中（開到一半）', '字母盤由旋鈕向外打開緊；細掣同唱臂淡出緊；其他碟滑入緊', { album: 'komorebi', song: false, booklet: false, wheel: 0.5 }],
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
-        ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 已下架（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
+        ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 未有音檔（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
         ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
         ['Favourites 歌單（未有收藏）', '框線入面「尚未收藏歌曲」', { album: 'favourites', song: false, list: true, empty: true, wheel: 0 }],
     ];
@@ -1135,7 +1135,7 @@ tr:last-child td { border-bottom: 0; }
             const off = flag === 'off';
             const size = now ? LIST.focus : LIST.rest;
             const [x, y] = polar(DISC.x, DISC.y, LIST.r, 180 - k * LIST.step);
-            // v16：越遠越淡；唔係揀中嗰行再淡一級。未有音檔 / 已下架嘅再減半
+            // v16：越遠越淡；唔係揀中嗰行再淡一級。未有音檔嘅再減半
             const fade = Math.pow(clamp01(1 - Math.abs(k) / LIST.visible), 1.5) * (now ? 1 : 0.62) * (off ? 0.5 : 1);
             const numberSize = size * LIST.number;
             out += `<g opacity="${n(Math.max(0.06, fade))}" pointer-events="none">`;
