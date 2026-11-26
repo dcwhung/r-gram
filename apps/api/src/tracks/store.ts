@@ -33,12 +33,16 @@ export const findTrackText = (db: D1Database, id: string) =>
         .bind(id)
         .first<TrackTextRow>();
 
-/** 冇其他歌嘅歌詞用緊呢個檔（同一段歌詞 = 同一個 hash 檔名） */
-export const isLyricsFileUsed = async (db: D1Database, jsonName: string) =>
-    (await db
-        .prepare('SELECT 1 FROM lyrics WHERE json_name = ? LIMIT 1')
-        .bind(jsonName)
-        .first()) !== null;
+/** `names` 入面仲有歌用緊嘅檔（同一段歌詞 = 同一個 hash 檔名）；`names` 最多 100 個（D1 每句參數上限） */
+export const usedLyricsFiles = async (db: D1Database, names: readonly string[]) =>
+    (
+        await db
+            .prepare(
+                `SELECT DISTINCT json_name FROM lyrics WHERE json_name IN (${names.map(() => '?').join(', ')})`,
+            )
+            .bind(...names)
+            .all<{ json_name: string }>()
+    ).results.map(({ json_name }) => json_name);
 
 const creditValues = (song: SongText) =>
     CREDIT_FIELDS.map((field) => song.credits?.[field] ?? null);
