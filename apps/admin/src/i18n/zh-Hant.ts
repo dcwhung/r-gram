@@ -7,6 +7,7 @@ export const zhHant = {
         heading: 'R Gram 媒體同步',
         loading: '正在檢查登入狀態…',
         loadFailed: '未能連接伺服器（{code}）。',
+        sessionExpired: '登入已過期，請重新登入。',
     },
     login: {
         signIn: '以 Google 登入',

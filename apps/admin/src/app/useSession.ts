@@ -5,7 +5,8 @@ import { problemCode } from '../sync/problem';
 
 export type Session =
     | { kind: 'loading' }
-    | { kind: 'signedOut' }
+    /** expired：同步途中 session 過期（S-231） */
+    | { kind: 'signedOut'; expired?: boolean }
     | { kind: 'signedIn'; email: string; signOutProblem: string | null }
     | { kind: 'error'; code: string };
 
@@ -41,5 +42,7 @@ export const useSession = (api: Pick<AdminApi, 'me' | 'logout'>) => {
         }
     }, [api]);
 
-    return { session, signOut };
+    const expire = useCallback(() => setSession({ kind: 'signedOut', expired: true }), []);
+
+    return { session, signOut, expire };
 };

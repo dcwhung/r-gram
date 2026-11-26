@@ -8,11 +8,13 @@ interface SyncPanelProps {
     email: string;
     signOutProblem: string | null;
     onSignOut: () => void;
+    onExpired: () => void;
     deps: SyncDeps;
 }
 
-export const SyncPanel = ({ email, signOutProblem, onSignOut, deps }: SyncPanelProps) => {
-    const { running, lines, summary, start } = useSync(deps);
+export const SyncPanel = (props: SyncPanelProps) => {
+    const { email, signOutProblem, onSignOut, onExpired, deps } = props;
+    const { running, lines, summary, start } = useSync(deps, onExpired);
     return (
         <>
             <p>{t('session.signedInAs', { email })}</p>
