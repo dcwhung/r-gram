@@ -2,6 +2,8 @@
  * 旋鈕、刻度同 ♥ 嘅形狀數字（設計稿第 18 版 knob()、knobScale()、favHeart()）。
  * 位置同大細喺幾何表（layout.knob、layout.scale）；呢度係畫法（線粗、顏色、比例）。
  */
+import { FAVOURITES_GLOW } from '../../favourites/favouritesAlbum';
+
 export const KNOB_SHAPE = {
     /** 旋鈕落影：向右下移、透明度 */
     shadow: { dx: 7, dy: 13, opacity: 0.36 },
@@ -21,8 +23,8 @@ export const KNOB_SHAPE = {
     heart: {
         full: 38,
         color: '#3a3a3a',
-        /** Favourites 碟嘅著燈色（設計稿 ALBUMS.favourites.glow；碟面同紅色喺 favourites/favouritesAlbum） */
-        lit: 'hsl(352 96% 60%)',
+        /** Favourites 碟嘅著燈色（設計稿 ALBUMS.favourites.glow；同左上心形共用，S-253） */
+        lit: FAVOURITES_GLOW,
         haloExtra: 4,
         haloOpacity: 0.6,
     },

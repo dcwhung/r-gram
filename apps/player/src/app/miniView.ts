@@ -2,8 +2,9 @@
  * 細唱片機（純函數；Functional Spec FR-043、D58；Technical Spec「補充：第 18 版」）：拎住另一隻碟時喺右上角照播
  * 載入嘅碟。碟面、歌名、唱臂姿勢全部跟載入嘅碟（播放狀態），唔跟畫面上嘅碟。
  */
-import { type CatalogDocument, glowColor } from '@r-gram/catalog';
+import type { CatalogDocument } from '@r-gram/catalog';
 import { findTrack } from '../catalog/selectors';
+import { discGlow } from '../favourites/favouritesAlbum';
 import type { ArmPose } from '../components/tonearm/armPose';
 import type { DialEntry, DiscFaceKind } from './dialView';
 import type { PlaybackState } from '../playback/playbackState';
@@ -59,7 +60,7 @@ export const miniView = (
         armPose: loadedArmPose(playback),
         spinning: playing && holding,
         accent: disc.accent,
-        glow: glowColor(disc.accent),
+        glow: discGlow(disc.albumId, disc.accent),
         coverUrl: disc.coverUrl,
         thumbUrl: disc.thumbUrl,
         face: disc.face,

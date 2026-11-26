@@ -6,7 +6,6 @@ import {
     type CatalogAlbum,
     type CatalogDocument,
     type CatalogTrack,
-    glowColor,
     mediaUrl,
     NEUTRAL_ACCENT,
 } from '@r-gram/catalog';
@@ -17,6 +16,7 @@ import type { SpindleMode } from '../components/spindle/Spindle';
 import { t } from '../i18n/t';
 import { DEFAULT_PLAY_MODE, type PlayMode } from '../playback/playModes';
 import { formatTime } from '../utils/formatTime';
+import { discGlow } from '../favourites/favouritesAlbum';
 import { dialView, type DialView } from './dialView';
 import { type FavouriteParts, favouriteParts } from './favouritesView';
 import { type TrackColumnView, trackColumnView } from './heldTracksView';
@@ -117,7 +117,7 @@ const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: 
     const accent = album?.accent ?? NEUTRAL_ACCENT;
     const cover = album ? albumArt(album, coverVariantOf(covers, album.id)).cover : null;
     const coverUrl = cover ? mediaUrl(document.imageBase, cover) : null;
-    return { accent, glow: glowColor(accent), coverUrl };
+    return { accent, glow: discGlow(album?.id ?? null, accent), coverUrl };
 };
 
 /**
