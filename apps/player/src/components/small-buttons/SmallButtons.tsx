@@ -1,5 +1,5 @@
 import { t } from '../../i18n/t';
-import type { PlayMode } from '../../playback/playModes';
+import { DEFAULT_PLAY_MODE, type PlayMode } from '../../playback/playModes';
 import { hitSizeUnits } from '../../stage/geometry';
 import type { ButtonId, StageLayout } from '../../stage/layouts';
 import { MetalButton } from '../metal-button/MetalButton';
@@ -36,7 +36,7 @@ export const SmallButtons = (props: SmallButtonsProps) => {
         const item = layout.buttons.items.find((button) => button.id === id);
         return { x: item?.x ?? 0, y: item?.y ?? 0 };
     };
-    const { covered = false, mode = 'order' } = props;
+    const { covered = false, mode = DEFAULT_PLAY_MODE } = props;
     const common = { glow, covered, metrics: layout.buttons, hitRadius: hitSizeUnits(layout) / 2 };
     return (
         <g data-part="small-buttons" aria-hidden={covered || undefined}>
