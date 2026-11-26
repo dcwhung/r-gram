@@ -196,6 +196,22 @@ describe('runSync', () => {
         expect(summary).toMatchObject({ stopped: 'UNAUTHORIZED', stats: null });
     });
 
+    // S-231：封面途中 session 過期 = 成個同步停（唔當封面問題、唔做下一個資料夾）
+    it('should stop when the session expires while a cover is stored', async () => {
+        const { api, events, summary } = await run({
+            overview: overviewOf([A, B]),
+            folders: {
+                [A]: [folderResult(A, { coverJobs: [coverJob(A)] })],
+                [B]: [folderResult(B)],
+            },
+            uploads: [new ApiError(401, 'UNAUTHORIZED', 'x')],
+        });
+        expect(api.syncFolder.mock.calls.map(([folder]) => folder)).toEqual([A]);
+        expect(events).not.toContainEqual(expect.objectContaining({ type: 'coverProblem' }));
+        expect(events.at(-2)).toEqual({ type: 'stopped', code: 'UNAUTHORIZED' });
+        expect(summary).toMatchObject({ stopped: 'UNAUTHORIZED', coverProblems: 0 });
+    });
+
     it('should stop when the folder list cannot be read', async () => {
         const { types, summary, api } = await run({ overview: serverDown() });
         expect(types).toEqual(['retry', 'retry', 'stopped', 'finished']);
