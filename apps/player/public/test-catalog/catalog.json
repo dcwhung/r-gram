@@ -1,0 +1,4131 @@
+{
+    "version": 1,
+    "generatedAt": "2026-11-26T00:00:00.000Z",
+    "mediaBase": "https://pub-fd99bea8c79a485b8a7eb3847cea696c.r2.dev/",
+    "imageBase": "https://r-gram-api.example.workers.dev/catalog/v1/img/",
+    "lyricsBase": "https://r-gram-api.example.workers.dev/catalog/v1/lyrics/",
+    "albums": [
+        {
+            "id": "apollo-18",
+            "title": "Apollo 18",
+            "wheelKey": "A",
+            "year": 2008,
+            "category": "album",
+            "categoryNo": 1,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "apollo-18-01",
+                    "no": 1,
+                    "title": "一早地下鐵",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "阿正",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-01-apollo-18/01 一早地下鐵.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-02",
+                    "no": 2,
+                    "title": "Hero",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-01-apollo-18/02 Hero.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-03",
+                    "no": 3,
+                    "title": "遊車河",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/03 遊車河.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-04",
+                    "no": 4,
+                    "title": "電玩男",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/04 電玩男.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-05",
+                    "no": 5,
+                    "title": "Tears",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/05 Tears.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-06",
+                    "no": 6,
+                    "title": "小涼伴",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/06 小涼伴.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-07",
+                    "no": 7,
+                    "title": "零度聖誕",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/07 零度聖誕.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-08",
+                    "no": 8,
+                    "title": "在森林和原野",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-01-apollo-18/08 在森林和原野.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-09",
+                    "no": 9,
+                    "title": "潛",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/09 潛.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-10",
+                    "no": 10,
+                    "title": "Secret",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/10 Secret.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-11",
+                    "no": 11,
+                    "title": "夜不眠",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/11 夜不眠.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-12",
+                    "no": 12,
+                    "title": "最後…那",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/12 最後…那.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-13",
+                    "no": 13,
+                    "title": "城記",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/13 城記.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-14",
+                    "no": 14,
+                    "title": "脫逃",
+                    "credits": {
+                        "composer": "阿正 / 6號",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/14 脫逃.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "apollo-18-15",
+                    "no": 15,
+                    "title": "認錯",
+                    "credits": {
+                        "composer": "李驥",
+                        "lyricist": "李驥",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-01-apollo-18/15 認錯.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "beaming",
+            "title": "Beaming",
+            "wheelKey": "B",
+            "year": 2009,
+            "category": "album",
+            "categoryNo": 2,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "beaming-01",
+                    "no": 1,
+                    "title": "天台飛人",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-02-beaming/01 天台飛人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-02",
+                    "no": 2,
+                    "title": "阿波羅",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "album-02-beaming/02 阿波羅.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-03",
+                    "no": 3,
+                    "title": "Try…",
+                    "credits": {
+                        "composer": "吳雨霏 / 阿正 / 6號",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-02-beaming/03 Try….m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-04",
+                    "no": 4,
+                    "title": "夾硬泥",
+                    "credits": {
+                        "composer": "阿正 / 6號 / 泥鯭",
+                        "lyricist": "林海峰 / 泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/04 夾硬泥.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-05",
+                    "no": 5,
+                    "title": "夏令時間",
+                    "credits": {
+                        "composer": "阿正 / 藝琛",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-02-beaming/05 夏令時間.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-06",
+                    "no": 6,
+                    "title": "衝",
+                    "credits": {
+                        "composer": "藝琛 / 阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-02-beaming/06 衝.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-07",
+                    "no": 7,
+                    "title": "Tears",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/07 Tears.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-08",
+                    "no": 8,
+                    "title": "電玩男",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/08 電玩男.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-09",
+                    "no": 9,
+                    "title": "小涼伴",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/09 小涼伴.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-10",
+                    "no": 10,
+                    "title": "最後…那",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/10 最後…那.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-11",
+                    "no": 11,
+                    "title": "城記",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/11 城記.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-12",
+                    "no": 12,
+                    "title": "一早地下鐵",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "阿正",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-02-beaming/12 一早地下鐵.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-13",
+                    "no": 13,
+                    "title": "夜不眠",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/13 夜不眠.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-14",
+                    "no": 14,
+                    "title": "零度聖誕",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/14 零度聖誕.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-15",
+                    "no": 15,
+                    "title": "潛",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/15 潛.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-16",
+                    "no": 16,
+                    "title": "遊車河",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-02-beaming/16 遊車河.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "beaming-17",
+                    "no": 17,
+                    "title": "Hero",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-02-beaming/17 Hero.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "connected",
+            "title": "Connected",
+            "wheelKey": "C",
+            "year": 2010,
+            "category": "album",
+            "categoryNo": 3,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "connected-01",
+                    "no": 1,
+                    "title": "天連地",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/01 天連地.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-02",
+                    "no": 2,
+                    "title": "金獅同學會",
+                    "credits": {
+                        "composer": "6號 / 阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/02 金獅同學會.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-03",
+                    "no": 3,
+                    "title": "細街盃",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/03 細街盃.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-04",
+                    "no": 4,
+                    "title": "3字頭",
+                    "credits": {
+                        "composer": "阿偉 / 泥鯭 / 6號 / 阿正",
+                        "lyricist": "阿偉 / 泥鯭 / 6號 / 阿正",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/04 3字頭.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-05",
+                    "no": 5,
+                    "title": "阿藍的故事",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/05 阿藍的故事.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-06",
+                    "no": 6,
+                    "title": "一轉身卻天亮了",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/06 一轉身卻天亮了.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-07",
+                    "no": 7,
+                    "title": "田鼠論壇",
+                    "credits": {
+                        "composer": "6號 / 阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/07 田鼠論壇.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-08",
+                    "no": 8,
+                    "title": "SimpleLoveSong",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-03-connected/08 SimpleLoveSong.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-09",
+                    "no": 9,
+                    "title": "hello ?",
+                    "credits": {
+                        "composer": "阿偉 / 阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/09 hello.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-10",
+                    "no": 10,
+                    "title": "囍宴樂隊",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/10 囍宴樂隊.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-11",
+                    "no": 11,
+                    "title": "海．地",
+                    "credits": {
+                        "composer": "泥鯭 / 6號 / 阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/11 海．地.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "connected-12",
+                    "no": 12,
+                    "title": "雙城記",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-03-connected/12 雙城記.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "dedicated-to",
+            "title": "Dedicated To…",
+            "wheelKey": "D",
+            "year": 2011,
+            "category": "album",
+            "categoryNo": 4,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "dedicated-to-01",
+                    "no": 1,
+                    "title": "More Than A Woman",
+                    "credits": {
+                        "composer": "B. Gibb / M. Gibb / R. Gibb",
+                        "lyricist": "B. Gibb / M. Gibb / R. Gibb",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/01 More Than A Woman.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-02",
+                    "no": 2,
+                    "title": "擦身情緣",
+                    "credits": {
+                        "composer": "Kishi Masayuki",
+                        "lyricist": "潘源良",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/02 擦身情緣.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-03",
+                    "no": 3,
+                    "title": "長夜 My Love Goodnight",
+                    "credits": {
+                        "composer": "Takahira Yutaka",
+                        "lyricist": "林振強",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-04-dedicated-to/03 長夜 My Love Goodnight.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-04",
+                    "no": 4,
+                    "title": "同桌的你／What's Up",
+                    "credits": {
+                        "composer": "高曉松 / Linda Perry",
+                        "lyricist": "高曉松 / Linda Perry",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/04 同桌的你／What's Up.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-05",
+                    "no": 5,
+                    "title": "記念",
+                    "credits": {
+                        "composer": "蔡健雅",
+                        "lyricist": "姚謙",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/05 記念.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-06",
+                    "no": 6,
+                    "title": "陪著你走",
+                    "credits": {
+                        "composer": "盧冠廷",
+                        "lyricist": "唐書琛",
+                        "arranger": "雷柏熹 / RubberBand",
+                        "producer": "Ernest Lau / 雷頌德 / RubberBand"
+                    },
+                    "audio": "album-04-dedicated-to/06 陪著你走.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-07",
+                    "no": 7,
+                    "title": "我只在乎你",
+                    "credits": {
+                        "composer": "Miki Takashi",
+                        "lyricist": "慎芝",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/07 我只在乎你.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-08",
+                    "no": 8,
+                    "title": "畫出彩虹",
+                    "credits": {
+                        "composer": "顧嘉輝",
+                        "lyricist": "鄭國江",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/08 畫出彩虹.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-09",
+                    "no": 9,
+                    "title": "(Just Like) Starting Over",
+                    "credits": {
+                        "composer": "Lennon John Winston",
+                        "lyricist": "Lennon John Winston",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/09 (Just Like) Starting Over.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-10",
+                    "no": 10,
+                    "title": "Dedicated To…",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "album-04-dedicated-to/10 Dedicated To….m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "dedicated-to-11",
+                    "no": 11,
+                    "title": "Re: SimpleLoveSong",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": null,
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "album-04-dedicated-to/11 Re SimpleLoveSong.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "easy",
+            "title": "Easy",
+            "wheelKey": "E",
+            "year": 2012,
+            "category": "album",
+            "categoryNo": 5,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "easy-01",
+                    "no": 1,
+                    "title": "睜開眼",
+                    "credits": {
+                        "composer": "阿偉 / 阿正",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/01 睜開眼.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-02",
+                    "no": 2,
+                    "title": "豬籠墟事變",
+                    "credits": {
+                        "composer": "6號 / 泥鯭",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/02 豬籠墟事變.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-03",
+                    "no": 3,
+                    "title": "無名英雄進行曲",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/03 無名英雄進行曲.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-04",
+                    "no": 4,
+                    "title": "M.A.M.A.",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/04 M.A.M.A..m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-05",
+                    "no": 5,
+                    "title": "Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/05 Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-06",
+                    "no": 6,
+                    "title": "Slow & Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹 / 雷頌德"
+                    },
+                    "audio": "album-05-easy/06 Slow & Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-07",
+                    "no": 7,
+                    "title": "生於1月17",
+                    "credits": {
+                        "composer": "6號 / 阿正 / 阿偉",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/07 生於1月17.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-08",
+                    "no": 8,
+                    "title": "進化論",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/08 進化論.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-09",
+                    "no": 9,
+                    "title": "倒行詩",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/09 倒行詩.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-10",
+                    "no": 10,
+                    "title": "快樂鐳射舖",
+                    "credits": {
+                        "composer": "RubberBand / Patrick Lui",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/10 快樂鐳射舖.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "easy-11",
+                    "no": 11,
+                    "title": "(Simple, but not) Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "泥鯭 / 雷柏熹",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-05-easy/11 (Simple, but not) Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "frank",
+            "title": "Frank",
+            "wheelKey": "F",
+            "year": 2014,
+            "category": "album",
+            "categoryNo": 6,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "frank-01",
+                    "no": 1,
+                    "title": "前面尚有一萬里",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand",
+                        "producer": "Mark Lui / RubberBand"
+                    },
+                    "audio": "album-06-frank/01 前面尚有一萬里.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-02",
+                    "no": 2,
+                    "title": "成長說明書",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "album-06-frank/02 成長說明書.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-03",
+                    "no": 3,
+                    "title": "是時候",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "album-06-frank/03 是時候.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-04",
+                    "no": 4,
+                    "title": "坦白",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "Mark Lui / RubberBand"
+                    },
+                    "audio": "album-06-frank/04 坦白.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-05",
+                    "no": 5,
+                    "title": "大話西遊",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "Mark Lui / RubberBand"
+                    },
+                    "audio": "album-06-frank/05 大話西遊.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-06",
+                    "no": 6,
+                    "title": "放",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / 王雙駿",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-06-frank/06 放.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-07",
+                    "no": 7,
+                    "title": "黑雞",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Rubber Band",
+                        "arranger": "RubberBand",
+                        "producer": "Mark Lui / RubberBand"
+                    },
+                    "audio": "album-06-frank/07 黑雞.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-08",
+                    "no": 8,
+                    "title": "把酒當歌",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "Mark Lui / RubberBand"
+                    },
+                    "audio": "album-06-frank/08 把酒當歌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-09",
+                    "no": 9,
+                    "title": "人生有個真正朋友",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "Mark Lui / RubberBand"
+                    },
+                    "audio": "album-06-frank/09 人生有個真正朋友.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-10",
+                    "no": 10,
+                    "title": "童稚萬歲",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Eddie Chung (Drum Music Ltd.)",
+                        "producer": "RubberBand / Eddie Chung (Drum Music Ltd.)"
+                    },
+                    "audio": "album-06-frank/10 童稚萬歲.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-11",
+                    "no": 11,
+                    "title": "We are One",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-06-frank/11 We are One.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-12",
+                    "no": 12,
+                    "title": "心照一生",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "album-06-frank/12 心照一生.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "gotta-go",
+            "title": "Gotta Go",
+            "wheelKey": "G",
+            "year": 2016,
+            "category": "album",
+            "categoryNo": 7,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "gotta-go-01",
+                    "no": 1,
+                    "title": "Gotta Go!",
+                    "credits": {
+                        "composer": "王雙駿 / RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/01 Gotta Go!.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-02",
+                    "no": 2,
+                    "title": "挾持",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "黃偉文",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/02 挾持.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-03",
+                    "no": 3,
+                    "title": "許多年以後",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/03 許多年以後.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-04",
+                    "no": 4,
+                    "title": "Alive",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/04 Alive.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-05",
+                    "no": 5,
+                    "title": "#sorrynotsorry#",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/05 sorrynotsorry.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-06",
+                    "no": 6,
+                    "title": "休眠",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/06 休眠.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-07",
+                    "no": 7,
+                    "title": "七",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/07 七.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-08",
+                    "no": 8,
+                    "title": "堅彌地城",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/08 堅彌地城.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-09",
+                    "no": 9,
+                    "title": "我是樂隊",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "周耀輝",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/09 我是樂隊.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-10",
+                    "no": 10,
+                    "title": "我是未來",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/10 我是未來.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "gotta-go-11",
+                    "no": 11,
+                    "title": "G.I.",
+                    "credits": {
+                        "composer": "阿偉",
+                        "lyricist": "阿偉",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "album-07-gotta-go/11 G.I..m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "hours",
+            "title": "Hours",
+            "wheelKey": "H",
+            "year": 2018,
+            "category": "album",
+            "categoryNo": 8,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "hours-01",
+                    "no": 1,
+                    "title": "脫軌時刻",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": null,
+                        "producer": "阿正"
+                    },
+                    "audio": "album-08-hours/01 脫軌時刻.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-02",
+                    "no": 2,
+                    "title": "城市當代配樂團",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "泥鯭"
+                    },
+                    "audio": "album-08-hours/02 城市當代配樂團.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-03",
+                    "no": 3,
+                    "title": "阿發好風光",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": null,
+                        "producer": "阿偉"
+                    },
+                    "audio": "album-08-hours/03 阿發好風光.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-04",
+                    "no": 4,
+                    "title": "那一端",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "6號 / 雷柏熹"
+                    },
+                    "audio": "album-08-hours/04 那一端.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-05",
+                    "no": 5,
+                    "title": "動物凶猛",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": null,
+                        "producer": "6號 / 雷柏熹"
+                    },
+                    "audio": "album-08-hours/05 動物凶猛.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-06",
+                    "no": 6,
+                    "title": "發麻",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui / RubberBand",
+                        "arranger": "RubberBand / 蔡德才",
+                        "producer": "阿偉"
+                    },
+                    "audio": "album-08-hours/06 發麻.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-07",
+                    "no": 7,
+                    "title": "你會有一天學會面對",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand",
+                        "producer": "泥鯭"
+                    },
+                    "audio": "album-08-hours/07 你會有一天學會面對.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-08",
+                    "no": 8,
+                    "title": "未來見",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "阿正"
+                    },
+                    "audio": "album-08-hours/08 未來見.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "hours-09",
+                    "no": 9,
+                    "title": "逆流之歌",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "album-08-hours/09 逆流之歌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "i",
+            "title": "i",
+            "wheelKey": "I",
+            "year": 2020,
+            "category": "album",
+            "categoryNo": 9,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "i-01",
+                    "no": 1,
+                    "title": "¿醒未?",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/01 ¿醒未.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-02",
+                    "no": 2,
+                    "title": "孤島人",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/02 孤島人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-03",
+                    "no": 3,
+                    "title": "每道微小",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/03 每道微小.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-04",
+                    "no": 4,
+                    "title": "朝著大海",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "album-09-i/04 朝著大海.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-05",
+                    "no": 5,
+                    "title": "First Date",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/05 First Date.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-06",
+                    "no": 6,
+                    "title": "漫長",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/06 漫長.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-07",
+                    "no": 7,
+                    "title": "百毒不侵",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / 雷柏熹 / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/07 百毒不侵.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-08",
+                    "no": 8,
+                    "title": "健兒",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / 雷柏熹",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/08 健兒.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "i-09",
+                    "no": 9,
+                    "title": "練習說再見",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-09-i/09 練習說再見.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "juntos",
+            "title": "JUNTOS",
+            "wheelKey": "J",
+            "year": 2023,
+            "category": "album",
+            "categoryNo": 10,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "juntos-01",
+                    "no": 1,
+                    "title": "Juntos",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/01 Juntos.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-02",
+                    "no": 2,
+                    "title": "戀人日常（的直線抽擊）",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/02 戀人日常（的直線抽擊）.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-03",
+                    "no": 3,
+                    "title": "不如散步",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui / RubberBand",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/03 不如散步.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-04",
+                    "no": 4,
+                    "title": "主僕關係",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/04 主僕關係.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-05",
+                    "no": 5,
+                    "title": "過度關注組",
+                    "credits": null,
+                    "audio": "album-10-juntos/05 過度關注組.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-06",
+                    "no": 6,
+                    "title": "宇宙大王",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/06 宇宙大王.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-07",
+                    "no": 7,
+                    "title": "只能給你奏著",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui / RubberBand",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/07 只能給你奏著.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-08",
+                    "no": 8,
+                    "title": "晚了",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/08 晚了.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "juntos-09",
+                    "no": 9,
+                    "title": "Be Right Back",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹 / Jason Kui",
+                        "lyricist": "Tim Lui / RubberBand",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "album-10-juntos/09 Be Right Back.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "komorebi",
+            "title": "KOMOREBI",
+            "wheelKey": "K",
+            "year": 2026,
+            "category": "album",
+            "categoryNo": 11,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "komorebi-01",
+                    "no": 1,
+                    "title": "下一位參賽者",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/01 下一位參賽者.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-02",
+                    "no": 2,
+                    "title": "跟住去邊度",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/02 跟住去邊度.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-03",
+                    "no": 3,
+                    "title": "搲撈HK",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/03 搲撈HK.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-04",
+                    "no": 4,
+                    "title": "毒蟲圖鑑",
+                    "credits": null,
+                    "audio": "album-11-komorebi/04 毒蟲圖鑑.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-05",
+                    "no": 5,
+                    "title": "太平門",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/05 太平門.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-06",
+                    "no": 6,
+                    "title": "理想的下午",
+                    "credits": null,
+                    "audio": "album-11-komorebi/06 理想的下午.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-07",
+                    "no": 7,
+                    "title": "我永遠記得",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/07 我永遠記得.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-08",
+                    "no": 8,
+                    "title": "揀睇誌",
+                    "credits": null,
+                    "audio": "album-11-komorebi/08 揀睇誌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-09",
+                    "no": 9,
+                    "title": "一杯",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/09 一杯.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-10",
+                    "no": 10,
+                    "title": "想寫好的功課",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/10 想寫好的功課.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-11",
+                    "no": 11,
+                    "title": "G’night",
+                    "credits": null,
+                    "audio": "album-11-komorebi/11 G’night.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "komorebi-12",
+                    "no": 12,
+                    "title": "木漏日",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "album-11-komorebi/12 木漏日.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "frank-ep",
+            "title": "¿Frank?",
+            "wheelKey": "F",
+            "year": 2014,
+            "category": "ep",
+            "categoryNo": 1,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "frank-ep-01",
+                    "no": 1,
+                    "title": "寂寞島嶼",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Terry Chan",
+                        "producer": "RubberBand / Terry Chan"
+                    },
+                    "audio": "ep-01-frank-ep/01 寂寞島嶼.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-ep-02",
+                    "no": 2,
+                    "title": "怪物",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Terry Chan",
+                        "producer": "RubberBand / Terry Chan"
+                    },
+                    "audio": "ep-01-frank-ep/02 怪物.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-ep-03",
+                    "no": 3,
+                    "title": "語言藝術",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand / Terry Chan",
+                        "producer": "RubberBand / Terry Chan"
+                    },
+                    "audio": "ep-01-frank-ep/03 語言藝術.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-ep-04",
+                    "no": 4,
+                    "title": "瞬間看地球",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Terry Chan",
+                        "producer": "RubberBand / Terry Chan"
+                    },
+                    "audio": "ep-01-frank-ep/04 瞬間看地球.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "frank-ep-05",
+                    "no": 5,
+                    "title": "你和我",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Terry Chan",
+                        "producer": "RubberBand / Terry Chan"
+                    },
+                    "audio": "ep-01-frank-ep/05 你和我.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "ni-dou",
+            "title": "呢度",
+            "wheelKey": "呢",
+            "year": 2016,
+            "category": "ep",
+            "categoryNo": 2,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "ni-dou-01",
+                    "no": 1,
+                    "title": "山河故人",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "ep-02-ni-dou/01 山河故人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "ni-dou-02",
+                    "no": 2,
+                    "title": "老人與海",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "ep-02-ni-dou/02 老人與海.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "ni-dou-03",
+                    "no": 3,
+                    "title": "飛天",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "ep-02-ni-dou/03 飛天.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "zoi-jat-hei",
+            "title": "在一起",
+            "wheelKey": "在",
+            "year": 2023,
+            "category": "ep",
+            "categoryNo": 3,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "zoi-jat-hei-01",
+                    "no": 1,
+                    "title": "Ciao",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "ep-03-zoi-jat-hei/01 Ciao.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoi-jat-hei-02",
+                    "no": 2,
+                    "title": "好好地過",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Jason Kui / Ricky Wong",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "ep-03-zoi-jat-hei/02 好好地過.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoi-jat-hei-03",
+                    "no": 3,
+                    "title": "這刻我們",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / 雷柏熹 / Jason Kui",
+                        "producer": "RubberBand / 雷柏熹 / Jason Kui"
+                    },
+                    "audio": "ep-03-zoi-jat-hei/03 這刻我們.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "zoeng-ngaa",
+            "title": "橡芽",
+            "wheelKey": "橡",
+            "year": 2012,
+            "category": "best",
+            "categoryNo": 1,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "zoeng-ngaa-01",
+                    "no": 1,
+                    "title": "夥伙",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "best-01-zoeng-ngaa/01 夥伙.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-02",
+                    "no": 2,
+                    "title": "Dedicated to…",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/02 Dedicated to….m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-03",
+                    "no": 3,
+                    "title": "進化論",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-01-zoeng-ngaa/03 進化論.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-04",
+                    "no": 4,
+                    "title": "衝",
+                    "credits": {
+                        "composer": "藝琛 / 阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "best-01-zoeng-ngaa/04 衝.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-05",
+                    "no": 5,
+                    "title": "田鼠論壇",
+                    "credits": {
+                        "composer": "6號 / 阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/05 田鼠論壇.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-06",
+                    "no": 6,
+                    "title": "細街盃",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/06 細街盃.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-07",
+                    "no": 7,
+                    "title": "天台飛人",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-01-zoeng-ngaa/07 天台飛人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-08",
+                    "no": 8,
+                    "title": "Slow & Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹 / 雷頌德"
+                    },
+                    "audio": "best-01-zoeng-ngaa/08 Slow & Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-09",
+                    "no": 9,
+                    "title": "一轉身卻天亮了",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/09 一轉身卻天亮了.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-10",
+                    "no": 10,
+                    "title": "一早地下鐵",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "阿正",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "best-01-zoeng-ngaa/10 一早地下鐵.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-11",
+                    "no": 11,
+                    "title": "遊車河",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/11 遊車河.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-12",
+                    "no": 12,
+                    "title": "小涼伴",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/12 小涼伴.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-13",
+                    "no": 13,
+                    "title": "阿波羅",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/13 阿波羅.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-14",
+                    "no": 14,
+                    "title": "Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-01-zoeng-ngaa/14 Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-15",
+                    "no": 15,
+                    "title": "夏令時間",
+                    "credits": {
+                        "composer": "阿正 / 藝琛",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-01-zoeng-ngaa/15 夏令時間.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-16",
+                    "no": 16,
+                    "title": "陪著你走",
+                    "credits": {
+                        "composer": "盧冠廷",
+                        "lyricist": "唐書琛",
+                        "arranger": "雷柏熹 / RubberBand",
+                        "producer": "Ernest Lau / 雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/16 陪著你走.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-17",
+                    "no": 17,
+                    "title": "零度聖誕",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/17 零度聖誕.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-18",
+                    "no": 18,
+                    "title": "SimpleLoveSong",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "best-01-zoeng-ngaa/18 SimpleLoveSong.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-19",
+                    "no": 19,
+                    "title": "睜開眼",
+                    "credits": {
+                        "composer": "阿偉 / 阿正",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-01-zoeng-ngaa/19 睜開眼.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-20",
+                    "no": 20,
+                    "title": "天連地",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/20 天連地.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-21",
+                    "no": 21,
+                    "title": "發現號",
+                    "credits": {
+                        "composer": "阿偉 / 阿正 / 藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-01-zoeng-ngaa/21 發現號.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "zoeng-ngaa-22",
+                    "no": 22,
+                    "title": "鬼叫你窮",
+                    "credits": {
+                        "composer": "黃霑",
+                        "lyricist": "黃霑",
+                        "arranger": "6號",
+                        "producer": null
+                    },
+                    "audio": "best-01-zoeng-ngaa/22 鬼叫你窮.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "we-are-rubberband",
+            "title": "We Are RubberBand",
+            "wheelKey": "W",
+            "year": 2015,
+            "category": "best",
+            "categoryNo": 2,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "we-are-rubberband-01",
+                    "no": 1,
+                    "title": "發現號",
+                    "credits": {
+                        "composer": "阿偉 / 阿正 / 藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/01 發現號.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-02",
+                    "no": 2,
+                    "title": "Slow & Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹 / 雷頌德"
+                    },
+                    "audio": "best-02-we-are-rubberband/02 Slow & Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-03",
+                    "no": 3,
+                    "title": "陪著你走",
+                    "credits": {
+                        "composer": "盧冠廷",
+                        "lyricist": "唐書琛",
+                        "arranger": "雷柏熹 / RubberBand",
+                        "producer": "Ernest Lau / 雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/03 陪著你走.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-04",
+                    "no": 4,
+                    "title": "小涼伴 (Live)",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/04 小涼伴 (Live).m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-05",
+                    "no": 5,
+                    "title": "睜開眼",
+                    "credits": {
+                        "composer": "阿偉 / 阿正",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-02-we-are-rubberband/05 睜開眼.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-06",
+                    "no": 6,
+                    "title": "夜不眠 (Live)",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/06 夜不眠 (Live).m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-07",
+                    "no": 7,
+                    "title": "一轉身卻天亮了",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/07 一轉身卻天亮了.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-08",
+                    "no": 8,
+                    "title": "長夜 My Love Goodnight",
+                    "credits": {
+                        "composer": "Takahira Yutaka",
+                        "lyricist": "林振強",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/08 長夜 My Love Goodnight.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-09",
+                    "no": 9,
+                    "title": "3字頭",
+                    "credits": {
+                        "composer": "阿偉 / 泥鯭 / 6號 / 阿正",
+                        "lyricist": "阿偉 / 泥鯭 / 6號 / 阿正",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/09 3字頭.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-10",
+                    "no": 10,
+                    "title": "囍宴樂隊",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/10 囍宴樂隊.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-11",
+                    "no": 11,
+                    "title": "夥伙",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "best-02-we-are-rubberband/11 夥伙.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-12",
+                    "no": 12,
+                    "title": "Tears (Live)",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/12 Tears (Live).m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-13",
+                    "no": 13,
+                    "title": "進化論",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-02-we-are-rubberband/13 進化論.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-14",
+                    "no": 14,
+                    "title": "Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-02-we-are-rubberband/14 Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-15",
+                    "no": 15,
+                    "title": "田鼠論壇",
+                    "credits": {
+                        "composer": "6號 / 阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/15 田鼠論壇.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-16",
+                    "no": 16,
+                    "title": "SimpleLoveSong",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "best-02-we-are-rubberband/16 SimpleLoveSong.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-17",
+                    "no": 17,
+                    "title": "More Than A Woman",
+                    "credits": {
+                        "composer": "B. Gibb / M. Gibb / R. Gibb",
+                        "lyricist": "B. Gibb / M. Gibb / R. Gibb",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德"
+                    },
+                    "audio": "best-02-we-are-rubberband/17 More Than A Woman.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-18",
+                    "no": 18,
+                    "title": "電玩男 (Live)",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/18 電玩男 (Live).m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-19",
+                    "no": 19,
+                    "title": "細街盃",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/19 細街盃.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-20",
+                    "no": 20,
+                    "title": "擦身情緣",
+                    "credits": {
+                        "composer": "Kishi Masayuki",
+                        "lyricist": "潘源良",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "best-02-we-are-rubberband/20 擦身情緣.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-21",
+                    "no": 21,
+                    "title": "阿藍的故事",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/21 阿藍的故事.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-22",
+                    "no": 22,
+                    "title": "天連地",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/22 天連地.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-23",
+                    "no": 23,
+                    "title": "阿波羅 (Live)",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/23 阿波羅 (Live).m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-24",
+                    "no": 24,
+                    "title": "Here We Are (Live)",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-02-we-are-rubberband/24 Here We Are (Live).m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-25",
+                    "no": 25,
+                    "title": "倒行詩",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-02-we-are-rubberband/25 倒行詩.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-26",
+                    "no": 26,
+                    "title": "畫出彩虹",
+                    "credits": {
+                        "composer": "顧嘉輝",
+                        "lyricist": "鄭國江",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德"
+                    },
+                    "audio": "best-02-we-are-rubberband/26 畫出彩虹.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-27",
+                    "no": 27,
+                    "title": "海．地",
+                    "credits": {
+                        "composer": "泥鯭 / 6號 / 阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/27 海．地.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-28",
+                    "no": 28,
+                    "title": "最後... 那",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/28 最後... 那.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-29",
+                    "no": 29,
+                    "title": "Dedicated To...",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "best-02-we-are-rubberband/29 Dedicated To....m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "we-are-rubberband-30",
+                    "no": 30,
+                    "title": "無名英雄進行曲",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "best-02-we-are-rubberband/30 無名英雄進行曲.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "rubberband-concert-1",
+            "title": "RubberBand Concert #1",
+            "wheelKey": "R",
+            "year": 2009,
+            "category": "live",
+            "categoryNo": 1,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "rubberband-concert-1-01",
+                    "no": 1,
+                    "title": "認錯",
+                    "credits": {
+                        "composer": "李驥",
+                        "lyricist": "李驥",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/01 認錯.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-02",
+                    "no": 2,
+                    "title": "電玩男",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/02 電玩男.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-03",
+                    "no": 3,
+                    "title": "潛",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/03 潛.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-04",
+                    "no": 4,
+                    "title": "在森林和原野",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "live-01-rubberband-concert-1/04 在森林和原野.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-05",
+                    "no": 5,
+                    "title": "夜不眠",
+                    "credits": {
+                        "composer": "阿正 / 泥鯭 / 6號",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/05 夜不眠.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-06",
+                    "no": 6,
+                    "title": "零度聖誕",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/06 零度聖誕.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-07",
+                    "no": 7,
+                    "title": "Secret",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/07 Secret.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-08",
+                    "no": 8,
+                    "title": "I'm Yours",
+                    "credits": {
+                        "composer": "Jason Mraz",
+                        "lyricist": "Jason Mraz",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-01-rubberband-concert-1/08 I'm Yours.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-09",
+                    "no": 9,
+                    "title": "遊車河",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/09 遊車河.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-10",
+                    "no": 10,
+                    "title": "一早地下鐵 / 幾分鐘的約會",
+                    "credits": {
+                        "composer": "阿正 ｜ Kenneth Chan (陳德堅)",
+                        "lyricist": "Tim Lui / 6號 ｜ 鄭國江",
+                        "arranger": "阿正 ｜ —",
+                        "producer": "RubberBand / 雷頌德 ｜ —"
+                    },
+                    "audio": "live-01-rubberband-concert-1/10 一早地下鐵  幾分鐘的約會.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-11",
+                    "no": 11,
+                    "title": "Come Together",
+                    "credits": {
+                        "composer": "Lennon–McCartney",
+                        "lyricist": "Lennon–McCartney",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-01-rubberband-concert-1/11 Come Together.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-12",
+                    "no": 12,
+                    "title": "脫逃 / 沙灘",
+                    "credits": {
+                        "composer": "阿正 / 6號 ｜ 陶喆",
+                        "lyricist": "6號 ｜ 娃娃",
+                        "arranger": "RubberBand ｜ —",
+                        "producer": "雷頌德 / RubberBand ｜ —"
+                    },
+                    "audio": "live-01-rubberband-concert-1/12 脫逃  沙灘.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-13",
+                    "no": 13,
+                    "title": "夏令時間",
+                    "credits": {
+                        "composer": "阿正 / 藝琛",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-01-rubberband-concert-1/13 夏令時間.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-14",
+                    "no": 14,
+                    "title": "Here We Are",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-01-rubberband-concert-1/14 Here We Are.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-15",
+                    "no": 15,
+                    "title": "Hero",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "live-01-rubberband-concert-1/15 Hero.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-16",
+                    "no": 16,
+                    "title": "夾硬泥",
+                    "credits": {
+                        "composer": "阿正 / 6號 / 泥鯭",
+                        "lyricist": "林海峰 / 泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/16 夾硬泥.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-17",
+                    "no": 17,
+                    "title": "最後…那",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/17 最後…那.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-18",
+                    "no": 18,
+                    "title": "城記",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/18 城記.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-19",
+                    "no": 19,
+                    "title": "Tears",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/19 Tears.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-20",
+                    "no": 20,
+                    "title": "發現號",
+                    "credits": {
+                        "composer": "阿偉 / 阿正 / 藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/20 發現號.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-21",
+                    "no": 21,
+                    "title": "衝",
+                    "credits": {
+                        "composer": "藝琛 / 阿正",
+                        "lyricist": "6號",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "live-01-rubberband-concert-1/21 衝.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-22",
+                    "no": 22,
+                    "title": "天台飛人",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-01-rubberband-concert-1/22 天台飛人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-23",
+                    "no": 23,
+                    "title": "小涼伴",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/23 小涼伴.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-24",
+                    "no": 24,
+                    "title": "阿波羅",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/24 阿波羅.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-concert-1-25",
+                    "no": 25,
+                    "title": "發現號",
+                    "credits": {
+                        "composer": "阿偉 / 阿正 / 藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-01-rubberband-concert-1/25 發現號.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "rubberband-ciao-2021-live",
+            "title": "RubberBand Ciao 2021 (Live)",
+            "wheelKey": "R",
+            "year": 2022,
+            "category": "live",
+            "categoryNo": 2,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "rubberband-ciao-2021-live-01",
+                    "no": 1,
+                    "title": "Opening",
+                    "credits": null,
+                    "audio": "live-02-rubberband-ciao-2021-live/01 Opening.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-02",
+                    "no": 2,
+                    "title": "Dedicated To…",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/02 Dedicated To….m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-03",
+                    "no": 3,
+                    "title": "¿醒未?",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/03 ¿醒未.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-04",
+                    "no": 4,
+                    "title": "每道微小",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/04 每道微小.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-05",
+                    "no": 5,
+                    "title": "一早地下鐵",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": "阿正",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/05 一早地下鐵.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-06",
+                    "no": 6,
+                    "title": "小涼伴",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/06 小涼伴.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-07",
+                    "no": 7,
+                    "title": "阿波羅",
+                    "credits": {
+                        "composer": "藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/07 阿波羅.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-08",
+                    "no": 8,
+                    "title": "天台飛人",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/08 天台飛人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-09",
+                    "no": 9,
+                    "title": "百毒不侵",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / 雷柏熹 / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/09 百毒不侵.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-10",
+                    "no": 10,
+                    "title": "漫長",
+                    "credits": {
+                        "composer": "RubberBand / 雷柏熹",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/10 漫長.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-11",
+                    "no": 11,
+                    "title": "堅彌地城",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/11 堅彌地城.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-12",
+                    "no": 12,
+                    "title": "睜開眼",
+                    "credits": {
+                        "composer": "阿偉 / 阿正",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/12 睜開眼.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-13",
+                    "no": 13,
+                    "title": "挾持",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "黃偉文",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/13 挾持.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-14",
+                    "no": 14,
+                    "title": "山河故人",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/14 山河故人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-15",
+                    "no": 15,
+                    "title": "倒行詩",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/15 倒行詩.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-16",
+                    "no": 16,
+                    "title": "練習說再見",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/16 練習說再見.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-17",
+                    "no": 17,
+                    "title": "心照一生",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/17 心照一生.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-18",
+                    "no": 18,
+                    "title": "hello?",
+                    "credits": {
+                        "composer": "阿偉 / 阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/18 hello.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-19",
+                    "no": 19,
+                    "title": "M.A.M.A.",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/19 M.A.M.A..m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-20",
+                    "no": 20,
+                    "title": "夥伙",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/20 夥伙.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-21",
+                    "no": 21,
+                    "title": "逆流之歌",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/21 逆流之歌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-22",
+                    "no": 22,
+                    "title": "發現號",
+                    "credits": {
+                        "composer": "阿偉 / 阿正 / 藝琛",
+                        "lyricist": "6號 / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/22 發現號.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-23",
+                    "no": 23,
+                    "title": "未來見",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "阿正"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/23 未來見.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-24",
+                    "no": 24,
+                    "title": "你和我",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand / Terry Chan",
+                        "producer": "RubberBand / Terry Chan"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/24 你和我.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-25",
+                    "no": 25,
+                    "title": "夏令時間",
+                    "credits": {
+                        "composer": "阿正 / 藝琛",
+                        "lyricist": "6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/25 夏令時間.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-26",
+                    "no": 26,
+                    "title": "Easy",
+                    "credits": {
+                        "composer": "泥鯭",
+                        "lyricist": "Tim Lui / 6號",
+                        "arranger": null,
+                        "producer": null
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/26 Easy.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-27",
+                    "no": 27,
+                    "title": "SimpleLoveSong",
+                    "credits": {
+                        "composer": "阿正",
+                        "lyricist": "Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand / 雷頌德"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/27 SimpleLoveSong.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-28",
+                    "no": 28,
+                    "title": "Ciao",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/28 Ciao.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-29",
+                    "no": 29,
+                    "title": "田鼠論壇",
+                    "credits": {
+                        "composer": "6號 / 阿正",
+                        "lyricist": "泥鯭",
+                        "arranger": "RubberBand",
+                        "producer": "雷頌德 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/29 田鼠論壇.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-30",
+                    "no": 30,
+                    "title": "健兒",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / 雷柏熹",
+                        "arranger": "RubberBand / 雷柏熹",
+                        "producer": "RubberBand / 雷柏熹"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/30 健兒.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-31",
+                    "no": 31,
+                    "title": "G.I.",
+                    "credits": {
+                        "composer": "阿偉",
+                        "lyricist": "阿偉",
+                        "arranger": "王雙駿 / RubberBand",
+                        "producer": "王雙駿 / RubberBand"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/31 G.I..m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "rubberband-ciao-2021-live-32",
+                    "no": 32,
+                    "title": "你會有一天學會面對",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand",
+                        "producer": "泥鯭"
+                    },
+                    "audio": "live-02-rubberband-ciao-2021-live/32 你會有一天學會面對.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "men-on-the-dragon-ost",
+            "title": "電影《逆流大叔》原聲大碟",
+            "wheelKey": "電",
+            "year": 2022,
+            "category": "ost",
+            "categoryNo": 1,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "men-on-the-dragon-ost-01",
+                    "no": 1,
+                    "title": "槍頭向外",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/01 槍頭向外.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-02",
+                    "no": 2,
+                    "title": "打倒獅子山下",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/02 打倒獅子山下.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-03",
+                    "no": 3,
+                    "title": "拆肉清蒸",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/03 拆肉清蒸.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-04",
+                    "no": 4,
+                    "title": "鄰居囉",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/04 鄰居囉.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-05",
+                    "no": 5,
+                    "title": "陳自豪",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/05 陳自豪.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-06",
+                    "no": 6,
+                    "title": "明刀明槍",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/06 明刀明槍.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-07",
+                    "no": 7,
+                    "title": "劉德華開演唱會",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/07 劉德華開演唱會.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-08",
+                    "no": 8,
+                    "title": "我係黃淑儀",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/08 我係黃淑儀.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-09",
+                    "no": 9,
+                    "title": "威廉的背肌",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/09 威廉的背肌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-10",
+                    "no": 10,
+                    "title": "豹紋泳褲",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/10 豹紋泳褲.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-11",
+                    "no": 11,
+                    "title": "Tickets",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/11 Tickets.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-12",
+                    "no": 12,
+                    "title": "冤家路窄",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/12 冤家路窄.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-13",
+                    "no": 13,
+                    "title": "入拉抽回",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/13 入拉抽回.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-14",
+                    "no": 14,
+                    "title": "萬箭穿心局",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/14 萬箭穿心局.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-15",
+                    "no": 15,
+                    "title": "Mark哥唔會喊",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/15 Mark哥唔會喊.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-16",
+                    "no": 16,
+                    "title": "夜視鏡",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/16 夜視鏡.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-17",
+                    "no": 17,
+                    "title": "水底下的泰哥",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/17 水底下的泰哥.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-18",
+                    "no": 18,
+                    "title": "錢銀女人",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/18 錢銀女人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-19",
+                    "no": 19,
+                    "title": "隻抽",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/19 隻抽.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-20",
+                    "no": 20,
+                    "title": "炒甩龍頭",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/20 炒甩龍頭.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-21",
+                    "no": 21,
+                    "title": "前哨戰",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/21 前哨戰.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-22",
+                    "no": 22,
+                    "title": "跟著鼓聲向前行",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/22 跟著鼓聲向前行.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-23",
+                    "no": 23,
+                    "title": "坐亞望冠",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/23 坐亞望冠.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-24",
+                    "no": 24,
+                    "title": "同居的希望",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/24 同居的希望.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-25",
+                    "no": 25,
+                    "title": "Dorothy的洗澡水",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/25 Dorothy的洗澡水.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-26",
+                    "no": 26,
+                    "title": "淑儀的戀愛",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/26 淑儀的戀愛.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-27",
+                    "no": 27,
+                    "title": "多謝你送個海畀我",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/27 多謝你送個海畀我.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-28",
+                    "no": 28,
+                    "title": "泰哥的尊嚴",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/28 泰哥的尊嚴.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-29",
+                    "no": 29,
+                    "title": "浪漫的粉腸與深情的人渣",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/29 浪漫的粉腸與深情的人渣.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-30",
+                    "no": 30,
+                    "title": "急彎",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/30 急彎.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-31",
+                    "no": 31,
+                    "title": "我與你,兩個人的事",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/31 我與你,兩個人的事.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-32",
+                    "no": 32,
+                    "title": "隔牆的阿龍",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/32 隔牆的阿龍.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-33",
+                    "no": 33,
+                    "title": "阿龍的眼淚",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/33 阿龍的眼淚.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-34",
+                    "no": 34,
+                    "title": "龍舟式罷工",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/34 龍舟式罷工.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-35",
+                    "no": 35,
+                    "title": "至少當一個男人",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/35 至少當一個男人.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-36",
+                    "no": 36,
+                    "title": "英雄本色,是永恆的",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/36 英雄本色,是永恆的.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-37",
+                    "no": 37,
+                    "title": "大叔的萬水千山",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/37 大叔的萬水千山.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-38",
+                    "no": 38,
+                    "title": "無忘初衷",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/38 無忘初衷.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-39",
+                    "no": 39,
+                    "title": "阿龍的祝福",
+                    "credits": null,
+                    "audio": "ost-01-men-on-the-dragon-ost/39 阿龍的祝福.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-40",
+                    "no": 40,
+                    "title": "逆流之歌",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "ost-01-men-on-the-dragon-ost/40 逆流之歌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                },
+                {
+                    "id": "men-on-the-dragon-ost-41",
+                    "no": 41,
+                    "title": "大叔情歌",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "陳詠燊",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "ost-01-men-on-the-dragon-ost/41 大叔情歌.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "zung-jyu-hou-tin-hei",
+            "title": "終於好天氣（方皓玟 × RubberBand）",
+            "wheelKey": "終",
+            "year": 2016,
+            "category": "single",
+            "categoryNo": 1,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "zung-jyu-hou-tin-hei-01",
+                    "no": 1,
+                    "title": "終於好天氣",
+                    "credits": {
+                        "composer": "方皓玟 / RubberBand",
+                        "lyricist": "Tim Lui / RubberBand",
+                        "arranger": "RubberBand / 許創基",
+                        "producer": "RubberBand / 許創基"
+                    },
+                    "audio": "single-01-zung-jyu-hou-tin-hei/01 終於好天氣.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        },
+        {
+            "id": "joeng-sai-gaai-dou-dung",
+            "title": "讓世界都懂",
+            "wheelKey": "讓",
+            "year": 2024,
+            "category": "single",
+            "categoryNo": 2,
+            "accent": "#6e6e6e",
+            "cover": null,
+            "thumb": null,
+            "tracks": [
+                {
+                    "id": "joeng-sai-gaai-dou-dung-01",
+                    "no": 1,
+                    "title": "讓世界都懂",
+                    "credits": {
+                        "composer": "RubberBand",
+                        "lyricist": "RubberBand / Tim Lui",
+                        "arranger": "RubberBand",
+                        "producer": "RubberBand"
+                    },
+                    "audio": "single-02-joeng-sai-gaai-dou-dung/01 讓世界都懂.m4a",
+                    "mv": null,
+                    "lyrics": null
+                }
+            ]
+        }
+    ]
+}
