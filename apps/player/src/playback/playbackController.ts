@@ -168,11 +168,12 @@ class Controller implements PlaybackController {
         this.engine.pause();
     }
 
-    release(): void {
+    /** arrow：畫面直接將佢當 callback（D99 嘅 timer），唔使再包 */
+    release = (): void => {
         this.clearLanding();
         this.engine.stop();
         this.dispatch({ type: 'release' });
-    }
+    };
 
     cycleMode(): void {
         const mode = nextPlayMode(this.snapshot.mode);

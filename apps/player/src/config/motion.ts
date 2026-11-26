@@ -92,5 +92,10 @@ export const MOTION = {
         dialHoldMs: 180,
         /** 快擰途中唔顯示歌單欄：旋鈕停喺一隻碟幾耐先出（設計稿第 19 版 PANEL_FLOAT.settle；B-086 ④） */
         columnSettleMs: 140,
+        /**
+         * 播完最後一首隔幾耐「放低隻碟」變返未揀歌（Functional Spec D99，用戶確認 3 秒；
+         * Technical Spec「播完最後一首」）。減少動態效果照等
+         */
+        endedReleaseMs: 3000,
     },
 } as const;

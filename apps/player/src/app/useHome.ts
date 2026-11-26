@@ -7,7 +7,9 @@ import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
 import { createAudioEngine } from '../playback/audioEngine';
 import { createPlaybackController, type PlaybackController } from '../playback/playbackController';
 import { playbackSource } from '../playback/playbackSource';
-import type { PlaybackState } from '../playback/playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
+import { isHolding, loadedAlbumOf } from './holding';
+import { endedWaitRuns, useEndedRelease } from './useEndedRelease';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
 import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from './stageReducer';
 import type { HomeHandlers } from './Turntable';
@@ -124,7 +126,7 @@ const turnTo = ({ view, dispatch }: HomeContext, position: number) => {
  * ♥ 一㩒去 Favourites 碟
  */
 const dialHandlers = (context: HomeContext) => ({
-    onTurnStart: () => context.dispatch({ type: 'openDiscChange' }),
+    onTurnStart: () => releaseIfEnded(context).dispatch({ type: 'openDiscChange' }),
     onTurn: (position: number) => turnTo(context, position),
     onTurnEnd: () => context.dispatch({ type: 'closeDiscChange' }),
     onTurnCancel: () => context.dispatch({ type: 'cancelDiscChange' }),
@@ -134,23 +136,52 @@ const dialHandlers = (context: HomeContext) => ({
 /** 弧線歌單（T-037、B-086 ②）：㩒碟面打開（拎住另一隻碟都得）、捲到框入面嗰首、Enter 播 */
 const listHandlers = (context: HomeContext) => ({
     onOpenList: () => {
-        if (context.view.canOpenList) openList(context);
+        if (context.view.canOpenList) openList(releaseIfEnded(context));
     },
     onFocusListTrack: (trackId: string) => context.dispatch({ type: 'focusTrack', trackId }),
     onPlayListTrack: (trackId: string) => playListTrack(context, trackId),
 });
 
+/** 播完而冇拎住另一隻碟（3 秒等緊，D99） */
+const isEndedHere = ({ playback, view }: HomeContext) =>
+    playback.status === 'ended' && !view.holding;
+
+/**
+ * D99 ①：3 秒內擰旋鈕、㩒碟面、開歌書／MV = 即刻當 3 秒到咗（放低隻碟），再做嗰個操作。
+ * 回傳放低之後嘅 context（播放 = 冇歌載入），等操作用新狀態
+ */
+const releaseIfEnded = (context: HomeContext): HomeContext => {
+    if (!isEndedHere(context)) return context;
+    context.player.release();
+    return { ...context, playback: IDLE_PLAYBACK };
+};
+
+/** 歌書、MV：播完 3 秒內㩒（開）= 放低隻碟；收埋照收（之後由頭計 3 秒）；放低之後未揀歌，兩粒掣冇嘢開（D24、C5），所以唔再開 */
+const pressOverlay = (context: HomeContext, open: (context: HomeContext) => void) => {
+    const closing = context.view.mvOpen || context.view.bookletOpen;
+    if (isEndedHere(context) && !closing) context.player.release();
+    else open(context);
+};
+
+/** 㩒細唱片機返去：載入嘅碟拎住期間播完咗 = 未揀歌嘅主頁（D99 ⑤，唔使再等 3 秒） */
+const returnToLoaded = ({ playback, player, dispatch, view }: HomeContext) => {
+    if (playback.status === 'ended') player.release();
+    dispatch({ type: 'returnToLoaded', loadedAlbumId: view.loadedAlbumId });
+};
+
 const handlersFor = (context: HomeContext): HomeHandlers => ({
     ...dialHandlers(context),
     onSpindle: () => pressSpindle(context),
-    onBooklet: () => context.dispatch({ type: 'toggleBooklet', hasSong: context.view.hasSong }),
-    onMv: () => pressMv(context),
+    onBooklet: () =>
+        pressOverlay(context, ({ dispatch, view }) =>
+            dispatch({ type: 'toggleBooklet', hasSong: view.hasSong }),
+        ),
+    onMv: () => pressOverlay(context, pressMv),
     // 順序 → 重覆全部 → 重覆一首 → 隨機（設計稿第 20 版 MODES），存喺本機
     onMode: () => context.player.cycleMode(),
     onCloseList: () => context.dispatch({ type: 'closeList' }),
     ...listHandlers(context),
-    onReturnToLoaded: () =>
-        context.dispatch({ type: 'returnToLoaded', loadedAlbumId: context.view.loadedAlbumId }),
+    onReturnToLoaded: () => returnToLoaded(context),
 });
 
 export interface Home {
@@ -169,8 +200,20 @@ export interface Home {
 }
 
 /**
+ * 播放 controller 成個 app 一個：第一次 render 嗰個一直用（唔會因為 re-render 換）。
+ * 冇畀（只有 spike 頁嘅靜止主頁）就自己建一個；app 一律由 main.tsx 畀
+ */
+const usePlayer = (controller: PlaybackController | undefined) => {
+    const [player] = useState(
+        () => controller ?? createPlaybackController({ engine: createAudioEngine() }),
+    );
+    const { playback, mode } = useSyncExternalStore(player.subscribe, player.getSnapshot);
+    return { player, playback, mode };
+};
+
+/**
  * 主頁嘅狀態同動作：場景狀態機 + 播放 controller（外部 store，T-038）+ catalog → 畫面要嘅值。
- * controller 成個 app 一個：第一次 render 嗰個一直用（唔會因為 re-render 換）。
+ * 播完最後一首 3 秒後放低隻碟（D99，`useEndedRelease`）。
  * 封面：開 app 時每張專輯揀一張（CR-005 D56；`random` 測試用固定值），畫面上嘅碟另一張封面有空先攞入 cache。
  */
 export const useHome = (
@@ -179,11 +222,9 @@ export const useHome = (
     random?: () => number,
 ): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
-    // 冇畀（只有 spike 頁嘅靜止主頁）就自己建一個；app 一律由 main.tsx 畀
-    const [player] = useState(
-        () => controller ?? createPlaybackController({ engine: createAudioEngine() }),
-    );
-    const { playback, mode } = useSyncExternalStore(player.subscribe, player.getSnapshot);
+    const { player, playback, mode } = usePlayer(controller);
+    const holding = isHolding(stage, loadedAlbumOf(playback));
+    useEndedRelease(endedWaitRuns(playback, stage, holding), player.release);
     const covers = useCoverVariants(catalog, random);
     usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
     const finishPreload = useCallback(() => {
