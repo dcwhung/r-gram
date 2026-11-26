@@ -1,4 +1,4 @@
-import { arcRows, arcRowSpec } from '../../stage/arcRows';
+import { arcRing, arcRowSpec } from '../../stage/arcRows';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { arcFloats, listFloatTotalMs } from './arcFloat';
 
@@ -10,7 +10,8 @@ const { heldTracks: column } = PHONE_LAYOUT;
  * 字級由歌單欄嘅 28 縮放到弧線上嘅字級，逐行遲 80ms
  */
 describe('arcFloats', () => {
-    const poses = arcRows(10, 0, spec, () => false);
+    // 第 20 版：淨係框嘅近邊（未過接駁位）嗰啲行由歌單欄飄落
+    const poses = arcRing(10, 0, spec, () => false).rows.filter(({ wrapped }) => !wrapped);
 
     it('should start each arc row at its slot in the column at the column size', () => {
         const extra = 120;
