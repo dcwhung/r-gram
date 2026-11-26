@@ -73,6 +73,8 @@ const browserEnv = (): EngineEnv => ({
 /** idle：冇歌；priming：靜音預備緊；primed：停喺 0 等落針；live：正常（出聲或者暫停緊） */
 type Phase = 'idle' | 'priming' | 'primed' | 'live';
 
+/** 下載被中止（換 src、stop、用戶要求）：唔係檔案問題，唔理（S-243） */
+const MEDIA_ERR_ABORTED = 1;
 const MEDIA_ERR_NETWORK = 2;
 const MEDIA_ERR_DECODE = 3;
 
@@ -333,6 +335,7 @@ class Engine implements AudioEngine {
         const trackId = this.track?.id;
         const code = this.element.error?.code;
         if (!trackId || this.phase === 'idle' || code === undefined) return;
+        if (code === MEDIA_ERR_ABORTED) return;
         if (code === MEDIA_ERR_NETWORK) {
             if (this.env.isHidden()) this.onHiddenNetworkError(trackId);
             else this.retryOrFail();
