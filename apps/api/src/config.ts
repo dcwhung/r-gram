@@ -139,10 +139,11 @@ export const NO_SNIFF = 'nosniff';
 /**
  * 同步（T-105；Technical Spec「CR-007 → 同步嘅設計 → 每個請求嘅操作上限」、R-016）：Worker 每個請求對 Cloudflare 服務
  *（R2、D1 binding）嘅操作有上限（假設 1000 個；部署前對官方文件，backlog B-074 ④）。
- * 一次 API-034 最多處理呢個數嘅「有嘢做」嘅歌（要寫 D1 或者要讀 `.txt`）；每首最多：讀 `.txt` 1 + 歌詞 JSON put 1 +
- * D1 batch 1（id 撞咗再試最多 3）+ 生成 catalog 之後清舊歌詞檔 2 ≈ 5 → 500；加 list 兩次（各 ≤ SCAN_LIST_PAGES_MAX 頁）、
- * `info.txt` 1、D1 讀 2、專輯寫 2、生成 catalog 約 5，最多約 525。原聲大碟 41 首一次過做得晒；
- * 超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔，唔計 D1 寫入）
+ * 一次 API-034 最多處理呢個數嘅「有嘢做」嘅歌（要寫 D1 或者要讀 `.txt`）。操作數（review S-169）：
+ * list 第一層 ≤ SCAN_LIST_PAGES_MAX + findAlbum ≤ 1 + list 資料夾 ≤ SCAN_LIST_PAGES_MAX + D1 狀態 1 + `info.txt` 1 +
+ * 專輯 1 + 每首（讀 `.txt` 1 + 歌詞 JSON put 1 + D1 1）× 100 + finishAlbum 1 + 生成 catalog 約 5 + 清歌詞 2 ≈ 320；
+ * 極端情況（每首 id 撞晒、insertNumbered 試 4 次又 STALE 要即刻清檔）約 830，都喺假設嘅 1000 之內。
+ * 原聲大碟 41 首一次過做得晒；超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔）
  */
 export const SYNC_TRACKS_MAX = 100;
 /**
@@ -151,7 +152,8 @@ export const SYNC_TRACKS_MAX = 100;
  */
 export const SCAN_LIST_PAGES_MAX = 5;
 /**
- * 一次 API-035 最多確認幾多項（Technical Spec SYNC_REMOVALS_MAX）：每項最多 list 一個資料夾（≤ SCAN_LIST_PAGES_MAX 頁，
- * 同一張碟只 list 一次）+ `info.txt` 1 + D1 2–3 + 清歌詞檔；最差約 50 ×（5 + 1 + 3）+ 第一層 list 5 + 生成 catalog ≈ 460
+ * 一次 API-035 最多確認幾多項（Technical Spec SYNC_REMOVALS_MAX）。操作數（review S-169）：每項 track 約 8
+ *（D1 讀 1 + list 資料夾 ≤ SCAN_LIST_PAGES_MAX，同一張碟只 list 一次 + `info.txt` 1 + D1 寫 1），50 項 + 第一層 list +
+ * 生成 catalog 約 405；50 張大碟（每張 999 首有歌詞）時清歌詞每 100 個名一句 D1，加埋約 710，都喺假設嘅 1000 之內
  */
 export const SYNC_REMOVALS_MAX = 50;
