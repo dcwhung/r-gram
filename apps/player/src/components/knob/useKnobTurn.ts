@@ -49,11 +49,16 @@ const limitsOf = ({ layout, positions }: KnobTurnOptions) => ({
 });
 
 interface Drag {
+    /** 開始呢個手勢嘅 pointer：其他 pointer（第二隻手指）唔理（S-150） */
+    pointerId: number;
     knob: KnobOnScreen;
     turn: KnobTurn;
     /** 上一次報咗邊格（冇變就唔再報） */
     reported: number;
 }
+
+/** 滑鼠左掣；手指同筆㩒落都係呢個值 */
+const PRIMARY_BUTTON = 0;
 
 /** pointer 郁咗：計新嘅格，變咗先報 */
 const dragTo = (drag: Drag, event: PointerEvent, options: KnobTurnOptions) => {
@@ -65,37 +70,40 @@ const dragTo = (drag: Drag, event: PointerEvent, options: KnobTurnOptions) => {
     options.onTurn(position);
 };
 
+/** 㩒落：主掣、而且未有手勢先開始；記低 pointerId，攞 pointer capture */
+const grab = (event: PointerEvent<SVGGElement>, hit: Element | null, options: KnobTurnOptions) => {
+    if (event.button !== PRIMARY_BUTTON) return null;
+    const knob = measure(hit, options.layout.knob.turnDeadZone);
+    if (!knob) return null;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    const turn = moveTurn(startTurn(options.current), angleOf(knob, event), limitsOf(options));
+    return { pointerId: event.pointerId, knob, turn, reported: options.current };
+};
+
 /**
  * 擰旋鈕嘅手勢（Functional Spec CR-002「轉碟」：拖住大旋鈕打圈）：㩒住 = 打開字母盤；pointer 圍住旋鈕轉 =
- * 指針跟住轉，吸附去最近一格（knobTurn.ts）；放手 = 揀咗。pointer capture：手指離開旋鈕都照轉。
+ * 指針跟住轉，吸附去最近一格（knobTurn.ts）；放手 = 揀咗。pointer capture：手指離開旋鈕都照轉；
+ * 冇咗 capture（例如系統搶咗手勢）當放手。只跟㩒落嗰個 pointer（S-150）。
  */
 const usePointerTurn = (options: KnobTurnOptions) => {
     const hitRef = useRef<SVGCircleElement>(null);
     const drag = useRef<Drag | null>(null);
+    const ours = (event: PointerEvent) => drag.current?.pointerId === event.pointerId;
     const onPointerDown = (event: PointerEvent<SVGGElement>) => {
-        const knob = measure(hitRef.current, options.layout.knob.turnDeadZone);
-        if (!knob) return;
-        event.currentTarget.setPointerCapture?.(event.pointerId);
-        const turn = moveTurn(startTurn(options.current), angleOf(knob, event), limitsOf(options));
-        drag.current = { knob, turn, reported: options.current };
-        options.onStart();
+        if (drag.current) return;
+        drag.current = grab(event, hitRef.current, options);
+        if (drag.current) options.onStart();
     };
-    const onPointerUp = () => {
-        if (!drag.current) return;
+    const onPointerUp = (event: PointerEvent) => {
+        if (!ours(event)) return;
         drag.current = null;
         options.onEnd();
     };
     const onPointerMove = (event: PointerEvent) => {
-        if (drag.current) dragTo(drag.current, event, options);
+        if (drag.current && ours(event)) dragTo(drag.current, event, options);
     };
-    return {
-        hitRef,
-        drag,
-        onPointerDown,
-        onPointerMove,
-        onPointerUp,
-        onPointerCancel: onPointerUp,
-    };
+    const pointer = { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
+    return { hitRef, drag, ...pointer, onLostPointerCapture: onPointerUp };
 };
 
 /** 鍵盤（US-012）：方向鍵 / Home / End 打開字母盤兼轉；Enter、Esc 或者 focus 離開 = 完成 */
