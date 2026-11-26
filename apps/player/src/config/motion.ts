@@ -58,13 +58,31 @@ export const MOTION = {
         needleDropMs: 160,
         bookletOpenMs: 400,
         bookletCloseMs: 240,
+        /*
+         * MV 電視（設計稿「MV 電視」嘅 CSS：tvRise、antennaOut／In、crtOn、crt-white、crtOff、tvDrop、tv-veil；T-060）。
+         * 開：升起 800（回彈）；天線 500 之後彈出 350；螢幕 700 開始由一條白線打開 220，白光 720 之後淡走 200；
+         * 背後模糊層淡入 500。收（㩒 ■ 或者播完）：熄機 150（白光 100 淡入）→ 170 之後向下收埋 450、
+         * 天線縮返 150、模糊層 170 之後淡走 450；TV_CLOSE_MS 630 之後先轉場景狀態
+         */
         /** MV 電視由底部升起（有回彈） */
         tvRiseMs: 800,
+        tvAntennaOutMs: 350,
+        tvAntennaOutDelayMs: 500,
+        tvAntennaInMs: 150,
         /** 螢幕開機：升到位嗰刻開始 */
+        crtOnDelayMs: 700,
         crtOnMs: 220,
+        crtFlashOutMs: 200,
+        crtFlashOutDelayMs: 720,
+        crtFlashInMs: 100,
         crtOffMs: 150,
         /** 電視向下收埋（熄機之後） */
+        tvDropDelayMs: 170,
         tvDropMs: 450,
+        tvVeilInMs: 500,
+        tvVeilOutMs: 450,
+        /** 㩒 ■ 之後幾耐電視先算收埋（熄機 + 停一停 + 收埋；設計稿 TV_CLOSE_MS） */
+        tvCloseMs: 630,
         /*
          * Preload（T-034）：數值由設計稿 _mockups_/r-gram/src/anim.js（v16）嘅時間線 T 嚟
          *（loadStart 0.25 → loadEnd 1.85 → flagFade0 2.05 → flagFade1 2.8）

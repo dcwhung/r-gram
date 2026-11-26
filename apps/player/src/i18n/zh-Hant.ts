@@ -88,6 +88,14 @@ export const zhHant = {
         stop: '關閉電視',
         volume: 'MV 音量',
         seek: '快轉或倒轉',
+        /** 電視成組（role="group"）嘅名 */
+        tv: 'MV 電視',
+        /** MV 載入失敗（螢幕上一行；US-004 同類嘅提示） */
+        failed: '未能播放 MV',
+        /** 同一件事，畀讀屏（live region）：講埋歌名 */
+        failedNotice: '未能播放「{title}」的 MV',
+        /** 電視開住時鎖屏嘅標題：歌名 + 「MV」（Technical Spec「Media Session → MV 開住」） */
+        sessionTitle: '{title}（MV）',
     },
     mode: {
         label: '播放模式：{mode}',

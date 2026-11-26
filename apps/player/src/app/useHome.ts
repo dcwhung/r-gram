@@ -5,6 +5,7 @@ import { dialAlbums } from '../catalog/selectors';
 import { useCoverVariants } from '../catalog/useCoverVariants';
 import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
 import type { FavouritesStore } from '../favourites/store';
+import type { MvController } from '../mv/mvController';
 import { createAudioEngine } from '../playback/audioEngine';
 import { createPlaybackController, type PlaybackController } from '../playback/playbackController';
 import { playbackSource } from '../playback/playbackSource';
@@ -15,6 +16,8 @@ import { homeView, listFocusTrackId, type HomeView } from './homeView';
 import { type Favourites, useFavourites, useFavouritesQueue } from './useFavourites';
 import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from './stageReducer';
 import type { HomeHandlers } from './Turntable';
+import { mvTrackOf } from './mvTrack';
+import { type TvParts, tvParts, useMvController, useTvClosed } from './useTv';
 
 /**
  * 開 app 時嘅場景：一開始已經有 catalog（測試、hook 直接用）就由第一隻碟嘅主頁開始；
@@ -37,6 +40,8 @@ interface HomeContext {
     dispatch: Dispatch<StageAction>;
     player: PlaybackController;
     favourites: Favourites;
+    /** 電視（T-060） */
+    mv: MvController;
 }
 
 /**
@@ -109,17 +114,22 @@ const pressSpindle = (context: HomeContext) => {
 };
 
 /**
- * MV：開電視時停播（唱臂返泊位）。電視（連 ■ 掣）係 T-060：未有之前，電視開住時再㩒 MV 掣就收返，
- * 收返之後唔自動續播（C8）。
+ * MV 掣（T-060；US-007、C8）：唱片停（唱臂返泊位），電視升起，喺同一個手勢入面預備 MV（`cue`）。
+ * 電視開住時背後成層 inert，呢粒掣㩒唔到；萬一叫到 = 同 ■ 一樣收埋。收埋之後唱片唔自動續播
  */
-const pressMv = ({ stage, view, dispatch, player }: HomeContext) => {
+const pressMv = (context: HomeContext) => {
+    const { stage, view, dispatch, player, mv } = context;
     if (view.mvOpen) {
-        dispatch({ type: 'closeMv' });
+        mv.stop();
         return;
     }
-    if (stage.scene !== 'home' || !view.hasMv) return;
+    const albumId = stage.viewAlbumId;
+    const track =
+        albumId && view.track && mvTrackOf(context.catalog, context.covers, albumId, view.track);
+    if (stage.scene !== 'home' || !track) return;
     dispatch({ type: 'openMv', hasMv: true });
     player.pauseFor('mv');
+    mv.open(track);
 };
 
 /** 旋鈕指住第 position 格：轉去嗰格嘅碟（♥ 格 = Favourites 碟）；格外嘅數唔理 */
@@ -195,7 +205,7 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
     },
 });
 
-export interface Home {
+export interface Home extends TvParts {
     stage: StageState;
     playback: PlaybackState;
     /** 今次開 app 每張專輯用邊張封面（轉盤嘅碟、Preload 都用，T-034、T-036） */
@@ -233,9 +243,12 @@ export const useHome = (
     controller?: PlaybackController,
     random?: () => number,
     favouritesStore?: FavouritesStore,
+    mvController?: MvController,
 ): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
     const { player, playback, mode, audible } = usePlayer(controller);
+    const { mv, snapshot: tvState } = useMvController(mvController);
+    useTvClosed(tvState, stage, dispatch);
     const loaded = loadedAlbumOf(playback);
     useEndedRelease(endedWaitRuns(playback, stage, isHolding(stage, loaded)), player.release);
     const favourites = useFavourites(catalog, playback, favouritesStore);
@@ -247,9 +260,10 @@ export const useHome = (
         if (first) dispatch({ type: 'preloadDone', albumId: first.id });
     }, [catalog]);
     const { document } = favourites;
-    if (!document) return { stage, playback, covers, view: null, handlers: null, finishPreload };
+    const base = { stage, playback, covers, finishPreload };
+    if (!document) return { ...base, view: null, handlers: null, tv: null, tvHandlers: null };
     const view = homeView(document, stage, playback, covers, mode, audible, favourites.ids);
-    const context = { catalog: document, stage, playback, view, covers, dispatch, player };
+    const context = { catalog: document, stage, playback, view, covers, dispatch, player, mv };
     const handlers = handlersFor({ ...context, favourites });
-    return { stage, playback, covers, view, handlers, finishPreload };
+    return { ...base, view, handlers, ...tvParts(mv, tvState, view) };
 };

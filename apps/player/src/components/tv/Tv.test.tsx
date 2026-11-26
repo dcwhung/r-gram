@@ -104,7 +104,9 @@ describe('Tv', () => {
     it('should say on the screen and to screen readers that the MV could not be played', () => {
         const { part } = renderTv(view({ failed: true, active: null }));
         expect(part('tv-screen')).toHaveTextContent('未能播放 MV');
-        expect(screen.getByRole('status')).toHaveTextContent('未能播放「Room 1」的 MV');
+        // live region（唔用 role="status"：主頁得一個 status，同 PlaybackNotice 一樣）
+        expect(part('tv-notice')).toHaveAttribute('aria-live', 'polite');
+        expect(part('tv-notice')).toHaveTextContent('未能播放「Room 1」的 MV');
     });
 
     // FR-039：高身手機多出嚟嘅高度喺貼頂組同貼底組中間；電視跟畫面底

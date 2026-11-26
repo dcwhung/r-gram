@@ -1,0 +1,5 @@
+/* 唱片機嗰層（T-060）：同舞台一樣大；MV 電視開住時成層 inert（電視喺佢上面） */
+.home-layer {
+    position: absolute;
+    inset: 0;
+}

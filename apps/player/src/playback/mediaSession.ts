@@ -20,8 +20,9 @@ export interface NowPlaying {
 export interface MediaSessionHandlers {
     play: () => void;
     pause: () => void;
-    previous: () => void;
-    next: () => void;
+    /** 冇 = 鎖屏冇呢粒掣（MV 冇上一首／下一首，T-060） */
+    previous?: () => void;
+    next?: () => void;
     seekTo: (positionSec: number) => void;
 }
 
@@ -36,11 +37,14 @@ export interface MediaSessionPort {
 
 type ActionHandlers = Partial<Record<MediaSessionAction, MediaSessionActionHandler | null>>;
 
+/** 冇 handler = null（鎖屏唔顯示嗰粒掣） */
+const optional = (handler: (() => void) | undefined) => (handler ? () => handler() : null);
+
 const actionsFor = (handlers: MediaSessionHandlers): ActionHandlers => ({
     play: () => handlers.play(),
     pause: () => handlers.pause(),
-    previoustrack: () => handlers.previous(),
-    nexttrack: () => handlers.next(),
+    previoustrack: optional(handlers.previous),
+    nexttrack: optional(handlers.next),
     seekto: (details) => {
         if (typeof details.seekTime === 'number') handlers.seekTo(details.seekTime);
     },
