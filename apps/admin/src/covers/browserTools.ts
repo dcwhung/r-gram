@@ -12,6 +12,8 @@ export interface CanvasDeps {
     wasmEncode: (data: ImageData) => Promise<ArrayBuffer>;
 }
 
+const DECODE_OPTIONS: ImageBitmapOptions = { imageOrientation: 'from-image' };
+
 const wasmEncode = async (data: ImageData): Promise<ArrayBuffer> => {
     const { default: encode } = await import('@jsquash/webp/encode');
     return encode(data, { quality: WEBP_QUALITY * PERCENT });
@@ -20,7 +22,8 @@ const wasmEncode = async (data: ImageData): Promise<ArrayBuffer> => {
 export const browserDeps: CanvasDeps = {
     createCanvas: (width, height) =>
         Object.assign(document.createElement('canvas'), { width, height }),
-    decode: (source) => createImageBitmap(source),
+    // 明寫跟 EXIF 方向轉正：而家瀏覽器預設已經係咁，明寫避開舊 Safari 同將來預設改動（S-228）
+    decode: (source) => createImageBitmap(source, DECODE_OPTIONS),
     wasmEncode,
 };
 
