@@ -131,6 +131,19 @@ describe('parseAlbumInfo', () => {
             const title = '名'.repeat(TITLE_MAX_CHARS);
             expect(parseAlbumInfo(`唱片名稱：${title}`).title).toBe(title);
         });
+
+        // S-158：控制字元、零寬字元、bidi 控制字元睇唔到，唔可以入碟名
+        it('should drop control, zero-width and bidi-control characters from the title', () => {
+            expect(parseAlbumInfo('唱片名稱：Ko\u200bmo\u0007re\u2066bi\u2069').title).toBe(
+                'Komorebi',
+            );
+        });
+
+        it('should treat a title of only hidden characters as no title', () => {
+            const info = parseAlbumInfo('唱片名稱：\u200b\u202e\ufeff');
+            expect(info.title).toBeNull();
+            expect(info.checks).toEqual([{ level: 'warning', code: 'INFO_NO_TITLE', params: {} }]);
+        });
     });
 
     describe('track lines', () => {
@@ -167,6 +180,19 @@ describe('parseAlbumInfo', () => {
             '唱片公司：Sony',
         ])('should skip %j with an unknown-line check', (line) => {
             const info = parseAlbumInfo(`唱片名稱：A\n${line}`);
+            expect(info.tracks).toEqual([]);
+            expect(info.checks).toEqual([
+                { level: 'warning', code: 'INFO_UNKNOWN_LINE', line: 2, params: {} },
+            ]);
+        });
+
+        it('should drop hidden characters from a track title', () => {
+            const info = parseAlbumInfo('唱片名稱：A\n1. \u200e歌\u200d名\u202c');
+            expect(info.tracks).toEqual([{ no: 1, title: '歌名', line: 2 }]);
+        });
+
+        it('should skip a track whose title is only hidden characters', () => {
+            const info = parseAlbumInfo('唱片名稱：A\n1. \u200b\u2060');
             expect(info.tracks).toEqual([]);
             expect(info.checks).toEqual([
                 { level: 'warning', code: 'INFO_UNKNOWN_LINE', line: 2, params: {} },
