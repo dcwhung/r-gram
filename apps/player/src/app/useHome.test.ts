@@ -24,7 +24,6 @@ describe('useHome', () => {
     it('should ignore the clamp while the MV is open', () => {
         const { result } = renderHook(() => useHome(catalogWithMv()));
         press(result, 'onSpindle');
-        press(result, 'onSpindle');
         press(result, 'onMv');
         const before = { stage: result.current.stage, playback: result.current.playback };
         press(result, 'onSpindle');
@@ -131,10 +130,9 @@ describe('useHome turning the knob', () => {
 
 /* T-048：播緊時拎住另一隻碟（Functional Spec FR-043、D52）：聲照播；㩒細唱片機返去載入嘅碟 */
 describe('useHome holding another disc', () => {
-    /** 開歌單、播第一首（apollo-18-01），再擰去 room 鬆手 */
+    /** 㩒唱片夾播第一首（apollo-18-01），再擰去 room 鬆手 */
     const holdRoom = (document: CatalogDocument = sampleDocument()) => {
         const { result } = renderHook(() => useHome(document));
-        press(result, 'onSpindle');
         press(result, 'onSpindle');
         act(() => result.current.handlers?.onTurnStart());
         act(() => result.current.handlers?.onTurn(1));
@@ -148,8 +146,21 @@ describe('useHome holding another disc', () => {
         expect(result.current.playback).toMatchObject({ status: 'playing', albumId: 'apollo-18' });
     });
 
-    it('should ignore the clamp of the held disc: no arc list, playback untouched', () => {
+    // B-086 ③：拎住另一隻碟㩒 play = 隻碟入機播第一首有音檔嘅歌
+    it('should put the held disc on and play its first playable track from the clamp', () => {
         const result = holdRoom();
+        press(result, 'onSpindle');
+        expect(result.current.playback).toMatchObject({
+            status: 'playing',
+            albumId: 'room',
+            trackId: 'room-01',
+        });
+        expect(result.current.view).toMatchObject({ holding: false, armPose: 'playing' });
+    });
+
+    it('should ignore the clamp while the dial is open', () => {
+        const result = holdRoom();
+        act(() => result.current.handlers?.onTurnStart());
         const before = { stage: result.current.stage, playback: result.current.playback };
         press(result, 'onSpindle');
         expect(result.current.stage).toBe(before.stage);
@@ -293,12 +304,34 @@ describe('useHome arc list', () => {
     });
 });
 
+/* 設計稿第 19 版 ACTIONS.playpause（B-086 ③）：未揀歌㩒 play = 播呢隻碟第一首有音檔嘅歌 */
+describe('useHome clamp with no chosen track', () => {
+    it('should play the first track with audio of the disc on screen', () => {
+        const document = makeDocument([makeAlbum('room', [null, 'room/02.m4a'])]);
+        const { result } = renderHook(() => useHome(document));
+        expect(result.current.view?.spindle).toBe('idle');
+        press(result, 'onSpindle');
+        expect(result.current.stage.scene).toBe('home');
+        expect(result.current.playback).toMatchObject({ status: 'playing', trackId: 'room-02' });
+        expect(result.current.view?.track?.id).toBe('room-02');
+    });
+
+    it('should do nothing when the disc has no playable track', () => {
+        const document = makeDocument([makeAlbum('room', [null])]);
+        const { result } = renderHook(() => useHome(document));
+        const before = { stage: result.current.stage, playback: result.current.playback };
+        press(result, 'onSpindle');
+        expect(result.current.stage).toBe(before.stage);
+        expect(result.current.playback).toBe(before.playback);
+    });
+});
+
 /* T-037：設計稿 ACTIONS.playpause：冇歌嘅碟（D39）歌單入面㩒唱片夾 = 收返歌單 */
 describe('useHome empty list', () => {
     it('should close the list of an album without tracks when the clamp is pressed', () => {
         const document = makeDocument([makeAlbum('room', [])]);
         const { result } = renderHook(() => useHome(document));
-        press(result, 'onSpindle');
+        act(() => result.current.handlers?.onOpenList());
         expect(result.current.stage.scene).toBe('list');
         press(result, 'onSpindle');
         expect(result.current.stage.scene).toBe('home');

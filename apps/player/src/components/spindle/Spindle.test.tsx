@@ -23,10 +23,12 @@ const renderSpindle = (mode: SpindleMode, progress = 0.25, disabled = false) => 
 
 /* 唱片夾四個狀態（Functional Spec CR-002「唱片夾同碟」） */
 describe('Spindle', () => {
-    it('should show the bare clamp and open the track list when no song is chosen', () => {
+    // 設計稿第 19 版 spindle()（B-086 ③）：未揀歌都有 play 圖案（底下壓暗），冇進度圈
+    it('should show play on a dark backdrop when no song is chosen', () => {
         const { button, part } = renderSpindle('idle');
-        expect(button).toHaveAccessibleName('開啟歌單');
-        expect(part('play')).toBeNull();
+        expect(button).toHaveAccessibleName('播放');
+        expect(part('play')).not.toBeNull();
+        expect(part('play-backdrop')).not.toBeNull();
         expect(part('pause')).toBeNull();
         expect(part('progress')).toBeNull();
     });

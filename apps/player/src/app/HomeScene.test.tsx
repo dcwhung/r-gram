@@ -237,12 +237,18 @@ describe('HomeScene holding another disc', () => {
         expect(part(container, 'mini-label')).toHaveTextContent('已暫停');
     });
 
-    // 拎住嘅碟冇轉盤：唱片夾照畫（設計稿），但唔係掣、讀屏唔讀、Tab 唔到
-    it('should take the clamp of the held disc out of the Tab order', () => {
+    // B-086 ③：拎住另一隻碟時唱片夾係真嘅 play 掣（㩒 = 隻碟入機播第一首）
+    it('should keep the clamp of the held disc a play button in the Tab order', () => {
         const { container } = render(scene(holding()));
         const spindle = container.querySelector('.spindle');
-        expect(spindle).toHaveAttribute('tabindex', '-1');
-        expect(spindle).toHaveAttribute('aria-hidden', 'true');
+        expect(spindle).toHaveAttribute('tabindex', '0');
+        expect(spindle).not.toHaveAttribute('aria-hidden');
+        expect(spindle).toHaveAccessibleName('播放');
+    });
+
+    it('should disable the clamp while the dial is open', () => {
+        const { container } = render(scene(viewOf('room', null, { scene: 'discChange' })));
+        expect(container.querySelector('.spindle')).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('should keep the platter and hide the mini turntable on the loaded disc', () => {
@@ -371,13 +377,13 @@ describe('HomeScene disc face', () => {
         expect(disc).toHaveAttribute('fill-rule', 'evenodd');
     });
 
-    // 冇歌載入時唱片夾本身就係「開啟歌單」：碟面只係畀手指㩒，讀屏同 Tab 唔重覆
-    it('should leave the face to pointers when the clamp already opens the list', () => {
+    // B-086 ③：唱片夾一定係 play，開弧線歌單一律經碟面：冇歌載入時碟面都入 Tab 次序
+    it('should keep the face a button when nothing is loaded', () => {
         const { container } = render(scene(viewOf('apollo-18')));
         const disc = part(container, 'disc-face');
-        expect(disc).toHaveAttribute('tabindex', '-1');
-        expect(disc).toHaveAttribute('aria-hidden', 'true');
-        expect(screen.getByRole('button', { name: '開啟歌單' })).toHaveClass('spindle');
+        expect(disc).toHaveAttribute('tabindex', '0');
+        expect(disc).not.toHaveAttribute('aria-hidden');
+        expect(container.querySelector('.spindle')).toHaveAccessibleName('播放');
     });
 
     // B-086 ②：拎住另一隻碟都可以㩒碟面開弧線歌單；字母盤開住就冇碟面
