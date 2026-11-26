@@ -7,9 +7,11 @@ import {
     labelLinesAfterGap,
     parseSongText,
     SONG_TEXT_MAX_BYTES,
+    songOf,
     toLyricsJson,
     type SongLyrics,
     type SongText,
+    type SongTextResult,
 } from '@r-gram/catalog';
 import type { Context } from 'hono';
 import type { AppEnv } from '../app';
@@ -37,7 +39,7 @@ const TEXT_PATH = 'text';
 export interface Hint {
     path: string;
     line: number;
-    reason: 'LABEL_AFTER_BLANK_LINE';
+    reason: 'LABEL_AFTER_BLANK_LINE' | 'SUBTITLE_IGNORED';
     message: string;
 }
 
@@ -48,14 +50,22 @@ export interface ReadSong {
     fields: TrackFields;
 }
 
-/** backlog B-038：歌名之後隔咗空行嘅標籤樣行會當歌詞儲存；照存，但係話畀管理員知 */
-const hintsOf = (text: string): Hint[] =>
-    labelLinesAfterGap(text).map((line) => ({
-        path: TEXT_PATH,
-        line,
-        reason: 'LABEL_AFTER_BLANK_LINE',
-        message: hintMessage('LABEL_AFTER_BLANK_LINE'),
-    }));
+const hintOf = (line: number, reason: Hint['reason']): Hint => ({
+    path: TEXT_PATH,
+    line,
+    reason,
+    message: hintMessage(reason),
+});
+
+/**
+ * backlog B-038：歌名之後隔咗空行嘅標籤樣行會當歌詞儲存；CR-007（D72）：`副題：` 行唔儲存。
+ * 兩樣都照存，但係話畀管理員知；按行號排
+ */
+const hintsOf = (text: string, song: SongTextResult): Hint[] =>
+    [
+        ...labelLinesAfterGap(text).map((line) => hintOf(line, 'LABEL_AFTER_BLANK_LINE')),
+        ...song.hints.map(({ line, code }) => hintOf(line, code)),
+    ].sort((a, b) => a.line - b.line);
 
 /** 解析；太大 → 'tooLarge'（parser 第 0 行嘅 TOO_LARGE 轉 413，backlog B-040）；有錯 → details */
 const parseText = (text: string): Omit<ReadSong, 'fields'> | TrackDetail[] | 'tooLarge' => {
@@ -65,7 +75,7 @@ const parseText = (text: string): Omit<ReadSong, 'fields'> | TrackDetail[] | 'to
     if (result.errors.some(({ code }) => code === 'TOO_LARGE')) return 'tooLarge';
     if (result.errors.length > 0)
         return result.errors.map(({ line, code }) => ({ path: TEXT_PATH, line, reason: code }));
-    return { song: result, hints: hintsOf(text) };
+    return { song: songOf(result), hints: hintsOf(text, result) };
 };
 
 /** 請求 body → 歌曲；唔得就回錯誤回應（400 / 413）。欄位錯誤同逐行錯誤一次過列晒 */

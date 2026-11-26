@@ -128,7 +128,7 @@ export const zhHant = {
             TOO_LARGE: '歌曲文字超出大小上限。',
             TOO_MANY_LINES: '歌曲文字最多 {max} 行。',
             TITLE_REQUIRED: '第一行必須是歌名。',
-            TITLE_TOO_LONG: '歌名或副題最多 {max} 個字。',
+            TITLE_TOO_LONG: '歌名最多 {max} 個字。',
             DUPLICATE_LABEL: '此標籤已出現過，每項只可填寫一次。',
             CREDIT_TOO_LONG: '曲、詞、編、監每項最多 {max} 個字。',
             LINE_TOO_LONG: '每行歌詞最多 {max} 個字。',
@@ -141,6 +141,8 @@ export const zhHant = {
         hints: {
             LABEL_AFTER_BLANK_LINE:
                 '此行看似標籤，但前面有空行，因此已當作歌詞儲存。如屬標籤，請刪除前面的空行。',
+            /** CR-007（Functional Spec D72）：舊檔嘅「副題：」行照收但唔用 */
+            SUBTITLE_IGNORED: '副題已不再使用，此行已略過。',
         },
     },
     assets: {

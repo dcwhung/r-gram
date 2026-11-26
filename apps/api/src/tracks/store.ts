@@ -130,7 +130,8 @@ export const insertTrack = async (
     const now = new Date().toISOString();
     const { audioKey, mvKey, textSourceEtag } = files;
     const { id, albumId, no } = ids;
-    const songValues = [song.title, song.subtitle, ...creditValues(song)];
+    // CR-007（D72）：副題唔再儲存；欄喺 T-104 刪
+    const songValues = [song.title, null, ...creditValues(song)];
     const insert = db
         .prepare(INSERT_SQL)
         .bind(id, albumId, no, ...songValues, audioKey, mvKey, textSourceEtag, now);
@@ -162,7 +163,7 @@ export const saveSongText = async (
              WHERE id = ?8 AND updated_at = ?9
              RETURNING ${TRACK_RETURNING}`,
         )
-        .bind(song.title, song.subtitle, ...creditValues(song), updatedAt, id, expected, ...source);
+        .bind(song.title, null, ...creditValues(song), updatedAt, id, expected, ...source);
     const [updated] = await db.batch<TrackRow>([update, lyricsWrite(db, id, lyrics, updatedAt)]);
     const row = updated?.results[0];
     return row ? withLyrics(row, lyrics) : null;

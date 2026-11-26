@@ -1,5 +1,5 @@
 import { formatSongText } from './formatSongText';
-import { parseSongText } from './parseSongText';
+import { parseSongText, songOf } from './parseSongText';
 import type { SongText } from './types';
 
 const CREDITS = {
@@ -11,9 +11,9 @@ const CREDITS = {
 
 /** `parseSongText()` 嘅結果減去 `errors`、`hints`：同 `formatSongText()` 嘅輸入同一個形狀 */
 const fieldsOf = (text: string): SongText => {
-    const { errors, hints: _hints, ...song } = parseSongText(text);
-    expect(errors).toEqual([]);
-    return song;
+    const result = parseSongText(text);
+    expect(result.errors).toEqual([]);
+    return songOf(result);
 };
 
 describe('formatSongText', () => {

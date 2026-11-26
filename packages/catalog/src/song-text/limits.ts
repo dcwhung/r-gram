@@ -9,7 +9,7 @@ const SONG_TEXT_MAX_KIB = 64;
 export const SONG_TEXT_MAX_BYTES = SONG_TEXT_MAX_KIB * BYTES_PER_KIB;
 /** 成段文字嘅行數（包括空行）：一首歌連時間標記約一二百行，1000 行已經好鬆 */
 export const SONG_TEXT_MAX_LINES = 1000;
-/** 歌名、副題（初始資料最長 25 字） */
+/** 歌名（初始資料最長 25 字）；`info.txt` 嘅碟名同歌名亦用（CR-007，D68） */
 export const TITLE_MAX_CHARS = 200;
 /** 曲 / 詞 / 編 / 監 每一項（初始資料最長 42 字） */
 export const CREDIT_MAX_CHARS = 200;
