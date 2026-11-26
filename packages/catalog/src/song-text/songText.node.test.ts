@@ -6,7 +6,7 @@ import type { SeedCredits, SeedDiscography } from '../seed/types';
 import { formatSongText } from './formatSongText';
 import { parseSongText } from './parseSongText';
 
-// 真實初始資料（apps/api/seed/）：全部歌嘅歌名、副題、credit 經文字框格式行一轉都唔變
+// 真實初始資料（apps/api/seed/）：全部歌嘅歌名、credit 經文字框格式行一轉都唔變
 const readSeed = <T>(name: string): T =>
     JSON.parse(
         readFileSync(
@@ -33,11 +33,11 @@ describe('song text with the seed data', () => {
         expect(tracks).toHaveLength(EXPECTED_TRACKS);
     });
 
-    it('should round-trip the title, subtitle and credits of every seed track', () => {
-        const failures = tracks.filter(({ title, subtitle, credits }) => {
-            const song = { title, subtitle, credits, lyrics: null };
+    it('should round-trip the title and credits of every seed track', () => {
+        const failures = tracks.filter(({ title, credits }) => {
+            const song = { title, credits, lyrics: null };
             const parsed = parseSongText(formatSongText(song));
-            return !isDeepStrictEqual(parsed, { ...song, errors: [] });
+            return !isDeepStrictEqual(parsed, { ...song, errors: [], hints: [] });
         });
         expect(failures.map((track) => track.id)).toEqual([]);
     });

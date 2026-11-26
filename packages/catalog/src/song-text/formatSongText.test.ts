@@ -9,9 +9,9 @@ const CREDITS = {
     producer: 'RubberBand / 雷頌德',
 };
 
-/** `parseSongText()` 嘅結果減去 `errors`：同 `formatSongText()` 嘅輸入同一個形狀 */
+/** `parseSongText()` 嘅結果減去 `errors`、`hints`：同 `formatSongText()` 嘅輸入同一個形狀 */
 const fieldsOf = (text: string): SongText => {
-    const { errors, ...song } = parseSongText(text);
+    const { errors, hints: _hints, ...song } = parseSongText(text);
     expect(errors).toEqual([]);
     return song;
 };
@@ -20,14 +20,12 @@ describe('formatSongText', () => {
     it('should write the fields in the fixed order with full-width colons', () => {
         const text = formatSongText({
             title: '一早地下鐵',
-            subtitle: 'Live',
             credits: CREDITS,
             lyrics: { source: '[00:12.30]第一句歌詞\n[00:18.75]第二句歌詞' },
         });
         expect(text).toBe(
             [
                 '一早地下鐵',
-                '副題：Live',
                 '曲：阿正',
                 '詞：Tim Lui / 6號',
                 '編：阿正',
@@ -41,20 +39,21 @@ describe('formatSongText', () => {
 
     it('should leave out the fields without a value', () => {
         const credits = { composer: null, lyricist: '6號', arranger: '', producer: null };
-        expect(formatSongText({ title: '歌名', subtitle: null, credits, lyrics: null })).toBe(
-            '歌名\n詞：6號',
-        );
+        expect(formatSongText({ title: '歌名', credits, lyrics: null })).toBe('歌名\n詞：6號');
     });
 
     it('should put one blank line between the title and the lyrics when there are no labels', () => {
-        const song = { title: 'Song', subtitle: null, credits: null, lyrics: { source: 'La' } };
+        const song = { title: 'Song', credits: null, lyrics: { source: 'La' } };
         expect(formatSongText(song)).toBe('Song\n\nLa');
     });
 
     it('should write a title alone when there is nothing else', () => {
-        expect(formatSongText({ title: '歌名', subtitle: null, credits: null, lyrics: null })).toBe(
-            '歌名',
-        );
+        expect(formatSongText({ title: '歌名', credits: null, lyrics: null })).toBe('歌名');
+    });
+
+    // CR-007（Functional Spec D72）：副題唔再用，舊檔嘅「副題：」行回填時拎走
+    it('should drop the subtitle line of an old file', () => {
+        expect(formatSongText(parseSongText('歌名\n副題：Live\n曲：阿正'))).toBe('歌名\n曲：阿正');
     });
 
     it('should normalise any accepted input into the canonical text', () => {
@@ -75,7 +74,7 @@ describe('formatSongText', () => {
 
         it.each(Object.entries(samples))('should keep %s unchanged', (_name, text) => {
             const song = fieldsOf(text);
-            expect(parseSongText(formatSongText(song))).toEqual({ ...song, errors: [] });
+            expect(parseSongText(formatSongText(song))).toEqual({ ...song, errors: [], hints: [] });
         });
 
         it.each(Object.entries(samples))('should give a stable text for %s', (_name, text) => {

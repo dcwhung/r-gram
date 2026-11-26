@@ -38,7 +38,7 @@ describe('POST /api/albums/:id/tracks', () => {
     beforeEach(seedAlbum);
 
     it('should create the track at the end with every field from the text', async () => {
-        const text = '新歌\n副題：Demo\n曲：阿正\n\n[00:01.00]一';
+        const text = '新歌\n曲：阿正\n\n[00:01.00]一';
         const response = await createTrack('apollo-18', { text });
         expect(response.status).toBe(201);
         const body = await json<Created>(response);
@@ -49,7 +49,7 @@ describe('POST /api/albums/:id/tracks', () => {
             id: body.trackId,
             no: 4,
             title: '新歌',
-            subtitle: 'Demo',
+            subtitle: null,
             credits: { composer: '阿正', lyricist: null, arranger: null, producer: null },
             audio: null,
             mv: null,
