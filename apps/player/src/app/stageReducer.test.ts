@@ -17,6 +17,7 @@ describe('stageReducer', () => {
                 viewAlbumId: null,
                 previousAlbumId: null,
                 selectedTrackId: null,
+                discChangeFrom: null,
             });
         });
 
@@ -123,6 +124,32 @@ describe('stageReducer', () => {
             expect(stageReducer(list, { type: 'selectAlbum', albumId: 'hours' })).toBe(list);
         });
 
+        // S-154：Esc = 取消：返主頁，還原開始揀碟嗰陣嘅碟、之前嗰隻碟同揀中嘅歌
+        it('should go back to the disc shown when choosing started on cancel', () => {
+            const before = after(
+                { type: 'openList' },
+                { type: 'focusTrack', trackId: 'komorebi-07' },
+                { type: 'closeList' },
+            );
+            const state = [
+                { type: 'openDiscChange' },
+                { type: 'selectAlbum', albumId: 'hours' },
+                { type: 'selectAlbum', albumId: 'i' },
+                { type: 'cancelDiscChange' },
+            ].reduce(stageReducer, before);
+            expect(state).toEqual(before);
+        });
+
+        it('should keep the chosen disc once closed, with nothing left to cancel', () => {
+            const closed = after(
+                { type: 'openDiscChange' },
+                { type: 'selectAlbum', albumId: 'hours' },
+                { type: 'closeDiscChange' },
+            );
+            expect(closed.discChangeFrom).toBeNull();
+            expect(stageReducer(closed, { type: 'cancelDiscChange' })).toBe(closed);
+        });
+
         it('should ignore closeDiscChange outside disc change', () => {
             const states = [
                 INITIAL_STAGE,
@@ -133,6 +160,7 @@ describe('stageReducer', () => {
             ];
             for (const state of states) {
                 expect(stageReducer(state, { type: 'closeDiscChange' })).toBe(state);
+                expect(stageReducer(state, { type: 'cancelDiscChange' })).toBe(state);
             }
         });
     });
@@ -340,6 +368,7 @@ describe('stageReducer', () => {
             { type: 'selectAlbum', albumId: 'hours' },
             { type: 'selectAlbum', albumId: FAVOURITES },
             { type: 'closeDiscChange' },
+            { type: 'cancelDiscChange' },
             { type: 'openList' },
             { type: 'focusTrack', trackId: 'track-a' },
             { type: 'focusTrack', trackId: 'track-b' },
@@ -359,6 +388,7 @@ describe('stageReducer', () => {
                 state.viewAlbumId,
                 state.previousAlbumId,
                 state.selectedTrackId,
+                JSON.stringify(state.discChangeFrom),
             ].join('|');
         const isPlainHome = (state: StageState) => state.scene === 'home' && state.overlay === null;
 
@@ -401,6 +431,14 @@ describe('stageReducer', () => {
             );
             expect(preload).toEqual([INITIAL_STAGE]);
             expect(albumless).toEqual([]);
+        });
+
+        // S-154：開始揀碟嗰陣嘅狀態只喺揀碟期間記住
+        it('should remember where choosing started only while choosing', () => {
+            const offenders = states.filter(
+                (state) => (state.discChangeFrom !== null) !== (state.scene === 'discChange'),
+            );
+            expect(offenders).toEqual([]);
         });
 
         // S-037：動作冇改到任何嘢就回傳同一個物件（reference 相同），元件唔會白白 re-render

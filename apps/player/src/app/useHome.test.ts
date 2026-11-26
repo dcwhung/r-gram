@@ -77,6 +77,7 @@ describe('useHome turning the knob', () => {
         start: () => act(() => home.current.handlers?.onTurnStart()),
         to: () => act(() => home.current.handlers?.onTurn(position ?? 0)),
         end: () => act(() => home.current.handlers?.onTurnEnd()),
+        cancel: () => act(() => home.current.handlers?.onTurnCancel()),
     });
 
     it('should open the dial, follow the knob and stay on the chosen disc when released', () => {
@@ -88,6 +89,15 @@ describe('useHome turning the knob', () => {
         expect(result.current.view?.dial.current).toBe(1);
         turn(result).end();
         expect(result.current.stage).toMatchObject({ scene: 'home', viewAlbumId: 'room' });
+    });
+
+    // S-154：Esc 取消：收埋字母盤，返去開始揀碟嗰陣嘅碟
+    it('should go back to the disc shown when the turn started on cancel', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        turn(result).start();
+        turn(result, 1).to();
+        turn(result).cancel();
+        expect(result.current.stage).toMatchObject({ scene: 'home', viewAlbumId: 'apollo-18' });
     });
 
     it('should go to the Favourites disc at the ♥ position', () => {

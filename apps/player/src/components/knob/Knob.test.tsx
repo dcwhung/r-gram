@@ -8,7 +8,7 @@ const STEP_DEG = (376.25 - 185) / (POSITIONS - 1);
 const CENTRE = { x: 200, y: 600 };
 const RADIUS_PX = 50;
 
-const handlers = () => ({ onStart: vi.fn(), onTurn: vi.fn(), onEnd: vi.fn() });
+const handlers = () => ({ onStart: vi.fn(), onTurn: vi.fn(), onEnd: vi.fn(), onCancel: vi.fn() });
 
 const renderKnob = (props: { current?: number; open?: boolean; covered?: boolean } = {}) => {
     const spies = handlers();
@@ -191,10 +191,30 @@ describe('Knob', () => {
             expect(spies.onTurn).toHaveBeenCalledWith(POSITIONS - 1);
         });
 
-        it.each(['Enter', 'Escape'])('should finish choosing with %s', (key) => {
+        it('should keep the new disc with Enter', () => {
             const { knob, spies } = renderKnob({ open: true });
-            fireEvent.keyDown(knob, { key });
+            fireEvent.keyDown(knob, { key: 'Enter' });
             expect(spies.onEnd).toHaveBeenCalledTimes(1);
+            expect(spies.onCancel).not.toHaveBeenCalled();
+        });
+
+        // S-154：Esc = 取消（返去開始嗰隻碟），唔係完成
+        it('should cancel choosing with Escape', () => {
+            const { knob, spies } = renderKnob({ open: true });
+            fireEvent.keyDown(knob, { key: 'Escape' });
+            expect(spies.onCancel).toHaveBeenCalledTimes(1);
+            expect(spies.onEnd).not.toHaveBeenCalled();
+        });
+
+        it('should drop a drag cancelled with Escape', () => {
+            const { knob, spies } = renderKnob({ open: true });
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.keyDown(knob, { key: 'Escape' });
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            fireEvent.pointerUp(knob, at(STEP_DEG * 2));
+            expect(spies.onCancel).toHaveBeenCalledTimes(1);
+            expect(spies.onTurn).not.toHaveBeenCalled();
+            expect(spies.onEnd).not.toHaveBeenCalled();
         });
 
         it('should finish choosing when the focus leaves the knob', () => {
@@ -203,11 +223,13 @@ describe('Knob', () => {
             expect(spies.onEnd).toHaveBeenCalledTimes(1);
         });
 
-        it('should ignore Enter and leaving when the dial is closed', () => {
+        it('should ignore Enter, Escape and leaving when the dial is closed', () => {
             const { knob, spies } = renderKnob();
             fireEvent.keyDown(knob, { key: 'Enter' });
+            fireEvent.keyDown(knob, { key: 'Escape' });
             fireEvent.blur(knob);
             expect(spies.onEnd).not.toHaveBeenCalled();
+            expect(spies.onCancel).not.toHaveBeenCalled();
             expect(spies.onStart).not.toHaveBeenCalled();
         });
     });

@@ -15,6 +15,7 @@ const handlers = {
     onTurnStart: vi.fn(),
     onTurn: vi.fn(),
     onTurnEnd: vi.fn(),
+    onTurnCancel: vi.fn(),
     onFavourites: vi.fn(),
 };
 
