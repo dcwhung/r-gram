@@ -9,9 +9,10 @@
     - AC-5 無障礙（TS 實現注意事項 14；FS 用詞表；FR-037；FR-010）：`role="button"`；`aria-label` 係語言檔嘅書面語；停用掣 `aria-disabled` 而且 focus 得到；`aria-pressed` 只喺開關掣（歌書）；Tab 去到全部控件、有 focus 圈；Enter／空白鍵 = 㩒，㩒住唔放只計一下；感應範圍 ≥ 44pt（390pt 闊做基準）
     - AC-6 減少動態（FS「過場動畫」最尾一行；TS 實現注意事項 11）：`prefers-reduced-motion: reduce` 下碟唔轉、唱臂冇過場，狀態照樣切換
     - AC-7 App 同碟面（T-034；review W-036）：`App` = Preload → 主頁（Preload 淡出期間主頁已經喺下面）；碟面封面 `<image crossOrigin="anonymous">`，令 Service Worker 可以 cache 顯示中嗰張（FR-042 離線；瀏覽器驗喺 `player-catalog` AC-9）
+    - AC-8 轉碟用到嘅核心（T-036、B-076；review S-154）：`stageReducer` 嘅 `openDiscChange` / `selectAlbum` / `closeDiscChange` / `cancelDiscChange`（Esc 返開始嗰隻碟）/ `toggleFavourites`；`DiscCover`：專輯色永遠墊底 → 縮圖 → 大封面，封面失敗唔畫（冇瀏覽器破圖）、網址變再試、慢嘅封面先見縮圖；`Tonearm` `instant`（淡出期間姿勢即時到位）。瀏覽器驗喺 `player-dial`
 - Scope files:
     - `apps/player/src/app/`：`App.tsx`、`App.test.tsx`、`stageReducer.ts`、`stageReducer.test.ts`（`TurntableShell.tsx`、`app.css` 已刪；主頁嘅其他檔屬 `player-home`，見 `plans/player-home.md`；`app/startup/**` 屬 `player-startup`）
-    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`，亦唔包 `player-startup` 嘅 `flag/**`（見 `plans/player-startup.md`）
+    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`，亦唔包 `player-startup` 嘅 `flag/**`（見 `plans/player-startup.md`），亦唔包 `player-dial` 嘅 `knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（見 `plans/player-dial.md`）
     - `apps/player/src/stage/StageSvg.tsx`、`apps/player/src/stage/StageContext.ts`
 - Commands:
     - `npm run lint`

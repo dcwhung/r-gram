@@ -8,6 +8,7 @@
     - AC-4 歌單暗層（D25；S-074）：開歌單時細掣唔喺 Tab 次序、`aria-hidden`；㩒暗位收返、focus 返唱片夾
     - AC-6 左上歌名兩行（T-047；FS D51、FR-036、CR-005「第 18 版確認」第 2 點；設計稿第 18 版 `SONG_FIT`、`fitSong()`、格「歌名較長（縮字）」「歌名好長（斷兩行）」「歌名好長 + 唱臂喺泊位」）：放得落 44；放唔落每次縮 2，最細 32（連心形右邊 ≤ 772）；32 都放唔落 = 兩行、32 號、第一行基線 296、第二行 334（行距 38）、「第 nn 首」行 368 唔郁、第二行右邊 ≤ 470、心形中心 = 最後一行尾 + 46、基線 − 0.364 × 字級、色棒跟第一行；英文字、數字唔喺中間斷；兩行都唔夠先喺第二行尾「…」；字體遲到載入之後結果一樣；泊位唱臂唔遮歌名同心形
     - AC-5 版面（FR-039）：高身手機左上資訊、頂部螺絲、版本號貼頂，唱片機成組貼底；闊屏置中；碟以專輯 id 做 key；頁面冇重覆 id、冇指空嘅 `url(#…)`；console 冇錯；介面文字全部經語言檔、書面語
+    - AC-8 轉碟接駁（T-036；FS D52、§CR-005「補充：第 18 版確認」；TS「補充：第 18 版」衍生值）：`homeView` 嘅 `dial`、`loadedAlbumId`、`holding`（歌單開住唔算）、`chromeHidden`、`songHidden`、`spinning`；`useHome` 嘅轉碟 handler（開、轉、留低、Esc 取消、♥）；`InfoBlock` 歌名嗰部分淡出、碟名年份跟指針；`useArmLeadIn` 淡出期間唔行開場；`HomeScene` / `Turntable` 層次（字母盤 → 旋鈕 → ♥；唱片夾緊接而家隻碟）。瀏覽器驗喺 `player-dial`
     - AC-7 開 app 之後（T-034）：`useHome.finishPreload()` 喺 Preload 載入完先開第一隻碟（catalog 遲過 Preload 開始先到都得）；歌名兩行嘅 `aria-label` = 成個歌名（B-072 ①）；`breakAt` 註解同設計稿規則一致（B-070）
 - Scope files:
     - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`ListVeil.tsx`、`Turntable.tsx`、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
