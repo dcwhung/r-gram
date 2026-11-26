@@ -194,6 +194,21 @@ describe('Knob', () => {
             expect(spies.onTurn).toHaveBeenLastCalledWith(8);
         });
 
+        // T-110 第 20 版：一路擰過 ♥ 就返第一隻碟，再擰落去照轉；向後擰過第一隻碟就係 ♥
+        it('should turn past ♥ to the first disc and on, and back from the first disc to ♥', () => {
+            const forward = renderKnob({ current: POSITIONS - 2 });
+            fireEvent.pointerDown(forward.knob, at(0));
+            [1, 2, 3, 4].forEach((steps) =>
+                fireEvent.pointerMove(forward.knob, at(STEP_DEG * steps)),
+            );
+            expect(forward.spies.onTurn.mock.calls).toEqual([[POSITIONS - 1], [0], [1], [2]]);
+            cleanup();
+            const back = renderKnob({ current: 0 });
+            fireEvent.pointerDown(back.knob, at(0));
+            fireEvent.pointerMove(back.knob, at(-STEP_DEG));
+            expect(back.spies.onTurn).toHaveBeenLastCalledWith(POSITIONS - 1);
+        });
+
         it('should ignore the pointer over the centre of the knob', () => {
             const { knob, spies } = renderKnob();
             fireEvent.pointerDown(knob, at(0, 2));
@@ -261,6 +276,47 @@ describe('Knob', () => {
             fireEvent.keyDown(knob, { key: 'ArrowRight' });
             expect(spies.onStart).toHaveBeenCalledTimes(1);
             expect(spies.onTurn).toHaveBeenCalledWith(11);
+        });
+
+        // T-110 第 20 版：旋鈕頭尾相接：右鍵由 ♥ 去第一隻碟，左鍵由第一隻碟去 ♥
+        it('should wrap the arrow keys round the ends of the scale', () => {
+            const last = renderKnob({ current: POSITIONS - 1, open: true });
+            fireEvent.keyDown(last.knob, { key: 'ArrowRight' });
+            expect(last.spies.onTurn).toHaveBeenCalledWith(0);
+            cleanup();
+            const first = renderKnob({ current: 0, open: true });
+            fireEvent.keyDown(first.knob, { key: 'ArrowLeft' });
+            expect(first.spies.onTurn).toHaveBeenCalledWith(POSITIONS - 1);
+        });
+
+        // 指針由刻度尾跳返刻度頭（唔會轉成個刻度弧返去）；之後一格一格照舊有過場
+        it('should jump the pointer across the seam and move it smoothly otherwise', () => {
+            const knobAt = (current: number) => (
+                <svg>
+                    <Knob
+                        layout={LAYOUT}
+                        positions={POSITIONS}
+                        current={current}
+                        open
+                        accent="#c8442b"
+                        glow="#ffd0c0"
+                        valueText="KOMOREBI"
+                        {...handlers()}
+                    />
+                </svg>
+            );
+            const { container, rerender } = render(knobAt(POSITIONS - 1));
+            const knob = screen.getByRole('slider');
+            const pointer = () => container.querySelector('[data-part="knob-pointer"]');
+            fireEvent.keyDown(knob, { key: 'ArrowRight' });
+            rerender(knobAt(0));
+            expect(pointer()).toHaveClass('knob-move--jump');
+            fireEvent.keyDown(knob, { key: 'ArrowRight' });
+            rerender(knobAt(1));
+            expect(pointer()).not.toHaveClass('knob-move--jump');
+            fireEvent.keyDown(knob, { key: 'End' });
+            rerender(knobAt(POSITIONS - 1));
+            expect(pointer()).not.toHaveClass('knob-move--jump');
         });
 
         it('should not reopen an open dial', () => {

@@ -65,8 +65,22 @@ describe('DiscStack', () => {
         expect(discIds(renderStack())).toEqual(['d', 'e', 'f', 'g', 'h', 'i']);
     });
 
-    it('should stop at the ends of the dial', () => {
-        expect(discIds(renderStack({ current: 0 }))).toEqual(['a', 'b', 'c', 'd']);
+    // T-110 第 20 版：碟疊頭尾相接（設計稿 stackOffset()）：第一隻碟前面係最尾嗰隻（♥），♥ 後面係第一、二隻碟
+    it('should loop round the ends of the dial', () => {
+        expect(discIds(renderStack({ current: 0 }))).toEqual(['i', 'j', 'a', 'b', 'c', 'd']);
+        expect(discIds(renderStack({ current: 9 }))).toEqual(['h', 'i', 'j', 'a', 'b', 'c']);
+    });
+
+    // 設計稿 discs()：按離而家隻碟幾遠排，♥ 之後嘅第一隻碟畫喺 ♥ 上面，滑入去「下一隻」嘅位
+    it('should draw the first disc on top of ♥ as the next one, with the slot right after ♥', () => {
+        const container = renderStack({ current: 9 });
+        const current = container.querySelector('[data-current="true"]');
+        expect(current?.getAttribute('data-album')).toBe('j');
+        expect(current?.nextElementSibling).toHaveAttribute('data-part', 'slot');
+        const first = container.querySelector<SVGElement>('[data-album="a"]');
+        const next = renderStack({ current: 4 }).querySelector<SVGElement>('[data-album="f"]');
+        expect(first?.style.transform).toBe(next?.style.transform);
+        expect(first?.style.opacity).toBe('1');
     });
 
     it('should put the slot (the spindle) right after the current disc', () => {
@@ -80,6 +94,8 @@ describe('DiscStack', () => {
     it.each([
         ['back', 5, 4],
         ['forward', 5, 6],
+        ['forward past ♥', 9, 0],
+        ['back past the first disc', 0, 9],
     ])('should keep every disc element in place when turning one step %s', (_, from, to) => {
         expect(reinsertedDiscs(from, to)).toEqual([]);
     });
