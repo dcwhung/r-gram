@@ -3,7 +3,10 @@ export interface Env {
     DB: D1Database;
     /** private：catalog.json、封面圖、歌詞 JSON */
     CATALOG: R2Bucket;
-    /** 媒體 bucket rb-discography：音檔、MV、封面來源、歌曲文字檔（公開網址直出）；Worker 只讀，唔寫 */
+    /**
+     * 媒體 bucket rb-discography：音檔、MV、封面來源、`info.txt`、歌曲文字檔（公開網址直出）。Worker 讀；
+     * 只會經 media/writeText.ts 寫 `info.txt` 同 `NN ….txt`（T-106），永遠唔 delete
+     */
     MEDIA: R2Bucket;
     GOOGLE_CLIENT_ID: string;
     /** secret */

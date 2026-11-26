@@ -1,7 +1,7 @@
 /*
  * API-050 PUT /api/assets（T-024）：上載封面圖。已經過 session + same-origin 守門（api/routes.ts）。
  * 管理端喺瀏覽器裁切、轉 WebP、抽主色（Technical Spec 數據流 A），兩個尺寸（1200 / 320）逐張上載，
- * 再用 PATCH /api/albums/:id 將 cover / thumb / accent 指向上載咗嘅圖（嗰個請求先改 catalog 內容）。
+ * 再用 API-017 PUT /api/albums/:id/cover 將 cover / thumb / accent 指向上載咗嘅圖（嗰個請求先改 catalog 內容，T-106）。
  * 次序：Content-Type 係三種之一（415）→ 大細上限（413）→ 檔頭 magic bytes 同宣告一致（415）→
  * 結構 + 尺寸（400）→ 以內容 hash 命名寫 R2 + assets。
  * 上載本身唔改 catalog（冇專輯引用之前播放端用唔到），所以唔行寫入後置步驟（backlog B-043 ③）。
