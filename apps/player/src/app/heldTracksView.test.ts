@@ -1,4 +1,5 @@
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
+import { FAVOURITES_ACCENT, withFavourites } from '../favourites/favouritesAlbum';
 import { makeAlbum, makeDocument, sampleDocument } from '../catalog/testing/catalogFixtures';
 import { trackColumnView } from './heldTracksView';
 import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
@@ -80,5 +81,19 @@ describe('trackColumnView', () => {
             rows: [],
             emptyText: '尚未收藏歌曲',
         });
+    });
+
+    // T-070：Favourites 碟嘅歌單欄同其他碟一樣（純睇），歌號 = 收藏次序
+    it('should show the favourites in favourite order in the column of the Favourites disc', () => {
+        const document = withFavourites(sampleDocument(), [
+            { trackId: 'apollo-18-03', addedAt: 1 },
+            { trackId: 'room-01', addedAt: 2 },
+        ]);
+        const column = trackColumnView(document, stageOn(FAVOURITES_ALBUM_ID), IDLE_PLAYBACK);
+        expect(column?.accent).toBe(FAVOURITES_ACCENT);
+        expect(column?.rows.map(({ id, number }) => [id, number])).toEqual([
+            ['apollo-18-03', '01'],
+            ['room-01', '02'],
+        ]);
     });
 });
