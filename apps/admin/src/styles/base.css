@@ -50,3 +50,15 @@ button {
 .muted {
     color: var(--muted);
 }
+
+.summary div {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--gap);
+    border-bottom: 1px solid var(--border);
+}
+
+.summary dd {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
