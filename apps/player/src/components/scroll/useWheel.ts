@@ -1,6 +1,6 @@
 /*
  * 元件內部嘅滾輪（歌單欄 T-049、弧線歌單 T-037 共用）：喺元件入面就由元件食咗（non-passive），
- * 頁面唔會捲、唔會回彈（Technical Spec 實現注意事項 13）。
+ * 頁面唔會捲、唔會回彈（Technical Spec 實現注意事項 13）。Ctrl + 滾輪（縮放）例外。
  */
 import { type RefObject, useEffect, useRef } from 'react';
 
@@ -25,6 +25,8 @@ export const useWheel = (onWheel: (event: WheelEvent) => void): RefObject<SVGGEl
         const element = ref.current;
         if (!element) return undefined;
         const listener = (event: WheelEvent) => {
+            // Ctrl + 滾輪、觸控板 pinch = 縮放（S-198）：留畀瀏覽器，唔捲
+            if (event.ctrlKey) return;
             event.preventDefault();
             onWheel(event);
         };
