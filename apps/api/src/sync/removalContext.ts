@@ -22,6 +22,20 @@ export const hasFile = (files: readonly ScanFile[], kind: string, no?: number): 
         return found.kind === kind && (no === undefined || ('no' in found && found.no === no));
     });
 
+/**
+ * 音檔、MV、`.txt` 嘅連結仲會由同步留住：D1 連住嗰個仲喺度，或者嗰個歌號啱啱好得一個（同步會連去佢）。
+ * 幾個而冇 D1 嗰個 = 衝突，同步當冇（S-165），可以清
+ */
+export const keepsTrackFile = (
+    files: readonly ScanFile[],
+    kind: string,
+    no: number,
+    key: string,
+): boolean => {
+    const same = files.filter((file) => hasFile([file], kind, no));
+    return same.length === 1 || same.some((file) => file.key === key);
+};
+
 const audioNumbers = (files: readonly ScanFile[]): Set<number> =>
     new Set(
         files.flatMap(({ key }) => {
