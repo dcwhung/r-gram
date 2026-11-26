@@ -88,4 +88,9 @@ describe('motion tokens', () => {
         ];
         expect(all.every((ms) => Number.isInteger(ms) && ms > 0)).toBe(true);
     });
+
+    // T-109：設計稿第 20 版 versionGlow（成粒版本掣一明一暗，1.4 秒一個來回）
+    it('should blink the update button with the period of mockup version 20', () => {
+        expect(MOTION.loop.updateBlinkMs).toBe(1400);
+    });
 });

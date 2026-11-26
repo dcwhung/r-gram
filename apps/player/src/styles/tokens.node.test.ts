@@ -69,7 +69,13 @@ describe('tokens.css', () => {
         ['--motion-scene-preload-step', MOTION.scene.preloadStepMs],
         ['--motion-scene-preload-bar-delay', MOTION.scene.preloadBarDelayMs],
         ['--motion-scene-preload-bar-in', MOTION.scene.preloadBarInMs],
+        ['--motion-loop-update-blink', MOTION.loop.updateBlinkMs],
     ])('should define %s with the same duration as config/motion.ts', (name, ms) => {
         expect(token(name)).toBe(`${ms}ms`);
+    });
+
+    // T-109：版本掣嘅橙黃（設計稿第 20 版 UPDATE_PILL.color）
+    it('should define the amber of the update button from mockup version 20', () => {
+        expect(token('--color-update')).toBe('#f09a00');
     });
 });

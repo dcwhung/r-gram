@@ -6,13 +6,16 @@ import type { UpdatePort } from '../pwa/useUpdates';
 import { App } from './App';
 import type { StartupDeps } from './startup/startupDeps';
 
-/** T-039：App 同 PWA 規則（更新提示、「請打直」）嘅接駁；其他主頁行為見 App.test.tsx */
+/** T-039、T-109：App 同 PWA 規則（版本掣、「請打直」）嘅接駁；其他主頁行為見 App.test.tsx */
 const startup: StartupDeps = {
     loadCatalog: () =>
         Promise.resolve({ status: 'ready', source: 'network', document: sampleDocument() }),
     loadFonts: () => Promise.resolve(),
     loadImage: () => Promise.resolve(true),
 };
+
+/** 版本掣嘅無障礙名（T-109） */
+const APPLY = '已有新版本，立即更新並重新載入';
 
 const setViewport = (width: number, height: number) => {
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: width });
@@ -66,43 +69,51 @@ describe('App and the update manager', () => {
         expect(port.endLaunch).toHaveBeenCalled();
     });
 
-    // S-197：播緊歌都好、停咗都好，有新版就出提示
-    it('should show the update prompt while a song plays', async () => {
+    // S-197：播緊歌都好、停咗都好，有新版就出提示；T-109：提示 = 右上版本號變成掣
+    it('should turn the version text into the update button while a song plays', async () => {
         const { port, set } = fakePort();
         await renderHome(port);
         await userEvent.click(screen.getByRole('button', { name: '開啟歌單' }));
         await userEvent.click(screen.getByRole('button', { name: '播放' }));
         set('waiting');
-        expect(screen.getByRole('button', { name: '立即更新並重新載入' })).toBeVisible();
+        expect(screen.getByRole('button', { name: APPLY })).toHaveTextContent(/^v\d+\.\d+\.\d+$/);
     });
 
-    it('should show the update prompt while an update waits', async () => {
+    it('should apply the update right away when the button is pressed', async () => {
         const { port, set } = fakePort();
         await renderHome(port);
         set('waiting');
-        expect(screen.getByRole('status')).toHaveTextContent('已有新版本');
+        await userEvent.click(screen.getByRole('button', { name: APPLY }));
+        expect(port.applyNow).toHaveBeenCalledTimes(1);
     });
 
-    // S-199：歌單開住時 Tab 兜圈都要去得到更新提示嘅掣（喺舞台外面）
-    it('should let Tab reach the update button while the list is open', async () => {
+    // 冇另外一粒提示：只有讀屏聽到嘅 live region 講有新版本
+    it('should announce the waiting update to screen readers only', async () => {
+        const { port, set } = fakePort();
+        await renderHome(port);
+        expect(screen.getByRole('status')).toBeEmptyDOMElement();
+        set('waiting');
+        expect(screen.getByRole('status')).toHaveTextContent('已有新版本');
+        expect(screen.getByRole('status')).toHaveClass('visually-hidden');
+        expect(screen.getByTestId('stage')).not.toContainElement(screen.getByRole('status'));
+    });
+
+    // 粒掣喺暗層下面（設計稿第 20 版）：歌單開住時 Tab 唔到、㩒唔到
+    it('should keep the update button out of reach while the list is open', async () => {
         const { port, set } = fakePort();
         await renderHome(port);
         await userEvent.click(screen.getByRole('button', { name: '開啟歌單' }));
         set('waiting');
-        const apply = screen.getByRole('button', { name: '立即更新並重新載入' });
-        const visited = Array.from({ length: 6 }, () => {
-            fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Tab' });
-            return document.activeElement;
-        });
-        expect(visited).toContain(apply);
-        fireEvent.keyDown(apply, { key: 'Tab' });
-        expect(screen.getByTestId('stage')).toContainElement(document.activeElement as HTMLElement);
+        expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
+        const button = screen.getByTestId('stage').querySelector('[data-part="update-button"]');
+        expect(button).toHaveAttribute('tabindex', '-1');
     });
 
     it('should run without an update manager (tests, browsers without service workers)', async () => {
         render(<App startup={startup} />);
         await screen.findByRole('button', { name: '開啟歌單' });
-        expect(screen.queryByRole('button', { name: '立即更新並重新載入' })).toBeNull();
+        expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
+        expect(screen.getByTestId('stage').querySelector('[data-part="version"]')).toBeTruthy();
     });
 });
 
@@ -122,12 +133,12 @@ describe('App on a phone turned sideways', () => {
         expect(screen.queryByRole('button', { name: '開啟歌單' })).toBeNull();
     });
 
-    it('should not show the update prompt over the rotate notice', async () => {
+    it('should not show the update button over the rotate notice', async () => {
         setViewport(852, 393);
         const { port, set } = fakePort();
         render(<App startup={startup} updates={port} />);
         await screen.findByRole('alert');
         set('waiting');
-        expect(screen.queryByRole('button', { name: '立即更新並重新載入' })).toBeNull();
+        expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
     });
 });
