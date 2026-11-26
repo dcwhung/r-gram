@@ -330,6 +330,12 @@ describe('playbackController hidden auto-next failure (D109)', () => {
         expect(element.plays.at(-1)).toEqual({ src: url(3), muted: false });
     });
 
+    it('should skip a network failure of a track that has not played yet too (W-062)', () => {
+        const { element, state } = hiddenAfterEnd('room-01');
+        element.fail('network');
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-03' });
+    });
+
     it('should stop when the skipped-to track fails as well', () => {
         const { element, state } = hiddenAfterEnd(
             'room-01',
