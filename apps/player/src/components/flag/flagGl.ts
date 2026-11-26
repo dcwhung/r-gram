@@ -1,5 +1,5 @@
 /*
- * Preload 旗幟嘅 WebGL renderer（T-114；Technical Spec「CR-010 → Preload 旗幟用 WebGL」；spike 報告 §1.2 ⑤ 方案 B）。
+ * Preload 旗幟嘅 WebGL renderer（T-114；Technical Spec「CR-010 → Preload 旗幟用 WebGL」；T-011 spike 報告 `.proj-docs/reports/2026-11-26_17-10_spike-report_T-011.md` §1.2 ⑤ 方案 B）。
  * 同 2D renderer（flagRenderer.ts）一樣嘅樣，但每格嘅工夫唔同：
  *   - 布料圖（黑布 + logo，flagCloth.ts）只畫一次、上載一次做 texture（logo 到咗再上載一次）
  *   - 網格 (u, v) 同三角形只上載一次；每格淨係 projectCloth() 喺 CPU 計 31 × 41 點，bufferSubData 上載

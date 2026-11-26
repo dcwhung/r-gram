@@ -7,7 +7,7 @@ import type { StageAction, StageState } from './stageReducer';
 import { tvView, type TvView } from './tvView';
 
 /**
- * 電視 controller 成個 app 一個：第一次 render 嗰個一直用。冇畀（測試、spike 頁）就自己建一個
+ * 電視 controller 成個 app 一個：第一次 render 嗰個一直用。冇畀（測試）就自己建一個
  *（唔接鎖屏）；app 一律由 main.tsx 畀（同唱片共用 Media Session 嘅目標）
  */
 export const useMvController = (controller: MvController | undefined) => {

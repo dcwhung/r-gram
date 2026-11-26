@@ -1,8 +1,8 @@
 /*
- * MV 嘅聲音（Technical Spec「CR-010 → MV 音訊」；T-011 報告 §2.8、spike ④；Functional Spec D104）：
+ * MV 嘅聲音（Technical Spec「CR-010 → MV 音訊」；T-011 spike 報告 `.proj-docs/reports/2026-11-26_17-10_spike-report_T-011.md` §2.8、§1.2 ④；Functional Spec D104）：
  * `<video crossOrigin="anonymous">` → MediaElementAudioSourceNode → GainNode → 喇叭。
  * 音量、靜音（gain 0，記住音量）、預備期間嘅靜音全部經 gain；唔用 `video.volume`、`video.muted`
- *（spike 4f：接咗 graph 之後冇效）。所有平台一樣。
+ *（iPhone 真機量度，spike 報告 §1.1 4f：接咗 graph 之後冇效）。所有平台一樣。
  * 成個 app 一個 `<video>`，所以 graph 只砌一次；收埋電視 suspend，下次開再 resume。
  * 開電視嘅手勢入面，有 `navigator.audioSession` 就設 `playback`（🅰️ Q2：側邊靜音撥掣開咗 MV 照有聲；唱片唔掂）。
  */

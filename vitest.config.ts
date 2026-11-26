@@ -23,14 +23,7 @@ export default defineConfig({
         coverage: {
             provider: 'v8',
             include: ['packages/*/src/**/*.{ts,tsx}', 'apps/*/src/**/*.{ts,tsx}'],
-            // src/spike：真機測試頁（T-010，用完即棄）唔計入覆蓋率，免得拉低產品嘅數字；佢嘅測試照跑
-            exclude: [
-                '**/src/main.tsx',
-                '**/*.test.{ts,tsx}',
-                '**/*.d.ts',
-                '**/src/index.ts',
-                '**/src/spike/**',
-            ],
+            exclude: ['**/src/main.tsx', '**/*.test.{ts,tsx}', '**/*.d.ts', '**/src/index.ts'],
             thresholds: { statements: 80, branches: 80, functions: 80, lines: 80 },
         },
     },
