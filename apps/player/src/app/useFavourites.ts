@@ -50,6 +50,12 @@ export const useFavourites = (
     store?: FavouritesStore,
 ): Favourites => {
     const [favourites] = useState(() => store ?? createBrowserFavourites());
+    // 自己開嘅 store：unmount 時唔再聽其他分頁（S-257），StrictMode 重新 mount 再聽返；外面畀嘅由外面管
+    useEffect(() => {
+        if (store) return undefined;
+        favourites.listen();
+        return favourites.dispose;
+    }, [store, favourites]);
     const entries = useSyncExternalStore(favourites.subscribe, favourites.getSnapshot);
     const kept = useKept(entries, playback);
     const document = useMemo(

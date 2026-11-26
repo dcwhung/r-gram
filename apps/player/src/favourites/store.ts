@@ -30,6 +30,10 @@ export interface FavouritesStore {
     add(trackId: string, addedAt?: number): void;
     /** 回傳拎走嗰項；本身冇收藏 = null */
     remove(trackId: string): FavouriteEntry | null;
+    /** 再聽其他分頁（建立時已經聽緊；同一個 listener 唔會加兩次）：effect 重新 mount 用 */
+    listen(): void;
+    /** 唔再用：唔再聽其他分頁（S-257） */
+    dispose(): void;
 }
 
 const NO_FAVOURITES: readonly FavouriteEntry[] = [];
@@ -87,14 +91,21 @@ class Store implements FavouritesStore {
     private readonly storage: FavouritesStorage | null;
     private readonly now: () => number;
     private readonly key: string;
+    private readonly events: EventTarget | null;
+    private readonly listener = (event: Event) => this.onStorage(event);
 
     constructor(deps: FavouritesStoreDeps) {
         this.storage = deps.storage;
         this.now = deps.now ?? Date.now;
         this.key = deps.key ?? FAVOURITES_STORAGE_KEY;
         this.entries = readEntries(this.storage, this.key);
-        deps.events?.addEventListener('storage', (event) => this.onStorage(event));
+        this.events = deps.events ?? null;
+        this.listen();
     }
+
+    listen = (): void => this.events?.addEventListener('storage', this.listener);
+
+    dispose = (): void => this.events?.removeEventListener('storage', this.listener);
 
     subscribe = (listener: () => void): (() => void) => {
         this.listeners.add(listener);

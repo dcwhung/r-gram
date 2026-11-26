@@ -166,6 +166,10 @@ describe('createFavouritesStore', () => {
         storage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify([{ trackId: 'a-01', addedAt: 5 }]));
         events.dispatchEvent(Object.assign(new Event('storage'), { key: FAVOURITES_STORAGE_KEY }));
         expect(store.has('a-01')).toBe(false);
+        // 再聽（StrictMode 重新 mount）：照跟其他分頁
+        store.listen();
+        events.dispatchEvent(Object.assign(new Event('storage'), { key: FAVOURITES_STORAGE_KEY }));
+        expect(store.has('a-01')).toBe(true);
     });
 
     it('should read again when another tab clears all storage (key null)', () => {
