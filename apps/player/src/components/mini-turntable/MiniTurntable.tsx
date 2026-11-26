@@ -109,7 +109,12 @@ export const MiniTurntable = ({ layout, mini, measure, onPress }: MiniTurntableP
         <ChromeFade part="mini-turntable" hidden={!mini.shown}>
             <g
                 data-part="mini-button"
-                aria-label={t('miniTurntable.back')}
+                aria-label={t(
+                    mini.paused ? 'miniTurntable.backPaused' : 'miniTurntable.backPlaying',
+                    {
+                        title: mini.title,
+                    },
+                )}
                 {...pressable(onPress, !mini.shown, mini.shown)}
             >
                 <rect
