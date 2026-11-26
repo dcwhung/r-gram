@@ -39,6 +39,16 @@ export const MOTION = {
         /** 每行遲幾耐出發（行多就縮短：成欄攤開唔超過 columnRowSpreadMs） */
         columnRowStaggerMs: 60,
         columnRowSpreadMs: 560,
+        /*
+         * 由歌單欄開弧線歌單（設計稿第 19 版 LIST_FLOAT）：每行由歌單欄嘅位飄去弧線（逐行遲 stagger）；
+         * 暗層淡入；框線等一陣先由唱片夾伸出；歌單欄其餘嘅行原地淡出
+         */
+        listRowFloatMs: 560,
+        listRowStaggerMs: 80,
+        listVeilMs: 360,
+        listFrameDelayMs: 280,
+        listFrameMs: 300,
+        listGhostOutMs: 240,
         /** 碟轉一圈 */
         discRotationMs: 5400,
         /** 唱臂轉入碟上面 / 返泊位（由泊位開始播嘅第一段：升高住轉入） */

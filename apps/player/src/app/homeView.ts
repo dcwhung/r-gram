@@ -155,9 +155,14 @@ const openFlags = (stage: StageState) => ({
 });
 
 /** 弧線歌單：設計稿第 19 版 ACTIONS.list = 主頁（冇開歌單、電視、字母盤），拎住另一隻碟都得 */
-const listParts = (document: CatalogDocument, album: CatalogAlbum | null, stage: StageState) => ({
+const listParts = (
+    document: CatalogDocument,
+    album: CatalogAlbum | null,
+    stage: StageState,
+    playback: PlaybackState,
+) => ({
     canOpenList: album !== null && stage.scene === 'home' && stage.overlay !== 'mv',
-    list: listView(document, stage),
+    list: listView(document, stage, playback),
     listTrack:
         stage.scene === 'list'
             ? (album?.tracks.find((track) => track.id === stage.selectedTrackId) ?? null)
@@ -190,6 +195,6 @@ export const homeView = (
         dial,
         ...choosing,
         ...heldParts(document, stage, playback, dial, choosing.holding),
-        ...listParts(document, album, stage),
+        ...listParts(document, album, stage, playback),
     };
 };

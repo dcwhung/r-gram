@@ -22,11 +22,14 @@ export const ArcVeil = ({
     top,
     height,
     onClose,
+    entering = false,
 }: {
     layout: StageLayout;
     top: number;
     height: number;
     onClose: () => void;
+    /** 由歌單欄開：淡入（設計稿第 19 版 list-dim-in） */
+    entering?: boolean;
 }) => {
     const { disc } = layout;
     const clear = px(hubClearRadius(layout));
@@ -34,7 +37,7 @@ export const ArcVeil = ({
     return (
         <path
             data-part="arc-veil"
-            className="arc-veil"
+            className={entering ? 'arc-veil arc-veil--in' : 'arc-veil'}
             fillRule="evenodd"
             d={`M0 ${px(top)}H${DESIGN_WIDTH}V${px(top + height)}H0z${hole}`}
             fill="#000"
@@ -45,23 +48,46 @@ export const ArcVeil = ({
     );
 };
 
-/** 白色框線（設計稿 focusFrame()）：右端接住唱片夾，左邊圓頭喺弧線左邊 gap 之外；線粗唔跟縮放 */
-export const ArcFrame = ({ layout }: { layout: StageLayout }) => {
+/**
+ * 白色框線（設計稿 focusFrame()）：右端接住唱片夾，左邊圓頭喺弧線左邊 gap 之外；線粗唔跟縮放。
+ * 由歌單欄開：等一陣先由唱片夾向左伸出（設計稿第 19 版 list-frame-in）
+ */
+export const ArcFrame = ({
+    layout,
+    entering = false,
+}: {
+    layout: StageLayout;
+    entering?: boolean;
+}) => {
     const { frame } = layout.list;
     const { right, left } = frameEnds(layout);
     const half = frame.height / 2;
     const d = `M0 ${-half}H${px(left - frame.gap - right)}a${half} ${half} 0 0 0 0 ${frame.height}H0`;
     return (
         <g transform={`translate(${px(right)} ${layout.disc.y})`} aria-hidden="true">
-            <path
-                data-part="arc-frame"
-                className="arc-frame"
-                d={d}
-                fill="none"
-                strokeWidth={frame.stroke}
-                vectorEffect="non-scaling-stroke"
-                pointerEvents="none"
-            />
+            {entering ? (
+                <g className="arc-frame-in">
+                    <path
+                        data-part="arc-frame"
+                        className="arc-frame"
+                        d={d}
+                        fill="none"
+                        strokeWidth={frame.stroke}
+                        vectorEffect="non-scaling-stroke"
+                        pointerEvents="none"
+                    />
+                </g>
+            ) : (
+                <path
+                    data-part="arc-frame"
+                    className="arc-frame"
+                    d={d}
+                    fill="none"
+                    strokeWidth={frame.stroke}
+                    vectorEffect="non-scaling-stroke"
+                    pointerEvents="none"
+                />
+            )}
         </g>
     );
 };

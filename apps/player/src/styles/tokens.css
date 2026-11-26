@@ -54,6 +54,11 @@
     --motion-scene-dial-plate-fade: 220ms;
     --motion-scene-chrome-fade: 320ms;
     --motion-scene-column-row-in: 460ms;
+    --motion-scene-list-row-float: 560ms;
+    --motion-scene-list-veil: 360ms;
+    --motion-scene-list-frame-delay: 280ms;
+    --motion-scene-list-frame: 300ms;
+    --motion-scene-list-ghost-out: 240ms;
     --motion-scene-disc-rotation: 5400ms;
     --motion-scene-tonearm: 650ms;
     --motion-scene-needle-drop: 160ms;

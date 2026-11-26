@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { ArcListView } from '../../app/listView';
 import { t } from '../../i18n/t';
 import { arcRowPitch, arcRows, arcRowSpec } from '../../stage/arcRows';
@@ -9,10 +9,13 @@ import { useSvgId } from '../svgId';
 import { px } from '../svgNumber';
 import './arcList.css';
 import { ArcEmpty, ArcFrame, ArcVeil, frameEnds } from './ArcParts';
+import { ArcColumnGhosts } from './ArcColumnGhosts';
 import { ArcRow } from './ArcRow';
+import { type ArcFloatPlan, useArcFloat } from './useArcFloat';
 import { type ArcScroll, useArcScroll } from './useArcScroll';
 import { useArcTitles } from './useArcTitles';
 import { useListFocus } from './useListFocus';
+import { useStable } from './useStable';
 
 interface ArcTrackListProps {
     layout: StageLayout;
@@ -26,22 +29,15 @@ interface ArcTrackListProps {
     onFocusTrack: (trackId: string) => void;
     /** Enter／空白鍵：播框入面嗰首（行唔㩒得，W-051） */
     onPlay: (trackId: string) => void;
+    /** 由歌單欄開、飄緊落弧線（app/useListFloating；減少動態效果時 false） */
+    floating: boolean;
 }
 
 const PLAYABLE = '1';
 const SILENT = '0';
 
-/** 外面嘅 callback 每次 render 都係新嘅：包一層穩定嘅，行（memo）唔使跟住 re-render */
-const useStable = <A extends unknown[]>(callback: (...args: A) => void) => {
-    const latest = useRef(callback);
-    useEffect(() => {
-        latest.current = callback;
-    });
-    return useCallback((...args: A) => latest.current(...args), []);
-};
-
 type ListboxProps = Pick<ArcTrackListProps, 'layout' | 'list' | 'albumTitle' | 'measure'> &
-    Pick<ArcScroll, 'offset' | 'active' | 'onKeyDown'>;
+    Pick<ArcScroll, 'offset' | 'active' | 'onKeyDown'> & { plan: ArcFloatPlan | null };
 
 /** 見到嘅行（|k| ≤ visible）；捲動位置冇變就用返同一組位置（行唔使 re-render） */
 const Listbox = (props: ListboxProps) => {
@@ -82,6 +78,7 @@ const Listbox = (props: ListboxProps) => {
                         selected={pose.index === active}
                         list={layout.list}
                         hitRight={hitRight}
+                        float={props.plan?.floats.get(pose.index)}
                     />
                 );
             })}
@@ -90,8 +87,8 @@ const Listbox = (props: ListboxProps) => {
 };
 
 /**
- * 弧線歌單（設計稿第 18 版「歌單（㩒碟面）」「歌單（專輯未有歌）」listLayer()；Functional Spec US-004、D23、D25、D39）：
- * 暗層（中間留唱片夾個窿）→ 白色框線 → 沿碟弧線排嘅歌名。框入面係揀中嗰首，㩒唱片夾（play）播佢；
+ * 弧線歌單（設計稿第 19 版「歌單（㩒碟面）」「歌單（專輯未有歌）」listLayer()；Functional Spec US-004、D23、D25、D39）：
+ * 暗層（中間留唱片夾個窿）→ 白色框線 → 沿碟弧線排嘅歌名（由歌單欄開就由歌單欄飄落，useArcFloat）。框入面係揀中嗰首，㩒唱片夾（play）播佢；
  * 行唔㩒得（W-051）：㩒行冇反應；㩒行以外嘅暗位或者 Esc 收返。拖動、滾輪、鍵盤沿弧線捲（useArcScroll）。
  * 喺貼頂組（螺絲上面、左上資訊下面），內容用碟嘅座標（貼底，加返多出嚟嘅高度）。
  */
@@ -112,6 +109,8 @@ export const ArcTrackList = (props: ArcTrackListProps) => {
         onPlay,
     });
     useListFocus(rootRef, props.onClose);
+    const plan = useArcFloat(list, layout, props.floating);
+    const scroll = { offset, active, onKeyDown };
     return (
         <g ref={rootRef} data-part="arc-list" className="arc-list" {...dragHandlers}>
             <g transform={`translate(0 ${px(extraUnits)})`}>
@@ -120,14 +119,24 @@ export const ArcTrackList = (props: ArcTrackListProps) => {
                     top={-extraUnits}
                     height={heightUnits}
                     onClose={props.onClose}
+                    entering={props.floating}
                 />
-                <ArcFrame layout={layout} />
+                <ArcFrame layout={layout} entering={props.floating} />
                 {list.rows.length === 0 ? (
                     <ArcEmpty layout={layout} text={list.emptyText} />
                 ) : (
-                    <Listbox {...props} offset={offset} active={active} onKeyDown={onKeyDown} />
+                    <Listbox {...props} {...scroll} plan={plan} />
                 )}
             </g>
+            {plan && (
+                <ArcColumnGhosts
+                    layout={layout}
+                    rows={list.rows}
+                    indexes={plan.ghostRows}
+                    accent={list.accent}
+                    measure={props.measure}
+                />
+            )}
         </g>
     );
 };

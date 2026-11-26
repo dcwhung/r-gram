@@ -55,3 +55,79 @@
     stroke-width: 3;
     stroke-dasharray: 8 6;
 }
+
+/*
+ * 由歌單欄開（設計稿第 19 版 LIST_FLOAT；backlog B-086 ②）：見到嘅行由歌單欄嘅位飄去弧線（平移 + 縮放，
+ * 原點 0 0，數值由元件畀），歌名由黑字變白字；暗層淡入；框線等一陣先由唱片夾伸出；歌單欄其餘嘅行淡出；
+ * 左上資訊交叉淡入（TopGroup）。只用 backwards：過場完行返自己嘅透明度（捲動會變）。減少動態效果：冇
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .arc-row-float {
+        transform-origin: 0 0;
+        animation: arc-row-float var(--motion-scene-list-row-float)
+            cubic-bezier(0.22, 0.75, 0.25, 1) var(--float-delay) backwards;
+    }
+
+    .arc-row-float .arc-title {
+        animation: arc-ink-to-paper var(--motion-scene-list-row-float) ease var(--float-delay)
+            backwards;
+    }
+
+    .arc-veil--in,
+    .list-info-in {
+        animation: arc-fade-in var(--motion-scene-list-veil) ease backwards;
+    }
+
+    .arc-frame-in {
+        transform-origin: 0 0;
+        animation: arc-frame-out var(--motion-scene-list-frame) cubic-bezier(0.2, 0.8, 0.3, 1)
+            var(--motion-scene-list-frame-delay) backwards;
+    }
+
+    .arc-ghosts {
+        animation: arc-fade-out var(--motion-scene-list-ghost-out) ease both;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arc-ghosts,
+    .list-info-ghost {
+        display: none;
+    }
+}
+
+@keyframes arc-row-float {
+    from {
+        transform: translate(var(--float-x), var(--float-y)) scale(var(--float-scale));
+        opacity: var(--float-from);
+    }
+
+    to {
+        transform: translate(0, 0) scale(1);
+        opacity: var(--float-to);
+    }
+}
+
+@keyframes arc-ink-to-paper {
+    from {
+        fill: var(--color-ink);
+    }
+}
+
+@keyframes arc-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes arc-frame-out {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes arc-fade-out {
+    to {
+        opacity: 0;
+    }
+}

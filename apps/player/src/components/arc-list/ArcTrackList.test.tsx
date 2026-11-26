@@ -423,7 +423,9 @@ describe('ArcTrackList floating in from the column', () => {
         const titles = [...(ghosts?.querySelectorAll('[data-part="held-title"]') ?? [])];
         expect(titles[0]).toHaveTextContent(`歌 ${shown + 1}`);
         const { top, pitch, bottomIdle } = PHONE_LAYOUT.heldTracks;
-        expect(titles.length).toBe(Math.floor((bottomIdle - top) / pitch - 0.5) + 1 - shown);
+        expect(titles.length).toBe(
+            Math.min(MANY.length, Math.floor((bottomIdle - top) / pitch - 0.5) + 1) - shown,
+        );
     });
 
     it('should open with no float when not floating', () => {
