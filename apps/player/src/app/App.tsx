@@ -32,7 +32,8 @@ export const App = ({ startup, updates = NO_UPDATES }: AppProps) => {
     const landscape = usePhoneLandscape();
     const { view, handlers } = home;
     useLaunchEnd(updates, home.stage.scene !== 'preload');
-    const waiting = useUpdateStatus(updates) === 'waiting';
+    // D95：Preload 期間（連旗淡出中）唔出版本掣、唔通知；旗完全淡走先出
+    const waiting = useUpdateStatus(updates) === 'waiting' && preload.exit === 'gone';
     return (
         <>
             <Stage covered={landscape}>
