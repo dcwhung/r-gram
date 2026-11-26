@@ -2,7 +2,12 @@
 
 由 `src/export.cjs` 生成，唔好人手改；設計稿：`_mockups_/app-icon/index.html`。接入 app 係 T-039。
 
-資料夾：`c-white-disc/`（方案 C）、`d-black-disc/`（方案 D），每個都有下面嘅檔：
+| 資料夾 | 方案 | 用途 |
+| --- | --- | --- |
+| `c-white-disc/` | C | 留底，暫時唔用 |
+| `d-black-disc/` | D | 全 app 嘅 icon：手機主畫面、PWA manifest、favicon、管理端頂條 |
+
+每個資料夾都有下面嘅檔：
 
 | 檔案 | 用途 | 精細度 | 形狀 |
 | --- | --- | --- | --- |

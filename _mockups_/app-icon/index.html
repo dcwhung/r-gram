@@ -7,6 +7,7 @@
 <title>R Gram App Icon</title>
 <!--
     R Gram — app icon 設計稿（手機主畫面 icon 同瀏覽器 favicon）
+    第 7 版（2026-11-26）：用戶決定 D（黑碟）做全 app 嘅 icon，C（白碟）留底；export/README.md 寫明。
     第 6 版（2026-11-26，定稿）：用戶決定 C 同 D 兩個都留、標誌照用、播放端主頁唔加 logo；
     拎走播放端主頁預覽（連 player-home.jpg 同 capture_home.cjs），加 src/export.cjs 出 export/。
     第 5 版（2026-11-26）：方案 C 嘅碟由銀色車床面改做白碟（標誌深色）。
@@ -125,7 +126,7 @@ ul.plain li { margin-bottom: 4px; }
 <body>
 <div class="wrap">
     <h1>R Gram App Icon</h1>
-    <p class="lede"><b>第 6 版（定稿）。</b>你決定 <b>C（白碟）</b>同 <b>D（黑碟）</b>兩個都留：碟喺面板正中、同一大細，標誌大細一樣，左下有一粒旋鈕；兩個只差面板同碟嘅顏色。檔案喺 <code>_mockups_/app-icon/export/</code>（見頁尾）。A、B、E 冇揀，留喺下面做記錄。</p>
+    <p class="lede"><b>第 7 版（定稿）。</b>你決定 <b>D（黑碟）做全 app 嘅 icon</b>：手機主畫面、PWA manifest、favicon、管理端頂條都用 D。<b>C（白碟）留底</b>，暫時唔用。兩款嘅碟同標誌一樣大、左下都有旋鈕，只差面板同碟嘅顏色。檔案喺 <code>_mockups_/app-icon/export/</code>（見頁尾）。A、B、E 冇揀，留喺下面做記錄。</p>
     <p class="lede">全部照你嘅概念圖：由正上方睇落去嘅唱片機——圓角正方形嘅拉絲鋁面板、四角螺絲、中間一隻碟、右上角唱臂底座、唱臂中段屈一屈、唱針落喺碟嘅右下。</p>
     <p class="lede">五個方案只喺取捨上唔同。畫法（車床拉絲面、螺絲、碟、銀邊、唱片夾、唱臂、陰影）全部係播放端設計稿第 18 版已有嘅嘢，冇加新風格。Icon 入面冇文字（除咗標誌本身個 R）。</p>
 
@@ -138,7 +139,7 @@ ul.plain li { margin-bottom: 4px; }
     <p class="lede">碟嘅位置、大細、唱臂同旋鈕完全一樣，只差顏色。</p>
     <div class="compare" id="compare"></div>
 
-    <h2>C 同 D 放喺管理端</h2>
+    <h2>放喺管理端（用 D）</h2>
     <p class="lede">管理端頂條：icon 放喺「R Gram」字樣左邊，44 px。播放端主頁唔加 logo（你已決定）。</p>
     <h3>管理端頂條</h3>
     <div class="ui" id="ui-admin" style="grid-template-columns: minmax(0, 1fr)"></div>
@@ -163,7 +164,7 @@ ul.plain li { margin-bottom: 4px; }
     </ul>
 
     <h2>Export 檔案</h2>
-    <p class="lede">由 <code>node src/export.cjs</code> 出（用呢頁同一份畫法），C 同 D 各一個資料夾：<code>export/c-white-disc/</code>、<code>export/d-black-disc/</code>。</p>
+    <p class="lede">由 <code>node src/export.cjs</code> 出（用呢頁同一份畫法）：<b>全 app 用 <code>export/d-black-disc/</code></b>；<code>export/c-white-disc/</code> 係 C 嘅留底。</p>
     <div class="table-wrap">
         <table>
             <thead><tr><th>檔案</th><th>用途</th><th>版本</th></tr></thead>
@@ -654,6 +655,8 @@ ul.plain li { margin-bottom: 4px; }
 
     /** export/ 入面每個檔：檔名、尺寸、精細度、形狀（PLAN + maskable + master SVG） */
     const EXPORT_DIRS = { C: 'c-white-disc', D: 'd-black-disc' };
+    // 第 7 版：用戶決定 D 做全 app 嘅 icon，C 留底（export/README.md 由 src/export.cjs 寫入）
+    const EXPORT_ROLE = { C: '留底，暫時唔用', D: '全 app 嘅 icon：手機主畫面、PWA manifest、favicon、管理端頂條' };
     const EXPORTS = [
         { file: 'icon.svg', px: SIZE, detail: 'full', shape: 'rounded', use: 'Master（向量，可以再出任何尺寸）' },
         ...PLAN.map((plan) => ({ file: `icon-${plan.px}.png`, ...plan })),
@@ -678,7 +681,7 @@ ul.plain li { margin-bottom: 4px; }
         document.querySelectorAll('canvas[data-zoom]').forEach(paintZoom);
     };
 
-    window.RGRAM_ICON = { standalone, EXPORTS, EXPORT_DIRS }; // src/export.cjs 用
+    window.RGRAM_ICON = { standalone, EXPORTS, EXPORT_DIRS, EXPORT_ROLE }; // src/export.cjs 用
     render();
 })();
 </script>

@@ -30,13 +30,17 @@ const renderPng = async (context, svg, px, target) => {
     await page.close();
 };
 
-const readme = (dirs, items) =>
+const readme = (dirs, roles, items) =>
     [
         '# R Gram app icon（export）',
         '',
         '由 `src/export.cjs` 生成，唔好人手改；設計稿：`_mockups_/app-icon/index.html`。接入 app 係 T-039。',
         '',
-        `資料夾：${Object.entries(dirs).map(([key, dir]) => `\`${dir}/\`（方案 ${key}）`).join('、')}，每個都有下面嘅檔：`,
+        '| 資料夾 | 方案 | 用途 |',
+        '| --- | --- | --- |',
+        ...Object.entries(dirs).map(([key, dir]) => `| \`${dir}/\` | ${key} | ${roles[key]} |`),
+        '',
+        '每個資料夾都有下面嘅檔：',
         '',
         '| 檔案 | 用途 | 精細度 | 形狀 |',
         '| --- | --- | --- | --- |',
@@ -52,7 +56,7 @@ const readme = (dirs, items) =>
     await context.route('**/*', blockRemote);
     const source = await context.newPage();
     await source.goto(`file://${PAGE}`);
-    const { dirs, items } = await source.evaluate(() => ({ dirs: window.RGRAM_ICON.EXPORT_DIRS, items: window.RGRAM_ICON.EXPORTS }));
+    const { dirs, roles, items } = await source.evaluate(() => ({ dirs: window.RGRAM_ICON.EXPORT_DIRS, roles: window.RGRAM_ICON.EXPORT_ROLE, items: window.RGRAM_ICON.EXPORTS }));
     for (const [key, dir] of Object.entries(dirs)) {
         fs.mkdirSync(path.join(OUT, dir), { recursive: true });
         for (const item of items) {
@@ -63,6 +67,6 @@ const readme = (dirs, items) =>
             console.log(`${dir}/${item.file}`);
         }
     }
-    fs.writeFileSync(path.join(OUT, 'README.md'), readme(dirs, items));
+    fs.writeFileSync(path.join(OUT, 'README.md'), readme(dirs, roles, items));
     await browser.close();
 })();
