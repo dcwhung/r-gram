@@ -43,6 +43,15 @@ describe('useSettledColumn', () => {
         expect(result.current).toBe(open);
     });
 
+    // 收埋時換咗碟（♥、㩒細唱片機返去）再打開字母盤：都係即刻出，唔使等 settle（review W-054 M37）
+    it('should follow the disc on screen while the dial is closed', () => {
+        const { result, rerender } = hook(null, 'room');
+        rerender({ view: null, albumId: 'hours' });
+        const open = column('hours', true);
+        rerender({ view: open, albumId: 'hours' });
+        expect(result.current).toBe(open);
+    });
+
     it('should hide the column while turning and show it once the dial rests on a disc', () => {
         const { result, rerender } = hook(column('room', true));
         ['apollo-18', 'hours', 'i'].forEach((albumId) => {
