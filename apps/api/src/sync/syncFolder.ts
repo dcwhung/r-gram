@@ -104,22 +104,47 @@ const responseOf = ({ target, plan, created, outcome, checks, truncated }: Synce
     truncated,
 });
 
-const syncTarget = async (c: Context<AppEnv>, target: FolderTarget, from: number) => {
+interface Planned {
+    state: FolderState;
+    info: SyncInfo;
+    plan: FolderPlan;
+    truncated: boolean;
+}
+
+/** list → D1 狀態 → `info.txt` → 計劃；資料夾冇檔 → 'folderEmpty' */
+const planTarget = async (
+    c: Context<AppEnv>,
+    target: FolderTarget,
+): Promise<Planned | 'folderEmpty'> => {
     const { DB: db, MEDIA: bucket } = c.env;
     const listing = await listFolder(bucket, target.folder);
-    if (listing.files.length === 0) return syncError(c, 'folderEmpty');
+    if (listing.files.length === 0) return 'folderEmpty';
     const state = await readFolderState(db, target.id);
     const info = await readSyncInfo(bucket, listing.files, state.album?.info_etag ?? null);
     const album = syncAlbumStateOf(state.album);
     const input = { albumId: target.id, files: listing.files, info, album, tracks: state.tracks };
     const plan = planFolderSync({ ...input, truncated: listing.truncated });
+    return { state, info, plan, truncated: listing.truncated };
+};
+
+export type FolderSyncResult = ReturnType<typeof responseOf>;
+
+/**
+ * 同步一個資料夾（API-034；T-106 嘅 API-019、API-041 寫完檔之後都行呢條路）：回 API-034 嘅回應 body；
+ * 冇寫到 D1 = 設 skipPostWrite（唔生成 catalog）
+ */
+export const runFolderSync = async (
+    c: Context<AppEnv>,
+    target: FolderTarget,
+    from: number,
+): Promise<FolderSyncResult | 'folderEmpty'> => {
+    const planned = await planTarget(c, target);
+    if (planned === 'folderEmpty') return planned;
+    const { state, info, plan, truncated } = planned;
+    const db = c.env.DB;
     const albumWritten = await ensureAlbum(db, state.album, target, plan.album);
-    const outcome = await syncTracks(
-        c,
-        target.id,
-        { planned: plan.tracks, stored: state.tracks },
-        from,
-    );
+    const tracks = { planned: plan.tracks, stored: state.tracks };
+    const outcome = await syncTracks(c, target.id, tracks, from);
     const checks = checksOf(target, plan, state, outcome);
     const stored = storedFinish(state.album);
     const infoEtag = infoEtagOf(info, isComplete(plan, outcome, from), stored.infoEtag);
@@ -129,7 +154,7 @@ const syncTarget = async (c: Context<AppEnv>, target: FolderTarget, from: number
     const wrote = albumWritten || outcome.added.length > 0 || outcome.updated.length > 0;
     if (!wrote) c.set('skipPostWrite', true);
     const synced = { target, plan, created: state.album === null, outcome, checks };
-    return c.json(responseOf({ ...synced, truncated: listing.truncated }));
+    return responseOf({ ...synced, truncated });
 };
 
 export const syncFolderRoute = async (c: Context<AppEnv>) => {
@@ -138,5 +163,6 @@ export const syncFolderRoute = async (c: Context<AppEnv>) => {
         return syncValidationError(c, [{ path: FROM_QUERY, reason: 'INVALID_NUMBER' }]);
     const target = await resolveFolder(c.env, c.req.param('folder') ?? '');
     if (typeof target === 'string') return syncError(c, target);
-    return syncTarget(c, target, from);
+    const result = await runFolderSync(c, target, from);
+    return result === 'folderEmpty' ? syncError(c, result) : c.json(result);
 };
