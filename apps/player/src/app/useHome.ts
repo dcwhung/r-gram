@@ -28,6 +28,7 @@ export const initialStage = (catalog: CatalogDocument | null): StageState => {
 interface HomeContext {
     catalog: CatalogDocument;
     stage: StageState;
+    playback: PlaybackState;
     view: HomeView;
     dispatch: Dispatch<StageAction>;
     play: Dispatch<PlaybackAction>;
@@ -41,11 +42,24 @@ const playSelected = ({ catalog, stage, dispatch, play }: HomeContext) => {
     play({ type: 'start', albumId: found.album.id, trackId: found.track.id });
 };
 
-/** 未揀歌：打開歌單，預先揀中第一首（US-004） */
-const openList = ({ catalog, stage, view, dispatch }: HomeContext) => {
-    const focus = listFocusTrackId(catalog, stage);
+/** 打開歌單，預先揀中載入嘅歌或者第一首（US-004） */
+const openList = ({ catalog, stage, view, playback, dispatch }: HomeContext) => {
+    const focus = listFocusTrackId(catalog, stage, playback);
     dispatch({ type: 'openList', loadedAlbumId: view.loadedAlbumId });
     if (focus) dispatch({ type: 'focusTrack', trackId: focus });
+};
+
+/**
+ * 歌單入面㩒一行（或者 Enter）：揀嗰首，再同㩒唱片夾一樣播（返主頁、播放狀態 start；真正出聲係 T-038）。
+ * 要係歌單開住、嗰首喺呢隻碟而且播得
+ */
+const playListTrack = (context: HomeContext, trackId: string) => {
+    const { view, dispatch, play } = context;
+    const row = view.list?.rows.find((candidate) => candidate.id === trackId);
+    if (!view.list || !row?.playable) return;
+    dispatch({ type: 'focusTrack', trackId });
+    dispatch({ type: 'playSelected' });
+    play({ type: 'start', albumId: view.list.albumId, trackId });
 };
 
 /**
@@ -103,6 +117,15 @@ const dialHandlers = (context: HomeContext) => ({
     onFavourites: () => context.dispatch({ type: 'toggleFavourites' }),
 });
 
+/** 弧線歌單（T-037）：㩒碟面打開（拎住另一隻碟唔得）、捲到框入面嗰首、㩒一行播 */
+const listHandlers = (context: HomeContext) => ({
+    onOpenList: () => {
+        if (context.view.canOpenList) openList(context);
+    },
+    onFocusListTrack: (trackId: string) => context.dispatch({ type: 'focusTrack', trackId }),
+    onPlayListTrack: (trackId: string) => playListTrack(context, trackId),
+});
+
 const handlersFor = (context: HomeContext): HomeHandlers => ({
     ...dialHandlers(context),
     onSpindle: () => pressSpindle(context),
@@ -111,6 +134,7 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
     // 四個播放模式係 T-071
     onMode: () => {},
     onCloseList: () => context.dispatch({ type: 'closeList' }),
+    ...listHandlers(context),
     onReturnToLoaded: () =>
         context.dispatch({ type: 'returnToLoaded', loadedAlbumId: context.view.loadedAlbumId }),
     onPlayHeldTrack: (trackId: string) => playHeldTrack(context, trackId),
@@ -151,7 +175,7 @@ export const useHome = (catalog: CatalogDocument | null, random?: () => number):
         playback,
         covers,
         view,
-        handlers: handlersFor({ catalog, stage, view, dispatch, play }),
+        handlers: handlersFor({ catalog, stage, playback, view, dispatch, play }),
         finishPreload,
     };
 };

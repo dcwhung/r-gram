@@ -20,8 +20,14 @@ export interface HomeHandlers extends DialHandlers {
     onBooklet: () => void;
     onMv: () => void;
     onMode: () => void;
-    /** 㩒歌單嘅暗位收返 */
+    /** 㩒歌單嘅暗位（或者 Esc）收返 */
     onCloseList: () => void;
+    /** 主頁㩒碟面：打開弧線歌單（T-037） */
+    onOpenList: () => void;
+    /** 歌單捲到停低：框入面換咗另一首 */
+    onFocusListTrack: (trackId: string) => void;
+    /** 歌單入面㩒一行（或者 Enter）：播嗰首 */
+    onPlayListTrack: (trackId: string) => void;
     /** 㩒右上角細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048） */
     onReturnToLoaded: () => void;
     /** 㩒拎住嘅碟嘅歌單欄一行：將隻碟放入唱片機播嗰首（T-049） */
