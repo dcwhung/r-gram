@@ -5,7 +5,7 @@
 import { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from '@r-gram/catalog';
 import type { Context } from 'hono';
 import { errorResponder, messageBuilder, withMessages, type ErrorKind } from '../api/errors';
-import { ERROR_CODE, HTTP_STATUS } from '../config';
+import { COVER_SIDE_PX, ERROR_CODE, HTTP_STATUS, THUMB_SIDE_PX } from '../config';
 import type { MessageParams } from '../i18n/fillMessage';
 import { zhHant } from '../i18n/zh-Hant';
 import { UNKNOWN_FIELDS_MAX } from '../lib/fields';
@@ -18,6 +18,7 @@ const SITUATIONS: Record<AlbumSituation, ErrorKind> = {
     invalid: { status: HTTP_STATUS.badRequest, code: ERROR_CODE.validation },
     stale: { status: HTTP_STATUS.conflict, code: ERROR_CODE.stale },
     tooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
+    noFirstCover: { status: HTTP_STATUS.conflict, code: ERROR_CODE.noFirstCover },
 };
 
 const ERROR_PARAMS: Partial<Record<AlbumSituation, MessageParams>> = {
@@ -25,6 +26,7 @@ const ERROR_PARAMS: Partial<Record<AlbumSituation, MessageParams>> = {
 };
 const REASON_PARAMS: Partial<Record<AlbumReason, MessageParams>> = {
     TOO_MANY_UNKNOWN_FIELDS: { max: UNKNOWN_FIELDS_MAX },
+    WRONG_SIZE: { cover: COVER_SIDE_PX, thumb: THUMB_SIDE_PX },
 };
 
 export const albumErrorMessage = messageBuilder(zhHant.albums.errors, ERROR_PARAMS);

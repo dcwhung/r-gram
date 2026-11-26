@@ -8,6 +8,7 @@ import { Hono } from 'hono';
 import type { AppEnv } from '../app';
 import { tracksOf } from '../tracks/rows';
 import { albumError } from './errors';
+import { putAlbumCover } from './cover';
 import { getAlbumInfo, putAlbumInfo } from './info';
 import { albumOverview } from './overview';
 import { checksOf, toAlbum } from './rows';
@@ -27,3 +28,5 @@ albumRoutes.get('/:id', async (c) => {
 // T-106：`info.txt` 文字框（API-018、API-019），讀寫媒體 bucket
 albumRoutes.get('/:id/info', getAlbumInfo);
 albumRoutes.put('/:id/info', putAlbumInfo);
+// T-106：同步嘅封面結果（API-017）
+albumRoutes.put('/:id/cover', putAlbumCover);

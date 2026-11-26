@@ -80,6 +80,8 @@ export const ERROR_CODE = {
     noAudio: 'NO_AUDIO',
     /** 歌曲文字：同一個歌號有幾個 `.txt`，而 D1 連住嗰個唔喺度（T-106 API-040、041） */
     textConflict: 'TEXT_CONFLICT',
+    /** 封面結果：未有第一張封面就寫第二張（T-106 API-017；backlog B-067 ②） */
+    noFirstCover: 'NO_FIRST_COVER',
     internal: 'INTERNAL',
 } as const;
 

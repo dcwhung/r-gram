@@ -53,6 +53,8 @@ export const zhHant = {
             stale: '檔案已在其他地方更改，請重新載入。',
             /** 413 TOO_LARGE：`{maxBytes}`、`{maxLines}` = INFO_TEXT_MAX_BYTES、INFO_TEXT_MAX_LINES */
             tooLarge: 'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限。',
+            /** 409 NO_FIRST_COVER（API-017）：D1 CHECK 唔准冇第一張先有第二張 */
+            noFirstCover: '這張專輯還沒有第一張封面，不能設定第二張封面。',
         },
         /** details[].message：key = details[].reason */
         reasons: {
@@ -63,6 +65,10 @@ export const zhHant = {
             TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
             NOT_TEXT: '必須為文字。',
             INVALID_VALUE: '格式不正確。',
+            /** API-017：大封面同縮圖嘅尺寸（調亂咗都係呢個）；`{cover}`、`{thumb}` = 像素 */
+            WRONG_SIZE: '大封面必須為 {cover} × {cover} 像素，縮圖必須為 {thumb} × {thumb} 像素。',
+            /** API-017：圖未經 API-050 上載 */
+            IMAGE_NOT_FOUND: '找不到已上載的圖片，請重新上載。',
         },
     },
     tracks: {
