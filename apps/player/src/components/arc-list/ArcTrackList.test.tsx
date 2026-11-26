@@ -242,4 +242,41 @@ describe('ArcTrackList', () => {
         expect(shown).toHaveAttribute('opacity', '0.8');
         expect(shown.getAttribute('d')).toContain('a112 112 0 1 0 224 0');
     });
+
+    // 全部都未有音檔：照可以捲（停喺最近一行），但冇嘢播
+    it('should still scroll a disc where nothing can play, and play nothing', () => {
+        const silent = [row(1, false), row(2, false), row(3, false)];
+        const { container, listbox, selected, onPlay } = renderList(view(silent, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.wheel(root, { deltaY: 1, deltaMode: 1 });
+        expect(selected()).toHaveAccessibleName('第 2 首：歌 2（未有音檔）');
+        fireEvent.keyDown(listbox(), { key: 'ArrowDown' });
+        expect(selected()).toHaveAccessibleName('第 2 首：歌 2（未有音檔）');
+        fireEvent.keyDown(listbox(), { key: 'Enter' });
+        expect(onPlay).not.toHaveBeenCalled();
+    });
+
+    it('should play once for a held-down Enter and ignore other keys', () => {
+        const { listbox, selected, onPlay } = renderList(view([row(1), row(2)], 0));
+        fireEvent.keyDown(listbox(), { key: 'Enter' });
+        fireEvent.keyDown(listbox(), { key: 'Enter', repeat: true });
+        fireEvent.keyDown(listbox(), { key: 'a' });
+        expect(onPlay).toHaveBeenCalledTimes(1);
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
+    });
+
+    it('should bring the focus back in from outside the stage with Tab and Shift+Tab', () => {
+        const outside = document.createElement('button');
+        document.body.append(outside);
+        const { listbox } = renderList(view([row(1)]));
+        const veil = screen.getByRole('button', { name: '關閉歌單' });
+        outside.focus();
+        fireEvent.keyDown(outside, { key: 'Tab' });
+        expect(document.activeElement).toBe(veil);
+        outside.focus();
+        fireEvent.keyDown(outside, { key: 'Tab', shiftKey: true });
+        expect(document.activeElement).toBe(listbox());
+        outside.remove();
+    });
 });
