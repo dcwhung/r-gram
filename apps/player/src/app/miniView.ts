@@ -6,7 +6,7 @@ import { type CatalogDocument, glowColor } from '@r-gram/catalog';
 import { findTrack } from '../catalog/selectors';
 import type { ArmPose } from '../components/tonearm/armPose';
 import type { DialEntry } from './dialView';
-import type { PlaybackState } from './playbackState';
+import type { PlaybackState } from '../playback/playbackState';
 
 export interface MiniView {
     /** 拎住另一隻碟先顯示；唔顯示時照畫（淡出），但唔接受 pointer、唔入 Tab 次序 */

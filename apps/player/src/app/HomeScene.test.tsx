@@ -5,7 +5,7 @@ import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { estimateTextWidth } from '../utils/textMeasure';
 import { HomeScene } from './HomeScene';
 import { type HomeView, homeView } from './homeView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 const handlers = {

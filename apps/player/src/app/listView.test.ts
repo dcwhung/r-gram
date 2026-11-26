@@ -1,7 +1,7 @@
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { makeAlbum, makeDocument, sampleDocument } from '../catalog/testing/catalogFixtures';
 import { listView } from './listView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 const listOn = (viewAlbumId: string, selectedTrackId: string | null = null): StageState => ({

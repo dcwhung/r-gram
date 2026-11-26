@@ -7,7 +7,7 @@ import {
     withSecondCover,
 } from '../catalog/testing/catalogFixtures';
 import { armPose, homeView, listFocusTrackId, spindleMode } from './homeView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 const home = (overrides: Partial<StageState> = {}): StageState => ({

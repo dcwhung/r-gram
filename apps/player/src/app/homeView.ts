@@ -20,7 +20,7 @@ import { type TrackColumnView, trackColumnView } from './heldTracksView';
 import { isHolding, isLoadedHere, loadedAlbumOf } from './holding';
 import { type ArcListView, listView } from './listView';
 import { loadedArmPose, type MiniView, miniView } from './miniView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import type { StageState } from './stageReducer';
 
 /**

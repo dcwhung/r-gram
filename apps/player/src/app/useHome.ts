@@ -10,7 +10,7 @@ import {
     type PlaybackAction,
     playbackReducer,
     type PlaybackState,
-} from './playbackState';
+} from '../playback/playbackState';
 import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from './stageReducer';
 import type { HomeHandlers } from './Turntable';
 

@@ -1,4 +1,4 @@
-import { loadedAlbumOf } from './holding';
+import { loadedAlbumOf } from '../app/holding';
 import { IDLE_PLAYBACK, playbackReducer, type PlaybackState } from './playbackState';
 
 const playing: PlaybackState = {

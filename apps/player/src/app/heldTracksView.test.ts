@@ -1,7 +1,7 @@
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { makeAlbum, makeDocument, sampleDocument } from '../catalog/testing/catalogFixtures';
 import { trackColumnView } from './heldTracksView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 const stageOn = (viewAlbumId: string, scene: StageState['scene'] = 'home'): StageState => ({

@@ -12,7 +12,7 @@ import {
 import { albumTracks, findAlbum, isPlayable } from '../catalog/selectors';
 import { t } from '../i18n/t';
 import { showsColumn } from './holding';
-import type { PlaybackState } from './playbackState';
+import type { PlaybackState } from '../playback/playbackState';
 import type { StageState } from './stageReducer';
 
 /** 歌號最少兩位（設計稿 `padStart(2, '0')`） */

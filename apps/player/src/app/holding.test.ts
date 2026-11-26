@@ -1,5 +1,5 @@
 import { isHolding, loadedAlbumOf } from './holding';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 const stage = (overrides: Partial<StageState> = {}): StageState => ({
