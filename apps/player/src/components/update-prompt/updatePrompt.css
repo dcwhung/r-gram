@@ -1,19 +1,21 @@
 /*
- * 更新提示（T-039 proposal）：舞台右下角一粒細膠囊，墨黑底、紙白字，同 Preload 嘅黑白一致。
- * 放右下：左下係旋鈕同三粒細掣，右下只係轉盤邊（唔係控件）。
+ * 更新提示（T-039 proposal）：一粒細膠囊，墨黑底、紙白字，同 Preload 嘅黑白一致。
+ * 放右上（S-197：用緊 app 時隨時會出，唔可以蓋住控件）：右下係碟面（㩒 = 開歌單）、左下係旋鈕同細掣；
+ * 右上只係螺絲同版本號（唔係控件），下面嘅細唱片機（拎住另一隻碟時）喺舞台 y 202 先開始，
+ * 闊 360 px 嘅手機都仲有幾 px 空位。
  * 喺舞台外面（fixed），所以用 px；數值集中喺下面嘅變數。
  */
 .update-prompt {
-    --update-prompt-gap: 12px;
-    --update-prompt-pad: 6px;
+    --update-prompt-gap: 8px;
+    --update-prompt-pad: 4px;
     --update-prompt-text-pad: 14px;
     --update-prompt-font: 15px;
     /* 掣嘅感應範圍最少 44px（WCAG 2.5.5 / 團隊規則） */
     --update-prompt-target: 44px;
 
     position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + var(--update-prompt-gap));
     right: calc(env(safe-area-inset-right, 0px) + var(--update-prompt-gap));
-    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--update-prompt-gap));
     display: flex;
     align-items: center;
     gap: var(--update-prompt-pad);
