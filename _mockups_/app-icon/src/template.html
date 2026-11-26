@@ -7,6 +7,7 @@
 <title>R Gram App Icon</title>
 <!--
     R Gram — app icon 設計稿（手機主畫面 icon 同瀏覽器 favicon）
+    第 5 版（2026-11-26）：方案 C 嘅碟由銀色車床面改做白碟（標誌深色）。
     第 4 版（2026-11-26）：加「C 同 D 放喺介面入面」：管理端頂條同播放端主頁（src/player-home.jpg 由 node src/capture_home.cjs 影）。
     第 3 版（2026-11-26，等用戶喺 C 同 D 之間揀）：C 同 D 嘅碟放大（標誌大細不變），左下加一粒旋鈕。
     第 2 版（2026-11-26）：方案 C 同 D 嘅碟放正中、同一大細，唱臂同底座縮細；頁頂加並排比較。
@@ -225,10 +226,10 @@ ul.plain li { margin-bottom: 4px; }
             arm: { x: 812, y: 208, base: 82, tube: 26, knee: 0.46, head: { l: 100, w: 62 } },
         },
         C: {
-            title: '銀色 CD',
-            trade: '深色面板配銀色車床面 CD，標誌用深色。碟喺面板正中，同方案 D 一樣大細。取捨：對比最強、最似一部 CD 唱片機；但面板唔係概念圖嘅淺色鋁面，同 app 嘅淺色畫面色調相反。',
+            title: '白碟',
+            trade: '深色面板配白碟，標誌用深色；碟邊照用銀邊。碟喺面板正中，同方案 D 一樣大細。取捨：對比最強，同 D 剛好黑白相反；但面板唔係概念圖嘅淺色鋁面，同 app 嘅淺色畫面色調相反。',
             panel: 'dark',
-            disc: { ...CENTRED_DISC, face: 'silver' },
+            disc: { ...CENTRED_DISC, face: 'white' },
             arm: SLIM_ARM,
             knob: CORNER_KNOB,
         },
@@ -408,9 +409,13 @@ ul.plain li { margin-bottom: 4px; }
         );
     };
 
+    const WHITE_DISC = '#f7f7f5';
+    const DISC_FLAT = { black: '#131314', silver: '#e2e3e4', white: WHITE_DISC }; // 簡化版嘅碟面色
     const discFace = (disc, r, d) => {
-        if (!d.texture) return `<circle r="${n(r)}" fill="${disc.face === 'black' ? '#131314' : '#e2e3e4'}"/>`;
+        if (!d.texture) return `<circle r="${n(r)}" fill="${DISC_FLAT[disc.face]}"/>`;
         if (disc.face === 'black') return `<circle r="${n(r)}" fill="url(#gVinyl)"/>`;
+        // 白碟（第 5 版，方案 C）：白色碟面，加 gDome 少少明暗，唔用拉絲紋
+        if (disc.face === 'white') return `<circle r="${n(r)}" fill="${WHITE_DISC}"/><circle r="${n(r)}" fill="url(#gDome)" opacity=".35"/>`;
         return `<use href="#lathe" transform="rotate(12) scale(${n(r)})"/><circle r="${n(r)}" fill="#fff" opacity=".3"/><circle r="${n(r)}" fill="url(#gDome)" opacity=".6"/>`;
     };
 
