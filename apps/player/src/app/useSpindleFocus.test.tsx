@@ -1,12 +1,24 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { useSpindleFocus } from './useSpindleFocus';
 
-/** 一粒掣做動作；唱片夾 `hidden` = 拎住另一隻碟時嘅樣（aria-hidden、唔入 Tab 次序） */
-const Probe = ({ hidden, action }: { hidden: boolean; action: () => void }) => {
+/**
+ * 一粒掣做動作：`hidesButton` = 動作生效，嗰粒掣淡出（aria-hidden，好似㩒完細唱片機）；
+ * 唱片夾 `hidden` = 讀屏睇唔到
+ */
+const Probe = ({ hidden, hidesButton }: { hidden: boolean; hidesButton: boolean }) => {
     const { spindleRef, focusSpindleAfter } = useSpindleFocus();
+    const [gone, setGone] = useState(false);
     return (
         <svg>
-            <g role="button" tabIndex={0} aria-label="動作" onClick={focusSpindleAfter(action)} />
+            <g aria-hidden={gone || undefined}>
+                <g
+                    role="button"
+                    tabIndex={0}
+                    aria-label="動作"
+                    onClick={focusSpindleAfter(() => setGone(hidesButton))}
+                />
+            </g>
             <g
                 ref={spindleRef}
                 data-testid="spindle"
@@ -17,23 +29,30 @@ const Probe = ({ hidden, action }: { hidden: boolean; action: () => void }) => {
     );
 };
 
-/* S-074、T-048、review S-180：做完動作 focus 交畀唱片夾，但只喺唱片夾係掣嗰陣 */
+const pressAction = () => {
+    const button = screen.getByRole('button', { name: '動作' });
+    button.focus();
+    fireEvent.click(button);
+    return button;
+};
+
+/* S-074、T-048、review S-180：做完動作，㩒嗰粒掣冇咗就將 focus 交畀唱片夾（要係掣） */
 describe('useSpindleFocus', () => {
-    it('should run the action and focus the clamp', () => {
-        const action = vi.fn();
-        render(<Probe hidden={false} action={action} />);
-        const button = screen.getByRole('button', { name: '動作' });
-        button.focus();
-        fireEvent.click(button);
-        expect(action).toHaveBeenCalled();
+    it('should focus the clamp once the pressed button is gone', () => {
+        render(<Probe hidden={false} hidesButton />);
+        pressAction();
         expect(document.activeElement).toBe(screen.getByTestId('spindle'));
     });
 
-    it('should leave the focus where it is while the clamp is hidden from assistive tech', () => {
-        render(<Probe hidden action={vi.fn()} />);
-        const button = screen.getByRole('button', { name: '動作' });
-        button.focus();
-        fireEvent.click(button);
+    it('should leave the focus where it is when the action changed nothing', () => {
+        render(<Probe hidden={false} hidesButton={false} />);
+        const button = pressAction();
         expect(document.activeElement).toBe(button);
+    });
+
+    it('should not focus a clamp hidden from assistive tech', () => {
+        render(<Probe hidden hidesButton />);
+        pressAction();
+        expect(document.activeElement).not.toBe(screen.getByTestId('spindle'));
     });
 });

@@ -36,7 +36,8 @@ describe('isHolding', () => {
         ['the dial points at another disc', stage({ scene: 'discChange' }), 'apollo-18', true],
         ['the loaded disc is on screen', stage({ viewAlbumId: 'apollo-18' }), 'apollo-18', false],
         ['no song is loaded', stage(), null, false],
-        ['the list is open', stage({ scene: 'list' }), 'apollo-18', false],
+        // 設計稿第 19 版：拎住嘅碟開咗弧線歌單，手上仍然拎住佢（細唱片機喺暗層下面照播）
+        ['the arc list of the held disc is open', stage({ scene: 'list' }), 'apollo-18', true],
         ['still on Preload', stage({ scene: 'preload' }), 'apollo-18', false],
     ])('should tell whether another disc is held when %s', (_case, state, loaded, expected) => {
         expect(isHolding(state, loaded)).toBe(expected);

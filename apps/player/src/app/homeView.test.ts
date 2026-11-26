@@ -68,9 +68,10 @@ describe('spindleMode', () => {
 describe('listFocusTrackId', () => {
     const document = sampleDocument();
 
-    it('should keep the track already focused in the list', () => {
+    // B-086 ②：未揀歌嘅碟開弧線歌單，框入面一律係第一首有音檔嘅歌（唔記上次捲到邊）
+    it('should frame the first playable track even after an earlier list was scrolled', () => {
         expect(listFocusTrackId(document, home({ selectedTrackId: 'apollo-18-03' }))).toBe(
-            'apollo-18-03',
+            'apollo-18-01',
         );
     });
 
@@ -173,14 +174,41 @@ describe('homeView while choosing a disc', () => {
     const choosing = (overrides: Partial<StageState> = {}) =>
         home({ scene: 'discChange', ...overrides });
 
-    it('should fade out the tonearm and small buttons while the dial is open, even with no song', () => {
-        expect(homeView(document, choosing(), IDLE_PLAYBACK).chromeHidden).toBe(true);
-        expect(homeView(document, home(), IDLE_PLAYBACK).chromeHidden).toBe(false);
-    });
+    /*
+     * B-086 ⑤ 兩條顯示規則：(i) 字母盤開住 = 冇細掣，鬆手 = 有細掣（拎住另一隻碟都一樣）；
+     * (ii) 有細唱片機 = 冇唱臂；冇細唱片機而字母盤開住 = 冇唱臂；鬆手 = 有唱臂
+     */
+    it.each([
+        ['launch, nothing loaded', home(), IDLE_PLAYBACK, false, false],
+        ['nothing loaded, dial open', choosing(), IDLE_PLAYBACK, true, true],
+        [
+            'nothing loaded, released on another disc',
+            home({ viewAlbumId: 'room' }),
+            IDLE_PLAYBACK,
+            false,
+            false,
+        ],
+        ['playing the disc on screen', home(), playback(), false, false],
+        ['dial open on the loaded disc', choosing(), playback(), true, true],
+        ['dial open on another disc', choosing({ viewAlbumId: 'room' }), playback(), true, true],
+        [
+            'released on another disc (holding)',
+            home({ viewAlbumId: 'room' }),
+            playback(),
+            false,
+            true,
+        ],
+    ])(
+        'should show the buttons and the tonearm by the two rules when %s',
+        (_c, stage, state, buttons, arm) => {
+            const view = homeView(document, stage, state);
+            expect(view).toMatchObject({ buttonsHidden: buttons, armHidden: arm });
+        },
+    );
 
     it('should fade out the song part of the info while a song is loaded and the dial is open', () => {
         const view = homeView(document, choosing(), playback());
-        expect(view).toMatchObject({ chromeHidden: true, songHidden: true });
+        expect(view).toMatchObject({ buttonsHidden: true, songHidden: true });
         expect(homeView(document, home(), playback()).songHidden).toBe(false);
     });
 
@@ -205,15 +233,23 @@ describe('homeView while choosing a disc', () => {
             'the list of another disc is open',
             home({ scene: 'list', viewAlbumId: 'room' }),
             playback(),
-            false,
+            true,
         ],
     ])('should tell whether another disc is held when %s', (_case, stage, state, holding) => {
         expect(homeView(document, stage, state).holding).toBe(holding);
     });
 
+    // 設計稿第 19 版 scene()：拎住嘅碟開弧線歌單：冇唱臂（有細唱片機，喺暗層下面）；左上照出框入面嗰首
+    it('should keep the tonearm hidden but show the framed song in the arc list of a held disc', () => {
+        const stage = home({ scene: 'list', viewAlbumId: 'room' });
+        const view = homeView(document, stage, playback());
+        expect(view).toMatchObject({ armHidden: true, songHidden: false });
+        expect(view.mini?.shown).toBe(true);
+    });
+
     it('should keep the song part and the tonearm hidden while holding another disc', () => {
         const view = homeView(document, home({ viewAlbumId: 'room' }), playback());
-        expect(view).toMatchObject({ chromeHidden: true, songHidden: true, spinning: false });
+        expect(view).toMatchObject({ armHidden: true, songHidden: true, spinning: false });
     });
 
     it('should hand the dial to the scene', () => {
@@ -232,6 +268,21 @@ describe('homeView mini turntable', () => {
         makeAlbum('room', ['room/01.m4a']),
     ]);
     const holdingRoom = home({ viewAlbumId: 'room' });
+
+    /*
+     * 設計稿第 19 版 miniTurntable()（B-086 ⑥）：拎住另一隻碟時播緊嗰隻碟播完：細唱片機留低，寫「已播完」，
+     * 唱針離開碟（泊位），碟唔轉；歌單欄唔收。「播完」嘅觸發係 T-038
+     */
+    it('should keep the mini turntable with the needle parked once the loaded song ended', () => {
+        const ended = playback({ status: 'ended' });
+        expect(mini(holdingRoom, ended)).toMatchObject({
+            shown: true,
+            ended: true,
+            armPose: 'parked',
+            spinning: false,
+        });
+        expect(homeView(document, holdingRoom, ended).trackColumn).not.toBeNull();
+    });
     const mini = (stage: StageState, state: PlaybackState) =>
         homeView(document, stage, state, new Map([['apollo-18', COVER_VARIANT.SECOND]])).mini;
 
@@ -303,7 +354,7 @@ describe('homeView mini turntable', () => {
 
 /*
  * T-037：弧線歌單（Functional Spec FR-005（第 18 版）、US-004、D52；設計稿第 18 版「歌單（㩒碟面）」）：
- * 只喺冇歌載入時揀中嘅碟、或者載入嘅碟（主頁㩒碟面）先開；拎住另一隻碟唔開
+ * 主頁字母盤收埋時㩒碟面就開，拎住另一隻碟都一樣（B-086 ②）
  */
 describe('homeView arc list', () => {
     const document = sampleDocument();
@@ -311,7 +362,7 @@ describe('homeView arc list', () => {
     it.each([
         ['nothing is loaded', home(), IDLE_PLAYBACK, true],
         ['the loaded disc is on screen', home(), playback(), true],
-        ['another disc is held', home({ viewAlbumId: 'room' }), playback(), false],
+        ['another disc is held', home({ viewAlbumId: 'room' }), playback(), true],
         ['the dial is open', home({ scene: 'discChange' }), IDLE_PLAYBACK, false],
         ['the list is already open', home({ scene: 'list' }), IDLE_PLAYBACK, false],
         ['the MV is open', home({ overlay: 'mv' }), playback(), false],

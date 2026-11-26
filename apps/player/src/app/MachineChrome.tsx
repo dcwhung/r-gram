@@ -16,12 +16,13 @@ interface MachineChromeProps {
 }
 
 /**
- * 唱臂同三粒細掣：揀碟期間（同拎住另一隻碟時）淡出（Functional Spec D52）。淡出咗就唔接受 pointer、
+ * 唱臂同三粒細掣（設計稿第 19 版 armFade、buttonsFade；B-086 ⑤）：字母盤開住兩樣都淡出；拎住另一隻碟時
+ * 淨係唱臂淡出（有細唱片機），細掣照出（歌書、MV 灰色，因為顯示緊嘅碟未揀歌）。淡出咗就唔接受 pointer、
  * 細掣離開 Tab 次序；唱臂喺淡出期間姿勢變咗就即時到位（淡入返嗰陣已經喺新位，唔行開場）。
  */
 export const MachineChrome = ({ layout, view, handlers, leadIn, instant }: MachineChromeProps) => (
     <>
-        <ChromeFade part="chrome-arm" hidden={view.chromeHidden}>
+        <ChromeFade part="chrome-arm" hidden={view.armHidden}>
             <Tonearm
                 arm={layout.arm}
                 pose={view.armPose}
@@ -30,7 +31,7 @@ export const MachineChrome = ({ layout, view, handlers, leadIn, instant }: Machi
                 glow={view.glow}
             />
         </ChromeFade>
-        <ChromeFade part="chrome-buttons" hidden={view.chromeHidden}>
+        <ChromeFade part="chrome-buttons" hidden={view.buttonsHidden}>
             <SmallButtons
                 layout={layout}
                 glow={view.glow}
@@ -39,7 +40,7 @@ export const MachineChrome = ({ layout, view, handlers, leadIn, instant }: Machi
                 bookletOpen={view.bookletOpen}
                 mvOpen={view.mvOpen}
                 playing={view.playing}
-                covered={view.listOpen || view.chromeHidden}
+                covered={view.listOpen || view.buttonsHidden}
                 onBooklet={handlers.onBooklet}
                 onMv={handlers.onMv}
                 onMode={handlers.onMode}

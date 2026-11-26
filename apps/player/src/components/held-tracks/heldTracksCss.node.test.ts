@@ -11,12 +11,15 @@ const declarationsOf = (selector: string): string => {
     return CSS.slice(CSS.indexOf('{', at) + 1, CSS.indexOf('}', at)).trim();
 };
 
-/* S-179：欄本身（長歌單）攞到鍵盤 focus：喺欄外圍畫同行一樣嘅虛線框 */
 describe('heldTracks.css', () => {
-    it('should draw the same dashed frame around the focused column as around a focused row', () => {
-        const row = declarationsOf(".held-button:focus-visible [data-part='held-hit']");
+    /* S-179：欄本身（長歌單）攞到鍵盤 focus：喺欄外圍畫虛線框 */
+    it('should draw a dashed frame around the focused column', () => {
         const column = declarationsOf(".held-list:focus-visible ~ [data-part='held-frame']");
-        expect(row).toContain('stroke-dasharray');
-        expect(column).toBe(row);
+        expect(column).toContain('stroke-dasharray');
+    });
+
+    /* B-086 ①：行唔係掣，冇自己嘅 focus 樣式 */
+    it('should have no focus style for rows', () => {
+        expect(CSS).not.toContain('held-button');
     });
 });

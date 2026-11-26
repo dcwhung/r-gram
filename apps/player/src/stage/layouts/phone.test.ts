@@ -44,9 +44,10 @@ describe('PHONE_LAYOUT', () => {
     });
 
     /*
-     * T-049：設計稿第 18 版 TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomHeld: 1650,
+     * 設計稿第 19 版 TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomIdle: 1290,
      * size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, barX: 44, scrimSolid: 0, scrimEnd: W,
-     * scrimOpacity: 0.62 }；trackPanel() 寫死嘅位置條最短 60、行感應範圍伸出 right + 20、拖動門檻 6 px
+     * scrimOpacity: 0.62, rowPad: 20 }；trackPanel() 寫死嘅位置條最短 60、拖動門檻 6 px；
+     * PANEL_FLOAT 嘅 dx 170、dy −62（每行由右上飄落）
      */
     it('should carry the held track column of the mockup', () => {
         expect(PHONE_LAYOUT.heldTracks).toEqual({
@@ -54,7 +55,7 @@ describe('PHONE_LAYOUT', () => {
             right: 600,
             top: 330,
             bottomOpen: 1470,
-            bottomHeld: 1650,
+            bottomIdle: 1290,
             size: 28,
             pitch: 66,
             number: { scale: 0.72, width: 56 },
@@ -63,6 +64,7 @@ describe('PHONE_LAYOUT', () => {
             rowReach: 20,
             scrim: { solid: 0, end: 1080, opacity: 0.62 },
             dragThresholdPx: 6,
+            entrance: { dx: 170, dy: -62 },
         });
     });
 

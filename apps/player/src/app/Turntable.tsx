@@ -15,7 +15,7 @@ import type { HomeView } from './homeView';
 import { MachineChrome } from './MachineChrome';
 
 export interface HomeHandlers extends DialHandlers {
-    /** 㩒唱片夾：開歌單｜播揀中嗰首｜暫停 / 繼續 */
+    /** 㩒唱片夾：播第一首（未揀歌）｜播框入面嗰首（歌單）｜暫停 / 繼續 */
     onSpindle: () => void;
     onBooklet: () => void;
     onMv: () => void;
@@ -30,8 +30,6 @@ export interface HomeHandlers extends DialHandlers {
     onPlayListTrack: (trackId: string) => void;
     /** 㩒右上角細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048） */
     onReturnToLoaded: () => void;
-    /** 㩒拎住嘅碟嘅歌單欄一行：將隻碟放入唱片機播嗰首（T-049） */
-    onPlayHeldTrack: (trackId: string) => void;
 }
 
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */
@@ -58,30 +56,24 @@ const Hub = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) =>
             mode={view.spindle}
             progress={view.progress}
             accent={view.accent}
-            // 電視開住時唱片夾喺電視後面（T-060），useHome 唔理；停用令讀屏用戶知（S-073）
-            disabled={view.mvOpen}
-            inert={view.holding}
+            // 電視開住時唱片夾喺電視後面（T-060）、字母盤開住時（B-086 ④），useHome 唔理；停用令讀屏用戶知（S-073）
+            disabled={view.mvOpen || view.dial.open}
             onPress={handlers.onSpindle}
         />
         {view.canOpenList && (
-            <DiscFace
-                ref={faceRef}
-                layout={layout}
-                focusable={view.spindle !== 'idle'}
-                onPress={handlers.onOpenList}
-            />
+            <DiscFace ref={faceRef} layout={layout} onPress={handlers.onOpenList} />
         )}
     </>
 );
 
 /**
  * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
- * 半透明層（拎住另一隻碟，T-049）→ 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
- * 拎住另一隻碟時（T-048）轉盤都淡出、唱片夾唔係掣；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
+ * 半透明層（有歌單欄時，B-086）→ 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 拎住另一隻碟時（T-048）轉盤都淡出；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
  * 主頁碟面（T-037）喺唱片夾後面：㩒碟面開弧線歌單；歌單本身（暗層、框、歌名）喺貼頂組（TopGroup）。
  */
 export const Turntable = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) => {
-    const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
+    const instant = useSwapInstant(view.album?.id ?? null) || view.armHidden;
     const leadIn = useArmLeadIn(view.armPose, instant);
     const lowerScrews = layout.screws.points.filter(isLowerHalf);
     return (
@@ -108,7 +100,7 @@ export const Turntable = ({ layout, view, handlers, spindleRef, faceRef }: Turnt
                     faceRef={faceRef}
                 />
             </DiscStack>
-            <HeldScrim layout={layout} shown={view.holding} screws={lowerScrews} />
+            <HeldScrim layout={layout} shown={view.trackColumn !== null} screws={lowerScrews} />
             <MachineChrome
                 layout={layout}
                 view={view}

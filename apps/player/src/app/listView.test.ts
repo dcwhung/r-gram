@@ -1,6 +1,7 @@
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { makeAlbum, makeDocument, sampleDocument } from '../catalog/testing/catalogFixtures';
 import { listView } from './listView';
+import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 const listOn = (viewAlbumId: string, selectedTrackId: string | null = null): StageState => ({
@@ -50,5 +51,23 @@ describe('listView', () => {
             emptyText: '尚未有歌曲',
         });
         expect(listView(empty, listOn(FAVOURITES_ALBUM_ID))?.emptyText).toBe('尚未收藏歌曲');
+    });
+});
+
+/* 設計稿第 19 版 openListFloating()（B-086 ②）：由歌單欄開（顯示緊嘅碟未揀歌）= 歌名由歌單欄飄落弧線 */
+describe('listView opened from the track column', () => {
+    const loaded: PlaybackState = {
+        ...IDLE_PLAYBACK,
+        status: 'playing',
+        albumId: 'apollo-18',
+        trackId: 'apollo-18-01',
+    };
+
+    it.each([
+        ['nothing is loaded', listOn('apollo-18'), IDLE_PLAYBACK, true],
+        ['another disc is loaded (held disc)', listOn('room'), loaded, true],
+        ['the disc is the loaded one', listOn('apollo-18'), loaded, false],
+    ])('should tell whether it opens from the column when %s', (_c, stage, playback, expected) => {
+        expect(listView(sampleDocument(), stage, playback)?.fromColumn).toBe(expected);
     });
 });

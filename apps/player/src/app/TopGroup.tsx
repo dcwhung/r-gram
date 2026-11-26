@@ -8,6 +8,8 @@ import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
 import type { HomeView } from './homeView';
 import { type HomeHandlers, isLowerHalf } from './Turntable';
+import { useListFloating } from './useListFloating';
+import { useSettledColumn } from './useSettledColumn';
 
 interface TopGroupProps {
     layout: StageLayout;
@@ -15,19 +17,20 @@ interface TopGroupProps {
     measure: TextMeasure;
     /** 㩒細唱片機（已經包好 focus 交接） */
     onReturnToLoaded: () => void;
-    /** 㩒歌單欄一行（已經包好 focus 交接） */
-    onPlayHeldTrack: (trackId: string) => void;
     /** 弧線歌單（T-037）：收返、捲到停低、㩒一行（收返同播已經包好 focus 交接） */
     listHandlers: Pick<HomeHandlers, 'onCloseList' | 'onFocusListTrack' | 'onPlayListTrack'>;
 }
 
-/** 弧線歌單（T-037）：以碟做 key（換碟 = 新嘅捲動位置） */
+type PartProps = Pick<TopGroupProps, 'layout' | 'view' | 'measure'>;
+
+/** 弧線歌單（T-037）：以碟做 key（換碟 = 新嘅捲動位置）；由歌單欄開就飄落（B-086 ②） */
 const ArcList = ({
     layout,
     view,
     measure,
     listHandlers,
-}: Omit<TopGroupProps, 'onReturnToLoaded' | 'onPlayHeldTrack'>) =>
+    floating,
+}: Omit<TopGroupProps, 'onReturnToLoaded'> & { floating: boolean }) =>
     view.list && (
         <ArcTrackList
             key={view.list.albumId}
@@ -38,56 +41,85 @@ const ArcList = ({
             onClose={listHandlers.onCloseList}
             onFocusTrack={listHandlers.onFocusListTrack}
             onPlay={listHandlers.onPlayListTrack}
+            floating={floating}
         />
     );
 
 /**
- * 主頁貼頂組（FR-039；設計稿第 18 版 scene() 次序）：頂部螺絲 → 弧線歌單（T-037：暗層蓋住唱片機同螺絲）→
- * 右上角細唱片機（T-048）→ 碟名下面拎住嘅碟嘅歌單欄（T-049）→ 左上資訊 → 右上版本號
+ * 碟名下面嘅歌單欄（B-086）：快擰途中唔 render，停定先出（useSettledColumn）；以碟做 key（換碟 = 新嘅捲動、
+ * 新嘅飄落）
  */
-export const TopGroup = ({
-    layout,
-    view,
-    measure,
-    onReturnToLoaded,
-    onPlayHeldTrack,
-    listHandlers,
-}: TopGroupProps) => (
-    <>
-        <g data-part="screws">
-            <Screws points={layout.screws.points.filter((point) => !isLowerHalf(point))} />
-        </g>
-        <ArcList layout={layout} view={view} measure={measure} listHandlers={listHandlers} />
-        {view.mini && (
-            <MiniTurntable
-                layout={layout}
-                mini={view.mini}
-                measure={measure}
-                onPress={onReturnToLoaded}
-            />
-        )}
-        {view.heldTracks && (
+const TrackColumn = ({ layout, view, measure }: PartProps) => {
+    const disc = view.dial.entries[view.dial.current];
+    const column = useSettledColumn(view.trackColumn, disc?.albumId ?? null);
+    return (
+        column && (
             <HeldTrackList
-                key={view.heldTracks.albumId}
+                key={column.albumId}
                 layout={layout}
-                held={view.heldTracks}
-                albumTitle={view.dial.entries[view.dial.current]?.title ?? ''}
+                held={column}
+                albumTitle={disc?.title ?? ''}
                 measure={measure}
-                onPlay={onPlayHeldTrack}
             />
-        )}
-        <InfoBlock
-            info={layout.info}
-            album={view.album}
-            track={view.track}
-            timeText={view.timeText}
-            accent={view.accent}
-            measure={measure}
-            songHidden={view.songHidden}
-            held={view.holding}
-            listOpen={view.listOpen}
-            listTrack={view.listTrack}
-        />
-        <VersionText version={layout.info.version} dark={view.listOpen} />
-    </>
+        )
+    );
+};
+
+/** 左上資訊；`listOpen` 可以覆寫（飄落期間暗層下面墊一份黑字） */
+const Info = ({ layout, view, measure, listOpen }: PartProps & { listOpen: boolean }) => (
+    <InfoBlock
+        info={layout.info}
+        album={view.album}
+        track={view.track}
+        timeText={view.timeText}
+        accent={view.accent}
+        measure={measure}
+        songHidden={view.songHidden}
+        held={view.holding}
+        listOpen={listOpen}
+        listTrack={listOpen ? view.listTrack : null}
+    />
 );
+
+/**
+ * 主頁貼頂組（FR-039；設計稿第 19 版 scene() 次序）：頂部螺絲 → 右上角細唱片機（T-048）→
+ *（飄落期間：暗層下面一份黑字左上資訊）→ 弧線歌單（T-037：暗層蓋住唱片機、細唱片機同螺絲）→
+ * 碟名下面嘅歌單欄（B-086；喺泊位嘅唱臂上面）→
+ * 左上資訊（飄落期間淡入）→ 右上版本號
+ */
+export const TopGroup = (props: TopGroupProps) => {
+    const { layout, view, measure, onReturnToLoaded } = props;
+    const floating = useListFloating(view.list, layout);
+    const parts = { layout, view, measure };
+    return (
+        <>
+            <g data-part="screws">
+                <Screws points={layout.screws.points.filter((point) => !isLowerHalf(point))} />
+            </g>
+            {view.mini && (
+                <MiniTurntable
+                    layout={layout}
+                    mini={view.mini}
+                    measure={measure}
+                    onPress={onReturnToLoaded}
+                    covered={view.listOpen}
+                />
+            )}
+            {floating && (
+                <g data-part="list-info-ghost" className="list-info-ghost" aria-hidden="true">
+                    <Info {...parts} listOpen={false} />
+                </g>
+            )}
+            <ArcList {...parts} listHandlers={props.listHandlers} floating={floating} />
+            <TrackColumn {...parts} />
+            {floating ? (
+                <g className="list-info-in">
+                    <Info {...parts} listOpen={view.listOpen} />
+                </g>
+            ) : (
+                <Info {...parts} listOpen={view.listOpen} />
+            )}
+            <VersionText version={layout.info.version} dark={view.listOpen} />
+        </>
+    );
+};

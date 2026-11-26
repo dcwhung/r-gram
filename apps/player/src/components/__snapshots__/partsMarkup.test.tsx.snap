@@ -481,7 +481,7 @@ exports[`part markup for the phone layout > should draw the spindle playing exac
 exports[`part markup for the phone layout > should draw the spindle with no song exactly as ported from the mockup 1`] = `
 <svg>
   <g
-    aria-label="開啟歌單"
+    aria-label="播放"
     class="spindle"
     role="button"
     tabindex="0"
@@ -545,6 +545,20 @@ exports[`part markup for the phone layout > should draw the spindle with no song
         fill="#a9acb2"
         r="10.7"
       />
+      <g
+        data-part="play-backdrop"
+      >
+        <circle
+          fill="#0b0b0c"
+          opacity=".78"
+          r="61.1"
+        />
+        <path
+          d="M-17.3 -23.1L25.6 0L-17.3 23.1z"
+          data-part="play"
+          fill="#fff"
+        />
+      </g>
     </g>
   </g>
 </svg>

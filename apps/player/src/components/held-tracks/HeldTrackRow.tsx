@@ -1,33 +1,30 @@
-import { memo } from 'react';
+import { type CSSProperties, memo } from 'react';
 import type { HeldTrackRow as Row } from '../../app/heldTracksView';
 import { t } from '../../i18n/t';
 import { heldRowHitRight } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
-import { pressable } from '../pressable';
 import { px } from '../svgNumber';
 import { heldTitleX } from './useShownTitles';
 
 interface HeldTrackRowProps {
     layout: StageLayout;
     row: Row;
-    /** 第幾行（由 0 起）：鍵盤移 focus 用（rowFocus.ts） */
-    index: number;
     /** 呢行中線嘅 y（未捲；捲動喺成欄嘅 transform） */
     y: number;
     accent: string;
     /** 顯示嘅歌名（已經截短，useShownTitles） */
     shown: string;
-    /** 鬆手之後先㩒得（旋鈕開住 = 停用、唔入 Tab 次序） */
-    canPress: boolean;
-    onPlay: (trackId: string) => void;
-    /** 攞到 focus（鍵盤）：叫欄捲到見到第 index 行 */
-    onFocusRow: (index: number) => void;
+    /** 出現時飄落要遲幾耐（毫秒；null = 唔飄）。只喺 mount 嗰陣定，之後唔變（捲動唔會重播） */
+    enterDelayMs?: number | null;
 }
 
-type BodyProps = Pick<HeldTrackRowProps, 'layout' | 'row' | 'y' | 'accent' | 'shown'>;
+type BodyProps = Omit<HeldTrackRowProps, 'enterDelayMs'>;
 
-/** 透明感應範圍（由畫面左邊到 right + rowReach，成行都㩒得，D57）、歌號（專輯色）、歌名（放唔落用「…」） */
-const RowBody = ({ layout, row, y, accent, shown }: BodyProps) => {
+/**
+ * 透明範圍（由畫面左邊到 right + rowReach）、歌號（專輯色）、歌名（放唔落用「…」）。
+ * 範圍唔係掣：只係蓋住下面嘅碟面，㩒落歌單欄唔會開弧線歌單（B-086 ①）；喺度拖照捲
+ */
+export const RowBody = ({ layout, row, y, accent, shown }: BodyProps) => {
     const column = layout.heldTracks;
     return (
         <>
@@ -65,43 +62,33 @@ const RowBody = ({ layout, row, y, accent, shown }: BodyProps) => {
 };
 
 /**
- * 歌單欄一行（設計稿第 18 版 trackPanel()；Functional Spec FR-044、D11、D57）。播得 = 一粒掣（名 = 歌號同歌名）；
- * 未有音檔 = 灰色、唔係掣，讀屏讀「未有音檔」。memo：props 冇變（例如捲動）就唔再 render（review W-043）
+ * 歌單欄一行（設計稿第 19 版 trackPanel()；backlog B-086 ①）：純睇，唔係掣、唔入 Tab 次序。
+ * 讀屏讀歌號同全名；未有音檔 = 灰色，讀「未有音檔」（D11、D70）。memo：props 冇變（例如捲動）就唔再 render（W-043）
  */
 export const HeldTrackRow = memo(function HeldTrackRow({
-    index,
-    canPress,
-    onPlay,
-    onFocusRow,
+    enterDelayMs,
     ...body
 }: HeldTrackRowProps) {
     const { row } = body;
     const names = { no: row.no, title: row.title };
-    if (!row.playable) {
-        return (
-            <g
-                role="listitem"
-                className="held-row held-row--off"
-                data-playable="false"
-                aria-label={t('heldTracks.unavailable', names)}
-            >
-                <g aria-hidden="true">
-                    <RowBody {...body} />
-                </g>
-            </g>
-        );
-    }
+    const entering = enterDelayMs !== null && enterDelayMs !== undefined;
+    const classes = [
+        'held-row',
+        row.playable ? '' : 'held-row--off',
+        entering ? 'held-row-in' : '',
+    ];
+    const style = entering
+        ? ({ '--enter-delay': `${enterDelayMs}ms` } as CSSProperties)
+        : undefined;
     return (
-        <g role="listitem" className="held-row" data-playable="true">
-            <g
-                className="held-button"
-                data-part="held-button"
-                data-index={index}
-                aria-label={t('heldTracks.play', names)}
-                aria-disabled={!canPress || undefined}
-                onFocus={() => onFocusRow(index)}
-                {...pressable(() => onPlay(row.id), !canPress, canPress)}
-            >
+        <g
+            role="listitem"
+            className={classes.filter(Boolean).join(' ')}
+            style={style}
+            data-playable={row.playable}
+            aria-label={t(row.playable ? 'list.track' : 'list.unavailable', names)}
+        >
+            <g aria-hidden="true">
                 <RowBody {...body} />
             </g>
         </g>

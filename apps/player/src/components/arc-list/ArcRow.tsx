@@ -4,6 +4,7 @@ import { t } from '../../i18n/t';
 import type { ArcListLayout } from '../../stage/layouts';
 import type { ArcRowPose } from '../../stage/arcRows';
 import { px, ratio } from '../svgNumber';
+import { type ArcFloat, arcFloatStyle } from './arcFloat';
 
 /** 離框半行之內 = 揀中嗰行嘅字重（設計稿 listLayer()：揀中 700、其他 500） */
 const BOLD_FROM = 0.5;
@@ -23,6 +24,8 @@ interface ArcRowProps {
     list: ArcListLayout;
     /** 感應範圍右邊（碟芯膠圈邊，框嘅右端） */
     hitRight: number;
+    /** 由歌單欄飄落（設計稿第 19 版 LIST_FLOAT）：起點同遲幾耐；冇 = 唔飄 */
+    float?: ArcFloat | undefined;
 }
 
 /**
@@ -43,6 +46,12 @@ const HitBand = ({ pose, list, hitRight }: Pick<ArcRowProps, 'pose' | 'list' | '
     );
 };
 
+/** 行嘅 class：未有音檔變灰；由歌單欄飄落就加過場 */
+const rowClass = (playable: boolean, floating: boolean) =>
+    ['arc-row', playable ? '' : 'arc-row--off', floating ? 'arc-row-float' : '']
+        .filter(Boolean)
+        .join(' ');
+
 /**
  * 弧線歌單一行（設計稿第 18 版 listLayer()；role="option"）：歌號（專輯色 slab，track.no，D60）+ 歌名（CJK，白）。
  * 行唔㩒得（W-051，用戶決定）：播歌經唱片夾或者 Enter（listbox 嘅 aria-activedescendant 指住框入面嗰行）。
@@ -58,7 +67,8 @@ export const ArcRow = memo(function ArcRow(props: ArcRowProps) {
             id={props.domId}
             role="option"
             data-part="arc-row"
-            className={row.playable ? 'arc-row' : 'arc-row arc-row--off'}
+            className={rowClass(row.playable, props.float !== undefined)}
+            style={props.float && arcFloatStyle(props.float, pose.opacity)}
             aria-label={t(row.playable ? 'list.track' : 'list.unavailable', names)}
             aria-selected={props.selected}
             aria-disabled={!row.playable || undefined}

@@ -40,7 +40,7 @@ const MINI = {
 const MINI_TITLE_GAP = 20;
 
 /*
- * 拎住嘅碟嘅歌單欄（T-049）照設計稿第 18 版 TRACKLIST。trackPanel() 入面寫死嘅數變成有名常數：
+ * 碟名下面嘅歌單欄（T-049、B-086）照設計稿第 19 版 TRACKLIST、PANEL_FLOAT。trackPanel() 入面寫死嘅數變成有名常數：
  * 位置條最短 60、每行透明感應範圍闊 right + 20；拖動門檻 6 px 嚟自互動格嘅 pointermove
  */
 const HELD_TRACKS = {
@@ -48,7 +48,7 @@ const HELD_TRACKS = {
     right: 600,
     top: 330,
     bottomOpen: 1470,
-    bottomHeld: 1650,
+    bottomIdle: 1290,
     size: 28,
     pitch: 66,
     number: { scale: 0.72, width: 56 },
@@ -57,6 +57,7 @@ const HELD_TRACKS = {
     rowReach: 20,
     scrim: { solid: 0, end: DESIGN_WIDTH, opacity: 0.62 },
     dragThresholdPx: 6,
+    entrance: { dx: 170, dy: -62 },
 } as const;
 
 /*

@@ -1,3 +1,4 @@
+import { loadedAlbumOf } from './holding';
 import { IDLE_PLAYBACK, playbackReducer, type PlaybackState } from './playbackState';
 
 const playing: PlaybackState = {
@@ -21,20 +22,6 @@ describe('playbackReducer (state only until T-038)', () => {
         });
     });
 
-    // S-180：㩒拎住嘅碟嘅一行：只喺載入嘅碟仍然係㩒嗰陣嗰隻先開始（同一個 tick 連㩒兩行，第二下過時）
-    it('should start a held track only while the loaded disc is still the one pressed against', () => {
-        const action = {
-            type: 'startHeld',
-            albumId: 'apollo-18',
-            trackId: 'apollo-18-03',
-            loadedAlbumId: 'room',
-        } as const;
-        const started = playbackReducer(playing, action);
-        expect(started).toMatchObject({ albumId: 'apollo-18', trackId: 'apollo-18-03' });
-        const again = { ...action, trackId: 'apollo-18-01' };
-        expect(playbackReducer(started, again)).toBe(started);
-    });
-
     it('should pause on the user’s request and resume from there', () => {
         const paused = playbackReducer(playing, { type: 'toggle' });
         expect(paused).toMatchObject({ status: 'paused', pauseReason: 'user' });
@@ -46,6 +33,14 @@ describe('playbackReducer (state only until T-038)', () => {
             status: 'paused',
             pauseReason: 'mv',
         });
+    });
+
+    // B-086 ⑥：播完（status ended，觸發係 T-038）：載入嘅碟仍然喺唱片機；暫停、MV 唔改佢
+    it('should keep an ended song loaded and ignore pauses', () => {
+        const ended: PlaybackState = { ...playing, status: 'ended' };
+        expect(loadedAlbumOf(ended)).toBe('room');
+        expect(playbackReducer(ended, { type: 'pauseFor', reason: 'mv' })).toBe(ended);
+        expect(playbackReducer(ended, { type: 'toggle' })).toBe(ended);
     });
 
     it('should return the same state when nothing is loaded', () => {

@@ -9,6 +9,7 @@ const mini = (overrides: Partial<MiniView> = {}): MiniView => ({
     shown: true,
     title: '我永遠記得',
     paused: false,
+    ended: false,
     armPose: 'playing',
     spinning: true,
     accent: '#2f8f57',
@@ -35,6 +36,13 @@ const renderMini = (view: MiniView = mini(), onPress = vi.fn()) => {
 
 /* T-048：右上角細唱片機（設計稿第 18 版 miniTurntable()；Functional Spec FR-043） */
 describe('MiniTurntable', () => {
+    // B-086 ⑥：播完 = 「已播完」，掣嘅名都講
+    it('should say the loaded song ended', () => {
+        const { part } = renderMini(mini({ paused: true, ended: true, armPose: 'parked' }));
+        expect(part('mini-label')).toHaveTextContent('已播完');
+        expect(screen.getByRole('button', { name: '返回已播完的唱片：我永遠記得' })).toBeVisible();
+    });
+
     it('should be one button named after going back to the playing disc', () => {
         const { onPress } = renderMini();
         const button = screen.getByRole('button', { name: '返回播放中的唱片：我永遠記得' });

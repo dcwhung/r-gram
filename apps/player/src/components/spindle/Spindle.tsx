@@ -7,17 +7,17 @@ import { pressable } from '../pressable';
 import { px } from '../svgNumber';
 import { Clamp } from './Clamp';
 import './spindle.css';
-import { PauseGlyph, PlayGlyph, ProgressRing } from './SpindleGlyphs';
+import { PauseGlyph, PlayBackdrop, PlayGlyph, ProgressRing } from './SpindleGlyphs';
 import { SPINDLE_SHAPE } from './spindleShape';
 
 const { play, listRing } = SPINDLE_SHAPE;
 
-/** 未揀歌｜歌單入面｜播緊｜暫停（包括熄電視之後） */
+/** 未揀歌（play：播第一首）｜歌單入面｜播緊｜暫停（包括熄電視之後） */
 export type SpindleMode = 'idle' | 'list' | 'playing' | 'paused';
 
-/** 㩒落去會做乜，亦即係畀讀屏嘅名 */
-const LABEL: Readonly<Record<SpindleMode, MessageKey & ('list.open' | `playback.${string}`)>> = {
-    idle: 'list.open',
+/** 㩒落去會做乜，亦即係畀讀屏嘅名（未揀歌 = 播第一首有音檔嘅歌，B-086 ③） */
+const LABEL: Readonly<Record<SpindleMode, MessageKey & `playback.${string}`>> = {
+    idle: 'playback.play',
     list: 'playback.play',
     playing: 'playback.pause',
     paused: 'playback.play',
@@ -29,13 +29,11 @@ interface SpindleProps {
     /** 播放進度 0–1 */
     progress: number;
     accent: string;
-    /** 停用：㩒唔到但 focus 得到（讀屏講「已停用」），例如電視開住時（唱片夾喺電視後面） */
-    disabled?: boolean;
     /**
-     * 唔係掣：照畫，但㩒唔到、唔入 Tab 次序、讀屏唔讀。拎住另一隻碟時（冇轉盤，T-048；
-     * 設計稿照畫唱片夾，但 Functional Spec D52：唔開弧線歌單）
+     * 停用：㩒唔到但 focus 得到（讀屏講「已停用」）：電視開住時（唱片夾喺電視後面）、
+     * 字母盤開住時（B-086 ④）
      */
-    inert?: boolean;
+    disabled?: boolean;
     onPress: () => void;
     /** 收返歌單之後 focus 返呢度（S-074） */
     ref?: Ref<SVGGElement>;
@@ -46,9 +44,15 @@ const Face = ({
     mode,
     progress,
     accent,
-}: { r: number } & Omit<SpindleProps, 'layout' | 'disabled' | 'inert' | 'onPress' | 'ref'>) => (
+}: { r: number } & Omit<SpindleProps, 'layout' | 'disabled' | 'onPress' | 'ref'>) => (
     <>
         <Clamp r={r} />
+        {mode === 'idle' && (
+            <g data-part="play-backdrop">
+                <PlayBackdrop r={r} />
+                <PlayGlyph size={r * play.pausedSize} />
+            </g>
+        )}
         {mode === 'list' && (
             <>
                 <circle
@@ -74,7 +78,7 @@ const Face = ({
  *（Functional Spec CR-002「唱片夾同碟」；設計稿 spindle()）。
  */
 export const Spindle = (props: SpindleProps) => {
-    const { layout, mode, progress, accent, disabled = false, inert = false, onPress, ref } = props;
+    const { layout, mode, progress, accent, disabled = false, onPress, ref } = props;
     const { disc, hub } = layout;
     const r = disc.r * hub.clamp;
     return (
@@ -84,8 +88,7 @@ export const Spindle = (props: SpindleProps) => {
             aria-label={t(LABEL[mode])}
             // 平時唔出呢個屬性（同設計稿移植嘅 markup 一致）
             aria-disabled={disabled || undefined}
-            aria-hidden={inert || undefined}
-            {...pressable(onPress, disabled || inert, !inert)}
+            {...pressable(onPress, disabled)}
         >
             <circle
                 data-part="hit"

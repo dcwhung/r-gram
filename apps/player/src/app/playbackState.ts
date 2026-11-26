@@ -3,9 +3,11 @@
  * 到時用佢取代呢個 reducer，`PlaybackState` 嘅形狀就係主頁讀嘅接口（Technical Spec「播放狀態（獨立 store）」）。
  * 呢度冇聲：`playing` 只係狀態。
  */
-import { loadedAlbumOf } from './holding';
-
-export type PlaybackStatus = 'idle' | 'playing' | 'paused';
+/**
+ * `ended`：載入嘅歌播完（碟仍然喺唱片機，唱針離開碟；設計稿第 19 版「已播完」，B-086 ⑥）。
+ * 呢度只有狀態同畫面；幾時變 `ended`（播完、隊列）係 T-038
+ */
+export type PlaybackStatus = 'idle' | 'playing' | 'paused' | 'ended';
 
 /**
  * 點解停：分得出「用戶㩒暫停」（唱臂留喺碟上面、升針）同其他（唱臂返泊位）。
@@ -26,11 +28,6 @@ export interface PlaybackState {
 
 export type PlaybackAction =
     | { type: 'start'; albumId: string; trackId: string }
-    /**
-     * 㩒拎住嘅碟嘅一行（T-049）：同 `start` 一樣，但只喺載入嘅碟仍然係 `loadedAlbumId`（㩒嗰陣畫面見到嗰隻）先做；
-     * 同一個 tick 連㩒兩行，第二下帶住過時嘅值，唔理（review S-180）
-     */
-    | { type: 'startHeld'; albumId: string; trackId: string; loadedAlbumId: string | null }
     | { type: 'toggle' }
     | { type: 'pauseFor'; reason: PauseReason };
 
@@ -60,14 +57,10 @@ export const playbackReducer = (state: PlaybackState, action: PlaybackAction): P
     switch (action.type) {
         case 'start':
             return start(action.albumId, action.trackId);
-        case 'startHeld':
-            return loadedAlbumOf(state) === action.loadedAlbumId
-                ? start(action.albumId, action.trackId)
-                : state;
         case 'toggle':
             return toggle(state);
         case 'pauseFor':
-            return state.status === 'idle'
+            return state.status === 'idle' || state.status === 'ended'
                 ? state
                 : { ...state, status: 'paused', pauseReason: action.reason };
     }

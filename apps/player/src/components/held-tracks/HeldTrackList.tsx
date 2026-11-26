@@ -1,5 +1,5 @@
-import { memo } from 'react';
-import type { HeldTracksView } from '../../app/heldTracksView';
+import { type CSSProperties, memo } from 'react';
+import type { TrackColumnView } from '../../app/heldTracksView';
 import { t } from '../../i18n/t';
 import { heldRowHitRight } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
@@ -7,21 +7,21 @@ import type { TextMeasure } from '../../utils/textMeasure';
 import { useSvgId } from '../svgId';
 import { px } from '../svgNumber';
 import { clipRef, ColumnEdges, fadeRef } from './ColumnEdges';
+import { ColumnGhosts } from './ColumnGhosts';
 import { rowCentre } from './columnLayout';
 import { HeldTrackRow } from './HeldTrackRow';
 import './heldTracks.css';
 import { ScrollBar } from './ScrollBar';
+import { useColumnMotion } from './useColumnMotion';
 import { useHeldScroll } from './useHeldScroll';
 import { useShownTitles } from './useShownTitles';
 
 interface HeldTrackListProps {
     layout: StageLayout;
-    held: HeldTracksView;
-    /** 拎住嘅碟嘅碟名（成欄嘅無障礙名） */
+    held: TrackColumnView;
+    /** 顯示緊嘅碟嘅碟名（成欄嘅無障礙名） */
     albumTitle: string;
     measure: TextMeasure;
-    /** 㩒一行：將拎住嘅碟放入唱片機播嗰首 */
-    onPlay: (trackId: string) => void;
 }
 
 /** 冇歌嘅碟：欄入面第一行嘅位置寫一行灰字（D39；Favourites 碟冇收藏有自己一句） */
@@ -42,7 +42,7 @@ const EmptyText = ({ layout, text }: { layout: StageLayout; text: string }) => {
 };
 
 /**
- * 欄本身攞到鍵盤 focus 時嘅虛線框（review S-179；CSS 同行嘅框共用一條規則）：同行嘅感應範圍一樣闊、同欄一樣高。
+ * 欄本身攞到鍵盤 focus 時嘅虛線框（review S-179）：同行嘅範圍一樣闊、同欄一樣高。
  * 喺欄（role="list"）後面嘅兄弟元素，唔受欄嘅 clipPath 剪；淨係畫面
  */
 const ColumnFrame = ({ layout, room }: { layout: StageLayout; room: number }) => (
@@ -58,55 +58,63 @@ const ColumnFrame = ({ layout, room }: { layout: StageLayout; room: number }) =>
     />
 );
 
-/**
- * 拎住嘅碟嘅歌單欄（設計稿第 18 版 TRACKLIST、trackPanel()；Functional Spec FR-044、D57）：碟名下面一欄黑字，
- * 冇黑色層。旋鈕開住時欄較短、行未㩒得；歌多就喺欄入面捲（拖動、滾輪、鍵盤），頂底淡出、左邊位置條。
- * 以碟做 key render（換碟捲動歸零）。欄底跟貼底組：高身手機向下伸。
- */
-type RowsProps = Pick<HeldTrackListProps, 'layout' | 'held' | 'onPlay'> & {
+type RowsProps = Pick<HeldTrackListProps, 'layout' | 'held'> & {
     shown: readonly string[];
-    onFocusRow: (index: number) => void;
+    enterDelays: readonly (number | null)[] | null;
 };
 
 /**
- * 全部行（欄外嘅都 render：Tab 到嗰陣捲入欄），以未捲嘅位置畫；捲動係外面一層 transform。
+ * 全部行（欄外嘅都 render，讀屏讀得到成張歌單），以未捲嘅位置畫；捲動係外面一層 transform。
  * memo：捲動唔使 render 任何一行，亦唔使重新截短歌名（review W-043）
  */
-const Rows = memo(function Rows({ layout, held, shown, onPlay, onFocusRow }: RowsProps) {
+const Rows = memo(function Rows({ layout, held, shown, enterDelays }: RowsProps) {
     const { top, pitch } = layout.heldTracks;
     return held.rows.map((row, index) => (
         <HeldTrackRow
             key={row.id}
             layout={layout}
             row={row}
-            index={index}
             y={top + rowCentre(index, pitch, 0)}
             accent={held.accent}
             shown={shown[index] ?? row.title}
-            canPress={held.pressable}
-            onPlay={onPlay}
-            onFocusRow={onFocusRow}
+            enterDelayMs={enterDelays?.[index] ?? null}
         />
     ));
 });
 
-export const HeldTrackList = (props: HeldTrackListProps) => {
-    const { layout, held, albumTitle, measure, onPlay } = props;
+/** 飄落嘅起點（CSS 變數，設計單位 = SVG 入面嘅 px） */
+const entranceStyle = ({ heldTracks }: StageLayout) =>
+    ({
+        '--enter-dx': `${heldTracks.entrance.dx}px`,
+        '--enter-dy': `${heldTracks.entrance.dy}px`,
+    }) as CSSProperties;
+
+/**
+ * 歌單欄（設計稿第 19 版 TRACKLIST、trackPanel()；backlog B-086）：碟名下面一欄黑字，冇黑色層。純睇：
+ * 行唔㩒得、唔入 Tab 次序；歌多就喺欄入面捲（拖動、滾輪、欄本身攞到 focus 時用鍵盤），頂底淡出、左邊位置條。
+ * 以碟做 key render（換碟捲動歸零）。欄底跟貼底組：高身手機向下伸。字母盤開住時出現 = 逐行飄落；
+ * 鬆手 = 欄底縮短，讓出嚟嘅行淡出（useColumnMotion）。
+ */
+export const HeldTrackList = ({ layout, held, albumTitle, measure }: HeldTrackListProps) => {
     const { top, fade } = layout.heldTracks;
-    const { room, metrics, listRef, handlers, showRow } = useHeldScroll(layout, held);
+    const { room, metrics, listRef, handlers } = useHeldScroll(layout, held);
     const shown = useShownTitles(held.rows, layout, measure);
+    const motion = useColumnMotion(layout, held, room, metrics.scroll);
     // 歌多過欄高先有嘢捲：欄先入 Tab 次序（S-177）、先有 focus 外框（S-179）
     const focusable = metrics.maxScroll > 0;
     const id = useSvgId('held-tracks');
     if (held.rows.length === 0) return <EmptyText layout={layout} text={held.emptyText} />;
     return (
-        <g data-part="held-tracks" className="held-tracks">
+        <g data-part="held-tracks" className="held-tracks" style={entranceStyle(layout)}>
+            {motion.ghosts && (
+                <ColumnGhosts layout={layout} held={held} {...motion.ghosts} shown={shown} />
+            )}
             <ColumnEdges id={id} top={top} room={room} fade={fade} metrics={metrics} />
             <g
                 ref={listRef}
                 role="list"
                 className="held-list"
-                aria-label={t('heldTracks.label', { album: albumTitle })}
+                aria-label={t('list.label', { album: albumTitle })}
                 tabIndex={focusable ? 0 : undefined}
                 data-fade-top={metrics.fadeTop}
                 data-fade-bottom={metrics.fadeBottom}
@@ -119,8 +127,7 @@ export const HeldTrackList = (props: HeldTrackListProps) => {
                             layout={layout}
                             held={held}
                             shown={shown}
-                            onPlay={onPlay}
-                            onFocusRow={showRow}
+                            enterDelays={motion.enterDelays}
                         />
                     </g>
                 </g>

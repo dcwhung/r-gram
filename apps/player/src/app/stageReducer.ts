@@ -2,10 +2,9 @@
  * 場景狀態機（純函數）。Functional Spec CR-002；Technical Spec「CR-002 對技術設計嘅影響」。
  *
  *   preload → home ⇄ discChange    （close = 留喺揀咗嗰隻碟；cancel = 還原開始嗰陣嘅碟，S-154）
- *             home ⇄ list          （discChange 亦可以直接入 list：D27）
+ *             home ⇄ list          （只由主頁入：字母盤開住時㩒碟面冇反應，B-086 ④；拎住另一隻碟都入得，B-086 ②）
  *   overlay（只喺 home）：booklet ｜ mv，兩個唔會同時出現
- *   拎住另一隻碟（T-048）：home / discChange 而顯示嘅碟唔係載入嘅碟；returnToLoaded → home（載入嘅碟）；
- *   playHeldTrack（T-049，只喺 home）揀中歌單欄嗰一行
+ *   拎住另一隻碟（T-048）：home / discChange 而顯示嘅碟唔係載入嘅碟；returnToLoaded → home（載入嘅碟）
  *
  * 唔合規嘅動作原樣回傳同一個 state（reference 相同），元件唔使自己再判斷。
  * 呢度冇「過場中」嘅狀態：過場係畫面嘅事，所以每個轉換本身就係「冇動畫」嘅路徑（減少動態效果時直接用）。
@@ -44,8 +43,7 @@ export type StageAction =
     | { type: 'selectAlbum'; albumId: string }
     | { type: 'closeDiscChange' }
     | { type: 'cancelDiscChange' }
-    /** 載入嘅碟（播放狀態）：拎住另一隻碟時唔開弧線歌單（T-048） */
-    | { type: 'openList'; loadedAlbumId: string | null }
+    | { type: 'openList' }
     | { type: 'focusTrack'; trackId: string }
     | { type: 'playSelected' }
     | { type: 'closeList' }
@@ -54,9 +52,7 @@ export type StageAction =
     | { type: 'openMv'; hasMv: boolean }
     | { type: 'closeMv' }
     /** 㩒細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048；Functional Spec FR-043） */
-    | { type: 'returnToLoaded'; loadedAlbumId: string | null }
-    /** 㩒拎住嘅碟嘅歌單欄一行：揀中嗰首（播放由發出動作嗰邊做；T-049，Functional Spec FR-044） */
-    | { type: 'playHeldTrack'; trackId: string; loadedAlbumId: string | null };
+    | { type: 'returnToLoaded'; loadedAlbumId: string | null };
 
 export const INITIAL_STAGE: StageState = {
     scene: 'preload',
@@ -106,12 +102,9 @@ const toggleBooklet: Handler<'toggleBooklet'> = (state, { hasSong }) => {
     return isOpenHome(state) && hasSong ? { ...state, overlay: 'booklet' } : state;
 };
 
-/** 拎住嘅碟冇轉盤、冇唱片夾，歌單喺碟名下面（T-049），所以唔開弧線歌單 */
-const openList: Handler<'openList'> = (state, { loadedAlbumId }) => {
-    const canOpen =
-        (isOpenHome(state) || state.scene === 'discChange') && !isHolding(state, loadedAlbumId);
-    return canOpen ? { ...state, scene: 'list', overlay: null, discChangeFrom: null } : state;
-};
+/** 揀歌一律㩒碟面開弧線歌單（B-086 ②）：只喺主頁（字母盤收埋、電視冇開），拎住另一隻碟都得 */
+const openList: Handler<'openList'> = (state) =>
+    isOpenHome(state) ? { ...state, scene: 'list', overlay: null } : state;
 
 const openDiscChange: Handler<'openDiscChange'> = (state) => {
     if (!isOpenHome(state)) return state;
@@ -126,9 +119,13 @@ const cancelDiscChange: Handler<'cancelDiscChange'> = (state) =>
         ? { ...state, ...state.discChangeFrom, scene: 'home', discChangeFrom: null }
         : state;
 
-/** 字母盤開住都收埋；換碟跟 viewAlbum（記低拎住嗰隻碟，♥ 返得去）。電視開住時唔會拎住碟 */
+/**
+ * 字母盤開住都收埋；換碟跟 viewAlbum（記低拎住嗰隻碟，♥ 返得去）。電視開住時唔會拎住碟；
+ * 弧線歌單開住時細唱片機喺暗層下面，㩒唔到
+ */
 const returnToLoaded: Handler<'returnToLoaded'> = (state, { loadedAlbumId }) => {
-    if (!loadedAlbumId || isMvShowing(state) || !isHolding(state, loadedAlbumId)) return state;
+    const away = loadedAlbumId && state.scene !== 'list' && isHolding(state, loadedAlbumId);
+    if (!loadedAlbumId || isMvShowing(state) || !away) return state;
     return {
         ...viewAlbum(state, loadedAlbumId),
         scene: 'home',
@@ -136,17 +133,6 @@ const returnToLoaded: Handler<'returnToLoaded'> = (state, { loadedAlbumId }) => 
         discChangeFrom: null,
     };
 };
-
-/**
- * 旋鈕開住時行未㩒得（鬆手先㩒得）。拎住另一隻碟時一定未揀歌（換碟會清走揀中嘅歌），所以已經揀咗 =
- * 呢次拎住已經㩒過一行，`loadedAlbumId` 係過時嘅（同一個 tick 連㩒兩行；review S-180）：唔理。
- * 播放狀態換咗載入嘅碟之後 holding 自動解除：
- * 轉盤淡入、細唱片機淡出、唱臂由泊位行完整開場（畫面嘅事，唔喺呢度）
- */
-const playHeldTrack: Handler<'playHeldTrack'> = (state, { trackId, loadedAlbumId }) =>
-    isOpenHome(state) && isHolding(state, loadedAlbumId) && state.selectedTrackId === null
-        ? { ...state, selectedTrackId: trackId }
-        : state;
 
 const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
     preloadDone: (state, { albumId, trackId }) =>
@@ -178,7 +164,6 @@ const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
         isOpenHome(state) && hasMv ? { ...state, overlay: 'mv' } : state,
     closeMv: (state) => (isMvShowing(state) ? { ...state, overlay: null } : state),
     returnToLoaded,
-    playHeldTrack,
 };
 
 export const stageReducer = (state: StageState, action: StageAction): StageState => {

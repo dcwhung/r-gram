@@ -13,8 +13,10 @@ export interface MiniView {
     shown: boolean;
     /** 載入嘅歌嘅歌名；catalog 搵唔到 = '' */
     title: string;
-    /** 唔係播緊（一律寫「已暫停」，D58 ①） */
+    /** 唔係播緊（寫「已暫停」，D58 ①） */
     paused: boolean;
+    /** 播完（寫「已播完」、唱針泊位，B-086 ⑥；觸發係 T-038） */
+    ended: boolean;
     armPose: ArmPose;
     /** 碟轉緊：播緊，而且細唱片機睇得到 */
     spinning: boolean;
@@ -48,6 +50,7 @@ export const miniView = (
         shown: holding,
         title: found?.track.title ?? '',
         paused: !playing,
+        ended: playback.status === 'ended',
         armPose: loadedArmPose(playback),
         spinning: playing && holding,
         accent: disc.accent,
