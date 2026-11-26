@@ -40,13 +40,31 @@ describe('POST /api/sync/folders/:folder: request', () => {
         },
     );
 
-    it.each(['?from=0', '?from=abc', '?from=1000'])('should refuse %s', async (query) => {
+    it.each([
+        '?from=0',
+        '?from=abc',
+        '?from=1000',
+        '?from=',
+        '?from=1e1',
+        '?from=0x10',
+        '?from=%2B5',
+        '?from=5.0',
+        '?from=%205',
+        '?from=%EF%BC%95',
+    ])('should refuse %s', async (query) => {
         await putKomorebi();
         const { status, body } = await syncFolder(FOLDER, query);
         expect(status).toBe(400);
         expect(body.error.details).toEqual([
             { path: 'from', reason: 'INVALID_NUMBER', message: expect.any(String) },
         ]);
+    });
+
+    it('should accept a plain decimal from with leading zeros', async () => {
+        await putKomorebi();
+        const { status, body } = await syncFolder(FOLDER, '?from=003');
+        expect(status).toBe(200);
+        expect(body.added.map(({ no }: Loose) => no)).toEqual([3, 4, 5]);
     });
 
     it('should answer 404 FOLDER_EMPTY for a folder that is not in the bucket', async () => {
@@ -165,6 +183,31 @@ describe('POST /api/sync/folders/:folder: second scan', () => {
         expect(calls.get).toBeUndefined();
         expect(await updatedAts()).toEqual(before.rows);
         expect(await stateRow()).toEqual(before.state);
+    });
+
+    it('should not store the album again when the checks and the info.txt ETag are the same', async () => {
+        const writes: string[] = [];
+        const db = new Proxy(env.DB, {
+            get(target, key: string) {
+                const value = Reflect.get(target, key) as unknown;
+                if (key !== 'prepare')
+                    return typeof value === 'function' ? value.bind(target) : value;
+                return (sql: string) => {
+                    if (/^\s*(UPDATE|INSERT|DELETE)/i.test(sql)) writes.push(sql);
+                    return target.prepare(sql);
+                };
+            },
+        });
+        await syncFolder(FOLDER, '', { ...env, DB: db });
+        expect(writes).toEqual([]);
+    });
+
+    it('should not import the same song text again when only the title changed', async () => {
+        const before = await lyricsRow('komorebi-05');
+        await putMedia('info.txt', KOMOREBI_INFO.replace('5. 太平門', '5. 太平門（新）'));
+        const { body } = await syncFolder();
+        expect(body.updated).toEqual([{ trackId: 'komorebi-05', no: 5, title: '太平門（新）' }]);
+        expect(await lyricsRow('komorebi-05')).toEqual(before);
     });
 
     it('should follow a new title, year and track list in info.txt', async () => {
