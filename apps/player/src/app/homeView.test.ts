@@ -6,7 +6,8 @@ import {
     sampleDocument,
     withSecondCover,
 } from '../catalog/testing/catalogFixtures';
-import { FAVOURITES_ACCENT } from '../favourites/favouritesAlbum';
+import { FAVOURITES_ACCENT, FAVOURITES_GLOW, withFavourites } from '../favourites/favouritesAlbum';
+import { KNOB_SHAPE } from '../components/knob/knobShape';
 import { armPose, homeView, listFocusTrackId, spindleMode } from './homeView';
 import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
@@ -118,6 +119,16 @@ describe('homeView', () => {
         expect(view.glow).toBe(glowColor('#c8442b'));
         expect(view.coverUrl).toBe('https://api.example/catalog/v1/img/apollo%2018.jpg');
         expect(view).toMatchObject({ track: null, hasSong: false, hasMv: false, playing: false });
+    });
+
+    // S-253：Favourites 碟嘅著燈色用設計稿 ALBUMS.favourites.glow（同旋鈕 ♥ 一樣），唔係由紅色計出嚟
+    it('should light the Favourites disc with the glow of the mockup', () => {
+        const document = withFavourites(sampleDocument(), []);
+        const view = homeView(document, home({ viewAlbumId: 'favourites' }), IDLE_PLAYBACK);
+        expect(view.accent).toBe(FAVOURITES_ACCENT);
+        expect(view.glow).toBe(FAVOURITES_GLOW);
+        expect(FAVOURITES_GLOW).toBe('hsl(352 96% 60%)');
+        expect(KNOB_SHAPE.heart.lit).toBe(FAVOURITES_GLOW);
     });
 
     it('should show the loaded song of this disc with its number and time', () => {
@@ -340,7 +351,7 @@ describe('homeView mini turntable', () => {
         expect(mini(holdingRoom, fromFavourites)).toMatchObject({
             title: 'room 1',
             accent: FAVOURITES_ACCENT,
-            glow: glowColor(FAVOURITES_ACCENT),
+            glow: FAVOURITES_GLOW,
             face: 'favourites',
             coverUrl: null,
         });
