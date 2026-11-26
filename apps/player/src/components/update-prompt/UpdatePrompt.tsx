@@ -26,6 +26,8 @@ export const UpdatePrompt = ({ port, playing, covered = false }: UpdatePromptPro
                     <button
                         type="button"
                         className="update-prompt__apply"
+                        // 歌單開住時 Tab 兜圈都包埋呢粒掣（arc-list/useListFocus.ts，S-199）
+                        data-trap-stop
                         aria-label={t('update.applyLabel')}
                         onClick={port.applyNow}
                     >
