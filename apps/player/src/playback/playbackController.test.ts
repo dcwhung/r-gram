@@ -260,6 +260,29 @@ describe('playbackController queue and end of the disc', () => {
         expect(element.paused).toBe(false);
     });
 
+    // S-247（N19）：播完或者載入失敗之後冇嘢播緊可以由頭：「上一首」換去上一首，唔 seek
+    it('should go to the previous track after the disc ended, whatever the position (D110)', () => {
+        const { element, controller, state } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-03');
+        element.loadMetadata(120);
+        element.finish();
+        expect(state().status).toBe('ended');
+        controller.previous();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
+        expect(element.src).toBe(url(2));
+    });
+
+    it('should go to the previous track after a failure late in the track (D110)', () => {
+        const { element, controller, state } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(120);
+        element.advance(PREVIOUS_RESTART_S * 2);
+        element.fail('decode');
+        controller.previous();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-01' });
+        expect(element.src).toBe(url(1));
+    });
+
     it('should restart the first track on previous when there is no track before it (D110)', () => {
         const { element, controller, state } = setup({ reduceMotion: true });
         controller.start(SOURCE, 'room-01');
