@@ -6,6 +6,7 @@
 import { NEUTRAL_ACCENT } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
 import { SYNC_REMOVALS_MAX } from '../src/config';
+import { clearTrackFile } from '../src/sync/removalStore';
 import { albumRow, api, countOf, insertAsset } from './albumFixtures';
 import { liveDocument, stateRow } from './catalogFixtures';
 import {
@@ -136,12 +137,69 @@ describe('POST /api/sync/removals: track files', () => {
         expect(await lyricsRow('komorebi-05')).toBeNull();
     });
 
+    it('should list and clear audio whose linked file is gone among two others (S-165)', async () => {
+        await deleteMedia('05 太平門.m4a');
+        await putMedia('05 太平門 (a).m4a');
+        await putMedia('05 太平門 (b).mp3');
+        const { body: synced } = await syncFolder();
+        expect(synced.pendingRemovals).toEqual([
+            expect.objectContaining({ kind: 'audio', trackId: 'komorebi-05', key: AUDIO_05 }),
+        ]);
+        expect((await tracksOf())[4]).toMatchObject({
+            audio_key: AUDIO_05,
+            mv_key: mediaKey('05 太平門.mp4'),
+        });
+        const { body } = await confirmRemovals(synced.pendingRemovals);
+        expect(body.results[0]).toMatchObject({ ok: true });
+        expect((await tracksOf())[4]).toMatchObject({ audio_key: null, mv_key: null });
+        expect((await syncFolder()).body.pendingRemovals).toEqual([]);
+    });
+
+    it('should keep a link whose file is back, or whose number has one file again', async () => {
+        await putMedia('05 太平門 (b).mp3');
+        const item = { kind: 'audio', albumId: ALBUM_ID, trackId: 'komorebi-05', key: AUDIO_05 };
+        expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
+            code: 'STILL_PRESENT',
+        });
+        await deleteMedia('05 太平門.m4a');
+        await deleteMedia('05 太平門 (b).mp3');
+        await putMedia('05 太平門 (c).m4a');
+        expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
+            code: 'STILL_PRESENT',
+        });
+    });
+
     it('should answer NOT_FOUND for a track that is not there', async () => {
         const item = { kind: 'mv', albumId: ALBUM_ID, trackId: 'komorebi-99', key: 'x' };
         expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
             ok: false,
             code: 'NOT_FOUND',
         });
+    });
+});
+
+describe('POST /api/sync/removals: forged and raced items', () => {
+    it('should answer NOT_FOUND for a track of another album', async () => {
+        await putMedia('01 a.m4a', 'a', 'album-02-other');
+        await putMedia('01 a.mp4', 'v', 'album-02-other');
+        await syncFolder('album-02-other');
+        await deleteMedia('01 a.mp4', 'album-02-other');
+        const item = {
+            kind: 'mv',
+            albumId: ALBUM_ID,
+            trackId: 'other-01',
+            key: mediaKey('01 a.mp4', 'album-02-other'),
+        };
+        const { body } = await confirmRemovals([item]);
+        expect(body.results[0]).toMatchObject({ ok: false, code: 'NOT_FOUND' });
+        expect((await tracksOf('other'))[0]?.mv_key).toBe(item.key);
+    });
+
+    it('should keep the lyrics when the link changed just before the clear', async () => {
+        const track = { id: 'komorebi-05', updated_at: 'x' };
+        expect(await clearTrackFile(env.DB, track, 'text', mediaKey('05 舊.txt'))).toBe(false);
+        expect(await lyricsRow('komorebi-05')).not.toBeNull();
+        expect((await tracksOf())[4]?.composer).toBe('RubberBand');
     });
 });
 
@@ -156,6 +214,16 @@ describe('POST /api/sync/removals: tracks, covers, albums', () => {
         expect(await countOf('tracks')).toBe(4);
         expect(await countOf('lyrics')).toBe(0);
         expect((await syncFolder()).body.pendingRemovals).toEqual([]);
+    });
+
+    it('should not delete a track while a used info.txt cannot be read', async () => {
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const item = { kind: 'track', albumId: ALBUM_ID, trackId: 'komorebi-04' };
+        expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
+            ok: false,
+            code: 'STALE',
+        });
+        expect(await countOf('tracks')).toBe(5);
     });
 
     it('should keep a track that info.txt lists again', async () => {

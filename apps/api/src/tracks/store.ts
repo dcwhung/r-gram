@@ -1,23 +1,24 @@
 /*
  * tracks / lyrics 表嘅讀寫（全部 parameterised；欄位名只會嚟自常數）。
  * 並發：
- * - 改單一首歌用 `WHERE updated_at = If-Match` 一句完成；歌詞嘅寫入同一個 batch（transaction），
- *   用 `changes() > 0` 跟住上一句：歌冇改到，歌詞都唔會郁
+ * - 歌詞嘅寫入同寫歌一個 batch（transaction），用 `changes() > 0` 跟住上一句：歌冇改到，歌詞都唔會郁
  * - 同碟撞號由 D1 UNIQUE (album_id, no) 擋，寫入一方按 isNumberTaken() 判斷（同步建立歌曲，T-105）
- * CR-007（D71）：冇副題、手動指定、參考欄；人手新增、改、刪歌（API-020、021、022）拎走
+ * CR-007（D71）：冇副題、手動指定、參考欄；人手新增、改、刪歌（API-020、021、022）拎走；
+ * T-106：歌曲文字（API-041）寫返媒體 bucket，內容由同步寫（sync/trackStore.ts）
  */
 import { CREDIT_FIELDS, type SongText } from '@r-gram/catalog';
-import { nextUpdatedAt } from '../lib/updatedAt';
 import { TRACK_RETURNING, type TrackRow } from './rows';
 import type { StoredLyrics } from './songText';
 
-/** API-040 / 041 要用嘅欄：歌曲文字嘅欄位 + 歌詞原文同檔名 */
-export interface TrackTextRow extends Record<(typeof CREDIT_FIELDS)[number], string | null> {
+/** API-040 / 041 要用嘅欄：歌號、歌名、音檔同歌曲文字檔連結、專輯資料夾、而家嘅歌詞（T-106） */
+export interface TrackTextRow {
     id: string;
     album_id: string;
+    no: number;
     title: string;
-    updated_at: string;
-    source: string | null;
+    audio_key: string | null;
+    text_key: string | null;
+    folder: string;
     json_name: string | null;
     line_count: number | null;
 }
@@ -25,9 +26,10 @@ export interface TrackTextRow extends Record<(typeof CREDIT_FIELDS)[number], str
 export const findTrackText = (db: D1Database, id: string) =>
     db
         .prepare(
-            `SELECT t.album_id, t.id, t.title, t.composer, t.lyricist, t.arranger,
-                 t.producer, t.updated_at, l.source, l.json_name, l.line_count
-             FROM tracks t LEFT JOIN lyrics l ON l.track_id = t.id
+            `SELECT t.id, t.album_id, t."no", t.title, t.audio_key, t.text_key, a.folder,
+                 l.json_name, l.line_count
+             FROM tracks t JOIN albums a ON a.id = t.album_id
+             LEFT JOIN lyrics l ON l.track_id = t.id
              WHERE t.id = ?`,
         )
         .bind(id)
@@ -142,33 +144,5 @@ export const insertTrack = async (
     const statements = lyrics ? [insert, lyricsWrite(db, id, lyrics, now)] : [insert];
     const [inserted] = await db.batch<TrackRow>(statements);
     const row = inserted?.results[0];
-    return row ? withLyrics(row, lyrics) : null;
-};
-
-/**
- * API-041：歌名、credit + 歌詞一個 batch；If-Match 過時或者冇呢首歌 → null。
- * `textSourceEtag`：畀咗就一齊記低；API-041 人手儲存唔改佢（T-106 改為寫返 bucket 再同步）
- */
-export const saveSongText = async (
-    db: D1Database,
-    id: string,
-    expected: string,
-    song: SongText,
-    lyrics: StoredLyrics | null,
-    textSourceEtag?: string,
-): Promise<TrackRow | null> => {
-    const updatedAt = nextUpdatedAt(expected);
-    const source = textSourceEtag === undefined ? [] : [textSourceEtag];
-    const update = db
-        .prepare(
-            `UPDATE tracks SET title = ?1, composer = ?2, lyricist = ?3,
-                 arranger = ?4, producer = ?5, updated_at = ?6
-                 ${source.length > 0 ? ', text_source_etag = ?9' : ''}
-             WHERE id = ?7 AND updated_at = ?8
-             RETURNING ${TRACK_RETURNING}`,
-        )
-        .bind(song.title, ...creditValues(song), updatedAt, id, expected, ...source);
-    const [updated] = await db.batch<TrackRow>([update, lyricsWrite(db, id, lyrics, updatedAt)]);
-    const row = updated?.results[0];
     return row ? withLyrics(row, lyrics) : null;
 };

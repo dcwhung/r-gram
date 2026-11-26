@@ -63,6 +63,15 @@ export const toTrack = (row: TrackRow) => ({
     updatedAt: row.updated_at,
 });
 
+/** 一首歌（API-041 儲存之後回畀管理端）；冇 = null */
+export const trackOf = async (db: D1Database, id: string) => {
+    const row = await db
+        .prepare(`SELECT ${TRACK_RETURNING} FROM tracks WHERE id = ?`)
+        .bind(id)
+        .first<TrackRow>();
+    return row ? toTrack(row) : null;
+};
+
 export const tracksOf = async (db: D1Database, albumId: string) => {
     const rows = await db.prepare(TRACKS_SQL).bind(albumId).all<TrackRow>();
     return rows.results.map(toTrack);

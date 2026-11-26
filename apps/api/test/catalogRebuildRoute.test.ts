@@ -9,13 +9,16 @@ import { zhHant } from '../src/i18n/zh-Hant';
 import { ORIGIN, call, loginCookie } from './helpers';
 import { api, insertAlbum, insertTrack, json } from './albumFixtures';
 import { SHA256_HEX, bucketWith, liveDocument, stateRow } from './catalogFixtures';
+import { mirrorAlbumToMedia, saveSongText } from './trackFixtures';
 
 const REBUILD = '/api/catalog/rebuild';
-const NOW = '2026-11-25T00:00:00.000Z';
 
-/** 歌曲文字（API-041）：CR-007 之後主要嘅寫入 */
-const saveText = (trackId: string, text: string, bindings = env) =>
-    api('PUT', `/api/tracks/${trackId}/text`, { text }, { 'if-match': `"${NOW}"` }, bindings);
+/** 歌曲文字（API-041）：CR-007 之後主要嘅寫入；T-106 寫返媒體 bucket，所以專輯先照 D1 放入 bucket */
+const saveText = async (trackId: string, text: string, bindings = env) => {
+    const albumId = trackId.replace(/-\d+$/, '');
+    await mirrorAlbumToMedia(albumId);
+    return saveSongText(trackId, text, '', bindings);
+};
 
 /** D1 嘅 wrapper：SQL 有 `fragment` 嗰句一 prepare 就 throw（模擬 D1 出事），其他照行 */
 const dbFailingOn = (fragment: string): D1Database =>
@@ -155,7 +158,8 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
         const body = await json<{ catalog: Record<string, unknown> }>(response);
         expect(body.catalog).toMatchObject({ ok: true, albumCount: 1, trackCount: 1, error: null });
         const [track] = (await liveDocument())?.albums[0]?.tracks ?? [];
-        expect(track).toMatchObject({ title: '新歌名', credits: { composer: '阿正' } });
+        // T-106：歌名跟 info.txt（第一行只係用嚟對）
+        expect(track).toMatchObject({ title: 'Track apollo-18-01', credits: { composer: '阿正' } });
     });
 
     it('should answer every write with the same catalog shape as GET /api/albums', async () => {
@@ -173,10 +177,10 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
         await insertTrack('bad-01', 'bad', 1);
         const response = await saveText('bad-01', 'Apollo');
         expect(response.status).toBe(200);
-        const body = await json<{ track: { title: string }; catalog: Record<string, unknown> }>(
+        const body = await json<{ track: { credits: unknown }; catalog: Record<string, unknown> }>(
             response,
         );
-        expect(body.track.title).toBe('Apollo');
+        expect(body.track.credits).toMatchObject({ composer: null });
         expect(body.catalog).toMatchObject({ ok: false, error: 'INVALID_DOCUMENT' });
         expect(await liveDocument()).toBeNull();
     });

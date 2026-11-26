@@ -4,7 +4,7 @@
  */
 export { formatAlbumInfo } from './album-info/formatAlbumInfo';
 export { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from './album-info/limits';
-export { parseAlbumInfo } from './album-info/parseAlbumInfo';
+export { infoTooLarge, parseAlbumInfo } from './album-info/parseAlbumInfo';
 export type { AlbumInfo, AlbumInfoFields, AlbumInfoTrack } from './album-info/types';
 export { dominantColor, glowColor, NEUTRAL_ACCENT, NEUTRAL_GLOW } from './color/color';
 export {
@@ -98,6 +98,13 @@ export {
     type CheckLevel,
 } from './sync/checks';
 export { planFolderSync } from './sync/planFolderSync';
+export {
+    SONG_TEXT_NAME_MAX_CHARS,
+    songTextFileName,
+    songTextTarget,
+    type SongTextTarget,
+    type SongTextTargetInput,
+} from './sync/songTextTarget';
 export {
     carriedChecks,
     sortChecks,

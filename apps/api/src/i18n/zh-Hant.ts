@@ -45,20 +45,16 @@ export const zhHant = {
         },
     },
     albums: {
-        /** error.message（CR-007：唯讀，只有 404） */
+        /** error.message（CR-007：專輯由同步建立；寫入只有 info.txt 文字框（API-019）同封面結果（API-017），T-106） */
         errors: {
             notFound: '找不到指定的專輯。',
-        },
-    },
-    tracks: {
-        /** error.message（按情況） */
-        errors: {
             invalid: '資料有誤，請修正後再儲存。',
-            notFound: '找不到指定的歌曲。',
-            stale: '歌曲資料已被其他操作更新，請重新載入後再修改。',
-            lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
-            /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
-            tooLarge: '歌曲文字超出 {max} KB 的上限。',
+            /** 409 STALE：讀入之後檔案喺 bucket 改過（Functional Spec D75 嘅句子） */
+            stale: '檔案已在其他地方更改，請重新載入。',
+            /** 413 TOO_LARGE：`{maxBytes}`、`{maxLines}` = INFO_TEXT_MAX_BYTES、INFO_TEXT_MAX_LINES */
+            tooLarge: 'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限。',
+            /** 409 NO_FIRST_COVER（API-017）：D1 CHECK 唔准冇第一張先有第二張 */
+            noFirstCover: '這張專輯還沒有第一張封面，不能設定第二張封面。',
         },
         /** details[].message：key = details[].reason */
         reasons: {
@@ -68,6 +64,37 @@ export const zhHant = {
             /** `{max}` = UNKNOWN_FIELDS_MAX */
             TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
             NOT_TEXT: '必須為文字。',
+            INVALID_VALUE: '格式不正確。',
+            /** API-017：大封面同縮圖嘅尺寸（調亂咗都係呢個）；`{cover}`、`{thumb}` = 像素 */
+            WRONG_SIZE: '大封面必須為 {cover} × {cover} 像素，縮圖必須為 {thumb} × {thumb} 像素。',
+            /** API-017：圖未經 API-050 上載 */
+            IMAGE_NOT_FOUND: '找不到已上載的圖片，請重新上載。',
+        },
+    },
+    tracks: {
+        /** error.message（按情況） */
+        errors: {
+            invalid: '資料有誤，請修正後再儲存。',
+            notFound: '找不到指定的歌曲。',
+            /** 409 STALE（T-106）：讀入之後檔案喺 bucket 改過（Functional Spec D75 嘅句子） */
+            stale: '檔案已在其他地方更改，請重新載入。',
+            lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
+            /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
+            tooLarge: '歌曲文字超出 {max} KB 的上限。',
+            /** 409 NO_AUDIO（D54：冇音檔嘅歌唔匯入歌曲文字） */
+            noAudio: '這首歌沒有音檔，不能儲存歌曲文字。',
+            /** 409 TEXT_CONFLICT：同一個歌號有幾個歌曲文字檔，唔知寫邊個 */
+            textConflict: '這首歌有多於一個歌曲文字檔，請先在媒體庫只保留一個。',
+        },
+        /** details[].message：key = details[].reason */
+        reasons: {
+            REQUIRED: '必須填寫。',
+            NOT_AN_OBJECT: '內容必須為 JSON 物件。',
+            NOT_EDITABLE: '此欄位不可修改。',
+            /** `{max}` = UNKNOWN_FIELDS_MAX */
+            TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
+            NOT_TEXT: '必須為文字。',
+            INVALID_VALUE: '格式不正確。',
             /** 以下係歌曲文字（path = text）逐行嘅錯誤；`{max}` 由 tracks/errors.ts 按 packages/catalog 嘅上限填入 */
             TOO_LARGE: '歌曲文字超出大小上限。',
             TOO_MANY_LINES: '歌曲文字最多 {max} 行。',
@@ -169,9 +196,11 @@ export const zhHant = {
             DUPLICATE_ORDINAL: '資料夾「{other}」的類別及序號與此專輯相同，次序會按 id 排列。',
             NO_INFO: '找不到 info.txt，唱片名稱暫用「{title}」。',
             INFO_CONFLICT: '資料夾內有多於一個 info.txt，此檔不會使用。',
-            INFO_BAD_ENCODING: 'info.txt 必須為 UTF-8 編碼，暫時當作沒有 info.txt。',
+            /** S-164：用唔到嘅 `info.txt` 唔改專輯（之前用過嘅話），所以句子唔講「當作沒有」 */
+            INFO_BAD_ENCODING: 'info.txt 必須為 UTF-8 編碼，此檔未有使用，請修正後再掃描。',
             INFO_TOO_LARGE:
-                'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限，暫時當作沒有 info.txt。',
+                'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限，此檔未有使用，請修正後再掃描。',
+            INFO_UNREADABLE: '未能讀取 info.txt，此檔未有使用，下次掃描會再試。',
             INFO_UNKNOWN_LINE: 'info.txt 第 {line} 行無法識別，已略過。',
             INFO_DUPLICATE_LABEL: 'info.txt 第 {line} 行：此標籤已出現過，已略過。',
             INFO_DUPLICATE_NUMBER: 'info.txt 第 {line} 行：第 {no} 首重複出現，已略過。',

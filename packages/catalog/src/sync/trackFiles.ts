@@ -1,7 +1,7 @@
 /*
  * 同步：曲目表入面一首歌嘅檔（Technical Spec「同步嘅設計」步驟 3–5；Functional Spec D54、D70、D76）。
- * - 每類（音檔、MV、`.txt`）：啱啱好一個檔 = 用佢；多過一個 = 衝突，用返 D1 連住而仲喺度嗰個，否則冇；
- *   一個都冇而 D1 有連結 = 待確認移除，連結照留（確認先清）
+ * - 每類（音檔、MV、`.txt`）：啱啱好一個檔 = 用佢；多過一個 = 衝突，用返 D1 連住而仲喺度嗰個；
+ *   一個都冇，或者衝突而 D1 連住嗰個唔喺度（S-165）= 冇用得嘅檔：D1 有連結 = 待確認移除，連結照留（確認先清）
  * - 音檔做錨：嗰個歌號冇音檔 = 灰色，同歌號嘅 MV、`.txt` 唔用（NO_AUDIO 提示），D1 嘅連結唔郁
  *  （音檔嘅移除確認之後一齊清，所以唔另外列 MV、`.txt`）
  */
@@ -38,18 +38,21 @@ export const storedKeyOf = (
     return kind === 'mv' ? stored.mvKey : stored.textKey;
 };
 
-/** 一類檔：一個 = 佢；幾個 = D1 連住嗰個（仲喺度先算），否則冇 */
+/**
+ * 一類檔：一個 = 佢；幾個 = D1 連住嗰個（仲喺度先算），否則同一個都冇一樣（`none`：D1 嘅連結留住、
+ * 列入待確認移除，S-165；新歌冇連結 = 冇嘢可以移除）
+ */
 export const slotOf = (context: TrackContext, kind: NumberedKind): Slot => {
     const files = filesOf(context.groups, kind, context.no);
     if (files.length === 1) return { file: files[0] ?? null, none: false };
     const storedKey = storedKeyOf(context.stored, kind);
     const kept = files.find(({ key }) => key === storedKey) ?? null;
-    return { file: kept, none: files.length === 0 };
+    return { file: kept, none: kept === null };
 };
 
-/** 同步之後嘅連結：冇檔 = 留住 D1 嘅（待確認移除）；衝突而冇連住嗰個 = 冇 */
+/** 同步之後嘅連結：冇用得嘅檔 = 留住 D1 嘅（待確認移除；新歌 = 冇） */
 export const linkOf = (context: TrackContext, kind: NumberedKind, slot: Slot): string | null =>
-    slot.file?.key ?? (slot.none ? storedKeyOf(context.stored, kind) : null);
+    slot.file?.key ?? storedKeyOf(context.stored, kind);
 
 export const conflictChecks = (context: TrackContext, kind: NumberedKind): Check[] => {
     const { no } = context;
@@ -65,7 +68,7 @@ export const noAudioChecks = (context: TrackContext): Check[] => {
     return files.map(({ key }) => checkOf('NO_AUDIO', { key, no }, { no }));
 };
 
-/** D1 有連結而呢類一個檔都冇 = 待確認移除 */
+/** D1 有連結而呢類冇用得嘅檔 = 待確認移除 */
 export const removalOf = (
     context: TrackContext,
     kind: NumberedKind,

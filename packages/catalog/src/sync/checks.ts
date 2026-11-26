@@ -12,6 +12,8 @@ export const CHECK_LEVELS = {
     NO_INFO: 'warning',
     INFO_BAD_ENCODING: 'error',
     INFO_TOO_LARGE: 'error',
+    /** `info.txt` 讀唔到（R2 出錯）：同用唔到一樣處理，下次同步再讀（S-164） */
+    INFO_UNREADABLE: 'error',
     INFO_UNKNOWN_LINE: 'warning',
     INFO_DUPLICATE_LABEL: 'warning',
     INFO_DUPLICATE_NUMBER: 'warning',

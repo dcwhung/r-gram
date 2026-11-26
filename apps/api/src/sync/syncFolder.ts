@@ -4,7 +4,7 @@
  * `info.txt`（ETag 同上次一樣唔讀）→ planFolderSync() → 專輯（冇就建立）→ 一批歌（syncTracks.ts，分批）→
  * 檢查結果同 info_etag → 回應。移除只係列出（API-035 確認先做）。
  * 冇寫到專輯或者歌 = 唔生成 catalog（skipPostWrite）；寫咗就經 api/afterWrite.ts 生成一次，回應加 `catalog`。
- * `info.txt` 嘅 ETag 只喺曲目表完整套用咗先記低（冇待確認移除嘅歌、冇失敗、冇下一批）：唔記 = 下次再讀
+ * `info.txt` 嘅 ETag 只喺曲目表完整套用咗先記低（冇待確認移除嘅歌、冇失敗、冇下一批、前面幾批冇漏）：唔記 = 下次再讀
  */
 import {
     carriedChecks,
@@ -17,6 +17,7 @@ import {
 } from '@r-gram/catalog';
 import type { Context } from 'hono';
 import type { AppEnv } from '../app';
+import { guardItem } from '../media/applyGuard';
 import { listFolder } from '../media/listing';
 import { ensureAlbum, finishAlbum, storedFinish } from './albumWrite';
 import { withCheckMessages } from './checkMessages';
@@ -57,14 +58,18 @@ const checksOf = (
     return sortChecks([...target.checks, ...plan.checks, ...outcome.checks, ...carried]);
 };
 
-const infoEtagOf = (
-    info: SyncInfo,
-    plan: FolderPlan,
-    outcome: TracksOutcome,
-    stored: string | null,
-) => {
+/**
+ * 成個曲目表套用咗（W-040）：今批冇失敗、冇下一批，而且前面幾批嘅歌（歌號 < from）喺 D1 已經同計劃一樣
+ *（前一批失敗嘅歌而家仲係 changed）。用 changed 唔用 read：有格式錯誤、每次都再讀嘅 `.txt` 唔會令 ETag 永遠記唔到
+ */
+const isComplete = (plan: FolderPlan, outcome: TracksOutcome, from: number): boolean =>
+    plan.infoSettled &&
+    !outcome.more &&
+    outcome.failed.length === 0 &&
+    plan.tracks.every((track) => track.no >= from || !track.changed);
+
+const infoEtagOf = (info: SyncInfo, complete: boolean, stored: string | null) => {
     if (info.kind === 'none') return null;
-    const complete = plan.infoSettled && !outcome.more && outcome.failed.length === 0;
     return complete ? info.etag : stored;
 };
 
@@ -99,30 +104,57 @@ const responseOf = ({ target, plan, created, outcome, checks, truncated }: Synce
     truncated,
 });
 
-const syncTarget = async (c: Context<AppEnv>, target: FolderTarget, from: number) => {
+interface Planned {
+    state: FolderState;
+    info: SyncInfo;
+    plan: FolderPlan;
+    truncated: boolean;
+}
+
+/** list → D1 狀態 → `info.txt` → 計劃；資料夾冇檔 → 'folderEmpty' */
+const planTarget = async (
+    c: Context<AppEnv>,
+    target: FolderTarget,
+): Promise<Planned | 'folderEmpty'> => {
     const { DB: db, MEDIA: bucket } = c.env;
     const listing = await listFolder(bucket, target.folder);
-    if (listing.files.length === 0) return syncError(c, 'folderEmpty');
+    if (listing.files.length === 0) return 'folderEmpty';
     const state = await readFolderState(db, target.id);
     const info = await readSyncInfo(bucket, listing.files, state.album?.info_etag ?? null);
     const album = syncAlbumStateOf(state.album);
     const input = { albumId: target.id, files: listing.files, info, album, tracks: state.tracks };
     const plan = planFolderSync({ ...input, truncated: listing.truncated });
+    return { state, info, plan, truncated: listing.truncated };
+};
+
+export type FolderSyncResult = ReturnType<typeof responseOf>;
+
+/**
+ * 同步一個資料夾（API-034；T-106 嘅 API-019、API-041 寫完檔之後都行呢條路）：回 API-034 嘅回應 body；
+ * 冇寫到 D1 = 設 skipPostWrite（唔生成 catalog）
+ */
+export const runFolderSync = async (
+    c: Context<AppEnv>,
+    target: FolderTarget,
+    from: number,
+): Promise<FolderSyncResult | 'folderEmpty'> => {
+    const planned = await planTarget(c, target);
+    if (planned === 'folderEmpty') return planned;
+    const { state, info, plan, truncated } = planned;
+    const db = c.env.DB;
     const albumWritten = await ensureAlbum(db, state.album, target, plan.album);
-    const outcome = await syncTracks(
-        c,
-        target.id,
-        { planned: plan.tracks, stored: state.tracks },
-        from,
-    );
+    const tracks = { planned: plan.tracks, stored: state.tracks };
+    const outcome = await syncTracks(c, target.id, tracks, from);
     const checks = checksOf(target, plan, state, outcome);
     const stored = storedFinish(state.album);
-    const infoEtag = infoEtagOf(info, plan, outcome, stored.infoEtag);
-    await finishAlbum(db, target.id, stored, { checks: JSON.stringify(checks), infoEtag });
+    const infoEtag = infoEtagOf(info, isComplete(plan, outcome, from), stored.infoEtag);
+    // S-170：歌已經寫咗，檢查結果寫唔到都照回成功、照生成 catalog；info_etag 冇記 = 下次再讀
+    const next = { checks: JSON.stringify(checks), infoEtag };
+    await guardItem(() => finishAlbum(db, target.id, stored, next), undefined);
     const wrote = albumWritten || outcome.added.length > 0 || outcome.updated.length > 0;
     if (!wrote) c.set('skipPostWrite', true);
     const synced = { target, plan, created: state.album === null, outcome, checks };
-    return c.json(responseOf({ ...synced, truncated: listing.truncated }));
+    return responseOf({ ...synced, truncated });
 };
 
 export const syncFolderRoute = async (c: Context<AppEnv>) => {
@@ -131,5 +163,6 @@ export const syncFolderRoute = async (c: Context<AppEnv>) => {
         return syncValidationError(c, [{ path: FROM_QUERY, reason: 'INVALID_NUMBER' }]);
     const target = await resolveFolder(c.env, c.req.param('folder') ?? '');
     if (typeof target === 'string') return syncError(c, target);
-    return syncTarget(c, target, from);
+    const result = await runFolderSync(c, target, from);
+    return result === 'folderEmpty' ? syncError(c, result) : c.json(result);
 };

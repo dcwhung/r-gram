@@ -2,7 +2,7 @@
  * 錯誤回應（Technical Spec「API 設計 → 錯誤格式」）：{ "error": { "code", "message", "details"? } }。
  * message 一律係 i18n/zh-Hant.ts 嘅中文書面語（backlog B-044），包括守門同通用錯誤；
  * 管理端可以直接顯示，亦可以按 code / reason 用自己嘅語言檔出字。
- * 另外：JSON body 同 If-Match 嘅讀法（內容 API 共用）
+ * 另外：JSON body 嘅讀法（內容 API 共用）
  */
 import type { Context, ErrorHandler, NotFoundHandler } from 'hono';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
@@ -65,14 +65,4 @@ export const readBoundedJsonObject = async (
     } catch {
         return undefined;
     }
-};
-
-/** If-Match 嘅值（去 `W/` 同引號）；冇 header → undefined */
-export const readIfMatch = (c: Context): string | undefined => {
-    const header = c.req.header('if-match');
-    if (header === undefined) return undefined;
-    return header
-        .trim()
-        .replace(/^W\//, '')
-        .replace(/^"(.*)"$/, '$1');
 };

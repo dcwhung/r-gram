@@ -1,416 +1,349 @@
 /*
- * API-040 GET /api/tracks/:id/text、API-041 PUT /api/tracks/:id/text：成首歌嘅文字（Functional Spec D31、D32、D37）。
- * 儲存：parseSongText() → 有錯 400（逐行）/ 413 → 歌詞 JSON 寫 R2 → D1 一個 batch（tracks + lyrics）。
- * 清走現有歌詞要確認（D30：冇 ?force=1 回 409 LYRICS_REMOVED）；B-038 嘅提示；B-040 嘅 413 同 details 形狀
+ * API-040 GET、API-041 PUT /api/tracks/:id/text（T-106；Technical Spec「寫返媒體 bucket」；Functional Spec D72、D75、FR-129）：
+ * 歌曲文字框讀寫媒體 bucket 嘅 `NN ….txt`。儲存：body `{ text, etag }`（400）→ parseSongText()（逐行 400／413，乜都唔寫）→
+ * 冇音檔 409 NO_AUDIO → 會清走現有歌詞要 ?force=1（409 LYRICS_REMOVED，D30）→ 條件寫入（409 STALE）→
+ * 同步呢個資料夾（同 API-034 一樣：credit、歌詞、歌詞 JSON 由同步寫）
  */
-import { env } from 'cloudflare:test';
 import { SONG_TEXT_MAX_BYTES, SONG_TEXT_MAX_LINES } from '@r-gram/catalog';
+import { env } from 'cloudflare:test';
 import { zhHant } from '../src/i18n/zh-Hant';
-import { NOW, api, insertTrack, json } from './albumFixtures';
+import { api, json } from './albumFixtures';
+import { liveDocument } from './catalogFixtures';
 import {
-    LYRICS_NAME,
-    LYRICS_PREFIX,
-    detailsOf,
-    getText,
-    ifMatch,
-    lyricsFile,
-    lyricsFiles,
-    lyricsRow,
-    putText,
-    seedAlbum,
-    trackRow,
-    type ErrorBody,
-} from './trackFixtures';
+    ALBUM_ID,
+    TEXT_05,
+    mediaKey,
+    putKomorebi,
+    putMedia,
+    recordedMedia,
+    syncFolder,
+    tracksOf,
+    type Loose,
+} from './syncFixtures';
+import { LYRICS_NAME, lyricsFile, lyricsFiles, lyricsRow, trackRow } from './trackFixtures';
 
-const SONG = [
-    '一早地下鐵',
-    '曲：阿正',
-    '詞：Tim Lui / 6號',
-    '編：阿正',
-    '監：RubberBand / 雷頌德',
-    '',
-    '[00:12.30]第一句歌詞',
-    '[00:18.75]第二句歌詞',
-].join('\n');
+const TEXT_05_KEY = mediaKey('05 太平門.txt');
+const SONG = '下一位參賽者\n曲：阿正\n詞：Tim Lui\n\n[00:12.30]第一句歌詞\n[00:18.75]第二句歌詞';
 
-interface Saved {
-    trackId: string;
-    text: string;
-    lineCount: number;
-    synced: boolean | null;
-    lyrics: string | null;
-    updatedAt: string;
-    track: Record<string, unknown>;
-    hints: Record<string, unknown>[];
-}
+const getText = async (id: string) => {
+    const response = await api('GET', `/api/tracks/${id}/text`);
+    return { status: response.status, body: await json<Loose>(response) };
+};
 
-beforeEach(seedAlbum);
+const putText = async (id: string, body: unknown, query = '', bindings = env) => {
+    const response = await api('PUT', `/api/tracks/${id}/text${query}`, body, {}, bindings);
+    return { status: response.status, body: await json<Loose>(response) };
+};
+
+const mediaText = async (key: string) => (await env.MEDIA.get(key))?.text();
+const etagOf = async (key = TEXT_05_KEY) => (await env.MEDIA.head(key))?.httpEtag ?? null;
+
+const save05 = async (text: string, query = '') =>
+    putText(`${ALBUM_ID}-05`, { text, etag: await etagOf() }, query);
+
+beforeEach(async () => {
+    await putKomorebi();
+    await syncFolder();
+});
+
+describe('GET /api/tracks/:id/text', () => {
+    it('should give the song text file of the track with its key and ETag', async () => {
+        const { status, body } = await getText('komorebi-05');
+        expect(status).toBe(200);
+        expect(body).toEqual({
+            trackId: 'komorebi-05',
+            key: TEXT_05_KEY,
+            etag: await etagOf(),
+            text: TEXT_05,
+            problem: null,
+        });
+    });
+
+    it('should offer only the title when the track has no song text file', async () => {
+        expect((await getText('komorebi-01')).body).toEqual({
+            trackId: 'komorebi-01',
+            key: null,
+            etag: null,
+            text: '下一位參賽者',
+            problem: null,
+        });
+    });
+
+    it('should say when the file is not UTF-8 or too large', async () => {
+        await putMedia('05 太平門.txt', new Uint8Array([0x41, 0xff]));
+        expect((await getText('komorebi-05')).body).toMatchObject({
+            text: 'A\uFFFD',
+            problem: 'BAD_ENCODING',
+        });
+        await putMedia('05 太平門.txt', 'x'.repeat(SONG_TEXT_MAX_BYTES + 1));
+        expect((await getText('komorebi-05')).body).toMatchObject({
+            text: null,
+            problem: 'TOO_LARGE',
+        });
+    });
+
+    it('should answer 409 TEXT_CONFLICT when two song text files have the number', async () => {
+        await putMedia('01 a.txt', 'a');
+        await putMedia('01 b.txt', 'b');
+        const { status, body } = await getText('komorebi-01');
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('TEXT_CONFLICT');
+    });
+
+    it('should answer 404 for an unknown track', async () => {
+        expect((await getText('nope')).status).toBe(404);
+    });
+});
 
 describe('PUT /api/tracks/:id/text: saving', () => {
-    it('should store title, credits and timed lyrics in one go', async () => {
-        const response = await putText('apollo-18-01', SONG);
-        expect(response.status).toBe(200);
-        const body = await json<Saved>(response);
+    it('should write the file, sync the folder and answer with the track', async () => {
+        const text = TEXT_05.replace('第二句', '改過的第二句');
+        const { status, body } = await save05(text);
+        expect(status).toBe(200);
+        expect(await mediaText(TEXT_05_KEY)).toBe(text);
         expect(body).toMatchObject({
-            trackId: 'apollo-18-01',
-            text: SONG,
-            lineCount: 2,
-            synced: true,
+            trackId: 'komorebi-05',
+            key: TEXT_05_KEY,
+            etag: await etagOf(),
+            text,
+            checks: [],
             hints: [],
-        });
-        expect(body.lyrics).toMatch(LYRICS_NAME);
-        expect(body.updatedAt > NOW).toBe(true);
-        expect(body.track).toMatchObject({
-            id: 'apollo-18-01',
-            no: 1,
-            title: '一早地下鐵',
-            credits: {
-                composer: '阿正',
-                lyricist: 'Tim Lui / 6號',
-                arranger: '阿正',
-                producer: 'RubberBand / 雷頌德',
-            },
-            lyrics: { synced: true, lineCount: 2 },
-            updatedAt: body.updatedAt,
-        });
-        expect(await trackRow('apollo-18-01')).toMatchObject({
-            title: '一早地下鐵',
-            producer: 'RubberBand / 雷頌德',
-            updated_at: body.updatedAt,
-        });
-        expect(await lyricsRow('apollo-18-01')).toMatchObject({
-            source: '[00:12.30]第一句歌詞\n[00:18.75]第二句歌詞',
-            synced: 1,
-            json_name: body.lyrics,
-            line_count: 2,
-            updated_at: body.updatedAt,
-        });
-    });
-
-    it('should write the lyrics JSON to R2 under its content hash', async () => {
-        const body = await json<Saved>(await putText('apollo-18-01', SONG));
-        expect(await lyricsFiles()).toEqual([body.lyrics]);
-        expect(await lyricsFile(body.lyrics ?? '')).toEqual({
-            synced: true,
-            lines: [
-                { t: 12_300, text: '第一句歌詞' },
-                { t: 18_750, text: '第二句歌詞' },
-            ],
-        });
-        const object = await env.CATALOG.head(`${LYRICS_PREFIX}${body.lyrics ?? ''}`);
-        expect(object?.httpMetadata?.contentType).toBe('application/json');
-    });
-
-    it('should store plain lyrics as synced: false (D32)', async () => {
-        const body = await json<Saved>(await putText('apollo-18-01', '歌名\n\n第一句\n\n\n第二句'));
-        expect(body).toMatchObject({ synced: false, lineCount: 3 });
-        expect(await lyricsFile(body.lyrics ?? '')).toEqual({
-            synced: false,
-            lines: [{ text: '第一句' }, { text: '' }, { text: '第二句' }],
-        });
-        expect((await lyricsRow('apollo-18-01'))?.synced).toBe(0);
-    });
-
-    it('should answer with the normalised text that refills the text box', async () => {
-        const messy = '\uFEFF\r\n  歌名  \r\n詞:  林夕 \r\n曲 ： 阿正\r\n\r\n\r\n第一句  \r\n';
-        const body = await json<Saved>(await putText('apollo-18-01', messy));
-        expect(body.text).toBe('歌名\n曲：阿正\n詞：林夕\n\n第一句');
-        expect((await getText('apollo-18-01')).text).toBe(body.text);
-    });
-
-    it('should save a title with no labels and no lyrics, clearing the credits', async () => {
-        await putText('apollo-18-01', SONG);
-        const { updatedAt } = await getText('apollo-18-01');
-        const response = await putText('apollo-18-01', '新歌名', updatedAt, '?force=1');
-        expect(response.status).toBe(200);
-        expect(await json<Saved>(response)).toMatchObject({
-            text: '新歌名',
-            lineCount: 0,
-            synced: null,
-            lyrics: null,
             track: {
-                title: '新歌名',
-                credits: { composer: null, lyricist: null, arranger: null, producer: null },
-                lyrics: null,
+                id: 'komorebi-05',
+                title: '太平門',
+                credits: { composer: 'RubberBand', lyricist: 'Tim Lui' },
+                lyrics: { synced: true, lineCount: 2 },
             },
+            sync: { album: { id: ALBUM_ID }, updated: [{ no: 5 }], pendingRemovals: [] },
+            catalog: { ok: true },
         });
-        expect(await lyricsRow('apollo-18-01')).toBeNull();
+        expect((await trackRow('komorebi-05'))?.text_source_etag).toBe(body.etag);
     });
 
-    it('should keep the same R2 file for identical lyrics on two tracks', async () => {
-        const first = await json<Saved>(await putText('apollo-18-01', SONG));
-        const second = await json<Saved>(await putText('apollo-18-02', SONG));
-        expect(second.lyrics).toBe(first.lyrics);
-        expect(await lyricsFiles()).toEqual([first.lyrics]);
+    it('should create a file named after the title for a track that has none', async () => {
+        const { status, body } = await putText('komorebi-01', { text: SONG, etag: null });
+        expect(status).toBe(200);
+        const key = mediaKey('01 下一位參賽者.txt');
+        expect(body.key).toBe(key);
+        expect(await mediaText(key)).toBe(SONG);
+        expect(await trackRow('komorebi-01')).toMatchObject({ text_key: key, composer: '阿正' });
+        expect(body.track.lyrics).toEqual({ synced: true, lineCount: 2 });
+    });
+
+    it('should write the lyrics JSON under its content hash and drop the old one', async () => {
+        const before = await lyricsFiles();
+        const { body } = await save05(TEXT_05.replace('第二句', '另一句'));
+        const name = (await lyricsRow('komorebi-05'))?.json_name as string;
+        expect(name).toMatch(LYRICS_NAME);
+        expect(name).not.toBe(before[0]);
+        expect(await lyricsFile(name)).toMatchObject({ synced: true });
+        expect(body.catalog).toMatchObject({ ok: true });
+        expect(await lyricsFiles()).toEqual([name]);
+    });
+
+    it('should keep the info.txt title and report a different first line', async () => {
+        const { body } = await save05(TEXT_05.replace('太平門', '太平門（現場）'));
+        expect(body.track.title).toBe('太平門');
+        expect(body.checks).toEqual([
+            expect.objectContaining({ code: 'TITLE_MISMATCH', no: 5, key: TEXT_05_KEY }),
+        ]);
+    });
+
+    it('should store UTF-8 without BOM and with LF only', async () => {
+        await save05(`\uFEFF${TEXT_05.replaceAll('\n', '\r\n')}`);
+        expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
+    });
+
+    it('should save old subtitle lines and label lines after a blank line with hints', async () => {
+        const { status, body } = await save05('太平門\n副題：Live\n曲：甲\n\n詞：乙');
+        expect(status).toBe(200);
+        expect(body.hints.map(({ line, reason }: Loose) => [line, reason])).toEqual([
+            [2, 'SUBTITLE_IGNORED'],
+            [5, 'LABEL_AFTER_BLANK_LINE'],
+        ]);
+        expect(body.hints[0].message).toBe(zhHant.tracks.hints.SUBTITLE_IGNORED);
     });
 });
 
-describe('PUT /api/tracks/:id/text: lyrics files that are no longer used', () => {
-    it('should remove the old lyrics JSON when the lyrics change', async () => {
-        const first = await json<Saved>(await putText('apollo-18-01', SONG));
-        const changed = SONG.replace('第二句歌詞', '改過的第二句');
-        const second = await json<Saved>(await putText('apollo-18-01', changed, first.updatedAt));
-        expect(second.lyrics).not.toBe(first.lyrics);
-        expect(await lyricsFiles()).toEqual([second.lyrics]);
-    });
-
-    it('should remove the lyrics JSON when the lyrics are cleared', async () => {
-        const first = await json<Saved>(await putText('apollo-18-01', SONG));
-        await putText('apollo-18-01', '一早地下鐵', first.updatedAt, '?force=1');
-        expect(await lyricsFiles()).toEqual([]);
-    });
-
-    it('should keep a lyrics JSON that another track still uses', async () => {
-        const first = await json<Saved>(await putText('apollo-18-01', SONG));
-        await putText('apollo-18-02', SONG);
-        await putText('apollo-18-01', '一早地下鐵', first.updatedAt, '?force=1');
-        expect(await lyricsFiles()).toEqual([first.lyrics]);
-    });
-});
-
-describe('PUT /api/tracks/:id/text: clearing existing lyrics needs a confirmation (D30)', () => {
-    it('should answer 409 LYRICS_REMOVED and change nothing without ?force=1', async () => {
-        const first = await json<Saved>(await putText('apollo-18-01', SONG));
-        const response = await putText('apollo-18-01', '一早地下鐵', first.updatedAt);
-        expect(response.status).toBe(409);
-        expect(await json(response)).toEqual({
-            error: {
-                code: 'LYRICS_REMOVED',
-                message: zhHant.tracks.errors.lyricsRemoved,
-                details: [{ type: 'lyrics', trackId: 'apollo-18-01', lineCount: 2 }],
-            },
+describe('PUT /api/tracks/:id/text: clearing lyrics needs a confirmation (D30)', () => {
+    it('should answer 409 LYRICS_REMOVED and write nothing without ?force=1', async () => {
+        const { status, body } = await save05('太平門\n曲：RubberBand');
+        expect(status).toBe(409);
+        expect(body.error).toEqual({
+            code: 'LYRICS_REMOVED',
+            message: zhHant.tracks.errors.lyricsRemoved,
+            details: [{ type: 'lyrics', trackId: 'komorebi-05', lineCount: 2 }],
         });
-        expect((await lyricsRow('apollo-18-01'))?.json_name).toBe(first.lyrics);
-        expect((await trackRow('apollo-18-01'))?.updated_at).toBe(first.updatedAt);
+        expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
     });
 
-    it('should not ask when the track has no lyrics to lose', async () => {
-        expect((await putText('apollo-18-01', '一早地下鐵')).status).toBe(200);
+    it('should clear the lyrics with ?force=1', async () => {
+        const { status, body } = await save05('太平門\n曲：RubberBand', '?force=1');
+        expect(status).toBe(200);
+        expect(body.track.lyrics).toBeNull();
+        expect(await lyricsRow('komorebi-05')).toBeNull();
     });
 
     it('should not take any force value other than 1', async () => {
-        const first = await json<Saved>(await putText('apollo-18-01', SONG));
         for (const query of ['?force=0', '?force=true', '?force=']) {
-            const response = await putText('apollo-18-01', '一早地下鐵', first.updatedAt, query);
-            expect(response.status, query).toBe(409);
+            expect((await save05('太平門', query)).status, query).toBe(409);
         }
     });
 });
 
-describe('PUT /api/tracks/:id/text: validation', () => {
-    it('should list every song-text error by line with reason and written-Chinese message', async () => {
-        const text = '曲：阿正\n詞：甲\n詞：乙\n\n[00:01.00]a\nb';
-        const response = await putText('apollo-18-01', text);
-        expect(response.status).toBe(400);
-        const body = await json<ErrorBody>(response);
-        expect(body.error.code).toBe('VALIDATION_ERROR');
-        expect(body.error.message).toBe(zhHant.tracks.errors.invalid);
-        expect(body.error.details).toEqual([
-            {
-                path: 'text',
-                line: 1,
-                reason: 'TITLE_REQUIRED',
-                message: zhHant.tracks.reasons.TITLE_REQUIRED,
-            },
-            {
-                path: 'text',
-                line: 3,
-                reason: 'DUPLICATE_LABEL',
-                message: zhHant.tracks.reasons.DUPLICATE_LABEL,
-            },
-            {
-                path: 'text',
-                line: 6,
-                reason: 'MIXED_TIMESTAMPS',
-                message: zhHant.tracks.reasons.MIXED_TIMESTAMPS,
-            },
-        ]);
-        expect((await trackRow('apollo-18-01'))?.updated_at).toBe(NOW);
-        expect(await lyricsFiles()).toEqual([]);
+describe('PUT /api/tracks/:id/text: checks before writing', () => {
+    it('should answer 409 NO_AUDIO for a track without audio and write nothing', async () => {
+        const { puts, bindings } = recordedMedia();
+        const { status, body } = await putText(
+            'komorebi-02',
+            { text: '跟住去邊度', etag: null },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('NO_AUDIO');
+        expect(puts).toEqual([]);
     });
 
-    // B-040：details 唔回出錯嗰行嘅原文（管理端手上有成段文字，按行號標示就得）
-    it('should not echo the offending line back', async () => {
-        const longLine = '長'.repeat(600);
-        const details = await detailsOf(await putText('apollo-18-01', `歌名\n\n${longLine}`));
-        expect(details).toHaveLength(1);
-        expect(details[0]).toMatchObject({ line: 3, reason: 'LINE_TOO_LONG' });
-        expect(JSON.stringify(details)).not.toContain('長長');
-        expect(String(details[0]?.message)).toContain('500');
+    it('should list every song-text error by line and write nothing', async () => {
+        const { puts, bindings } = recordedMedia();
+        const text = '曲：阿正\n詞：甲\n詞：乙\n\n[00:01.00]a\nb';
+        const { status, body } = await putText(
+            'komorebi-05',
+            { text, etag: await etagOf() },
+            '',
+            bindings,
+        );
+        expect(status).toBe(400);
+        expect(body.error.details.map(({ line, reason }: Loose) => [line, reason])).toEqual([
+            [1, 'TITLE_REQUIRED'],
+            [3, 'DUPLICATE_LABEL'],
+            [6, 'MIXED_TIMESTAMPS'],
+        ]);
+        expect(body.error.details[0].message).toBe(zhHant.tracks.reasons.TITLE_REQUIRED);
+        expect(puts).toEqual([]);
     });
 
     it('should report too many lines as line 0 with 400', async () => {
-        const response = await putText('apollo-18-01', `歌名${'\n'.repeat(SONG_TEXT_MAX_LINES)}`);
-        expect(response.status).toBe(400);
-        expect(await detailsOf(response)).toMatchObject([{ line: 0, reason: 'TOO_MANY_LINES' }]);
+        const { status, body } = await save05(`歌名${'\n'.repeat(SONG_TEXT_MAX_LINES)}`);
+        expect(status).toBe(400);
+        expect(body.error.details).toMatchObject([{ line: 0, reason: 'TOO_MANY_LINES' }]);
     });
 
-    // B-040：parser 第 0 行嘅 TOO_LARGE → 413
-    it('should answer 413 TOO_LARGE above SONG_TEXT_MAX_BYTES, counted in UTF-8 bytes', async () => {
+    it('should answer 413 TOO_LARGE above the limit and for a huge body', async () => {
         const chinese = `歌名\n\n${'字'.repeat(Math.ceil(SONG_TEXT_MAX_BYTES / 3))}`;
-        const response = await putText('apollo-18-01', chinese);
-        expect(response.status).toBe(413);
-        const body = await json<ErrorBody>(response);
-        expect(body.error.code).toBe('TOO_LARGE');
-        expect(body.error.message).toContain('64');
-        expect(body.error.message).not.toMatch(/[{}]/);
+        const large = await save05(chinese);
+        expect(large.status).toBe(413);
+        expect(large.body.error.message).toContain('64');
+        const huge = await api('PUT', '/api/tracks/komorebi-05/text', 'a'.repeat(4_000_000));
+        expect(huge.status).toBe(413);
     });
 
-    it('should answer 413 quickly for a huge body without parsing it', async () => {
-        const huge = 'a'.repeat(SONG_TEXT_MAX_BYTES * 20);
-        expect((await putText('apollo-18-01', huge)).status).toBe(413);
-        const escaped = (count: number) => `{"text":"${'\\u0041'.repeat(count)}"}`;
-        const raw = await api(
-            'PUT',
-            '/api/tracks/apollo-18-01/text',
-            escaped(SONG_TEXT_MAX_BYTES * 2),
-            ifMatch(),
-        );
-        expect(raw.status).toBe(413);
-    });
-
-    // 合法嘅文字可以每個字都寫成 \uXXXX：body 上限要容得下（唔可以當 413）
     it('should still read a fully escaped body whose text is within the limit', async () => {
-        const raw = `{"text":"${'\\u0041'.repeat(SONG_TEXT_MAX_BYTES - 1)}"}`;
-        const response = await api('PUT', '/api/tracks/apollo-18-01/text', raw, ifMatch());
+        const raw = `{"etag":null,"text":"${'\\u0041'.repeat(SONG_TEXT_MAX_BYTES - 1)}"}`;
+        const response = await api('PUT', '/api/tracks/komorebi-05/text', raw);
         expect(response.status).toBe(400);
-        expect(await detailsOf(response)).toMatchObject([{ line: 1, reason: 'TITLE_TOO_LONG' }]);
-    });
-
-    it('should require text as a string and refuse other fields', async () => {
-        const missing = await api('PUT', '/api/tracks/apollo-18-01/text', {}, ifMatch());
-        expect(await detailsOf(missing)).toMatchObject([{ path: 'text', reason: 'REQUIRED' }]);
-        const notText = await api(
-            'PUT',
-            '/api/tracks/apollo-18-01/text',
-            { text: 42, title: 'x' },
-            ifMatch(),
-        );
-        expect(
-            (await detailsOf(notText)).map((d) => `${String(d.path)}:${String(d.reason)}`),
-        ).toEqual(['text:NOT_TEXT', 'title:NOT_EDITABLE']);
-    });
-
-    it('should answer VALIDATION_ERROR for a body that is not a JSON object', async () => {
-        const response = await api('PUT', '/api/tracks/apollo-18-01/text', '"歌名"', ifMatch());
-        expect(response.status).toBe(400);
-        expect(await detailsOf(response)).toMatchObject([{ path: '$', reason: 'NOT_AN_OBJECT' }]);
-    });
-
-    it('should require If-Match', async () => {
-        const response = await api('PUT', '/api/tracks/apollo-18-01/text', { text: '歌名' });
-        expect(response.status).toBe(400);
-        expect(await detailsOf(response)).toMatchObject([{ path: 'If-Match', reason: 'REQUIRED' }]);
-    });
-});
-
-describe('PUT /api/tracks/:id/text: B-038 hint for labels after a blank line', () => {
-    it('should save label-looking lines after a blank line as lyrics and say so', async () => {
-        const text = '歌名\n\n曲：阿正\n詞：林夕\n\n第一句';
-        const response = await putText('apollo-18-01', text);
-        expect(response.status).toBe(200);
-        const body = await json<Saved>(response);
-        // API-012 嘅形狀：四項都冇係四個 null
-        expect(body.track).toMatchObject({
-            credits: { composer: null, lyricist: null, arranger: null, producer: null },
-        });
-        expect(body.hints).toEqual([
-            {
-                path: 'text',
-                line: 3,
-                reason: 'LABEL_AFTER_BLANK_LINE',
-                message: zhHant.tracks.hints.LABEL_AFTER_BLANK_LINE,
-            },
-            {
-                path: 'text',
-                line: 4,
-                reason: 'LABEL_AFTER_BLANK_LINE',
-                message: zhHant.tracks.hints.LABEL_AFTER_BLANK_LINE,
-            },
+        expect((await json<Loose>(response)).error.details).toMatchObject([
+            { line: 1, reason: 'TITLE_TOO_LONG' },
         ]);
     });
-});
 
-// CR-007（Functional Spec D72）：舊檔嘅「副題：」行照收，唔儲存，逐行提示
-describe('PUT /api/tracks/:id/text: subtitle lines of old files', () => {
-    it('should save the text without the subtitle and give a hint for its line', async () => {
-        const response = await putText('apollo-18-01', '歌名\n副題：Live\n曲：阿正');
-        expect(response.status).toBe(200);
-        const body = await json<Saved>(response);
-        expect(body.text).toBe('歌名\n曲：阿正');
-        expect(body.track).toMatchObject({ title: '歌名' });
-        expect(body.track).not.toHaveProperty('subtitle');
-        expect(body.hints).toEqual([
-            {
-                path: 'text',
-                line: 2,
-                reason: 'SUBTITLE_IGNORED',
-                message: zhHant.tracks.hints.SUBTITLE_IGNORED,
-            },
-        ]);
-        expect(await trackRow('apollo-18-01')).not.toHaveProperty('subtitle');
+    it.each([
+        ['"歌名"', '$', 'NOT_AN_OBJECT'],
+        [{ etag: null }, 'text', 'REQUIRED'],
+        [{ text: 42, etag: null }, 'text', 'NOT_TEXT'],
+        [{ text: '太平門' }, 'etag', 'REQUIRED'],
+        [{ text: '太平門', etag: '*' }, 'etag', 'INVALID_VALUE'],
+        [{ text: '太平門', etag: null, key: 'album-02-x/05 x.txt' }, 'key', 'NOT_EDITABLE'],
+    ])('should refuse %j at %s with %s', async (body, path, reason) => {
+        const { status, body: answer } = await putText('komorebi-05', body);
+        expect(status).toBe(400);
+        expect(answer.error.details).toContainEqual({ path, reason, message: expect.any(String) });
     });
 });
 
-describe('PUT /api/tracks/:id/text: concurrency and missing tracks', () => {
-    it('should answer 409 STALE for an old If-Match and keep the stored text', async () => {
-        await putText('apollo-18-01', SONG);
-        const response = await putText('apollo-18-01', '別的歌名');
-        expect(response.status).toBe(409);
-        expect((await json<ErrorBody>(response)).error).toMatchObject({
+describe('PUT /api/tracks/:id/text: versions', () => {
+    it('should answer 409 STALE and keep the file when it changed since it was read', async () => {
+        const etag = await etagOf();
+        await putMedia('05 太平門.txt', `${TEXT_05}\n[00:09.00]別處改的`);
+        const { status, body } = await putText('komorebi-05', { text: '太平門', etag }, '?force=1');
+        expect(status).toBe(409);
+        expect(body.error).toEqual({
             code: 'STALE',
-            message: zhHant.tracks.errors.stale,
+            message: '檔案已在其他地方更改，請重新載入。',
         });
-        expect((await getText('apollo-18-01')).text).toBe(SONG);
+        expect(await mediaText(TEXT_05_KEY)).toBe(`${TEXT_05}\n[00:09.00]別處改的`);
     });
 
-    it('should let only one of two saves with the same If-Match win', async () => {
-        const responses = await Promise.all([
-            putText('apollo-18-01', '甲\n\n[00:01.00]甲'),
-            putText('apollo-18-01', '乙\n\n乙'),
-        ]);
-        expect(responses.map((r) => r.status).sort()).toEqual([200, 409]);
-        const winner = await json<Saved>(responses.find((r) => r.status === 200) as Response);
-        expect((await getText('apollo-18-01')).text).toBe(winner.text);
-        expect((await lyricsRow('apollo-18-01'))?.json_name).toBe(winner.lyrics);
-        expect(await lyricsFiles()).toEqual([winner.lyrics]);
+    it('should not create a file over one that appeared since it was read', async () => {
+        const { status } = await putText('komorebi-05', { text: TEXT_05, etag: null });
+        expect(status).toBe(409);
     });
 
-    it('should answer 404 NOT_FOUND for an unknown track', async () => {
-        const response = await putText('nope', '歌名');
-        expect(response.status).toBe(404);
-        expect((await json<ErrorBody>(response)).error).toEqual({
-            code: 'NOT_FOUND',
-            message: zhHant.tracks.errors.notFound,
-        });
-        expect(await lyricsFiles()).toEqual([]);
+    it('should let only one of two saves of the same version win', async () => {
+        const etag = await etagOf();
+        const texts = [`${TEXT_05}\n[00:09.00]甲`, `${TEXT_05}\n[00:09.00]乙`];
+        const results = await Promise.all(
+            texts.map((text) => putText('komorebi-05', { text, etag })),
+        );
+        expect(results.map(({ status }) => status).sort()).toEqual([200, 409]);
+        const winner = results.find(({ status }) => status === 200)?.body;
+        expect(await mediaText(TEXT_05_KEY)).toBe(winner?.text);
+        expect((await lyricsRow('komorebi-05'))?.line_count).toBe(3);
+    });
+
+    it('should answer 404 NOT_FOUND for an unknown track and write nothing', async () => {
+        const { puts, bindings } = recordedMedia();
+        const { status, body } = await putText('nope', { text: '歌名', etag: null }, '', bindings);
+        expect(status).toBe(404);
+        expect(body.error.message).toBe(zhHant.tracks.errors.notFound);
+        expect(puts).toEqual([]);
     });
 });
 
-describe('GET /api/tracks/:id/text', () => {
-    it('should rebuild the text from the stored fields in the fixed order', async () => {
-        await insertTrack('apollo-18-09', 'apollo-18', 9, {
-            title: '發現號',
-            lyricist: '林夕',
-            composer: '阿正',
-        });
-        expect(await getText('apollo-18-09')).toEqual({
-            trackId: 'apollo-18-09',
-            text: '發現號\n曲：阿正\n詞：林夕',
-            updatedAt: NOW,
-        });
+describe('PUT /api/tracks/:id/text: only the song text file of the track is written', () => {
+    it('should ignore a stored link to a file of another album', async () => {
+        const foreign = 'album-02-other/01 下一位參賽者.txt';
+        await env.MEDIA.put(foreign, '別人的檔');
+        await env.DB.prepare("UPDATE tracks SET text_key = ? WHERE id = 'komorebi-01'")
+            .bind(foreign)
+            .run();
+        const { puts, bindings } = recordedMedia();
+        const { status } = await putText('komorebi-01', { text: SONG, etag: null }, '', bindings);
+        expect(status).toBe(200);
+        expect(puts).toEqual([mediaKey('01 下一位參賽者.txt')]);
+        expect(await mediaText(foreign)).toBe('別人的檔');
     });
 
-    it('should give back exactly what was saved', async () => {
-        const saved = await json<Saved>(await putText('apollo-18-01', SONG));
-        expect(await getText('apollo-18-01')).toEqual({
-            trackId: 'apollo-18-01',
-            text: SONG,
-            updatedAt: saved.updatedAt,
-        });
+    it('should not write when the stored folder is not an album folder', async () => {
+        const { puts, bindings } = recordedMedia();
+        await env.DB.prepare("UPDATE albums SET folder = '_fonts'").run();
+        const { status } = await putText('komorebi-01', { text: SONG, etag: null }, '', bindings);
+        expect(status).toBe(400);
+        expect(puts).toEqual([]);
     });
 
-    it('should answer 404 for an unknown track', async () => {
-        expect((await api('GET', '/api/tracks/nope/text')).status).toBe(404);
+    it('should not write when two song text files have the number', async () => {
+        await putMedia('01 a.txt', 'a');
+        await putMedia('01 b.txt', 'b');
+        const { puts, bindings } = recordedMedia();
+        const { status, body } = await putText(
+            'komorebi-01',
+            { text: SONG, etag: null },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('TEXT_CONFLICT');
+        expect(puts).toEqual([]);
+    });
+
+    it('should put the new lyrics into catalog.json and never delete media', async () => {
+        const { calls, bindings } = recordedMedia();
+        await putText('komorebi-01', { text: SONG, etag: null }, '', bindings);
+        expect(calls.delete).toBeUndefined();
+        const tracks = (await liveDocument())?.albums[0]?.tracks ?? [];
+        expect(tracks[0]?.lyrics).toEqual(expect.any(String));
+        expect((await tracksOf())[0]?.composer).toBe('阿正');
     });
 });

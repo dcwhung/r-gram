@@ -156,6 +156,20 @@ describe('planFolderSync', () => {
             expect(fifth).toMatchObject({ title: '太平門（現場）', read: null, changed: false });
         });
 
+        it('should read song text again when the audio file it is compared with is renamed', () => {
+            const tracks = [
+                track(5, {
+                    title: '太平門',
+                    audioKey: key('05 太平門 (Live).mp3'),
+                    textKey: key('05 太平門.txt'),
+                    textSourceEtag: '"t5"',
+                }),
+            ];
+            const result = plan({ files, info: { kind: 'none' }, tracks, album: album() });
+            expect(result.tracks[1]).toMatchObject({ compareTitle: '太平門', changed: true });
+            expect(result.tracks[1]?.read).toMatchObject({ key: key('05 太平門.txt') });
+        });
+
         it('should fall back the same way when info.txt cannot be used', () => {
             const tooLarge = {
                 kind: 'read' as const,
@@ -174,6 +188,62 @@ describe('planFolderSync', () => {
             expect(codesOf(result.checks)).toEqual([['INFO_TOO_LARGE', undefined]]);
             expect(result.checks[0]?.key).toBe(INFO_KEY);
             expect(result.infoSettled).toBe(false);
+        });
+    });
+
+    describe('info.txt that cannot be used after a usable one (S-164)', () => {
+        const badEncoding: SyncInfo = {
+            kind: 'read',
+            key: INFO_KEY,
+            etag: '"bad"',
+            info: {
+                usable: false,
+                title: null,
+                year: null,
+                tracks: [],
+                checks: [checkOf('INFO_BAD_ENCODING')],
+            },
+        };
+        const tracks = [
+            track(1, { title: '下一位參賽者', audioKey: key('01 下一位參賽者.m4a') }),
+            track(2, { title: '跟住去邊度' }),
+        ];
+
+        it('should keep the stored title, year and track list and list no track for removal', () => {
+            const files = [
+                file('info.txt', '"bad"'),
+                file('01 下一位參賽者.m4a'),
+                file('03 c.m4a'),
+            ];
+            const stored = album({ title: 'K', year: 1999, checks: [] });
+            const result = plan({ files, info: badEncoding, tracks, album: stored });
+            expect(result.album).toEqual({ title: 'K', year: 1999 });
+            expect(result.tracks.map(({ no, title }) => [no, title])).toEqual([
+                [1, '下一位參賽者'],
+                [2, '跟住去邊度'],
+            ]);
+            expect(result.pendingRemovals).toEqual([]);
+            expect(result.infoSettled).toBe(false);
+            expect(codesOf(result.checks)).toEqual([
+                ['INFO_BAD_ENCODING', undefined],
+                ['AUDIO_NOT_LISTED', 3],
+            ]);
+        });
+
+        it('should not carry the checks of the earlier info.txt', () => {
+            const stored = album({
+                checks: [checkOf('INFO_UNKNOWN_LINE', { key: INFO_KEY, line: 7 })],
+            });
+            const result = plan({ info: badEncoding, tracks, album: stored });
+            expect(codesOf(result.checks)).toEqual([['INFO_BAD_ENCODING', undefined]]);
+        });
+
+        it('should fall back to the audio files when no info.txt was ever used', () => {
+            const files = [file('01 下一位參賽者.m4a'), file('03 c.m4a')];
+            const never = album({ infoEtag: null });
+            const result = plan({ files, info: badEncoding, tracks, album: never });
+            expect(result.tracks.map(({ no }) => no)).toEqual([1, 3]);
+            expect(result.album).toEqual({ title: ALBUM, year: null });
         });
     });
 
@@ -261,6 +331,39 @@ describe('planFolderSync', () => {
             const tracks = [track(1, { title: '下一位參賽者', audioKey: key('01 b.mp3') })];
             const [first] = plan({ files, tracks, album: album() }).tracks;
             expect(first).toMatchObject({ audioKey: key('01 b.mp3') });
+        });
+
+        it('should treat a conflict whose linked file is gone like a gone file (S-165)', () => {
+            const files = [file('01 b.m4a'), file('01 c.mp3'), file('01 a.mp4'), file('01 a.txt')];
+            const tracks = [
+                track(1, {
+                    title: '下一位參賽者',
+                    audioKey: key('01 a.m4a'),
+                    mvKey: key('01 a.mp4'),
+                    textKey: key('01 a.txt'),
+                }),
+            ];
+            const result = plan({ files, tracks, album: album() });
+            expect(result.tracks[0]).toMatchObject({
+                audioKey: key('01 a.m4a'),
+                mvKey: key('01 a.mp4'),
+                textKey: key('01 a.txt'),
+                read: null,
+                changed: false,
+            });
+            expect(result.pendingRemovals.map(({ kind, key: k }) => [kind, k])).toEqual([
+                ['audio', key('01 a.m4a')],
+            ]);
+        });
+
+        it('should not link MV or song text to a new track whose audio is a conflict', () => {
+            const files = [file('01 a.m4a'), file('01 b.mp3'), file('01 a.mp4'), file('01 a.txt')];
+            expect(plan({ files }).tracks[0]).toMatchObject({
+                audioKey: null,
+                mvKey: null,
+                textKey: null,
+                read: null,
+            });
         });
 
         it('should report two info.txt files', () => {
@@ -438,6 +541,27 @@ describe('planFolderSync', () => {
             ];
             const result = plan({ files: [file('01 a.mp4')], tracks, album: album() });
             expect(result.pendingRemovals.map(({ kind }) => kind)).toEqual(['audio']);
+        });
+
+        it('should keep the MV and song text links of a track whose audio is gone until it is confirmed', () => {
+            const tracks = [
+                track(1, {
+                    title: '下一位參賽者',
+                    audioKey: key('01 a.m4a'),
+                    mvKey: key('01 a.mp4'),
+                    textKey: key('01 a.txt'),
+                    textSourceEtag: '"t1"',
+                }),
+            ];
+            const files = [file('01 a.mp4'), file('01 a.txt', '"t9"')];
+            const [first] = plan({ files, tracks, album: album() }).tracks;
+            expect(first).toMatchObject({
+                audioKey: key('01 a.m4a'),
+                mvKey: key('01 a.mp4'),
+                textKey: key('01 a.txt'),
+                read: null,
+                changed: false,
+            });
         });
 
         it('should list covers that are gone', () => {

@@ -1,7 +1,7 @@
 /*
  * 媒體 bucket（rb-discography）嘅 list：一層（delimiter `/`），跟 cursor 讀，最多 SCAN_LIST_PAGES_MAX 頁
  *（每頁最多 1000 個 = 一個 R2 操作）；讀到上限仲有就停，`truncated` = true（review S-136）。
- * 專輯資料夾入面嘅子資料夾唔當專輯嘅檔（掃描只睇第一層）。Worker 只 list / head / get，唔寫媒體 bucket。
+ * 專輯資料夾入面嘅子資料夾唔當專輯嘅檔（掃描只睇第一層）。寫媒體 bucket 只有 media/writeText.ts（T-106）。
  * 移植自 903-player `content/r2Listing.ts`
  */
 import type { ScanFile } from '@r-gram/catalog';

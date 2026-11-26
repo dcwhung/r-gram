@@ -23,7 +23,8 @@ migrations_dir = "migrations"
 binding = "CATALOG"
 bucket_name = "r-gram-catalog"
 
-# 音檔 / MV bucket（公開網址直出）：Worker 只會 list / head（掃描），唔寫
+# 媒體 bucket（公開網址直出；唯一資料來源，CR-007）：同步 list / head / get；只有 info.txt 同歌曲文字框
+#（API-019、API-041，T-106）會寫：只寫專輯資料夾第一層嘅 info.txt 同 NN ….txt，要版本前提，永遠唔 delete
 [[r2_buckets]]
 binding = "MEDIA"
 bucket_name = "rb-discography"

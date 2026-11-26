@@ -5,6 +5,7 @@
 import { zhHant } from '../src/i18n/zh-Hant';
 import { NOW, api, countOf, insertAlbum, insertTrack } from './albumFixtures';
 import { stateRow } from './catalogFixtures';
+import { mirrorAlbumToMedia } from './trackFixtures';
 
 const IF_MATCH = { 'if-match': `"${NOW}"` };
 
@@ -26,6 +27,7 @@ const REMOVED: [string, string, unknown][] = [
 beforeEach(async () => {
     await insertAlbum('apollo-18', 0);
     await insertTrack('apollo-18-01', 'apollo-18', 1);
+    await mirrorAlbumToMedia('apollo-18');
 });
 
 describe('routes removed by CR-007', () => {

@@ -22,8 +22,10 @@ interface ReadState {
     checks: Check[];
 }
 
-/** 太大：當冇 `info.txt`（D68），每次一個新物件（呼叫者可以改） */
-const tooLarge = (): AlbumInfo => ({
+/**
+ * 太大：用唔到（D68、S-164），每次一個新物件（呼叫者可以改）。Worker 讀檔之前睇大細都用佢（S-168：一個定義）
+ */
+export const infoTooLarge = (): AlbumInfo => ({
     usable: false,
     title: null,
     year: null,
@@ -110,9 +112,9 @@ const byLine = (a: Check, b: Check): number =>
     (a.line ?? Number.MAX_SAFE_INTEGER) - (b.line ?? Number.MAX_SAFE_INTEGER);
 
 export const parseAlbumInfo = (text: string): AlbumInfo => {
-    if (isTooManyBytes(text)) return tooLarge();
+    if (isTooManyBytes(text)) return infoTooLarge();
     const lines = songLines(text);
-    if (contentLineCount(text, lines) > INFO_TEXT_MAX_LINES) return tooLarge();
+    if (contentLineCount(text, lines) > INFO_TEXT_MAX_LINES) return infoTooLarge();
     const state: ReadState = {
         seen: new Set(),
         title: null,

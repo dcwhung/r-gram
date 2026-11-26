@@ -40,13 +40,31 @@ describe('POST /api/sync/folders/:folder: request', () => {
         },
     );
 
-    it.each(['?from=0', '?from=abc', '?from=1000'])('should refuse %s', async (query) => {
+    it.each([
+        '?from=0',
+        '?from=abc',
+        '?from=1000',
+        '?from=',
+        '?from=1e1',
+        '?from=0x10',
+        '?from=%2B5',
+        '?from=5.0',
+        '?from=%205',
+        '?from=%EF%BC%95',
+    ])('should refuse %s', async (query) => {
         await putKomorebi();
         const { status, body } = await syncFolder(FOLDER, query);
         expect(status).toBe(400);
         expect(body.error.details).toEqual([
             { path: 'from', reason: 'INVALID_NUMBER', message: expect.any(String) },
         ]);
+    });
+
+    it('should accept a plain decimal from with leading zeros', async () => {
+        await putKomorebi();
+        const { status, body } = await syncFolder(FOLDER, '?from=003');
+        expect(status).toBe(200);
+        expect(body.added.map(({ no }: Loose) => no)).toEqual([3, 4, 5]);
     });
 
     it('should answer 404 FOLDER_EMPTY for a folder that is not in the bucket', async () => {
@@ -167,6 +185,31 @@ describe('POST /api/sync/folders/:folder: second scan', () => {
         expect(await stateRow()).toEqual(before.state);
     });
 
+    it('should not store the album again when the checks and the info.txt ETag are the same', async () => {
+        const writes: string[] = [];
+        const db = new Proxy(env.DB, {
+            get(target, key: string) {
+                const value = Reflect.get(target, key) as unknown;
+                if (key !== 'prepare')
+                    return typeof value === 'function' ? value.bind(target) : value;
+                return (sql: string) => {
+                    if (/^\s*(UPDATE|INSERT|DELETE)/i.test(sql)) writes.push(sql);
+                    return target.prepare(sql);
+                };
+            },
+        });
+        await syncFolder(FOLDER, '', { ...env, DB: db });
+        expect(writes).toEqual([]);
+    });
+
+    it('should not import the same song text again when only the title changed', async () => {
+        const before = await lyricsRow('komorebi-05');
+        await putMedia('info.txt', KOMOREBI_INFO.replace('5. 太平門', '5. 太平門（新）'));
+        const { body } = await syncFolder();
+        expect(body.updated).toEqual([{ trackId: 'komorebi-05', no: 5, title: '太平門（新）' }]);
+        expect(await lyricsRow('komorebi-05')).toEqual(before);
+    });
+
     it('should follow a new title, year and track list in info.txt', async () => {
         await putMedia(
             'info.txt',
@@ -276,6 +319,18 @@ describe('POST /api/sync/folders/:folder: checks', () => {
         expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
     });
 
+    it('should drop a title mismatch without info.txt once the audio file is renamed', async () => {
+        await putMedia('05 太平門 (Live).m4a');
+        await putMedia('05 太平門.txt', TEXT_05);
+        expect(codesOf((await syncFolder()).body)).toEqual([
+            ['NO_INFO', undefined],
+            ['TITLE_MISMATCH', 5],
+        ]);
+        await deleteMedia('05 太平門 (Live).m4a');
+        await putMedia('05 太平門.m4a');
+        expect(codesOf((await syncFolder()).body)).toEqual([['NO_INFO', undefined]]);
+    });
+
     it('should treat info.txt that is not UTF-8 like a missing one', async () => {
         await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
         await putMedia('01 a.m4a');
@@ -283,6 +338,38 @@ describe('POST /api/sync/folders/:folder: checks', () => {
         expect(codesOf(body)).toEqual([['INFO_BAD_ENCODING', undefined]]);
         expect(body.checks[0].key).toBe(mediaKey('info.txt'));
         expect((await tracksOf()).map(({ no }) => no)).toEqual([1]);
+    });
+
+    it('should keep the album as it was when a used info.txt becomes unusable', async () => {
+        await putKomorebi();
+        await syncFolder();
+        const before = await tracksOf();
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const { body } = await syncFolder();
+        expect(body.album).toMatchObject({ title: 'Komorebi', year: 2026 });
+        expect(body.pendingRemovals).toEqual([]);
+        expect(codesOf(body)).toEqual([['INFO_BAD_ENCODING', undefined]]);
+        expect(await tracksOf()).toEqual(before);
+        expect((await syncFolder()).body.pendingRemovals).toEqual([]);
+    });
+
+    it('should keep the album as it was when info.txt cannot be read', async () => {
+        await putKomorebi();
+        await syncFolder();
+        await putMedia('info.txt', `${KOMOREBI_INFO}\n6. 新歌`);
+        const { bindings } = mediaWith({
+            get: (args, original) => {
+                if (String(args[0]).endsWith('info.txt')) throw new Error('R2 unavailable');
+                return original(...args);
+            },
+        });
+        const { status, body } = await syncFolder(FOLDER, '', bindings);
+        expect(status).toBe(200);
+        expect(body.album).toMatchObject({ title: 'Komorebi' });
+        expect(codesOf(body)).toEqual([['INFO_UNREADABLE', undefined]]);
+        expect(body.checks[0].key).toBe(mediaKey('info.txt'));
+        expect(await countOf('tracks')).toBe(5);
+        expect((await syncFolder()).body.added.map(({ no }: Loose) => no)).toEqual([6]);
     });
 
     it('should not read an info.txt larger than the limit', async () => {
@@ -410,6 +497,31 @@ describe('POST /api/sync/folders/:folder: limits and failures', () => {
         expect(again.body).toMatchObject({ added: [], updated: [], unchanged: count });
     });
 
+    it('should not settle info.txt while a track of an earlier batch is still missing', async () => {
+        const count = SYNC_TRACKS_MAX + 3;
+        const lines = Array.from({ length: count }, (_, index) => `${index + 1}. 歌${index + 1}`);
+        await putMedia('info.txt', `唱片名稱：大碟\n${lines.join('\n')}`);
+        for (let no = 1; no <= count; no += 1) {
+            await putMedia(`${String(no).padStart(2, '0')} 歌${no}.m4a`);
+            await putMedia(`${String(no).padStart(2, '0')} 歌${no}.txt`, `歌${no}\n曲：甲`);
+        }
+        const { bindings } = mediaWith({
+            get: (args, original) => {
+                if (String(args[0]).includes('/02 ')) throw new Error('R2 unavailable');
+                return original(...args);
+            },
+        });
+        const first = await syncFolder(FOLDER, '', bindings);
+        expect(first.body.failed.map(({ no }: Loose) => no)).toEqual([2]);
+        const second = await syncFolder(FOLDER, `?from=${first.body.nextFrom}`);
+        expect(second.body).toMatchObject({ more: false, failed: [] });
+        expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
+        const again = await syncFolder();
+        expect(again.body.added.map(({ no }: Loose) => no)).toEqual([2]);
+        expect(await countOf('tracks')).toBe(count);
+        expect((await albumRow(ALBUM_ID))?.info_etag).not.toBeNull();
+    });
+
     it('should apply the rest when one track fails and retry it on the next scan', async () => {
         await putKomorebi();
         await putMedia('01 下一位參賽者.txt', '下一位參賽者');
@@ -428,6 +540,27 @@ describe('POST /api/sync/folders/:folder: limits and failures', () => {
         expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
         const retry = await syncFolder();
         expect(retry.body.added.map(({ no }: Loose) => no)).toEqual([1]);
+    });
+
+    it('should still rebuild the catalog when storing the checks fails after the tracks', async () => {
+        await putKomorebi();
+        const db = new Proxy(env.DB, {
+            get(target, key: string) {
+                const value = Reflect.get(target, key) as unknown;
+                if (key !== 'prepare')
+                    return typeof value === 'function' ? value.bind(target) : value;
+                return (sql: string) => {
+                    if (sql.includes('SET checks')) throw new Error('D1 unavailable');
+                    return target.prepare(sql);
+                };
+            },
+        });
+        const { status, body } = await syncFolder(FOLDER, '', { ...env, DB: db });
+        expect(status).toBe(200);
+        expect(body.added).toHaveLength(5);
+        expect(body.catalog).toMatchObject({ ok: true });
+        expect((await liveDocument())?.albums[0]?.tracks).toHaveLength(5);
+        expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
     });
 
     it('should end with the same result when two scans of one folder run at once', async () => {

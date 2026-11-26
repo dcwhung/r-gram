@@ -12,7 +12,7 @@ import { readJsonObject } from '../lib/http';
 import { guardItem } from '../media/applyGuard';
 import { dropLyricsLater } from '../tracks/lyricsCleanup';
 import { failedItem, syncNotAnObject, syncValidationError, type FailedItem } from './errors';
-import { hasFile, removalContext, type RemovalContext } from './removalContext';
+import { hasFile, keepsTrackFile, removalContext, type RemovalContext } from './removalContext';
 import { readRemovals, type RemovalItem } from './removalShape';
 import {
     clearCover,
@@ -49,8 +49,9 @@ const removeTrack: Handler = async (c, context, item) => {
     const track = await trackOf(c, item);
     if (!track) return failedItem('NOT_FOUND');
     if ((await context.folder(track.folder)).truncated) return failedItem('STALE');
-    if ((await context.listedNumbers(track.folder)).has(track.no))
-        return failedItem('STILL_PRESENT');
+    const listed = await context.listedNumbers(track.folder, track.info_etag !== null);
+    if (!listed) return failedItem('STALE');
+    if (listed.has(track.no)) return failedItem('STILL_PRESENT');
     await deleteTrack(c.env.DB, track.id);
     dropLyricsLater(c, [track.json_name]);
     return DONE;
@@ -70,7 +71,8 @@ const clearFile =
         if (track[LINK[kind]] !== item.key) return failedItem('STALE');
         const listing = await context.folder(track.folder);
         if (listing.truncated) return failedItem('STALE');
-        if (hasFile(listing.files, kind, track.no)) return failedItem('STILL_PRESENT');
+        if (keepsTrackFile(listing.files, kind, track.no, item.key ?? ''))
+            return failedItem('STILL_PRESENT');
         if (!(await clearTrackFile(c.env.DB, track, kind, item.key ?? '')))
             return failedItem('STALE');
         if (kind !== 'mv') dropLyricsLater(c, [track.json_name]);

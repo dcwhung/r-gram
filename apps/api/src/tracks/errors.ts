@@ -15,9 +15,7 @@ import { ERROR_CODE, HTTP_STATUS } from '../config';
 import type { MessageParams } from '../i18n/fillMessage';
 import { zhHant } from '../i18n/zh-Hant';
 import { BODY_PATH, UNKNOWN_FIELDS_MAX } from '../lib/fields';
-import type { TrackReason } from './validate';
-
-export type { TrackReason };
+export type TrackReason = keyof typeof zhHant.tracks.reasons;
 export type TrackSituation = keyof typeof zhHant.tracks.errors;
 export type HintReason = keyof typeof zhHant.tracks.hints;
 
@@ -29,6 +27,8 @@ const SITUATIONS: Record<TrackSituation, ErrorKind> = {
     stale: { status: HTTP_STATUS.conflict, code: ERROR_CODE.stale },
     lyricsRemoved: { status: HTTP_STATUS.conflict, code: ERROR_CODE.lyricsRemoved },
     tooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
+    noAudio: { status: HTTP_STATUS.conflict, code: ERROR_CODE.noAudio },
+    textConflict: { status: HTTP_STATUS.conflict, code: ERROR_CODE.textConflict },
 };
 
 const ERROR_PARAMS: Partial<Record<TrackSituation, MessageParams>> = {
@@ -63,6 +63,3 @@ export const trackValidationError = (c: Context, issues: readonly TrackDetail[])
 
 export const trackNotAnObject = (c: Context) =>
     trackValidationError(c, [{ path: BODY_PATH, reason: 'NOT_AN_OBJECT' }]);
-
-export const ifMatchRequired = (c: Context) =>
-    trackValidationError(c, [{ path: 'If-Match', reason: 'REQUIRED' }]);
