@@ -204,4 +204,9 @@ describe('PHONE_LAYOUT', () => {
             seam: { dot: 9, gap: 8, length: 230, stroke: 5, minOpacity: 0.45 },
         });
     });
+
+    // 設計稿 LOGO：Favourites 碟面嘅 logo（闊 = 碟半徑 × 0.36、中心喺碟芯下面 × 0.46、圖嘅高闊比）
+    it('should carry the Favourites disc logo of the mockup', () => {
+        expect(PHONE_LAYOUT.favouritesLogo).toEqual({ width: 0.36, centreY: 0.46, aspect: 0.8203 });
+    });
 });
