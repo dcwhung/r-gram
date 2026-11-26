@@ -6,7 +6,6 @@ const track = (overrides: Partial<CatalogTrack> = {}): CatalogTrack => ({
     id: 'apollo-18-01',
     no: 1,
     title: '一早地下鐵',
-    subtitle: null,
     credits: { composer: '阿正', lyricist: 'Tim Lui / 6號', arranger: '阿正', producer: null },
     audio: 'apollo-18/01 一早地下鐵.m4a',
     mv: null,
@@ -21,7 +20,6 @@ const album = (overrides: Partial<CatalogAlbum> = {}): CatalogAlbum => ({
     year: 2008,
     category: 'album',
     categoryNo: 1,
-    label: '金牌娛樂',
     accent: '#c8442b',
     cover: '9f2c1a7b3d4e5f60.webp',
     thumb: '1a2b3c4d5e6f7081.webp',
@@ -56,6 +54,28 @@ describe('parseCatalogDocument', () => {
     it('should accept a well-formed document and return it', () => {
         const input = document();
         expect(parseCatalogDocument(input)).toEqual({ ok: true, document: input });
+    });
+
+    // CR-007（Technical Spec「內容檔」）：專輯刪 label、歌刪 subtitle；播放端本機存住嘅舊 document 有呢兩個欄，照樣有效
+    it('should still accept a document stored before CR-007 with label and subtitle', () => {
+        const old = {
+            ...document(),
+            albums: [{ ...album(), label: '金牌娛樂', tracks: [{ ...track(), subtitle: 'Live' }] }],
+        };
+        expect(parseCatalogDocument(old)).toEqual({ ok: true, document: old });
+    });
+
+    it('should not check the old label and subtitle fields any more', () => {
+        const old = {
+            ...document(),
+            albums: [{ ...album(), label: 7, tracks: [{ ...track(), subtitle: '' }] }],
+        };
+        expect(errorPaths(old)).toEqual([]);
+    });
+
+    it('should accept a track without audio, MV, lyrics or credits (a grey row)', () => {
+        const grey = track({ audio: null, mv: null, lyrics: null, credits: null });
+        expect(errorPaths(document({ albums: [album({ tracks: [grey] })] }))).toEqual([]);
     });
 
     it('should accept nullable fields being null', () => {

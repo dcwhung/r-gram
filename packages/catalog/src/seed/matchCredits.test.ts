@@ -112,6 +112,9 @@ describe('seedToCatalog', () => {
 
     it('should keep album order and copy the display fields', () => {
         const document = seedToCatalog(DISCOGRAPHY, CREDITS, options);
+        // CR-007（Technical Spec「內容檔」）：冇 label、subtitle
+        expect(document.albums[0]).not.toHaveProperty('label');
+        expect(document.albums[0]?.tracks[1]).not.toHaveProperty('subtitle');
         expect(document.albums.map((album) => album.id)).toEqual(['apollo-18', 'beaming']);
         expect(document.albums[1]).toMatchObject({
             title: 'Beaming',
@@ -137,7 +140,6 @@ describe('seedToCatalog', () => {
                 id: 'apollo-18-01',
                 no: 1,
                 title: 'Hero',
-                subtitle: null,
                 credits: {
                     composer: '阿正',
                     lyricist: '6號',
@@ -152,7 +154,6 @@ describe('seedToCatalog', () => {
                 id: 'apollo-18-02',
                 no: 2,
                 title: '遊車河',
-                subtitle: 'Bonus',
                 credits: null,
                 audio: null,
                 mv: null,

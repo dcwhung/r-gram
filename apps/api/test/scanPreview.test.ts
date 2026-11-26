@@ -53,14 +53,6 @@ describe('GET /api/albums/:id/scan: guards and folder', () => {
         expect(preview).toMatchObject({ folder: FOLDER, expectedFolder: FOLDER });
     });
 
-    it('should scan the manually bound folder when the album has one', async () => {
-        await env.DB.prepare("UPDATE albums SET folder = 'my-folder'").run();
-        await putMedia('01 a.m4a', 'x', 'my-folder');
-        const preview = await previewOf();
-        expect(preview.folder).toBe('my-folder');
-        expect(preview.newTracks[0].audio.key).toBe('my-folder/01 a.m4a');
-    });
-
     it('should ignore files in sub-folders', async () => {
         await putMediaFiles(['01 a.m4a', 'extra/02 b.m4a']);
         const preview = await previewOf();
@@ -187,11 +179,11 @@ describe('GET /api/albums/:id/scan: existing tracks', () => {
         });
     });
 
-    it('should match media, list missing audio and keep manual assignments', async () => {
+    // CR-007（D71）：冇手動指定，manualKept / manualMissing 永遠係空（T-105 拎走呢兩個欄）
+    it('should match media and list missing audio', async () => {
         await insertScanTrack(1);
         await insertScanTrack(9, { title: '一杯', audio_key: mediaKey('09 一杯.m4a') });
-        const manual = { audio_key: 'album-02-beaming/05 Hero.m4a', audio_manual: 1 };
-        await insertScanTrack(3, manual);
+        await insertScanTrack(3);
         await putMediaFiles(['01 a.m4a', '03 a.txt']);
         const preview = await previewOf();
         expect(preview.matched).toEqual([
@@ -213,20 +205,9 @@ describe('GET /api/albums/:id/scan: existing tracks', () => {
                 mvKey: null,
             },
         ]);
-        expect(preview.manualKept).toEqual([
-            { trackId: 'komorebi-03', kind: 'audio', key: 'album-02-beaming/05 Hero.m4a' },
-        ]);
-        expect(preview.manualMissing).toEqual([
-            { trackId: 'komorebi-03', kind: 'audio', key: 'album-02-beaming/05 Hero.m4a' },
-        ]);
-        expect(preview.songTexts.map((text: Loose) => text.trackId)).toEqual(['komorebi-03']);
-    });
-
-    it('should not list a manual assignment whose file exists', async () => {
-        await putMedia('05 Hero.m4a', 'x', 'album-02-beaming');
-        await insertScanTrack(3, { audio_key: 'album-02-beaming/05 Hero.m4a', audio_manual: 1 });
-        await putMediaFiles(['03 a.txt']);
-        expect((await previewOf()).manualMissing).toEqual([]);
+        expect(preview.manualKept).toEqual([]);
+        expect(preview.manualMissing).toEqual([]);
+        expect(preview.songTexts).toEqual([]);
     });
 });
 

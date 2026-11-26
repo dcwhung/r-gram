@@ -48,15 +48,11 @@ describe('session guard', () => {
     // W-016：歌曲 route 嘅守門靠註冊次序（B-019 ①）；逐條用佢自己嘅 method 試，GET 試唔到淨係收 POST／PUT 嘅 route
     it('should answer 401 UNAUTHORIZED on every track and scan route without a session', async () => {
         const routes: [string, string][] = [
-            ['POST', '/api/albums/apollo-18/tracks'],
             ['GET', '/api/tracks/x/text'],
             ['PUT', '/api/tracks/x/text'],
-            ['PATCH', '/api/tracks/x'],
-            ['DELETE', '/api/tracks/x'],
-            // T-025 掃描（API-030、API-031、API-032）
+            // T-025 掃描（API-030、API-031；T-105 換做同步）
             ['GET', '/api/albums/apollo-18/scan'],
             ['POST', '/api/albums/apollo-18/scan/apply'],
-            ['GET', '/api/media'],
         ];
         for (const [method, path] of routes) {
             const response = await call(path, { method, headers: { origin: ORIGIN } });
@@ -146,10 +142,10 @@ describe('CSRF Origin check', () => {
     });
 
     it('should let a same-origin mutating request through to the router', async () => {
-        // 過咗兩道守門先去到 POST /api/albums（T-022）：冇 body → 400 VALIDATION_ERROR
+        // 過咗兩道守門先去到 router：CR-007 之後冇 POST /api/albums → 404 NOT_FOUND（唔係 403）
         const response = await send('POST', { origin: ORIGIN });
-        expect(response.status).toBe(400);
-        expect(await response.json()).toMatchObject({ error: { code: 'VALIDATION_ERROR' } });
+        expect(response.status).toBe(404);
+        expect(await response.json()).toMatchObject({ error: { code: 'NOT_FOUND' } });
     });
 
     it('should reject applying scan results from another origin', async () => {

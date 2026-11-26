@@ -64,7 +64,6 @@ describe('PUT /api/tracks/:id/text: saving', () => {
             id: 'apollo-18-01',
             no: 1,
             title: '一早地下鐵',
-            subtitle: null,
             credits: {
                 composer: '阿正',
                 lyricist: 'Tim Lui / 6號',
@@ -76,7 +75,6 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         });
         expect(await trackRow('apollo-18-01')).toMatchObject({
             title: '一早地下鐵',
-            subtitle: null,
             producer: 'RubberBand / 雷頌德',
             updated_at: body.updatedAt,
         });
@@ -132,7 +130,6 @@ describe('PUT /api/tracks/:id/text: saving', () => {
             lyrics: null,
             track: {
                 title: '新歌名',
-                subtitle: null,
                 credits: { composer: null, lyricist: null, arranger: null, producer: null },
                 lyrics: null,
             },
@@ -341,7 +338,8 @@ describe('PUT /api/tracks/:id/text: subtitle lines of old files', () => {
         expect(response.status).toBe(200);
         const body = await json<Saved>(response);
         expect(body.text).toBe('歌名\n曲：阿正');
-        expect(body.track).toMatchObject({ title: '歌名', subtitle: null });
+        expect(body.track).toMatchObject({ title: '歌名' });
+        expect(body.track).not.toHaveProperty('subtitle');
         expect(body.hints).toEqual([
             {
                 path: 'text',
@@ -350,7 +348,7 @@ describe('PUT /api/tracks/:id/text: subtitle lines of old files', () => {
                 message: zhHant.tracks.hints.SUBTITLE_IGNORED,
             },
         ]);
-        expect((await trackRow('apollo-18-01'))?.subtitle).toBeNull();
+        expect(await trackRow('apollo-18-01')).not.toHaveProperty('subtitle');
     });
 });
 
@@ -390,10 +388,9 @@ describe('PUT /api/tracks/:id/text: concurrency and missing tracks', () => {
 });
 
 describe('GET /api/tracks/:id/text', () => {
-    it('should rebuild the text from the stored fields in the fixed order, without a subtitle', async () => {
+    it('should rebuild the text from the stored fields in the fixed order', async () => {
         await insertTrack('apollo-18-09', 'apollo-18', 9, {
             title: '發現號',
-            subtitle: 'Live',
             lyricist: '林夕',
             composer: '阿正',
         });

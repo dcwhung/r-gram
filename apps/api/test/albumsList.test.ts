@@ -1,6 +1,7 @@
 /*
- * API-010 GET /api/albums、API-012 GET /api/albums/:id：列表、完整度、全站統計（FR-114、D35）、catalog 狀態；
- * CR-004：發行類別、序號、封面來源 ETag、預期資料夾名
+ * API-010 GET /api/albums、API-012 GET /api/albums/:id：列表、完整度、全站統計（FR-114、D35）、catalog 狀態。
+ * CR-007（Technical Spec「API 一覽嘅變化」）：唯讀；次序固定（albumOrder）；字母盤標記由碟名計；
+ * 每張碟有檢查結果（列表係數目，專輯頁係逐項）；冇唱片公司、預期資料夾名；歌冇副題、手動指定、參考欄
  */
 import { zhHant } from '../src/i18n/zh-Hant';
 import {
@@ -21,10 +22,20 @@ interface ListBody {
 
 const list = async () => json<ListBody>(await api('GET', '/api/albums'));
 
-/** 兩張碟：b 有 3 首歌（音檔 2、MV 1、歌詞 1）連封面；a 冇歌 */
+const CHECKS = [
+    { level: 'warning', code: 'NO_INFO', params: {} },
+    { level: 'error', code: 'AUDIO_NOT_LISTED', key: 'album-03-b/13 x.m4a', no: 13, params: {} },
+];
+
+/** 兩張碟：b 有 3 首歌（音檔 2、MV 1、歌詞 1）連封面同兩項檢查結果；a 冇歌 */
 const seedTwoAlbums = async () => {
     await insertAsset('cover0000000000a.webp');
-    await insertAlbum('b', 2, { cover: 'cover0000000000a.webp', title: 'Beaming' });
+    await insertAlbum('b', 2, {
+        cover: 'cover0000000000a.webp',
+        title: 'Beaming',
+        checks: JSON.stringify(CHECKS),
+        info_etag: '"i1"',
+    });
     await insertAlbum('a', 1, { title: 'Apollo 18' });
     await insertTrack('b-01', 'b', 1, { audio_key: 'b/01 x.m4a', mv_key: 'b/01 x.mp4' });
     await insertTrack('b-02', 'b', 2, { audio_key: 'b/02 y.m4a' });
@@ -33,18 +44,17 @@ const seedTwoAlbums = async () => {
 };
 
 describe('GET /api/albums', () => {
-    it('should list albums in sort order with the editable fields and updatedAt', async () => {
+    it('should list albums in the fixed order with their read-only fields', async () => {
         await seedTwoAlbums();
         const body = await list();
         expect(body.albums.map((album) => album.id)).toEqual(['a', 'b']);
         expect(body.albums[1]).toEqual({
             id: 'b',
             title: 'Beaming',
-            wheelKey: 'A',
+            wheelKey: 'B',
             year: null,
             category: 'album',
             categoryNo: 3,
-            label: '',
             accent: '#c8442b',
             cover: 'cover0000000000a.webp',
             coverSourceEtag: null,
@@ -52,26 +62,50 @@ describe('GET /api/albums', () => {
             cover2: null,
             thumb2: null,
             cover2SourceEtag: null,
-            folder: null,
-            expectedFolder: 'album-03-b',
+            folder: 'album-03-b',
+            hasInfo: true,
             updatedAt: '2026-11-25T00:00:00.000Z',
+            checkCount: 2,
             completeness: { tracks: 3, audio: 2, mv: 1, lyrics: 1 },
         });
     });
 
-    it('should report an album without tracks as all zero', async () => {
+    it('should report an album without tracks or checks as all zero', async () => {
         await seedTwoAlbums();
-        const body = await list();
-        expect(body.albums[0]?.completeness).toEqual({ tracks: 0, audio: 0, mv: 0, lyrics: 0 });
+        const [first] = (await list()).albums;
+        expect(first).toMatchObject({ hasInfo: false, checkCount: 0 });
+        expect(first?.completeness).toEqual({ tracks: 0, audio: 0, mv: 0, lyrics: 0 });
     });
 
-    it('should not expose a shelf flag', async () => {
+    it('should not expose the fields CR-007 removed', async () => {
         await seedTwoAlbums();
-        const body = await list();
-        expect(body.albums[0]).not.toHaveProperty('enabled');
+        const [first] = (await list()).albums;
+        for (const key of ['enabled', 'label', 'expectedFolder', 'checks', 'infoEtag'])
+            expect(first, key).not.toHaveProperty(key);
     });
 
-    it('should total the site-wide statistics of D35', async () => {
+    // D69：類別（RELEASE_CATEGORIES 次序）→ 序號 → id
+    it('should order by category, then number, then id', async () => {
+        await insertAlbum('z', 0, { category: 'single', category_no: 1 });
+        await insertAlbum('y', 0, { category: 'ep', category_no: 1 });
+        await insertAlbum('x', 0, { category: 'album', category_no: 10 });
+        await insertAlbum('m', 0, { category: 'album', category_no: 2 });
+        await insertAlbum('l', 0, { category: 'album', category_no: 2, folder: 'album-02-l' });
+        expect((await list()).albums.map((album) => album.id)).toEqual(['l', 'm', 'x', 'y', 'z']);
+    });
+
+    it('should work out the wheel key from the title', async () => {
+        await insertAlbum('f', 1, { title: '¿Frank?' });
+        expect((await list()).albums[0]).toMatchObject({ wheelKey: 'F' });
+    });
+
+    it('should count unreadable stored checks as none', async () => {
+        await insertAlbum('c', 1, { checks: '{"not":"an array"}' });
+        expect((await list()).albums[0]).toMatchObject({ checkCount: 0 });
+    });
+
+    // D80（第 4 版四個錶）：歌曲已有音檔、歌詞、MV；專輯已有封面；加總數做分母
+    it('should total the site-wide statistics of the four meters', async () => {
         await seedTwoAlbums();
         expect((await list()).stats).toEqual({
             albums: 2,
@@ -89,29 +123,6 @@ describe('GET /api/albums', () => {
         const body = await list();
         expect(body.albums[0]?.completeness).toEqual({ tracks: 1, audio: 1, mv: 0, lyrics: 0 });
         expect(body.stats).toMatchObject({ tracks: 1, tracksWithAudio: 1, tracksWithMv: 0 });
-    });
-
-    // CR-004：folder 係手動改綁嘅名（NULL = 用預期資料夾名）；expectedFolder 永遠由類別、序號、id 計
-    it('should show a manual folder next to the expected folder name', async () => {
-        await insertAlbum('live-two', 1, {
-            category: 'live',
-            category_no: 2,
-            folder: 'Ciao 2021',
-            cover_source_etag: '"e1"',
-        });
-        expect((await list()).albums[0]).toMatchObject({
-            category: 'live',
-            categoryNo: 2,
-            folder: 'Ciao 2021',
-            expectedFolder: 'live-02-live-two',
-            coverSourceEtag: '"e1"',
-        });
-    });
-
-    it('should break sort order ties by id', async () => {
-        await insertAlbum('z', 1);
-        await insertAlbum('m', 1);
-        expect((await list()).albums.map((album) => album.id)).toEqual(['m', 'z']);
     });
 
     it('should answer an empty site with zero statistics and no catalog yet', async () => {
@@ -164,7 +175,7 @@ describe('GET /api/albums', () => {
 });
 
 describe('GET /api/albums/:id', () => {
-    it('should return the album with its tracks in track order', async () => {
+    it('should return the album with its checks and its tracks in track order', async () => {
         await seedTwoAlbums();
         // 歌號可以跳號（D60）：按歌號排，唔係按 id
         await insertTrack('b-00', 'b', 9);
@@ -174,46 +185,59 @@ describe('GET /api/albums/:id', () => {
         expect(body).toMatchObject({
             id: 'b',
             title: 'Beaming',
+            wheelKey: 'B',
             cover: 'cover0000000000a.webp',
             category: 'album',
             categoryNo: 3,
-            expectedFolder: 'album-03-b',
+            folder: 'album-03-b',
+            hasInfo: true,
+            checks: CHECKS,
         });
         expect(body).not.toHaveProperty('completeness');
+        expect(body).not.toHaveProperty('checkCount');
         expect(body.tracks.map((track) => track.id)).toEqual(['b-01', 'b-02', 'b-03', 'b-00']);
+    });
+
+    it('should give no checks for an album without stored checks', async () => {
+        await insertAlbum('a', 1);
+        expect(await json(await api('GET', '/api/albums/a'))).toMatchObject({ checks: [] });
     });
 
     it('should describe each track without the lyrics text', async () => {
         await insertAlbum('b', 1);
         await insertTrack('b-01', 'b', 1, {
-            subtitle: 'Live',
             audio_key: 'b/01.m4a',
-            audio_manual: 1,
             composer: '阿正',
-            lyrics_source_url: 'https://example.com/lyrics',
-            note: 'n',
-            youtube_id: 'yt',
-            video_kind: 'MV',
+            text_key: 'album-02-b/01 x.txt',
         });
+        await insertTrack('b-04', 'b', 4);
         await insertLyrics('b-01', 0);
         const body = await json<{ tracks: unknown[] }>(await api('GET', '/api/albums/b'));
-        expect(body.tracks[0]).toEqual({
-            id: 'b-01',
-            no: 1,
-            title: 'Track b-01',
-            subtitle: 'Live',
-            audio: 'b/01.m4a',
-            audioManual: true,
-            mv: null,
-            mvManual: false,
-            credits: { composer: '阿正', lyricist: null, arranger: null, producer: null },
-            lyrics: { synced: false, lineCount: 1 },
-            lyricsSourceUrl: 'https://example.com/lyrics',
-            note: 'n',
-            youtubeId: 'yt',
-            videoKind: 'MV',
-            updatedAt: '2026-11-25T00:00:00.000Z',
-        });
+        expect(body.tracks).toEqual([
+            {
+                id: 'b-01',
+                no: 1,
+                title: 'Track b-01',
+                audio: 'b/01.m4a',
+                mv: null,
+                textKey: 'album-02-b/01 x.txt',
+                credits: { composer: '阿正', lyricist: null, arranger: null, producer: null },
+                lyrics: { synced: false, lineCount: 1 },
+                updatedAt: '2026-11-25T00:00:00.000Z',
+            },
+            // D70：info.txt 列咗、冇音檔嘅歌（灰色行）
+            {
+                id: 'b-04',
+                no: 4,
+                title: 'Track b-04',
+                audio: null,
+                mv: null,
+                textKey: null,
+                credits: { composer: null, lyricist: null, arranger: null, producer: null },
+                lyrics: null,
+                updatedAt: '2026-11-25T00:00:00.000Z',
+            },
+        ]);
     });
 
     it('should answer 404 NOT_FOUND in written Chinese for an unknown or malformed id', async () => {
