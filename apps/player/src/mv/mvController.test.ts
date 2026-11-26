@@ -191,6 +191,20 @@ describe('mvController', () => {
         expect(mv.getSnapshot().status).toBe('playing');
     });
 
+    // W-068：有 Web Audio 都一樣：手勢入面嘅 play() 被拒 → ▶ 或者鎖屏 play 照播得
+    it('should play on play after the tap-time play was refused with Web Audio', async () => {
+        const { element, mv, session } = setup();
+        element.playMode = 'blocked';
+        mv.open(TRACK);
+        await vi.advanceTimersByTimeAsync(REVEAL_MS);
+        expect(mv.getSnapshot()).toMatchObject({ status: 'paused', failed: false });
+        element.playMode = 'auto';
+        session.trigger('play');
+        expect(element.paused).toBe(false);
+        expect(mv.getSnapshot().status).toBe('playing');
+        expect(FakeAudioContext.lastGain()?.value).toBe(1);
+    });
+
     it('should hand the lock screen to the MV and back to the record', () => {
         const { session, mv } = setup();
         mv.open(TRACK);
