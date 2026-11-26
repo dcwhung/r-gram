@@ -187,6 +187,67 @@ describe('HeldTrackList', () => {
         expect(rowY('播放第 30 首：歌 30')).toBe(bottom - pitch * 0.5);
     });
 
+    /*
+     * W-042：focus 喺行時，方向鍵、Page Up／Down、Home／End 移 focus 去另一行（跳過灰色行），
+     * 嗰行捲入欄；focus 喺欄本身先純捲（上面幾個測試）
+     */
+    describe('keyboard on a focused row', () => {
+        const MANY = Array.from({ length: 41 }, (_, index) => row(index + 1));
+        const bottom = PHONE_LAYOUT.heldTracks.bottomHeld;
+        const name = (no: number) => `播放第 ${no} 首：歌 ${no}`;
+        const focused = () => document.activeElement;
+        const expectFocusedVisible = (no: number, rowY: (name: string) => number) => {
+            expect(focused()).toBe(screen.getByRole('button', { name: name(no) }));
+            const centre = rowY(name(no));
+            expect(centre - pitch / 2).toBeGreaterThanOrEqual(top);
+            expect(centre + pitch / 2).toBeLessThanOrEqual(bottom);
+        };
+        const press = (key: string) => {
+            const target = focused();
+            if (target) fireEvent.keyDown(target, { key });
+        };
+
+        it('should move the focus down a row with ArrowDown and to the last row with End', () => {
+            const { rowY } = renderList(held(MANY));
+            act(() => screen.getByRole('button', { name: name(1) }).focus());
+            ['ArrowDown', 'ArrowDown', 'ArrowDown'].forEach(press);
+            expectFocusedVisible(4, rowY);
+            press('End');
+            expectFocusedVisible(41, rowY);
+            press('ArrowUp');
+            expectFocusedVisible(40, rowY);
+            press('Home');
+            expectFocusedVisible(1, rowY);
+        });
+
+        it('should move the focus a page away with Page Down and Page Up', () => {
+            const { rowY } = renderList(held(MANY));
+            const room = bottom - top;
+            const perPage = Math.floor((room - pitch) / pitch);
+            act(() => screen.getByRole('button', { name: name(1) }).focus());
+            press('PageDown');
+            expectFocusedVisible(1 + perPage, rowY);
+            press('PageDown');
+            press('PageUp');
+            expectFocusedVisible(1 + perPage, rowY);
+            press('PageUp');
+            expectFocusedVisible(1, rowY);
+        });
+
+        it('should skip grey rows and stay on the last row at the end', () => {
+            const rows = [row(1), row(2, false), row(3), row(4, false)];
+            renderList(held(rows));
+            act(() => screen.getByRole('button', { name: name(1) }).focus());
+            press('ArrowDown');
+            expect(focused()).toBe(screen.getByRole('button', { name: name(3) }));
+            press('ArrowDown');
+            press('End');
+            expect(focused()).toBe(screen.getByRole('button', { name: name(3) }));
+            press('ArrowUp');
+            expect(focused()).toBe(screen.getByRole('button', { name: name(1) }));
+        });
+    });
+
     // D57：拖過唔當㩒
     it('should scroll by dragging and not play the row the drag ended on', () => {
         const { onPlay, rowY } = renderList(held(LONG));
