@@ -148,6 +148,27 @@ describe('HeldTrackList', () => {
         expect(list()).toHaveAttribute('data-fade-top', 'true');
     });
 
+    // 滑鼠滾輪可以用「行」或者「版」做單位（WheelEvent.deltaMode）
+    it('should scroll a row per wheel line and a column per wheel page', () => {
+        const { list, rowY } = renderList(held(LONG));
+        fireEvent.wheel(list(), { deltaY: 1, deltaMode: 1 });
+        expect(rowY('播放第 1 首：歌 1')).toBe(top - pitch * 0.5);
+        fireEvent.wheel(list(), { deltaY: -1, deltaMode: 2 });
+        expect(rowY('播放第 1 首：歌 1')).toBe(top + pitch * 0.5);
+    });
+
+    it('should page through the list with Page Down and Page Up', () => {
+        const { list, rowY } = renderList(held(LONG));
+        const room = PHONE_LAYOUT.heldTracks.bottomHeld - top;
+        const most = LONG.length * pitch - room;
+        fireEvent.keyDown(list(), { key: 'PageDown' });
+        expect(rowY('播放第 1 首：歌 1')).toBe(top + pitch * 0.5 - Math.min(room - pitch, most));
+        fireEvent.keyDown(list(), { key: 'PageUp' });
+        fireEvent.keyDown(list(), { key: 'ArrowUp' });
+        fireEvent.keyDown(list(), { key: 'a' });
+        expect(rowY('播放第 1 首：歌 1')).toBe(top + pitch * 0.5);
+    });
+
     it('should scroll by keyboard and stop at both ends', () => {
         const { list, rowY } = renderList(held(LONG));
         fireEvent.keyDown(list(), { key: 'ArrowDown' });
