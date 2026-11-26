@@ -10,7 +10,8 @@ import { imageKeyOf } from '../src/assets/imageName';
 import { albumRow, api, dbWithHook, insertAsset, json } from './albumFixtures';
 import { liveDocument } from './catalogFixtures';
 import { ORIGIN, call, loginCookie } from './helpers';
-import { webpVp8l } from './imageFixtures';
+import { IMAGE_HEADER_BYTES } from '../src/config';
+import { jpegFrom, segment, sofSegment, webpVp8l } from './imageFixtures';
 import {
     ALBUM_ID,
     mediaKey,
@@ -192,6 +193,39 @@ describe('PUT /api/albums/:id/cover: checks', () => {
         expect((await albumRow(ALBUM_ID))?.cover).toBeNull();
     });
 
+    // S-186：只讀圖嘅頭（range get）；JPEG 嘅 SOF 喺好大嘅 APPn 之後 = 再讀成個檔（有上限）
+    it('should read only the start of each image, and all of a JPEG whose frame comes late', async () => {
+        const metadata = new Array<number>(65_000).fill(0x20);
+        const late = jpegFrom([
+            segment(0xe1, metadata),
+            segment(0xe2, metadata),
+            sofSegment(BIG, BIG),
+        ]);
+        expect(late.length).toBeGreaterThan(IMAGE_HEADER_BYTES);
+        const cover = await placeImage('00000000000000cc.jpg', late);
+        const body = await firstCover({ cover });
+        const gets: [string, R2GetOptions | undefined][] = [];
+        const catalog = new Proxy(env.CATALOG, {
+            get(target, key: string) {
+                const value = Reflect.get(target, key) as unknown;
+                if (typeof value !== 'function') return value;
+                if (key !== 'get') return value.bind(target);
+                return (name: string, options?: R2GetOptions) => {
+                    if (name.startsWith(imageKeyOf(''))) gets.push([name, options]);
+                    return target.get(name, options);
+                };
+            },
+        });
+        const { status } = await putCover(body, ALBUM_ID, { ...env, CATALOG: catalog });
+        expect(status).toBe(200);
+        const range = { range: { length: IMAGE_HEADER_BYTES } };
+        expect(gets).toEqual([
+            [imageKeyOf(cover), range],
+            [imageKeyOf(body.thumb), range],
+            [imageKeyOf(cover), undefined],
+        ]);
+    });
+
     // W-048（mutant N30）：R2 有圖但 assets 冇登記 = 未經 API-050 上載
     it('should refuse an image that is in the bucket but not registered', async () => {
         const cover = await placeImage('00000000000000bb.webp', webpVp8l(BIG, BIG, 6), false);
@@ -254,6 +288,15 @@ describe('PUT /api/albums/:id/cover: checks', () => {
         const { status, body: answer } = await putCover(body);
         expect(status).toBe(400);
         expect(answer.error.details).toContainEqual({ path, reason, message: expect.any(String) });
+    });
+
+    // S-186：body 有上限（未 parse 就擋）
+    it('should answer 413 for a huge body without parsing it', async () => {
+        const body = { ...(await firstCover()), title: 'x'.repeat(2_000_000) };
+        const { status, body: answer } = await putCover(body);
+        expect(status).toBe(413);
+        expect(answer.error.code).toBe('TOO_LARGE');
+        expect((await albumRow(ALBUM_ID))?.cover).toBeNull();
     });
 
     it('should answer 404 for an unknown album', async () => {
