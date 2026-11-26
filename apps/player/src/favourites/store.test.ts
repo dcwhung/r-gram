@@ -1,6 +1,6 @@
 import { memoryStorage } from '../catalog/testing/catalogFixtures';
 import { FAVOURITES_STORAGE_KEY } from '../config/storageKeys';
-import { createFavouritesStore, type FavouriteEntry } from './store';
+import { createBrowserFavourites, createFavouritesStore, type FavouriteEntry } from './store';
 
 const clock = (start = 1000) => {
     let time = start;
@@ -165,5 +165,25 @@ describe('createFavouritesStore', () => {
         storage.items.clear();
         events.dispatchEvent(Object.assign(new Event('storage'), { key: null }));
         expect(store.getSnapshot()).toEqual([]);
+    });
+});
+
+describe('createBrowserFavourites', () => {
+    afterEach(() => localStorage.clear());
+
+    it('should keep favourites in localStorage', () => {
+        createBrowserFavourites().add('a-01');
+        expect(createBrowserFavourites().has('a-01')).toBe(true);
+        expect(localStorage.getItem(FAVOURITES_STORAGE_KEY)).toContain('a-01');
+    });
+
+    it('should work in memory when localStorage cannot be reached', () => {
+        const spy = vi.spyOn(globalThis, 'localStorage', 'get').mockImplementation(() => {
+            throw new Error('SecurityError');
+        });
+        const store = createBrowserFavourites();
+        store.add('a-01');
+        expect(store.has('a-01')).toBe(true);
+        spy.mockRestore();
     });
 });
