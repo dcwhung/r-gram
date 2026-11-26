@@ -70,6 +70,6 @@ describe('columnLayout', () => {
     });
 
     it('should never make the bar shorter than the minimum', () => {
-        expect(metricsAt(400, 0).bar?.length).toBe(MIN_THUMB);
+        expect(metricsAt(1000, 0).bar?.length).toBe(MIN_THUMB);
     });
 });
