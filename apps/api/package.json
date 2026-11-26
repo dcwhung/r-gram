@@ -4,7 +4,8 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "dev": "wrangler dev --local-protocol https",
+        "build:admin": "npm run build -w @r-gram/admin",
+        "dev": "npm run build:admin && wrangler dev --local-protocol https",
         "migrate:local": "wrangler d1 migrations apply r-gram --local",
         "test": "vitest run",
         "typecheck": "tsc -b"

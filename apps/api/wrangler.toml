@@ -1,15 +1,15 @@
 # r-gram-api：內容管理 Backend（Technical Spec「部署架構」）。
-# 部署值由用戶提供（U-3、U-4、U-7，2026-11-26）；secret（GOOGLE_CLIENT_SECRET、SESSION_SECRET）唔入 repo。
+# 部署值由用戶提供（U-3、U-4、U-7，2026-11-26）；secret（見 [vars] 上面）唔入 repo。
 name = "r-gram-api"
 main = "src/index.ts"
 compatibility_date = "2026-11-01"
 
-# Admin SPA（apps/admin）由 static assets 出：apps/admin 未有（T-051），有咗先開返下面呢段
-#（資料夾唔存在 wrangler 會報錯）。/api、/auth、/catalog 一律先行 Worker
-# [assets]
-# directory = "../admin/dist"
-# not_found_handling = "single-page-application"
-# run_worker_first = ["/api/*", "/auth/*", "/catalog/*"]
+# 管理端 SPA（apps/admin）由 static assets 出，同 API 同源。/api、/auth、/catalog 一律先行 Worker。
+# 資料夾唔存在 wrangler 會報錯：`npm run dev`、`npm run deploy`（apps/api）會先 build apps/admin
+[assets]
+directory = "../admin/dist"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*", "/auth/*", "/catalog/*"]
 
 [[d1_databases]]
 binding = "DB"
@@ -29,13 +29,12 @@ bucket_name = "rb-discography-catalog"
 binding = "MEDIA"
 bucket_name = "rb-discography"
 
-# 非 secret 設定；GOOGLE_CLIENT_SECRET、SESSION_SECRET 用 `wrangler secret put`（本機：.dev.vars）。
+# 非 secret 設定。Secret（`wrangler secret put`；本機：.dev.vars）：GOOGLE_CLIENT_SECRET、SESSION_SECRET、
+# ADMIN_EMAILS（管理員 Google 帳戶，逗號分隔；repo 係公開嘅，所以唔放呢度；冇設 = 冇人登入到）。
 # 只改呢個檔：每次 deploy 會蓋走 dashboard 嘅改動
 [vars]
 # U-4：Google Cloud OAuth client id（公開值，唔係 secret）
 GOOGLE_CLIENT_ID = "87883666131-sc83f8q98o3tvg62uqkg1bdvqin1jplu.apps.googleusercontent.com"
-# TODO(U-4)：管理員 Google 帳戶，逗號分隔（example.com 係保留網域：未填之前冇人登入到）
-ADMIN_EMAILS = "admin@example.com"
 # U-7：播放端網址，逗號分隔（CORS 只回呢度 match 到嘅 origin）
 PLAYER_ORIGINS = "https://rgram.vercel.app"
 # Worker 自己嘅 origin，唔好 / 結尾（OAuth redirect、CSRF Origin 檢查、catalog 圖 URL）；本機 .dev.vars 蓋做 https://localhost:8787
