@@ -6,6 +6,10 @@
 <meta name="robots" content="noindex, nofollow">
 <title>R Gram 管理端 設計稿</title>
 <!--
+    第 4 版（2026-11-26，等用戶確認）。用戶意見（CR-007）：R2 媒體資料夾先係唯一資料來源——專輯由資料夾名（類別-序號-id）同 info.txt（唱片名稱、發行年份、曲目）決定，
+    管理端只有「掃描」同「改文字檔」（一個 textarea，儲存就寫返落 R2）；新增同更新自動做，移除要確認；對唔上就出檢查結果。
+    冇咗：新增專輯／歌曲、唱片公司、字母盤標記、序號、歌號、參考連結、備註、媒體檔指定、派台資料。info.txt 有列而未有音檔嘅歌照列出（播放端變灰）。
+    第 4 版補（2026-11-26）：用戶提供參考圖——專輯頁改做牆上 CD 展示架（層板上一排排 CD 盒）；統計改做舊式 hi-fi 機面板（拉絲鋁、琥珀色背光指針錶）。
     第 3 版（2026-11-25，等用戶確認）。加入 CR-004／005／006：掃描係主要資料來源（有音檔先有歌，掃描會新增歌曲）、歌號跟檔名可以跳號（冇拖動排序）、
     專輯有發行類別同序號（決定媒體資料夾名）、只記年份、冇自由文字「類型」、可以有第二張封面；掃描結果分做新增／更新／要選擇／已略過／音檔已不在資料夾。
     第 2 版（2026-11-25）。用戶意見：第 1 版太似 903-player，要用返 R Gram 自己嘅風格（車床鋁面、螺絲、唱片盤），同播放端夾返。
@@ -160,6 +164,61 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 .tag.gone { background: #f6d9d6; color: #7a1c15; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: #b0b0ac; justify-self: center; }
 
+/* 第 4 版補：hi-fi 機面板（統計）+ CD 展示架（專輯） */
+.hifi { display: grid; grid-template-columns: auto 1fr auto; gap: 16px 28px; align-items: center; padding: 26px 34px 30px; border-radius: 14px; }
+.hifi .foot { position: absolute; bottom: -9px; width: 64px; height: 10px; border-radius: 0 0 6px 6px; background: linear-gradient(#3a3a3a, #111); }
+.hifi .foot.l { left: 46px; } .hifi .foot.r { right: 46px; }
+.hifi-brand { display: flex; align-items: center; gap: 14px; }
+.power { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #fafafa, #bdbdb9 60%, #8d8d89); box-shadow: 0 2px 4px rgba(0, 0, 0, .35), inset 0 1px 0 #fff; flex: none; }
+.power i { width: 9px; height: 9px; border-radius: 50%; background: #ffb84a; box-shadow: 0 0 8px 2px rgba(255, 176, 60, .85); }
+.hifi-brand .name { font-family: var(--slab); font-size: 26px; line-height: 1; }
+.meters { display: grid; grid-template-columns: repeat(4, minmax(118px, 1fr)); gap: 14px; }
+.vu { text-align: center; }
+.vu svg { display: block; width: 100%; max-width: 190px; margin: 0 auto; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .35)); }
+.lcd { display: inline-block; margin-top: 8px; padding: 2px 10px; border-radius: 5px; background: #17110a; color: #ffbe55; font: 15px/1.5 ui-monospace, Menlo, monospace; letter-spacing: 1px; text-shadow: 0 0 7px rgba(255, 170, 60, .75); box-shadow: inset 0 1px 3px #000, 0 1px 0 #fff; }
+.vu .cap { font-size: 13px; font-weight: 700; margin-top: 4px; }
+.hifi-controls { display: grid; justify-items: center; gap: 8px; }
+.hifi-controls svg { width: 74px; height: 74px; overflow: visible; }
+.tuner { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 6px 14px; border-radius: 6px; background: #17110a; color: #ffbe55; font: 13px/1.6 ui-monospace, Menlo, monospace; letter-spacing: 1px; text-shadow: 0 0 6px rgba(255, 170, 60, .6); box-shadow: inset 0 1px 4px #000, 0 1px 0 #fff; overflow: hidden; white-space: nowrap; }
+.tuner .scale { flex: 1; height: 12px; background: repeating-linear-gradient(90deg, rgba(255, 190, 85, .75) 0 1px, transparent 1px 9px); opacity: .7; }
+.wall { position: relative; margin-top: 30px; padding: 26px 26px 20px; border-radius: 18px; background: radial-gradient(120% 90% at 20% 0%, #fbfaf6, #efede6); box-shadow: 0 0 0 1px rgba(95, 95, 95, .25), 0 14px 30px rgba(0, 0, 0, .1); }
+.wall h1 { margin-bottom: 4px; }
+.shelf-name { display: flex; align-items: baseline; gap: 10px; margin: 26px 6px 4px; font-size: 15px; font-weight: 900; color: #55524b; letter-spacing: 2px; }
+.shelf-name small { font-family: var(--slab-light); font-weight: 400; color: var(--muted); letter-spacing: 0; }
+/* 層板：每格自己畫一段，冇間隙所以連成一條；唔滿嗰行用底圖補返 */
+.shelf { --cell: 158px; --case: 124px; --stand: 148px; --row: 236px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cell), 1fr)); grid-auto-rows: var(--row);
+    background: repeating-linear-gradient(to bottom, transparent 0 var(--stand), #fff var(--stand) calc(var(--stand) + 11px), rgba(0, 0, 0, .13) calc(var(--stand) + 11px) calc(var(--stand) + 13px), transparent calc(var(--stand) + 13px) var(--row)); }
+.cd { position: relative; display: block; width: 100%; height: var(--row); padding: 0; border: 0; background: none; text-align: center; }
+.cd::after { content: ''; position: absolute; left: 0; right: 0; top: var(--stand); height: 11px; background: linear-gradient(#fff, #ecebe6); box-shadow: 0 2px 2px rgba(0, 0, 0, .13), 0 9px 12px rgba(0, 0, 0, .08); z-index: 2; }
+.jewel { position: absolute; left: 50%; top: calc(var(--stand) - var(--case) + 5px); width: var(--case); height: var(--case); margin-left: calc(var(--case) / -2); border-radius: 3px; transition: transform .16s; }
+.cd:hover .jewel, .cd:focus-visible .jewel { transform: translateY(-7px); }
+.jewel .art { position: absolute; inset: 0; border-radius: 3px; background: radial-gradient(circle at 30% 26%, rgba(255, 255, 255, .3), transparent 46%), radial-gradient(circle at 74% 72%, rgba(0, 0, 0, .22), transparent 52%), var(--accent); box-shadow: 0 0 0 1px rgba(0, 0, 0, .28), 3px 5px 9px rgba(0, 0, 0, .28); overflow: hidden; z-index: 1; }
+.jewel .art::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 11px; background: linear-gradient(90deg, rgba(255, 255, 255, .55), rgba(255, 255, 255, .12) 45%, rgba(0, 0, 0, .25)); border-right: 1px solid rgba(0, 0, 0, .25); }
+.jewel .art::after { content: ''; position: absolute; inset: 0; background: linear-gradient(125deg, rgba(255, 255, 255, .34) 0 18%, transparent 34% 62%, rgba(255, 255, 255, .12) 78%, transparent); }
+.jewel.blank .art { background: #dcdad3; display: grid; place-items: center; color: #7a7a76; font-size: 12px; font-weight: 700; }
+.jewel .wk { position: absolute; left: 20px; bottom: 9px; z-index: 1; color: #fff; font: 400 24px/1 var(--slab); text-shadow: 0 1px 3px rgba(0, 0, 0, .55); }
+.jewel .wk.cjk { font: 900 18px/1 var(--cjk); }
+.jewel .cdisc { position: absolute; top: 5%; left: 42%; width: 90%; height: 90%; border-radius: 50%; background: radial-gradient(circle, #fff 0 9%, #c9c9c5 9% 11%, var(--accent) 11% 34%, transparent 34%), conic-gradient(#e8e8e4, #b9bcc4, #f4f4f1, #c7c2d6, #e8e8e4, #b7c4c2, #f4f4f1, #e8e8e4); box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 2px 3px 6px rgba(0, 0, 0, .25); }
+.cd .label { position: absolute; left: 6px; right: 6px; top: calc(var(--stand) + 20px); }
+.cd .name { font-weight: 900; font-size: 14px; line-height: 1.3; }
+.cd .name.latin { font-family: var(--slab); font-weight: 400; font-size: 15.5px; }
+.cd .name.mono { font: 12.5px ui-monospace, Menlo, monospace; word-break: break-all; }
+.cd .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+/* 第 4 版：唯讀資料、檢查結果 */
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; margin: 0; }
+.kv dt { color: var(--muted); font-weight: 700; }
+.kv dd { margin: 0; }
+.auto { font-size: 12px; color: var(--faint); margin-left: 6px; }
+.info textarea { width: 100%; min-height: 380px; padding: 12px 14px; border: 1px solid #b9b9b5; border-radius: 10px; background: #fff; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .12); line-height: 1.75; resize: vertical; }
+.issues { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; font-size: 14px; }
+.issues li { padding: 10px 12px; border-radius: 10px; background: #fdf3df; color: #5c3a00; }
+.issues li code { font: 13px ui-monospace, Menlo, monospace; }
+.track .state { font-size: 12.5px; color: var(--faint); white-space: nowrap; }
+div.track { cursor: default; }
+div.track:hover { background: none; }
+.disc .name.mono { font: 13px ui-monospace, Menlo, monospace; font-weight: 400; word-break: break-all; }
+
 /* 對話框、登入、提示 */
 .scrim { position: fixed; inset: 0; background: rgba(20, 20, 20, .55); display: grid; place-items: center; padding: 16px; z-index: 5; }
 .dialog { width: min(760px, 100%); max-height: 90vh; overflow: auto; }
@@ -177,6 +236,10 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 .toast i { width: 11px; height: 11px; border-radius: 50%; background: #7dffb0; box-shadow: 0 0 8px 2px #7dffb0; }
 
 @media (max-width: 900px) {
+    .hifi { grid-template-columns: 1fr; justify-items: center; padding: 24px 18px 28px; }
+    .meters { grid-template-columns: repeat(2, minmax(118px, 1fr)); width: 100%; }
+    .wall { padding: 20px 10px 14px; }
+    .shelf { --cell: 150px; }
     .album { grid-template-columns: 1fr; }
     .edit { grid-template-columns: 1fr; padding-left: 12px; }
     .plate { padding: 26px 18px; }
@@ -186,7 +249,10 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     .brand { font-size: 26px; }
     .deck svg { max-width: 230px; margin: 0 auto; }
     .track { grid-template-columns: 38px 1fr 22px; }
-    .track .leds { grid-column: 2 / 3; grid-row: 2; }
+    .track .leds, .track .state { grid-column: 2 / 3; grid-row: 2; }
+    .track .state { white-space: normal; }
+    .kv { grid-template-columns: 1fr; gap: 2px; }
+    .kv dd { margin-bottom: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -199,6 +265,7 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
         <linearGradient id="gCyl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c7c7c"/><stop offset=".22" stop-color="#f7f7f7"/><stop offset=".55" stop-color="#b3b3b3"/><stop offset=".85" stop-color="#8a8a8a"/><stop offset="1" stop-color="#5e5e5e"/></linearGradient>
         <radialGradient id="gClamp" cx="38%" cy="35%" r="68%"><stop offset="0" stop-color="#34353a"/><stop offset=".55" stop-color="#17171a"/><stop offset="1" stop-color="#070708"/></radialGradient>
         <linearGradient id="gSheen" x1="0" y1="0" x2="1" y2="1"><stop offset=".3" stop-color="#fff" stop-opacity="0"/><stop offset=".47" stop-color="#fff" stop-opacity=".24"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <radialGradient id="gVu" cx="50%" cy="112%" r="115%"><stop offset="0" stop-color="#fff0c2"/><stop offset=".55" stop-color="#f6bd5a"/><stop offset="1" stop-color="#c47c1c"/></radialGradient>
         <filter id="fShadow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="5"/></filter>
     </defs>
 </svg>
@@ -210,14 +277,23 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const DATA = /*__DATA__*/null;
     const DEMO_ID = 'komorebi';
     const DEMO = DATA.albums.find((album) => album.id === DEMO_ID);
-    const EMPTY = DATA.albums.find((album) => album.id === 'frank-ep'); // 示意：未上載歌嘅碟
-    // 示意數字：[歌曲（有音檔先有歌）, 有歌詞, 有 MV]；其他專輯未上載歌
-    const MEDIA = { komorebi: [DATA.tracks.length, 6, 2] };
+    const EMPTY = DATA.albums.find((album) => album.id === 'frank-ep'); // 示意：資料夾未有 info.txt 嘅碟
+    const audioTracks = DATA.tracks.filter((track) => track.audio);
+    // 示意數字：[有音檔, 有歌詞, 有 MV]；其他專輯未上載音檔
+    const MEDIA = { komorebi: [audioTracks.length, 6, 2] };
     // 示意：封面張數（錄音室專輯已上載封面，Hours 有兩張；其他類別未有）
     const coversOf = (album) => (album.category !== 'album' ? 0 : album.id === 'hours' ? 2 : 1);
+    const hasInfo = (album) => album.id !== EMPTY.id; // 示意：只有呢隻碟未有 info.txt
+    const tracksOf = (album) => (hasInfo(album) ? album.tracks : 0);
     const NO_LYRICS = new Set([10, 12]); // 示意：呢兩首未有歌詞
     const MV_TRACKS = new Set([1, 7]);
     const CATEGORIES = [['album', '錄音室專輯'], ['ep', '迷你專輯'], ['best', '精選'], ['live', '現場專輯'], ['ost', '原聲大碟'], ['single', '單曲']];
+    const categoryName = (id) => CATEGORIES.find(([key]) => key === id)[1];
+    // 示意：呢隻碟嘅檢查結果（對唔上嘅嘢；修正檔案後再掃描）
+    const ISSUES = [
+        ['09 一杯 (remaster).m4a', '第 09 首有多於一個音檔，現時使用 <code>09 一杯.m4a</code>。請刪除多餘的檔案。'],
+        ['10 想寫好嘅功課.m4a', '檔案名稱與 info.txt 的歌名不同（info.txt：想寫好的功課）。播放端顯示 info.txt 的歌名。'],
+    ];
 
     /* ---------- 工具 ---------- */
     const n = (v) => Math.round(v * 10) / 10;
@@ -270,19 +346,20 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const roundButton = (name, label, act) =>
         `<button class="round" data-act="${act}" aria-label="${label}" title="${label}"><svg viewBox="-24 -24 48 48">${metal(0, 0, 19)}<g stroke="#2e2e2e">${ICONS[name]}</g></svg></button>`;
 
-    /* ---------- 碟：空心 CD 放喺轉盤上，中間係唱片夾；夾上面嘅圈 = 歌詞完整度（有音檔先有歌，所以唔再計音檔），字 = 字母盤標記 ---------- */
+    /* ---------- 碟：空心 CD 放喺轉盤上，中間係唱片夾；夾上面嘅圈 = 音檔完整度（info.txt 曲目入面有幾多首有音檔），字 = 字母盤標記（自動） ---------- */
     const discSvg = (album) => {
-        const [songs, lyrics] = mediaOf(album);
+        const [audio] = mediaOf(album);
+        const total = tracksOf(album);
         const R = 100;
         const ring = 27;
-        const share = songs ? lyrics / songs : 0;
+        const share = total ? audio / total : 0;
         const [ex, ey] = polar(0, 0, ring, -90 + share * 359.9);
         const latinKey = isLatin(album.key);
         const cover = coversOf(album) === 0
             ? `<circle r="${R - 6}" fill="#d9d9d5"/><text y="-56" text-anchor="middle" font-size="13" font-weight="700" fill="#7a7a76" font-family="var(--cjk)">未有封面</text>`
             : `<circle r="${R - 6}" fill="${album.accent}"/><circle cx="-34" cy="-30" r="38" fill="#fff" opacity=".13"/><circle cx="40" cy="26" r="46" fill="#000" opacity=".12"/><circle cx="30" cy="-48" r="20" fill="#fff" opacity=".14"/>`;
         return (
-            `<svg viewBox="-112 -112 224 228" role="img" aria-label="${esc(album.title)}：${songs} 首歌，歌詞 ${lyrics}／${songs}">` +
+            `<svg viewBox="-112 -112 224 228" role="img" aria-label="${esc(album.title)}：音檔 ${audio}／${total}">` +
             shadow(0, 4, R + 6, { dx: 0, dy: 6, opacity: 0.22 }) + metal(0, 0, R + 6, { rot: 12, bevel: 0.012, withShadow: false }) +
             cover + `<circle r="${R - 6}" fill="url(#gSheen)"/><circle r="${R - 6}" fill="none" stroke="#e9e9e6" stroke-width="3"/>` +
             `<circle r="40" fill="#fff" opacity=".42"/><circle r="40" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1.5"/>` +
@@ -316,19 +393,18 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
         );
     };
     const totals = () => {
-        const sum = { albums: DATA.albums.length, withSongs: 0, songs: 0, lyrics: 0, mv: 0, covers: 0 };
+        const sum = { albums: DATA.albums.length, tracks: 0, audio: 0, lyrics: 0, mv: 0, covers: 0 };
         DATA.albums.forEach((album) => {
-            const [songs, lyrics, mv] = mediaOf(album);
-            sum.songs += songs; sum.lyrics += lyrics; sum.mv += mv;
-            sum.withSongs += songs ? 1 : 0;
+            const [audio, lyrics, mv] = mediaOf(album);
+            sum.tracks += tracksOf(album); sum.audio += audio; sum.lyrics += lyrics; sum.mv += mv;
             sum.covers += coversOf(album) ? 1 : 0;
         });
         return sum;
     };
 
     /* ---------- 畫面 ---------- */
-    const state = { screen: 'albums', open: null, bad: false, adding: false, toast: '' };
-    const SCREENS = [['albums', '專輯'], ['album', '專輯頁'], ['empty', '專輯頁（未有歌曲）'], ['scan', '掃描結果'], ['edit', '修改歌曲'], ['bad', '修改歌曲（格式有錯）'], ['add', '手動新增歌曲'], ['login', '登入'], ['denied', '沒有權限']];
+    const state = { screen: 'albums', open: null, bad: false, toast: '' };
+    const SCREENS = [['albums', '專輯'], ['scan', '掃描結果'], ['album', '專輯頁'], ['edit', '修改歌詞檔'], ['bad', '修改歌詞檔（格式有錯）'], ['empty', '專輯頁（未有 info.txt）'], ['login', '登入'], ['denied', '沒有權限']];
 
     const top = () =>
         `<header class="plate top">${screw('tl')}${screw('tr')}<button class="brand" data-act="home" aria-label="R Gram 內容管理：返回專輯">R Gram<small>內容管理</small></button>` +
@@ -336,27 +412,76 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
 
     const led = (on, label) => `<span class="led ${on ? 'on' : ''}"><i></i>${label}</span>`;
 
-    const albumCard = (album) => {
-        const [songs, lyrics, mv] = mediaOf(album);
+    /* ---------- hi-fi 機面板：琥珀色背光指針錶（指針位置 = 完成比例） ---------- */
+    const VU = { cx: 75, cy: 104, r: 72, from: 222, to: 318, ticks: 11 };
+    let vuSeq = 0;
+    const vuMeter = (label, have, total) => {
+        const share = total ? have / total : 0;
+        const id = `vu-${(vuSeq += 1)}`;
+        const at = (t) => VU.from + (VU.to - VU.from) * t;
+        let ticks = '';
+        for (let i = 0; i < VU.ticks; i += 1) {
+            const t = i / (VU.ticks - 1);
+            const long = i % 5 === 0;
+            const [x1, y1] = polar(VU.cx, VU.cy, VU.r - (long ? 11 : 6), at(t));
+            const [x2, y2] = polar(VU.cx, VU.cy, VU.r, at(t));
+            ticks += `<path d="M${n(x1)} ${n(y1)}L${n(x2)} ${n(y2)}" stroke="${t > 0.79 ? '#a3261c' : '#2b2110'}" stroke-width="${long ? 1.8 : 1}"/>`;
+        }
+        const marks = [[0, '0'], [0.5, '50'], [1, '100']].map(([t, text]) => {
+            const [x, y] = polar(VU.cx, VU.cy, VU.r - 20, at(t));
+            return `<text x="${n(x)}" y="${n(y)}" text-anchor="middle" dominant-baseline="central" font-size="8" font-family="var(--slab-light)" fill="#2b2110">${text}</text>`;
+        }).join('');
+        const [nx, ny] = polar(VU.cx, VU.cy, VU.r - 4, at(share));
+        const [bx, by] = polar(VU.cx, VU.cy, 14, at(share));
         return (
-            `<button class="disc" data-act="open-album" style="--accent: ${album.accent}">${discSvg(album)}` +
-            `<div class="name ${isLatin(album.title) ? 'latin' : ''}">${esc(album.title)}</div>` +
-            `<div class="meta">${album.year ? `${album.year} · ` : ''}${songs ? `${songs} 首` : '尚未有歌曲'}</div>` +
-            (songs ? `<div class="meta">歌詞 ${lyrics}／${songs} · MV ${mv}</div>` : '') + `</button>`
+            `<div class="vu"><svg viewBox="0 0 150 92" role="img" aria-label="${label}：${have}／${total}">` +
+            `<clipPath id="${id}"><rect x="5" y="5" width="140" height="82" rx="4"/></clipPath>` +
+            `<rect width="150" height="92" rx="7" fill="#1c1c1c"/><rect x="1.5" y="1.5" width="147" height="89" rx="6" fill="none" stroke="#6a6a66" stroke-width="1"/>` +
+            `<g clip-path="url(#${id})"><rect x="5" y="5" width="140" height="82" fill="url(#gVu)"/>${ticks}${marks}` +
+            `<path d="M${n(bx)} ${n(by)}L${n(nx)} ${n(ny)}" stroke="#141414" stroke-width="1.8" stroke-linecap="round"/>` +
+            `<circle cx="${VU.cx}" cy="${VU.cy}" r="20" fill="#1c1c1c"/><rect x="5" y="5" width="140" height="30" fill="#fff" opacity=".1"/></g>` +
+            `</svg><div class="lcd">${have}／${total}</div><div class="cap">${label}</div></div>`
+        );
+    };
+    const hifi = (sum) =>
+        `<section class="plate hifi">${screws()}<i class="foot l"></i><i class="foot r"></i>` +
+        `<div class="hifi-brand"><span class="power" aria-hidden="true"><i></i></span><div><div class="name">R Gram</div><div class="engrave">${sum.albums} 隻碟 · ${sum.tracks} 首歌</div></div></div>` +
+        `<div class="meters">${vuMeter('歌曲已有音檔', sum.audio, sum.tracks)}${vuMeter('歌曲已有歌詞', sum.lyrics, sum.tracks)}${vuMeter('歌曲已有 MV', sum.mv, sum.tracks)}${vuMeter('專輯已有封面', sum.covers, sum.albums)}</div>` +
+        `<div class="hifi-controls"><svg viewBox="-40 -40 80 80" aria-hidden="true">${shadow(0, 0, 33, { dx: 3, dy: 6, opacity: 0.34 })}<circle r="33" fill="url(#gCyl)" stroke="#5f5f5f" stroke-width="1"/>` +
+        `<circle r="30" fill="none" stroke="#6b6b6b" stroke-opacity=".7" stroke-width="5" stroke-dasharray="2 2.8"/>${metal(0, 0, 26, { bevel: 0.07, withShadow: false })}<path d="M10 0H21" stroke="#111" stroke-width="4" stroke-linecap="round" transform="rotate(-60)"/></svg>` +
+        `<button class="key primary" data-act="scan">掃描媒體資料夾</button></div>` +
+        `<div class="tuner"><span>上次掃描</span><span class="scale" aria-hidden="true"></span><span>今日 14:32</span></div>` +
+        `</section>`;
+
+    /* ---------- CD 展示架：牆上層板，CD 盒企喺層板上；有音檔嘅碟，隻 CD 會由盒入面露出嚟 ---------- */
+    const albumCard = (album) => {
+        const [audio, lyrics] = mediaOf(album);
+        const total = tracksOf(album);
+        const known = hasInfo(album);
+        const hasCover = coversOf(album) > 0;
+        const latinKey = isLatin(album.key);
+        return (
+            `<button class="cd" data-act="${known ? 'open-album' : 'open-empty'}" style="--accent: ${album.accent}" aria-label="${esc(known ? album.title : album.id)}">` +
+            `<span class="jewel ${hasCover ? '' : 'blank'}">${audio ? '<span class="cdisc"></span>' : ''}<span class="art">${hasCover ? '' : '未有封面'}</span>` +
+            (hasCover ? `<span class="wk ${latinKey ? '' : 'cjk'}">${esc(album.key)}</span>` : '') + `</span>` +
+            `<span class="label">` +
+            (known ? `<span class="name ${isLatin(album.title) ? 'latin' : ''}" style="display: block">${esc(album.title)}</span>` : `<span class="name mono" style="display: block">${esc(album.id)}</span>`) +
+            (known ? `<span class="meta" style="display: block">${album.year ? `${album.year} · ` : ''}音檔 ${audio}／${total}</span>` : `<span class="meta" style="display: block"><span class="tag warn">缺少 info.txt</span></span>`) +
+            (album.id === DEMO_ID ? `<span class="meta" style="display: block"><span class="tag warn">${ISSUES.length} 項要檢查</span></span>` : '') +
+            `</span></button>`
         );
     };
     const albums = () => {
         const sum = totals();
-        const groups = CATEGORIES.map(([id, name]) => {
+        const shelves = CATEGORIES.map(([id, name]) => {
             const list = DATA.albums.filter((album) => album.category === id).sort((a, b) => a.categoryNo - b.categoryNo);
-            return `<h2 class="group">${name}<small>${list.length}</small></h2><div class="discs">${list.map(albumCard).join('')}</div>`;
+            return `<h2 class="shelf-name">${name}<small>${list.length}</small></h2><div class="shelf">${list.map(albumCard).join('')}</div>`;
         }).join('');
         return (
-            plate(`<div class="row" style="margin-bottom: 10px"><span class="engrave">${sum.albums} 隻碟 · ${sum.songs} 首歌</span><span class="spacer"></span><span class="sub">所有修改一儲存就即時在播放端生效</span></div>` +
-                `<div class="well gauges">${gauge('專輯已有歌曲', sum.withSongs, sum.albums)}${gauge('歌曲已有歌詞', sum.lyrics, sum.songs)}${gauge('歌曲已有 MV', sum.mv, sum.songs)}${gauge('專輯已有封面', sum.covers, sum.albums)}</div>`) +
-            plate(`<div class="row" style="margin-bottom: 12px"><h1>專輯</h1><span class="spacer"></span><button class="key" data-act="toast-new">＋ 新增專輯</button></div>` +
-                `<div class="well">${groups}</div>` +
-                `<p class="sub" style="margin: 12px 4px 0">次序跟隨類別及序號，與播放端的字母盤一樣。碟中間的字是字母盤上的標記；外圈亮起的部分是已有歌詞的歌曲比例。歌曲由掃描媒體資料夾新增：打開一隻碟，然後掃描。</p>`)
+            hifi(sum) +
+            `<section class="wall"><div class="row"><h1>專輯</h1><span class="spacer"></span><span class="sub">內容以媒體資料夾為準；掃描後即時在播放端生效</span></div>` +
+            shelves +
+            `<p class="sub" style="margin: 18px 6px 0">專輯來自媒體資料夾：資料夾名稱（類別-序號-id）決定類別及次序，資料夾內的 info.txt 決定專輯名、年份及曲目。CD 由盒內露出來 = 已有音檔。</p></section>`
         );
     };
 
@@ -378,123 +503,116 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
             (bad ? `<li class="err">第 ${badLine} 行沒有時間標記（其他歌詞行都有）。請補上，或者全部歌詞都不加時間標記。</li>` : `<li>歌詞 5 行，全部有時間標記</li>`)
         );
     };
-    // 文字框下面嘅細控件（D37）：只喺管理端用，唔會喺播放端顯示
-    const fileSelect = (id, label, auto) =>
-        `<div class="field"><label for="${id}">${label}</label><select id="${id}"><option>${auto ? `自動配對：${esc(auto)}` : '未有檔案'}</option><option>手動指定…</option></select></div>`;
-    const extras = (track, { blank }) => {
-        const audio = !blank ? `${pad(track.no)} ${track.title}.m4a` : null;
-        const mv = !blank && MV_TRACKS.has(track.no) ? `${pad(track.no)} ${track.title}.mp4` : null;
-        const nextNo = Math.max(...DATA.tracks.map((row) => row.no)) + 1;
-        return (
-            `<details class="extras" ${blank ? 'open' : ''}><summary>其他：歌號、參考連結、備註、媒體檔</summary><div class="extras-grid">` +
-            `<div class="field"><label for="x-no">歌號（跟隨檔案名稱，可以不連續）</label><input id="x-no" inputmode="numeric" value="${blank ? '' : pad(track.no)}" placeholder="自動：${pad(nextNo)}"></div>` +
-            fileSelect('x-audio', '音檔', audio) + fileSelect('x-mv', 'MV', mv) +
-            `<div class="field"><label for="x-url">歌詞參考連結</label><input id="x-url" value="${esc(blank ? '' : (track.lyricsUrl ?? ''))}" placeholder="https://"></div>` +
-            `<div class="field"><label for="x-note">備註</label><input id="x-note" value="${esc(blank ? '' : (track.note ?? ''))}"></div>` +
-            `</div></details>`
-        );
-    };
+    const songFile = (track) => `${pad(track.no)} ${track.title}.txt`;
     const editor = (track, mode = {}) =>
-        `<div class="edit"><div><label class="sub" for="song">歌曲資料及歌詞</label>` +
+        `<div class="edit"><div><label class="sub" for="song">歌詞檔 <span class="path">${esc(songFile(track))}</span></label>` +
         `<textarea id="song" class="${mode.bad ? 'bad' : ''}" spellcheck="false" placeholder="${esc(FORMAT)}" aria-describedby="checks">${esc(songText(track, mode))}</textarea></div>` +
-        `<div class="hint"><b>格式</b><pre>${esc(FORMAT)}</pre>第一行一定是歌名。「曲：」「詞：」「編：」「監：」可以省略；有副題（例如 Live）可以加一行「副題：」。歌詞可以有時間標記（會跟隨歌曲顯示），也可以完全不加。` +
+        `<div class="hint"><b>格式</b><pre>${esc(FORMAT)}</pre>第一行是歌名。「曲：」「詞：」「編：」「監：」可以省略。歌詞可以有時間標記（會跟隨歌曲顯示），也可以完全不加。` +
         `<div style="margin-top: 12px"><b>檢查結果</b></div><ul class="checks" id="checks" aria-live="polite">${checks(track, mode)}</ul></div>` +
-        extras(track, mode) +
         `<div class="bar"><button class="key primary" data-act="save" ${mode.bad ? 'disabled' : ''}>儲存</button><button class="key" data-act="collapse">取消</button><span class="spacer"></span>` +
-        (mode.blank ? '' : `<button class="danger-link" data-act="toast-delete">刪除這首歌</button>`) + `</div></div>`;
+        `<span class="sub">儲存會寫回媒體資料夾內的檔案。也可以直接更改檔案，上載後再掃描。</span></div></div>`;
 
     const trackRow = (track) => {
-        const open = state.open === track.no && !state.adding;
+        if (!track.audio) {
+            return `<li><div class="track dim"><span class="no">${pad(track.no)}</span><span class="title">${esc(track.title)}</span><span class="state">未有音檔 · 播放端顯示為灰色</span><span></span></div></li>`;
+        }
+        const open = state.open === track.no;
         return (
             `<li class="${open ? 'open' : ''}"><button class="track" data-act="toggle" data-no="${track.no}" aria-expanded="${open}">` +
-            `<span class="no">${pad(track.no)}</span>` +
-            `<span class="title">${esc(track.title)}${track.subtitle ? `<small>${esc(track.subtitle)}</small>` : ''}</span>` +
+            `<span class="no">${pad(track.no)}</span><span class="title">${esc(track.title)}</span>` +
             `<span class="leds">${led(true, '音檔')}${led(MV_TRACKS.has(track.no), 'MV')}${led(!NO_LYRICS.has(track.no), '歌詞')}</span><span class="chev" aria-hidden="true">›</span></button>` +
             (open ? editor(track, { bad: state.bad }) : '') + `</li>`
         );
     };
 
-    const coverTile = (index, has, act) =>
-        `<div class="cover ${has ? '' : 'empty'}"><div class="art">${has ? '' : '未有'}</div><div class="cap">封面 ${index}${index === 2 ? '（選填）' : ''}</div>` +
-        `<button class="key" data-act="${act}">${has ? '更換' : '加入'}</button></div>`;
-    const categorySelect = (current) =>
-        `<select id="f-category">${CATEGORIES.map(([id, name]) => `<option ${id === current ? 'selected' : ''}>${name}</option>`).join('')}</select>`;
+    const coverTile = (index, has) =>
+        `<div class="cover ${has ? '' : 'empty'}"><div class="art">${has ? '' : '未有'}</div><div class="cap"><span class="path">${index === 1 ? 'cover.jpg' : 'cover2.jpg'}</span>${index === 2 ? '（選填）' : ''}</div></div>`;
+    const INFO_FORMAT = '唱片名稱：專輯名\n發行年份：2026\n曲目：\n1. 第一首歌名\n2. 第二首歌名';
+    const infoText = (target) => `唱片名稱：${target.title}\n發行年份：${target.year ?? ''}\n曲目：\n${Object.entries(DATA.titles).map(([no, name]) => `${no}. ${name}`).join('\n')}`;
+    const infoChecks = (known) => {
+        if (!known) return `<li class="err">資料夾內沒有 info.txt。可以在這裏輸入然後儲存，或者上載 info.txt 後再掃描。</li>`;
+        const missing = DATA.tracks.filter((track) => !track.audio).map((track) => pad(track.no)).join('、');
+        return `<li>唱片名稱：${esc(DEMO.title)}</li><li>發行年份：${DEMO.year}</li><li>曲目 ${DATA.tracks.length} 首</li><li class="note">第 ${missing} 首未有音檔，播放端顯示為灰色</li>`;
+    };
 
-    const album = (target, tracks) => {
-        const [songs, lyrics, mv] = mediaOf(target);
+    const album = (target, known) => {
+        const [audio, lyrics, mv] = mediaOf(target);
+        const total = tracksOf(target);
         const covers = coversOf(target);
         const left = plate(
             `<div class="deck">${discSvg(target)}</div>` +
-            `<div class="covers">${coverTile(1, covers >= 1, 'toast-cover')}${coverTile(2, covers >= 2, 'toast-cover')}</div>` +
-            `<p class="sub" style="margin: 10px 2px 0">有兩張封面時，播放端每次開啟會隨機顯示其中一張；專輯色跟隨封面 1。小於 1200 × 1200 的圖片會自動放大。</p>` +
-            `<div class="well fields" style="margin-top: 16px">` +
-            `<div class="field"><label for="f-title">專輯名</label><input id="f-title" value="${esc(target.title)}"></div>` +
-            `<div class="field"><label for="f-category">發行類別</label>${categorySelect(target.category)}</div>` +
-            `<div class="two"><div class="field"><label for="f-no">序號（類別內第幾張）</label><input id="f-no" inputmode="numeric" value="${target.categoryNo}"></div>` +
-            `<div class="field"><label for="f-year">年份（選填）</label><input id="f-year" inputmode="numeric" value="${target.year ?? ''}"></div></div>` +
-            `<div class="two"><div class="field"><label for="f-key">字母盤標記</label><input id="f-key" value="${esc(target.key)}" maxlength="2"></div>` +
-            `<div class="field"><label for="f-label">唱片公司（選填）</label><input id="f-label" value="${esc(target.label ?? '')}"></div></div>` +
-            `<div class="field"><label>媒體資料夾</label><div class="readonly"><code>${esc(folderOf(target))}</code></div>` +
-            `<div class="sub" style="margin-top: 4px">由類別、序號及專輯 id 組成。將這隻碟的音檔、歌詞檔、MV 及封面放入這個資料夾，然後掃描。</div></div>` +
-            `<div class="field"><label for="f-colour">專輯色（亮燈顏色跟隨）</label><div class="swatch"><i></i><input id="f-colour" value="${target.accent}"></div></div>` +
-            `<div class="row"><button class="key primary" data-act="save-album">儲存</button><span class="sub">由封面 1 自動抽色，可以自行修改</span></div></div>`,
+            `<div class="covers">${coverTile(1, covers >= 1)}${coverTile(2, covers >= 2)}</div>` +
+            `<p class="sub" style="margin: 10px 2px 0">封面來自資料夾內的 cover.jpg 及 cover2.jpg；更換檔案後再掃描。有兩張封面時，播放端每次開啟會隨機顯示其中一張。</p>` +
+            `<div class="well" style="margin-top: 16px"><dl class="kv">` +
+            `<dt>媒體資料夾</dt><dd><span class="path">${esc(folderOf(target))}</span></dd>` +
+            `<dt>類別</dt><dd>${categoryName(target.category)}<span class="auto">第 ${target.categoryNo} 張 · 跟資料夾名稱</span></dd>` +
+            `<dt>字母盤標記</dt><dd>${esc(target.key)}<span class="auto">自動：專輯名第一個字</span></dd>` +
+            `<dt>專輯色</dt><dd><span style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: ${target.accent}; vertical-align: -2px"></span> ${target.accent}<span class="auto">自動：由 cover.jpg 抽出</span></dd>` +
+            `</dl></div>`,
         );
-        const list = tracks.length
-            ? `<p class="sub" style="margin: 8px 0 0">歌曲由掃描新增：有音檔才有歌曲。歌號跟隨檔案名稱的號碼，可以不連續。</p>` +
-              `<ul class="tracks">${tracks.map(trackRow).join('')}` +
-              `<li class="${state.adding ? 'open' : ''}"><button class="add" data-act="add" aria-expanded="${state.adding}">＋ 手動新增歌曲</button>${state.adding ? editor({}, { blank: true }) : ''}</li></ul>`
-            : `<div class="empty-list"><b>尚未有歌曲</b>將音檔（<span class="path">01 歌名.m4a</span>）、歌詞檔（<span class="path">01 歌名.txt</span>）及 MV（<span class="path">01 歌名.mp4</span>）放入媒體資料夾<br><span class="path">${esc(folderOf(target))}/</span>，然後按「掃描」。` +
-              `<div style="margin-top: 16px"><button class="key primary" data-act="scan">掃描媒體資料夾</button></div></div>`;
+        const info =
+            `<div class="well info"><div class="row"><h2>專輯資料</h2><span class="path">info.txt</span></div>` +
+            `<div class="edit" style="padding: 10px 0 0"><div><textarea id="info" spellcheck="false" placeholder="${esc(INFO_FORMAT)}" aria-describedby="info-checks">${known ? esc(infoText(target)) : ''}</textarea></div>` +
+            `<div class="hint"><b>格式</b><pre>${esc(INFO_FORMAT)}</pre>歌號要與音檔名稱開頭的號碼相同（例如 <span class="path">07 歌名.m4a</span>）。未有音檔的歌曲可以先列出。` +
+            `<div style="margin-top: 12px"><b>檢查結果</b></div><ul class="checks" id="info-checks" aria-live="polite">${infoChecks(known)}</ul></div>` +
+            `<div class="bar"><button class="key primary" data-act="save-album">儲存</button><span class="sub">儲存會寫回媒體資料夾內的 info.txt。也可以直接更改檔案，上載後再掃描。</span></div></div></div>`;
+        const issues = known && target.id === DEMO_ID
+            ? `<div class="well" style="margin-top: 14px"><div class="row"><h2>檢查結果</h2><span class="tag warn">${ISSUES.length} 項</span><span class="spacer"></span><span class="sub">修正檔案後再掃描</span></div>` +
+              `<ul class="issues">${ISSUES.map(([name, text]) => `<li><code>${esc(name)}</code><br>${text}</li>`).join('')}</ul></div>`
+            : '';
+        const list = known
+            ? `<p class="sub" style="margin: 8px 0 0">曲目來自 info.txt。按一首歌可以修改它的歌詞檔（曲詞編監及歌詞）。</p><ul class="tracks">${DATA.tracks.map(trackRow).join('')}</ul>`
+            : `<div class="empty-list"><b>尚未有曲目</b>在 info.txt 列出曲目，並將音檔（<span class="path">01 歌名.m4a</span>）、歌詞檔（<span class="path">01 歌名.txt</span>）及 MV（<span class="path">01 歌名.mp4</span>）放入<br><span class="path">${esc(folderOf(target))}/</span>，然後掃描。</div>`;
+        const heading = known ? esc(target.title) : esc(target.id);
         const right = plate(
             `<div class="row">${roundButton('back', '返回專輯', 'home')}` +
-            `<h1 class="${isLatin(target.title) ? 'latin' : ''}" style="font-weight: ${isLatin(target.title) ? 400 : 900}; font-size: 30px">${esc(target.title)}</h1><span class="spacer"></span>` +
-            `<span class="leds">${led(songs > 0, `歌曲 ${songs}`)}${led(lyrics > 0, `歌詞 ${lyrics}／${songs}`)}${led(mv > 0, `MV ${mv}`)}</span></div>` +
-            `<div class="well" style="margin-top: 14px"><div class="row"><h2>歌曲</h2><span class="spacer"></span><span class="sub">掃描媒體資料夾</span>${roundButton('scan', '掃描媒體資料夾', 'scan')}</div>${list}</div>`,
+            `<h1 class="${known && isLatin(target.title) ? 'latin' : ''}" style="font-weight: ${known && isLatin(target.title) ? 400 : 900}; font-size: 30px">${heading}</h1><span class="spacer"></span>` +
+            `<span class="leds">${led(audio > 0, `音檔 ${audio}／${total}`)}${led(lyrics > 0, `歌詞 ${lyrics}`)}${led(mv > 0, `MV ${mv}`)}</span></div>` +
+            `<div style="margin-top: 14px">${info}</div>${issues}` +
+            `<div class="well" style="margin-top: 14px"><div class="row"><h2>歌曲</h2></div>${list}</div>`,
         );
         return `<div class="album" style="--accent: ${target.accent}">${left}${right}</div>`;
     };
 
-    /* ---------- 掃描結果（CR-004／005／006）：未按「套用」之前唔會改任何資料 ---------- */
-    const title = (no) => DATA.titles[no] ?? '';
-    const file = (no, ext, suffix = '') => `${pad(no)} ${title(no)}${suffix}.${ext}`;
+    /* ---------- 掃描結果（CR-007）：新增同更新已經自動套用；移除要確認；對唔上嘅列做檢查結果 ---------- */
     const scanRow = ({ lead, files, target, tag, kind = '' }) =>
         `<li>${lead}<span>${files.map((name) => `<code>${esc(name)}</code>`).join('<br>')}<br><span class="sub">${target}</span></span>${tag ? `<span class="tag ${kind}">${tag}</span>` : '<span></span>'}</li>`;
-    const tick = (label, checked = true) => `<input type="checkbox" aria-label="${label}" ${checked ? 'checked' : ''}>`;
+    const tick = (label, checked = false) => `<input type="checkbox" aria-label="${label}" ${checked ? 'checked' : ''}>`;
+    const dot = '<span class="dot"></span>';
     const scanGroup = (name, count, note, rows) =>
         `<div class="scan-group"><h2>${name}<small>${count}</small></h2><div class="sub">${note}</div><ul class="scan">${rows.map(scanRow).join('')}</ul></div>`;
     const scanDialog = () => {
-        const created = [
-            { lead: tick('新增第 04 首'), files: [file(4, 'm4a'), file(4, 'txt')], target: `新增第 04 首「${esc(title(4))}」· 歌名、曲詞編監及歌詞取自文字檔`, tag: '新增', kind: 'new' },
-            { lead: tick('新增第 06 首'), files: [file(6, 'm4a')], target: `新增第 06 首「${esc(title(6))}」· 沒有文字檔，歌名取自檔案名稱`, tag: '新增', kind: 'new' },
+        const added = [
+            { lead: dot, files: ['single-02-joeng-sai-gaai-dou-dung/'], target: '新專輯「讓世界都懂」· 單曲 第 2 張 · info.txt：1 首', tag: '已新增', kind: 'new' },
+            { lead: dot, files: ['album-11-komorebi/05 太平門.m4a', 'album-11-komorebi/05 太平門.txt'], target: 'KOMOREBI 第 05 首 · 加入音檔及歌詞（42 行，全部有時間標記）', tag: '已新增', kind: 'new' },
         ];
         const updated = [
-            { lead: tick('更新第 02 首的歌詞'), files: [file(2, 'txt')], target: '第 02 首 · 歌詞有改動（42 行，全部有時間標記）', tag: '更新' },
-            { lead: tick('加入第 07 首的 MV'), files: [file(7, 'mp4')], target: '第 07 首 · 新的 MV', tag: '更新' },
-            { lead: tick('加入封面 2'), files: ['cover2.jpg'], target: '封面 2 · 1000 × 1000，會放大到 1200 × 1200', tag: '更新' },
+            { lead: dot, files: ['album-11-komorebi/info.txt'], target: 'KOMOREBI · 第 12 首歌名改為「木漏日」', tag: '已更新' },
+            { lead: dot, files: ['album-11-komorebi/02 跟住去邊度.txt'], target: 'KOMOREBI 第 02 首 · 歌詞有改動', tag: '已更新' },
+            { lead: dot, files: ['album-08-hours/cover2.jpg'], target: 'Hours · 加入第二張封面（1000 × 1000，已放大到 1200 × 1200）', tag: '已更新' },
         ];
-        const choose = [
-            { lead: '<span class="dot"></span>', files: [file(9, 'm4a'), file(9, 'm4a', ' (remaster)')], target: `第 09 首 · 有兩個音檔：<select aria-label="第 09 首用哪一個音檔"><option>${esc(file(9, 'm4a'))}</option><option>${esc(file(9, 'm4a', ' (remaster)'))}</option></select>`, tag: '請選擇', kind: 'warn' },
+        const removed = [
+            { lead: tick('移除專輯 RubberBand Concert #1'), files: ['live-01-rubberband-concert-1/'], target: '整個資料夾已不在。確認後移除專輯「RubberBand Concert #1」及它的 25 首歌；用戶收藏內這些歌曲會消失', tag: '資料夾不見了', kind: 'gone' },
+            { lead: tick('第 09 首改為未有音檔'), files: ['album-11-komorebi/09 一杯.m4a'], target: 'KOMOREBI 第 09 首的音檔已不在。確認後這首歌變回「未有音檔」（播放端變灰），歌詞及 MV 不再顯示', tag: '音檔不見了', kind: 'gone' },
         ];
-        const skipped = [
-            { lead: '<span class="dot"></span>', files: [file(8, 'txt')], target: '第 08 首沒有音檔：有音檔才會新增歌曲', tag: '已略過' },
-            { lead: '<span class="dot"></span>', files: [file(11, 'mp4')], target: '第 11 首沒有音檔：有音檔才會新增歌曲', tag: '已略過' },
-            { lead: '<span class="dot"></span>', files: ['notes.docx'], target: '不認識的檔案類型', tag: '已略過' },
-        ];
-        const gone = [
-            { lead: tick('清除第 12 首的音檔連結', false), files: [file(12, 'm4a')], target: `第 12 首「${esc(title(12))}」的音檔已不在資料夾。剔選 = 清除音檔連結；歌曲、歌詞及收藏會保留`, tag: '音檔不見了', kind: 'gone' },
+        const issues = [
+            { lead: dot, files: ['ep-01-frank-ep/'], target: '資料夾內沒有 info.txt：專輯已加入，暫時以資料夾 id 作為名稱', tag: '要檢查', kind: 'warn' },
+            { lead: dot, files: ['album-11-komorebi/10 想寫好嘅功課.m4a'], target: '檔案名稱與 info.txt 的歌名不同（info.txt：想寫好的功課）。播放端顯示 info.txt 的歌名', tag: '要檢查', kind: 'warn' },
+            { lead: dot, files: ['album-11-komorebi/08 揀睇誌.txt'], target: '第 08 首未有音檔：歌詞檔暫時不會使用', tag: '要檢查', kind: 'warn' },
+            { lead: dot, files: ['old-demos/'], target: '資料夾名稱不符合「類別-序號-id」的格式，沒有處理', tag: '要檢查', kind: 'warn' },
         ];
         return (
             `<div class="scrim"><div class="dialog" role="dialog" aria-modal="true" aria-label="掃描結果">` +
-            plate(`<h1>掃描結果</h1><p class="sub" style="margin: 4px 0 12px">在媒體資料夾 <span class="path">${esc(folderOf(DEMO))}/</span> 找到 24 個檔案。未按「套用」之前不會改動任何資料。</p>` +
+            plate(`<h1>掃描結果</h1><p class="sub" style="margin: 4px 0 12px">已掃描 21 個專輯資料夾、312 個檔案。新增及更新已經自動套用，播放端已更新；移除要你確認。</p>` +
                 `<div class="well">` +
-                scanGroup('將會新增歌曲', created.length, '有音檔而未有這個歌號的歌曲。歌號跟隨檔案名稱。', created) +
-                scanGroup('將會更新', updated.length, '檔案與上次掃描不同，或者是新加入的 MV／封面。', updated) +
-                scanGroup('要選擇', choose.length, '同一個歌號有多於一個檔案。', choose) +
-                scanGroup('音檔已不在資料夾', gone.length, '掃描不會自動刪除歌曲。', gone) +
-                scanGroup('已略過', skipped.length, '不會匯入；修正後可以再掃描。', skipped) +
-                `<div class="scan-group"><h2>沒有改動<small>14</small></h2><div class="sub">與上次掃描相同的檔案，不會重新讀取。</div></div>` +
+                scanGroup('要你確認：已不在媒體資料夾', removed.length, '不會自動移除。剔選後按「確認移除」；不剔選的會保留，下次掃描再問。', removed) +
+                `<div class="row" style="margin: 10px 0 4px"><button class="key" data-act="confirm-remove">確認移除所選的項目</button></div>` +
+                scanGroup('檢查結果', issues.length, '對不上的地方。修正檔案後再掃描。', issues) +
+                scanGroup('已新增', added.length, '已經自動套用。', added) +
+                scanGroup('已更新', updated.length, '已經自動套用。', updated) +
+                `<div class="scan-group"><h2>沒有改動<small>301</small></h2><div class="sub">與上次掃描相同的檔案，不會重新讀取。</div></div>` +
                 `</div>` +
-                `<div class="row" style="margin-top: 16px"><button class="key primary" data-act="apply-scan">套用所選的 6 項</button><button class="key" data-act="close-scan">取消</button></div>`) +
+                `<div class="row" style="margin-top: 16px"><button class="key primary" data-act="close-scan">完成</button></div>`) +
             `</div></div>`
         );
     };
@@ -509,8 +627,8 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
                 : `<p class="sub" style="margin: 0">只限管理員使用</p><button class="key google" data-act="home">${GOOGLE} 使用 Google 帳戶登入</button>`) +
             `</div><p class="sub" style="margin: 14px 0 0">歌迷自製 · 非官方</p>`)}</div>`;
 
-    const demoAlbum = () => album(DEMO, DATA.tracks);
-    const BODY = { albums, album: demoAlbum, empty: () => album(EMPTY, []), edit: demoAlbum, bad: demoAlbum, add: demoAlbum, scan: demoAlbum };
+    const demoAlbum = () => album(DEMO, true);
+    const BODY = { albums, album: demoAlbum, empty: () => album(EMPTY, false), edit: demoAlbum, bad: demoAlbum, scan: albums };
     const render = () => {
         document.getElementById('switch').innerHTML = SCREENS.map(([id, name]) => `<button data-screen="${id}" aria-pressed="${state.screen === id}">${name}</button>`).join('');
         const screen = state.screen;
@@ -521,23 +639,20 @@ li.open { background: #f1f1ee; border-radius: 12px; box-shadow: inset 0 0 0 1px 
     const TOAST_MS = 2200;
     const DEMO_OPEN_TRACK = 7;
     const flash = (text) => { state.toast = text; setTimeout(() => { state.toast = ''; render(); }, TOAST_MS); };
-    const go = (screen) => Object.assign(state, { screen, open: screen === 'edit' || screen === 'bad' ? DEMO_OPEN_TRACK : null, bad: screen === 'bad', adding: screen === 'add' });
-    const SAVED = '已儲存，播放端已更新';
+    const go = (screen) => Object.assign(state, { screen, open: screen === 'edit' || screen === 'bad' ? DEMO_OPEN_TRACK : null, bad: screen === 'bad' });
+    const SAVED = '已寫回媒體資料夾，播放端已更新';
     const ACTIONS = {
         home: () => go('albums'),
         logout: () => go('login'),
         'open-album': () => go('album'),
-        toggle: (el) => { const no = Number(el.dataset.no); Object.assign(state, { open: state.open === no ? null : no, adding: false, bad: false, screen: state.open === no ? 'album' : 'edit' }); },
-        add: () => Object.assign(state, { adding: !state.adding, open: null, screen: state.adding ? 'album' : 'add' }),
+        'open-empty': () => go('empty'),
+        toggle: (el) => { const no = Number(el.dataset.no); Object.assign(state, { open: state.open === no ? null : no, bad: false, screen: state.open === no ? 'album' : 'edit' }); },
         collapse: () => go('album'),
         save: () => { go('album'); flash(SAVED); },
         'save-album': () => flash(SAVED),
         scan: () => go('scan'),
-        'close-scan': () => go('album'),
-        'apply-scan': () => { go('album'); flash('已套用 6 項，播放端已更新'); },
-        'toast-new': () => flash('示意：新增一隻空白的碟，填寫類別及序號，然後將檔案放入媒體資料夾並掃描'),
-        'toast-cover': () => flash('示意：選擇圖片，裁切成正方形（小於 1200 × 1200 會放大），然後儲存'),
-        'toast-delete': () => flash('示意：先確認，然後刪除'),
+        'close-scan': () => go('albums'),
+        'confirm-remove': () => flash('示意：移除已剔選的項目，播放端已更新'),
     };
     document.addEventListener('click', (event) => {
         const tab = event.target.closest('[data-screen]');
