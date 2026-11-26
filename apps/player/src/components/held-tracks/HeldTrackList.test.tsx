@@ -178,6 +178,22 @@ describe('HeldTrackList', () => {
         expect(renderList(held(LONG)).list()).toHaveAttribute('tabindex', '0');
     });
 
+    // S-179：欄本身 focus 得（長歌單）先有外框，同行嘅感應範圍一樣闊、同欄一樣高；淨係畫面
+    it('should have a focus frame around a column that can take the focus', () => {
+        const long = renderList(held(LONG));
+        const frame = long.container.querySelector('[data-part="held-frame"]');
+        const { right, rowReach, bottomHeld } = PHONE_LAYOUT.heldTracks;
+        expect(frame).toHaveAttribute('x', '0');
+        expect(frame).toHaveAttribute('y', String(top));
+        expect(frame).toHaveAttribute('width', String(right + rowReach));
+        expect(frame).toHaveAttribute('height', String(bottomHeld - top));
+        expect(frame).toHaveAttribute('fill', 'none');
+        expect(frame).toHaveAttribute('aria-hidden', 'true');
+        long.unmount();
+        const short = renderList(held([row(1)]));
+        expect(short.container.querySelector('[data-part="held-frame"]')).toBeNull();
+    });
+
     // 滑鼠滾輪可以用「行」或者「版」做單位（WheelEvent.deltaMode）
     it('should scroll a row per wheel line and a column per wheel page', () => {
         const { list, rowY } = renderList(held(LONG));
