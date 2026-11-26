@@ -7,7 +7,7 @@ const limits = { stepDeg: STEP, positions: POSITIONS };
 
 /** 由 startPos 開始，pointer 依次經過呢啲角度（null = 喺旋鈕中心） */
 const turnThrough = (startPos: number, angles: readonly (number | null)[]) =>
-    angles.reduce((turn, deg) => moveTurn(turn, deg, limits), startTurn(startPos));
+    angles.reduce((turn, deg) => moveTurn(turn, deg), startTurn(startPos));
 
 describe('turnDelta', () => {
     it.each([
@@ -73,7 +73,7 @@ describe('knob turn', () => {
 
     it('should stay on the only position when there are no albums', () => {
         const single = { stepDeg: 0, positions: 1 };
-        const turn = [0, 90].reduce((state, deg) => moveTurn(state, deg, single), startTurn(0));
+        const turn = [0, 90].reduce((state, deg) => moveTurn(state, deg), startTurn(0));
         expect(turnedPosition(turn, single)).toBe(0);
     });
 });

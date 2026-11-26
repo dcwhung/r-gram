@@ -6,6 +6,7 @@ import { Disc } from '../disc/Disc';
 import { ringPath } from '../disc/ringPath';
 import { px, ratio } from '../svgNumber';
 import './discStack.css';
+import { stackSlots } from './stackOrder';
 
 interface DiscStackProps {
     layout: StageLayout;
@@ -19,8 +20,6 @@ interface DiscStackProps {
     children?: ReactNode;
 }
 
-/** 揀中嗰隻碟前後各畫幾多隻：見到嘅範圍再加一隻，等入嚟同出去嘅碟都有過場 */
-const EDGE = 1;
 /**
  * slot 嘅 key 前綴：專輯 id 唔會有 `#`，唔會撞。key 跟住而家隻碟變（W-037）：轉一格時 React 重新 mount slot，
  * 而唔係搬碟。固定 key 嘅話，向後轉時 React 會將啱啱離開轉盤嗰隻碟喺 DOM 拎走再插返，佢嘅 CSS 過場就冇咗（跳位）
@@ -75,8 +74,9 @@ const StackDisc = ({ layout, entry, offset, open, spinning }: StackDiscProps) =>
 
 /**
  * 轉盤上面嘅碟（設計稿 discs()、discPose()）：揀中嗰隻留喺轉盤；轉碟時其他碟沿弧線滑入，疊喺上面，
- * 右邊嗰張永遠最頂（按刻度次序畫）。每隻碟以專輯 id 做 key：轉碟時同一隻碟由弧線滑去轉盤（唔會重新 mount），
- * 唔喺範圍入面嘅碟唔畫；換碟時新嚟嘅封面由 0° 開始（B-033）。
+ * 右邊嗰張永遠最頂。第 20 版頭尾相接（stackOrder）：♥ 之後係第一隻碟，按離揀中嗰隻幾遠由底畫到頂。
+ * 每隻碟以專輯 id 做 key：轉碟時同一隻碟由弧線滑去轉盤（唔會重新 mount），唔喺範圍入面嘅碟唔畫；
+ * 換碟時新嚟嘅封面由 0° 開始（B-033）。
  */
 export const DiscStack = ({
     layout,
@@ -86,12 +86,10 @@ export const DiscStack = ({
     spinning,
     children,
 }: DiscStackProps) => {
-    const { shown } = layout.orbit;
-    const from = Math.max(0, current + shown.from - EDGE);
-    const to = Math.min(entries.length - 1, current + shown.to + EDGE);
     // 一列有 key 嘅兄弟：換碟時碟唔會重新 mount、唔會搬；slot（唱片夾）跟住而家隻碟重新 mount，佢喺轉盤中心，睇唔到
-    return entries.slice(from, to + 1).flatMap((entry, index) => {
-        const offset = from + index - current;
+    return stackSlots(entries.length, current, layout.orbit.shown).flatMap(({ index, offset }) => {
+        const entry = entries[index];
+        if (!entry) return [];
         const disc = (
             <StackDisc
                 key={entry.albumId}
