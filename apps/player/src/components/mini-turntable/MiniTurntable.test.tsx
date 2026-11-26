@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import type { MiniView } from '../../app/miniView';
+import { heldRowHitRight, miniLabelX } from '../../stage/geometry';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { estimateTextWidth } from '../../utils/textMeasure';
 import { MiniTurntable } from './MiniTurntable';
@@ -92,18 +93,35 @@ describe('MiniTurntable', () => {
         expect(hit).toHaveAttribute('fill', 'transparent');
     });
 
-    it('should shrink a long song title so that it stays inside the info column', () => {
-        const title = 'A Very Long Song Title That Would Run Off The Left Edge Of The Stage';
-        const node = renderMini(mini({ title })).part('mini-title');
-        const size = Number(node?.getAttribute('font-size'));
-        expect(size).toBeGreaterThanOrEqual(24);
-        const width = estimateTextWidth(node?.textContent ?? '', {
-            family: 'cjk',
-            size,
-            weight: 700,
-            spacing: 0,
+    /*
+     * W-045（方案 A）：歌名只可以用歌單行感應範圍右邊同細唱片機之間嘅位（miniLabelX − heldRowHitRight），
+     * 縮到 minSize，再唔得就「…」：唔會疊住歌單欄第一行
+     */
+    describe('long titles', () => {
+        const { miniTurntable: shape } = PHONE_LAYOUT;
+        const rowsRight = heldRowHitRight(PHONE_LAYOUT);
+        const leftEdge = (node: SVGElement | null) => {
+            const size = Number(node?.getAttribute('font-size'));
+            const font = { family: 'cjk', size, weight: 700, spacing: 0 } as const;
+            return miniLabelX(PHONE_LAYOUT) - estimateTextWidth(node?.textContent ?? '', font);
+        };
+
+        it.each([['(Just Like) Starting Over'], ['長夜漫漫我的愛晚安好夢']])(
+            'should keep %s right of the held rows, shrunk to the minimum size and cut',
+            (title) => {
+                const node = renderMini(mini({ title })).part('mini-title');
+                expect(leftEdge(node)).toBeGreaterThanOrEqual(rowsRight);
+                expect(node).toHaveAttribute('font-size', String(shape.title.minSize));
+                expect(node?.textContent?.endsWith('…')).toBe(true);
+            },
+        );
+
+        it('should only shrink a title that fits at the minimum size', () => {
+            const node = renderMini(mini({ title: '長夜的晚安' })).part('mini-title');
+            expect(node).toHaveTextContent('長夜的晚安');
+            expect(Number(node?.getAttribute('font-size'))).toBeLessThan(shape.title.size);
+            expect(leftEdge(node)).toBeGreaterThanOrEqual(rowsRight);
         });
-        expect(width).toBeLessThanOrEqual(782 - 70);
     });
 
     it('should fade out, leave the Tab order and ignore presses when not shown', () => {
