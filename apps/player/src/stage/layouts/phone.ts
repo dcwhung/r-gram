@@ -39,6 +39,26 @@ const MINI = {
 const MINI_TITLE_GAP = 20;
 
 /*
+ * 拎住嘅碟嘅歌單欄（T-049）照設計稿第 18 版 TRACKLIST。trackPanel() 入面寫死嘅數變成有名常數：
+ * 位置條最短 60、每行透明感應範圍闊 right + 20；拖動門檻 6 px 嚟自互動格嘅 pointermove
+ */
+const HELD_TRACKS = {
+    x: 74,
+    right: 600,
+    top: 330,
+    bottomOpen: 1470,
+    bottomHeld: 1650,
+    size: 28,
+    pitch: 66,
+    number: { scale: 0.72, width: 56 },
+    fade: 100,
+    bar: { width: 5, x: 44, minLength: 60 },
+    rowReach: 20,
+    scrim: { solid: 0, end: DESIGN_WIDTH, opacity: 0.62 },
+    dragThresholdPx: 6,
+} as const;
+
+/*
  * Preload（T-034）。布料照 _mockups_/r-gram/src/anim.js（v16）嘅 FLAG；logo、進度線同文字照第 18 版 preloadCard()。
  * v16 logo 平放時中心 x = 838 − 240 = 598、闊 640；第 18 版靜止畫面係 540、闊 560：
  * 用第 18 版嘅位同闊度，保留 v16 嘅 58 單位偏移（摺皺會將 logo 拉向旗杆，飄起嚟先喺中間）。
@@ -180,6 +200,7 @@ export const PHONE_LAYOUT: StageLayout = {
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
     },
     miniTurntable: MINI,
+    heldTracks: HELD_TRACKS,
     preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },

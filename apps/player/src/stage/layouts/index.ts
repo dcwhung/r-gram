@@ -3,6 +3,7 @@ import type { StageLayout } from './types';
 
 export type {
     ButtonId,
+    HeldTracksLayout,
     InfoLayout,
     LayoutId,
     MiniTurntableLayout,

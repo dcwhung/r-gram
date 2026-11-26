@@ -157,6 +157,20 @@ export const miniHitBox = ({ miniTurntable: mini }: StageLayout) => ({
     bottom: mini.y + mini.r,
 });
 
+/**
+ * 拎住嘅碟嘅歌單欄欄底（T-049）：旋鈕開住時較高（避開字母盤），鬆手之後較低。
+ * 欄底要避開嘅嘢貼底，所以高身手機加返 extraUnits（欄頂貼頂唔郁）
+ */
+export const heldColumnBottom = (
+    { heldTracks }: StageLayout,
+    dialOpen: boolean,
+    extraUnits = 0,
+): number => (dialOpen ? heldTracks.bottomOpen : heldTracks.bottomHeld) + extraUnits;
+
+/** 歌單欄一行嘅感應範圍右邊（由畫面左邊起成行都㩒得，D57） */
+export const heldRowHitRight = ({ heldTracks }: StageLayout): number =>
+    heldTracks.right + heldTracks.rowReach;
+
 /** 感應範圍：`round` 係圓形（half = 半徑），`square` 係正方形（half = 半邊長） */
 export interface HitArea extends Point {
     shape: 'round' | 'square';
