@@ -528,8 +528,21 @@ describe('HomeScene with the MV TV', () => {
         timeText: '0:00',
         failed: false,
         video: document.createElement('video'),
+        volume: 1,
+        muted: false,
+        volumeSupported: true,
+        positionSec: 0,
+        durationSec: null,
     };
-    const tvHandlers = { onPlay: vi.fn(), onPause: vi.fn(), onStop: vi.fn() };
+    const tvHandlers = {
+        onPlay: vi.fn(),
+        onPause: vi.fn(),
+        onStop: vi.fn(),
+        onVolume: vi.fn(),
+        onToggleMute: vi.fn(),
+        onSeekBy: vi.fn(),
+        onSeekTo: vi.fn(),
+    };
 
     it('should draw the TV over a turntable that cannot be reached', () => {
         const view = viewOf('apollo-18', null, { overlay: 'mv' });

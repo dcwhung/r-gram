@@ -16,10 +16,23 @@ const view = (overrides: Partial<TvView> = {}): TvView => ({
     timeText: '0:07',
     failed: false,
     video: document.createElement('video'),
+    volume: 1,
+    muted: false,
+    volumeSupported: true,
+    positionSec: 7,
+    durationSec: 200,
     ...overrides,
 });
 
-const handlers = () => ({ onPlay: vi.fn(), onPause: vi.fn(), onStop: vi.fn() });
+const handlers = () => ({
+    onPlay: vi.fn(),
+    onPause: vi.fn(),
+    onStop: vi.fn(),
+    onVolume: vi.fn(),
+    onToggleMute: vi.fn(),
+    onSeekBy: vi.fn(),
+    onSeekTo: vi.fn(),
+});
 
 const renderTv = (tv: TvView = view(), on = handlers()) => {
     const result = render(<Tv layout={PHONE_LAYOUT} tv={tv} handlers={on} />);

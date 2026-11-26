@@ -55,6 +55,18 @@ describe('tvView', () => {
         });
     });
 
+    // T-061：兩粒旋鈕要嘅值
+    it('should pass the volume, mute, Web Audio and position on to the knobs', () => {
+        const view = tvView(snapshot({ volume: 0.4, muted: true }), COLOURS, VIDEO);
+        expect(view).toMatchObject({
+            volume: 0.4,
+            muted: true,
+            volumeSupported: true,
+            positionSec: 7,
+            durationSec: 50,
+        });
+    });
+
     it('should show no progress before the length is known', () => {
         const view = tvView(snapshot({ durationSec: null }), COLOURS, VIDEO);
         expect(view?.progress).toBe(0);

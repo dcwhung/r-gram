@@ -56,3 +56,70 @@ describe('mvAudio (T-060)', () => {
         expect(video.volumeWrites).toEqual([]);
     });
 });
+
+/* T-061：音量同靜音只經 gain（D104）；MV 路徑設 audioSession = playback */
+describe('mvAudio volume (T-061)', () => {
+    it('should turn the gain to the volume and remember it through mute', () => {
+        const { audio, video } = setup();
+        audio.attach(asVideo(video));
+        audio.setVolume(0.4);
+        expect(audio.volume).toBe(0.4);
+        expect(FakeAudioContext.lastGain()?.value).toBe(0.4);
+        audio.setMuted(true);
+        expect(audio.muted).toBe(true);
+        expect(FakeAudioContext.lastGain()?.value).toBe(0);
+        audio.setMuted(false);
+        expect(FakeAudioContext.lastGain()?.value).toBe(0.4);
+        expect(video.muted).toBe(false);
+        expect(video.volumeWrites).toEqual([]);
+    });
+
+    it('should keep the volume between 0 and 1', () => {
+        const { audio, video } = setup();
+        audio.attach(asVideo(video));
+        audio.setVolume(1.7);
+        expect(audio.volume).toBe(1);
+        audio.setVolume(-0.2);
+        expect(audio.volume).toBe(0);
+    });
+
+    it('should stay silent while readied whatever the volume, and open to it after', () => {
+        const { audio, video } = setup();
+        audio.attach(asVideo(video));
+        audio.hold(true);
+        audio.setVolume(0.7);
+        expect(FakeAudioContext.lastGain()?.value).toBe(0);
+        audio.hold(false);
+        expect(FakeAudioContext.lastGain()?.value).toBe(0.7);
+    });
+
+    it('should open to silence when muted before the switch-on', () => {
+        const { audio, video } = setup();
+        audio.attach(asVideo(video));
+        audio.hold(true);
+        audio.setMuted(true);
+        audio.hold(false);
+        expect(FakeAudioContext.lastGain()?.value).toBe(0);
+    });
+
+    // D104 🅰️（Q2）：側邊靜音撥掣開咗 MV 照有聲：只喺開電視嘅手勢入面設
+    it('should ask iOS to treat the MV as playback when it opens', () => {
+        FakeAudioContext.reset();
+        const audioSession = { type: 'auto' };
+        const audio = createMvAudio({
+            AudioContext: asContextClass(FakeAudioContext),
+            audioSession,
+        });
+        expect(audioSession.type).toBe('auto');
+        audio.attach(asVideo(new FakeVideoElement()));
+        expect(audioSession.type).toBe('playback');
+    });
+
+    it('should remember the volume without Web Audio but change nothing', () => {
+        const audio = createMvAudio({});
+        audio.setVolume(0.3);
+        audio.setMuted(true);
+        expect(audio.volume).toBe(0.3);
+        expect(audio.muted).toBe(true);
+    });
+});

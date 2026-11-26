@@ -219,3 +219,109 @@ describe('mvController', () => {
         expect(listener).not.toHaveBeenCalled();
     });
 });
+
+/* T-061：電視旋鈕（Functional Spec US-007、C9、D104）：音量（gain）、靜音（gain 0，記住音量）、快轉／倒轉 */
+describe('mvController knobs', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    const playing = () => {
+        const tv = setup();
+        tv.mv.open(TRACK);
+        vi.advanceTimersByTime(REVEAL_MS);
+        tv.element.loadMetadata(200);
+        tv.element.advance(30);
+        return tv;
+    };
+    const gain = () => FakeAudioContext.lastGain()?.value;
+
+    it('should say whether the volume knob works (Web Audio)', () => {
+        expect(setup().snapshot().volumeSupported).toBe(true);
+        const element = new FakeVideoElement();
+        const engine = createVideoEngine(asVideo(element), createMvAudio({}));
+        expect(createMvController({ engine }).getSnapshot().volumeSupported).toBe(false);
+    });
+
+    it('should turn the volume through the gain', () => {
+        const { mv, snapshot } = playing();
+        mv.setVolume(0.4);
+        expect(snapshot().volume).toBe(0.4);
+        expect(gain()).toBe(0.4);
+    });
+
+    it('should mute to gain 0 and come back to the same volume', () => {
+        const { mv, snapshot, element } = playing();
+        mv.setVolume(0.4);
+        mv.toggleMute();
+        expect(snapshot().muted).toBe(true);
+        expect(gain()).toBe(0);
+        mv.toggleMute();
+        expect(snapshot().muted).toBe(false);
+        expect(gain()).toBe(0.4);
+        expect(element.muted).toBe(false);
+        expect(element.volumeWrites).toEqual([]);
+    });
+
+    it('should un-mute when the volume is turned', () => {
+        const { mv, snapshot } = playing();
+        mv.toggleMute();
+        mv.setVolume(0.6);
+        expect(snapshot()).toMatchObject({ muted: false, volume: 0.6 });
+        expect(gain()).toBe(0.6);
+    });
+
+    it('should keep the volume and mute for the next MV', () => {
+        const { mv, snapshot } = playing();
+        mv.setVolume(0.3);
+        mv.toggleMute();
+        mv.stop();
+        vi.advanceTimersByTime(tvCloseMs);
+        mv.open(TRACK);
+        expect(snapshot()).toMatchObject({ volume: 0.3, muted: true });
+        vi.advanceTimersByTime(REVEAL_MS);
+        expect(gain()).toBe(0);
+    });
+
+    it('should ignore the volume knob without Web Audio', () => {
+        const element = new FakeVideoElement();
+        const engine = createVideoEngine(asVideo(element), createMvAudio({}));
+        const mv = createMvController({ engine, reduceMotion: () => true });
+        mv.open(TRACK);
+        mv.setVolume(0.2);
+        mv.toggleMute();
+        expect(mv.getSnapshot()).toMatchObject({ volume: 1, muted: false });
+    });
+
+    it('should jump forward and back and keep inside the MV', () => {
+        const { mv, snapshot, element } = playing();
+        mv.seekBy(10);
+        expect(element.currentTime).toBe(40);
+        expect(snapshot().positionSec).toBe(40);
+        mv.seekBy(-60);
+        expect(element.currentTime).toBe(0);
+        mv.seekTo(195);
+        expect(element.currentTime).toBe(195);
+        mv.seekBy(30);
+        expect(element.currentTime).toBe(200);
+    });
+
+    it('should not jump before the MV is showing or while switching off', () => {
+        const { element, mv } = setup();
+        mv.open(TRACK);
+        element.loadMetadata(200);
+        mv.seekBy(10);
+        expect(element.seeks.filter((at) => at > 0)).toEqual([]);
+        vi.advanceTimersByTime(REVEAL_MS);
+        mv.stop();
+        mv.seekBy(10);
+        mv.setVolume(0.1);
+        expect(element.seeks.filter((at) => at > 0)).toEqual([]);
+        expect(mv.getSnapshot().volume).toBe(1);
+    });
+
+    it('should seek from the lock screen', () => {
+        const { session, element } = playing();
+        session.trigger('seekto', { seekTime: 90 });
+        expect(element.currentTime).toBe(90);
+    });
+});

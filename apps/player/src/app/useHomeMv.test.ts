@@ -77,6 +77,21 @@ describe('useHome MV TV', () => {
         expect(mounted.home().tv?.active).toBe('play');
     });
 
+    // T-061：兩粒旋鈕直接去電視（音量、靜音、快轉／倒轉）
+    it('should send the knobs to the MV', () => {
+        const mounted = mount();
+        act(() => mounted.handlers()?.onSpindle());
+        act(() => mounted.handlers()?.onMv());
+        act(() => vi.advanceTimersByTime(MOTION.scene.crtOnDelayMs + MOTION.scene.crtOnMs));
+        act(() => mounted.tv.element.loadMetadata(120));
+        act(() => mounted.home().tvHandlers?.onVolume(0.3));
+        act(() => mounted.home().tvHandlers?.onToggleMute());
+        act(() => mounted.home().tvHandlers?.onSeekBy(10));
+        expect(mounted.home().tv).toMatchObject({ volume: 0.3, muted: true, positionSec: 10 });
+        act(() => mounted.home().tvHandlers?.onSeekTo(60));
+        expect(mounted.tv.element.currentTime).toBe(60);
+    });
+
     // C8：收埋之後唔自動續播；唱臂喺泊位，唱片夾係 play
     it('should put the TV away on stop and leave the record stopped with the arm parked', () => {
         const mounted = mount();
