@@ -5,8 +5,11 @@ import {
     buttonCdGap,
     buttonKnobGap,
     buttonPlatterGap,
+    heartHitPoint,
     hitAreas,
     hitSizeUnits,
+    miniHitBox,
+    miniLabelX,
     knobMargins,
     knobPlatterGap,
     minHitGap,
@@ -83,6 +86,51 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
     it('should keep the track line where it is when the song title takes two lines', () => {
         const { song, track } = layout.info;
         expect(song.y - song.lift + song.pitch).toBeLessThan(track.y - track.size);
+    });
+
+    /*
+     * T-048：右上角細唱片機（成組一粒掣）嘅感應範圍（Technical Spec「補充：第 18 版」淨空規則 ③）：
+     * ≥ 44pt、喺畫面入面；喺版本號同碟名（兩款字）嘅基線下面；唔同 ♥ 嘅感應方格重疊。
+     * 細唱片機貼頂、♥ 貼底：高身手機兩者只會再拉開
+     */
+    describe('mini turntable', () => {
+        const box = miniHitBox(layout);
+        const { info, miniTurntable: mini } = layout;
+
+        it('should give the mini turntable a touch target of at least 44pt, on screen', () => {
+            expect(box.right - box.left).toBeGreaterThanOrEqual(hitSizeUnits(layout));
+            expect(box.bottom - box.top).toBeGreaterThanOrEqual(hitSizeUnits(layout));
+            expect(box.left).toBeGreaterThanOrEqual(0);
+            expect(box.right).toBeLessThanOrEqual(DESIGN_WIDTH);
+            expect(box.top).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should keep its touch target below the version number and the album title', () => {
+            expect(box.top).toBeGreaterThan(info.version.y);
+            expect(box.top).toBeGreaterThan(info.title.latin.y);
+            expect(box.top).toBeGreaterThan(info.title.cjk.y);
+        });
+
+        it('should keep the narrowed album title left of the mini disc', () => {
+            expect(info.title.rightWhenHeld).toBeLessThan(mini.x - mini.r);
+            expect(info.title.rightWhenHeld).toBeGreaterThan(info.title.x);
+        });
+
+        it('should keep the label and song title right-aligned inside the info column', () => {
+            expect(miniLabelX(layout)).toBeLessThan(mini.x - mini.r);
+            expect(miniLabelX(layout)).toBeGreaterThan(info.title.x);
+        });
+
+        it('should keep its touch target apart from the ♥ square', () => {
+            const half = hitSizeUnits(layout) / 2;
+            const heart = heartHitPoint(layout);
+            const apart =
+                heart.y - half >= box.bottom ||
+                heart.y + half <= box.top ||
+                heart.x - half >= box.right ||
+                heart.x + half <= box.left;
+            expect(apart).toBe(true);
+        });
     });
 
     it('should size the round touch targets from the 44pt rule, never smaller than the control', () => {

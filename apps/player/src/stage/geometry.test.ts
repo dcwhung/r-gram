@@ -2,6 +2,9 @@ import {
     armCentreYAt,
     heartHitPoint,
     heartPoint,
+    miniHitBox,
+    miniLabelX,
+    miniScale,
     orbitPose,
     platterLeftAt,
     polar,
@@ -120,5 +123,21 @@ describe('orbitPose', () => {
 
     it.each([-1, 2])('should show the disc %d places away when open', (offset) => {
         expect(orbitPose(PHONE_LAYOUT, offset, true).opacity).toBe(1);
+    });
+});
+
+/* T-048：細唱片機（設計稿第 18 版 miniTurntable()） */
+describe('mini turntable geometry', () => {
+    it('should scale the turntable by MINI.r / PLATTER.r', () => {
+        expect(miniScale(PHONE_LAYOUT)).toBeCloseTo(120 / 716);
+    });
+
+    // hitRect(MINI.x − hitPad / 2, MINI.y, 2r + hitPad, 2r)：以中心計
+    it('should cover the disc and the text on its left with one touch target', () => {
+        expect(miniHitBox(PHONE_LAYOUT)).toEqual({ left: 510, top: 202, right: 1050, bottom: 442 });
+    });
+
+    it('should right-align the two lines of text at MINI.x − MINI.r − labelGap', () => {
+        expect(miniLabelX(PHONE_LAYOUT)).toBe(782);
     });
 });

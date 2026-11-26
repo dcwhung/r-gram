@@ -28,6 +28,25 @@ describe('PHONE_LAYOUT', () => {
         });
     });
 
+    // T-048：設計稿第 18 版 MINI = { x: 930, y: 322, r: 120, labelGap: 28, hitPad: 300, label: 24, title: 36 }；
+    // miniTurntable() 入面兩行字：「播放中」y − 18（字距 4）、歌名 y + 30
+    it('should carry the mini turntable of the mockup', () => {
+        expect(PHONE_LAYOUT.miniTurntable).toEqual({
+            x: 930,
+            y: 322,
+            r: 120,
+            labelGap: 28,
+            hitPad: 300,
+            label: { size: 24, rise: 18, spacing: 4 },
+            title: { size: 36, drop: 30, minSize: 24 },
+        });
+    });
+
+    // 設計稿 info()：拎住另一隻碟時碟名闊度到 MINI.x − MINI.r − 20
+    it('should narrow the album title to the left of the mini turntable while holding', () => {
+        expect(PHONE_LAYOUT.info.title.rightWhenHeld).toBe(790);
+    });
+
     // T-035：左上資訊同版本號，數值照設計稿 info()（第 17 版）
     it('should carry the top-left info block and the version text of the mockup', () => {
         const { info } = PHONE_LAYOUT;
