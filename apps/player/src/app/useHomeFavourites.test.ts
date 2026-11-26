@@ -169,3 +169,27 @@ describe('useHome un-favouriting the song playing from the Favourites disc', () 
         ]);
     });
 });
+
+/* T-070：Favourites 碟播緊時收藏有變：隊列跟住（自動下一首跨碟） */
+describe('useHome queue of the Favourites disc', () => {
+    it('should go on across albums and into a song favourited while the disc plays', () => {
+        const home = mount(['room-01']);
+        toFavourites(home);
+        act(() => home.handlers()?.onSpindle());
+        act(() => home.store.add('apollo-18-03'));
+        act(() => home.element.finish());
+        expect(home.result.current.playback).toMatchObject({
+            albumId: FAVOURITES_ALBUM_ID,
+            trackId: 'apollo-18-03',
+        });
+        expect(home.element.src).toBe('https://media.example/apollo-18/03.m4a');
+    });
+
+    it('should not touch the queue of a real album when the favourites change', () => {
+        const home = mount();
+        act(() => home.handlers()?.onSpindle());
+        act(() => home.store.add('room-01'));
+        act(() => home.element.finish());
+        expect(home.result.current.playback.trackId).toBe('apollo-18-03');
+    });
+});

@@ -148,3 +148,60 @@ describe('playbackController with Media Session', () => {
         expect(session.playbackState).toBe('paused');
     });
 });
+
+/* T-070：Favourites 碟：鎖屏顯示每首歌原本嗰隻碟同佢嘅封面；收藏有變時隊列跟住變 */
+describe('playbackController with the Favourites disc', () => {
+    const roomArt: MediaImage[] = [{ src: 'https://img.example/room.webp' }];
+    const hallArt: MediaImage[] = [{ src: 'https://img.example/hall.webp' }];
+    const favourites = (ids: readonly string[]): PlaybackSource => ({
+        albumId: 'favourites',
+        albumTitle: '我的收藏',
+        artwork: [],
+        tracks: ids.map((id) => ({
+            id,
+            title: id,
+            url: `https://media.example/${id}.m4a`,
+            album: id.startsWith('room')
+                ? { title: 'ROOM', artwork: roomArt }
+                : { title: 'HALL', artwork: hallArt },
+        })),
+    });
+
+    it('should show the real album and its cover of each track, also after auto-next', () => {
+        const { session, controller, element } = setup();
+        controller.start(favourites(['room-01', 'hall-02']), 'room-01');
+        expect(session.metadata).toMatchObject({ album: 'ROOM', artwork: roomArt });
+        element.finish();
+        expect(session.metadata).toMatchObject({
+            title: 'hall-02',
+            album: 'HALL',
+            artwork: hallArt,
+        });
+    });
+
+    it('should play on into a track favourited while the disc plays', () => {
+        const { controller, element, state } = setup();
+        controller.start(favourites(['room-01']), 'room-01');
+        controller.refresh(favourites(['room-01', 'hall-02']));
+        element.finish();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'hall-02' });
+        expect(element.src).toBe('https://media.example/hall-02.m4a');
+    });
+
+    it('should skip a track that is no longer a favourite', () => {
+        const { controller, element, state } = setup();
+        controller.start(favourites(['room-01', 'hall-02', 'room-03']), 'room-01');
+        controller.refresh(favourites(['room-01', 'room-03']));
+        element.finish();
+        expect(state().trackId).toBe('room-03');
+    });
+
+    it('should ignore a refresh for a disc that is not loaded', () => {
+        const { controller, element, state } = setup();
+        controller.start(SOURCE, 'room-01');
+        controller.refresh(favourites(['hall-02']));
+        element.finish();
+        expect(state().trackId).toBe('room-02');
+        expect(controller.source).toMatchObject({ albumId: 'room' });
+    });
+});

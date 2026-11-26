@@ -1,4 +1,7 @@
+import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { NO_COVER_PICKS } from '../catalog/coverVariants';
+import { withFavourites } from '../favourites/favouritesAlbum';
+import { t } from '../i18n/t';
 import { makeAlbum, makeDocument } from '../catalog/testing/catalogFixtures';
 import { playbackSource } from './playbackSource';
 
@@ -48,5 +51,30 @@ describe('playbackSource', () => {
         const document = makeDocument([makeAlbum('room', ['room/01.m4a'])]);
         expect(playbackSource(document, 'room', NO_COVER_PICKS)?.artwork).toEqual([]);
         expect(playbackSource(document, 'nope', NO_COVER_PICKS)).toBeNull();
+    });
+
+    // T-070：Favourites 碟：碟名「我的收藏」；每首歌帶住原本嗰隻碟同佢嘅封面（Media Session）
+    it('should give each favourite its real album and cover', () => {
+        const document = withFavourites(withCover(), [
+            { trackId: 'apollo-18-03', addedAt: 1 },
+            { trackId: 'apollo-18-02', addedAt: 2 },
+        ]);
+        const source = playbackSource(document, FAVOURITES_ALBUM_ID, NO_COVER_PICKS);
+        expect(source).toMatchObject({
+            albumId: FAVOURITES_ALBUM_ID,
+            albumTitle: t('favourites.title'),
+            artwork: [],
+        });
+        expect(source?.tracks).toEqual([
+            {
+                id: 'apollo-18-03',
+                title: 'apollo-18 3',
+                url: 'https://media.example/apollo%2018/03.m4a',
+                album: {
+                    title: 'APOLLO-18',
+                    artwork: playbackSource(withCover(), 'apollo-18', NO_COVER_PICKS)?.artwork,
+                },
+            },
+        ]);
     });
 });
