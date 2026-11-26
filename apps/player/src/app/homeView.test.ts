@@ -233,10 +233,18 @@ describe('homeView while choosing a disc', () => {
             'the list of another disc is open',
             home({ scene: 'list', viewAlbumId: 'room' }),
             playback(),
-            false,
+            true,
         ],
     ])('should tell whether another disc is held when %s', (_case, stage, state, holding) => {
         expect(homeView(document, stage, state).holding).toBe(holding);
+    });
+
+    // 設計稿第 19 版 scene()：拎住嘅碟開弧線歌單：冇唱臂（有細唱片機，喺暗層下面）；左上照出框入面嗰首
+    it('should keep the tonearm hidden but show the framed song in the arc list of a held disc', () => {
+        const stage = home({ scene: 'list', viewAlbumId: 'room' });
+        const view = homeView(document, stage, playback());
+        expect(view).toMatchObject({ armHidden: true, songHidden: false });
+        expect(view.mini?.shown).toBe(true);
     });
 
     it('should keep the song part and the tonearm hidden while holding another disc', () => {

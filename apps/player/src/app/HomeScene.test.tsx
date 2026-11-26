@@ -265,6 +265,17 @@ describe('HomeScene holding another disc', () => {
         expect(container.querySelector('.spindle')).toHaveAttribute('aria-disabled', 'true');
     });
 
+    // 設計稿第 19 版 scene()：弧線歌單嘅暗層蓋住細唱片機（照畫），開住歌單時㩒唔到、Tab 唔到
+    it('should keep the mini turntable under the veil of the arc list of the held disc', () => {
+        const { container } = render(scene(viewOf('room', null, { scene: 'list' }, PLAYING)));
+        const mini = part(container, 'mini-turntable');
+        const veil = part(container, 'arc-veil');
+        const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(mini && veil && mini.compareDocumentPosition(veil) & follows).toBeTruthy();
+        expect(part(container, 'mini-button')).toHaveAttribute('tabindex', '-1');
+        expect(part(container, 'chrome-arm')).toHaveAttribute('data-hidden', 'true');
+    });
+
     it('should keep the platter and hide the mini turntable on the loaded disc', () => {
         const { container } = render(scene(viewOf('apollo-18', null, {}, PLAYING)));
         expect(part(container, 'platter-fade')).toHaveAttribute('data-hidden', 'false');
