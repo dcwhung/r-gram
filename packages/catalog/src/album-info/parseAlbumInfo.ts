@@ -37,11 +37,12 @@ const tooLarge = (): AlbumInfo => ({
     ],
 });
 
-const isTooLarge = (text: string, lineCount: number): boolean =>
-    // UTF-16 code unit 數大過 byte 上限 = UTF-8 byte 數一定更大：唔使逐字計
-    text.length > INFO_TEXT_MAX_BYTES ||
-    byteLength(text) > INFO_TEXT_MAX_BYTES ||
-    lineCount > INFO_TEXT_MAX_LINES;
+/**
+ * 拆行之前先擋（W-038）：UTF-16 code unit 數大過 byte 上限 = UTF-8 byte 數一定更大，唔使逐字計、唔使拆行
+ *（20 MB 全部係換行嘅文字即刻回）；之後先逐字計 byte
+ */
+const isTooManyBytes = (text: string): boolean =>
+    text.length > INFO_TEXT_MAX_BYTES || byteLength(text) > INFO_TEXT_MAX_BYTES;
 
 const readTitle = (value: string, line: number, state: ReadState): void => {
     if (value === '') return;
@@ -101,8 +102,9 @@ const byLine = (a: Check, b: Check): number =>
     (a.line ?? Number.MAX_SAFE_INTEGER) - (b.line ?? Number.MAX_SAFE_INTEGER);
 
 export const parseAlbumInfo = (text: string): AlbumInfo => {
+    if (isTooManyBytes(text)) return tooLarge();
     const lines = songLines(text);
-    if (isTooLarge(text, lines.length)) return tooLarge();
+    if (lines.length > INFO_TEXT_MAX_LINES) return tooLarge();
     const state: ReadState = {
         seen: new Set(),
         title: null,
