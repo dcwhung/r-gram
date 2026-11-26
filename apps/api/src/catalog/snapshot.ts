@@ -1,7 +1,7 @@
 /*
  * 生成 catalog 要讀嘅 D1 資料：全部專輯同全部歌（歌號次序）連歌詞檔名。專輯次序由 buildDocument 按 albumOrder() 排。
  * 兩句喺同一個 batch（一個 transaction）讀：專輯同歌係同一刻嘅資料，唔會一半新一半舊。
- * folder、來源 ETag、info_etag、檢查結果、text_key 係管理用，唔入 catalog，唔讀
+ * folder、來源 ETag、info_etag、info_used、檢查結果、text_key 係管理用，唔入 catalog，唔讀
  */
 import { CREDIT_FIELDS, type ReleaseCategory } from '@r-gram/catalog';
 

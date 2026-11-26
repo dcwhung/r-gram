@@ -63,7 +63,7 @@ export const syncAlbumStateOf = (row: AlbumRow | null): SyncAlbumState | null =>
     row && {
         title: row.title,
         year: row.year,
-        infoEtag: row.info_etag,
+        infoUsed: row.info_used === 1,
         coverSourceEtag: row.cover_source_etag,
         cover2SourceEtag: row.cover2_source_etag,
         hasCover: row.cover !== null,
