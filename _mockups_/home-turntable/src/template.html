@@ -191,11 +191,11 @@ tr:last-child td { border-bottom: 0; }
         <li>㩒碟面打開歌單，再㩒中間嘅唱片夾：唱針落碟，開始播。</li>
         <li>㩒左下大旋鈕（= 開始擰旋鈕揀碟）：唱臂、三粒細掣同左上歌名淡出，隻碟停轉；聲當照播。</li>
         <li>㩒旁邊滑入嚟嘅碟（= 擰去嗰隻碟）：左上碟名跟住變，碟名下面即刻出歌單；右上角出現細唱片機，照播緊原本隻碟。再㩒右邊嘅碟可以去到 We Are RubberBand（30 首，歌單可以上下拖）。</li>
-        <li>再㩒大旋鈕（= 鬆手）：手上拎住嗰隻碟，歌單向下排多幾行。</li>
+        <li>再㩒大旋鈕（= 鬆手）：手上拎住嗰隻碟；三粒細掣出返，歌單底部縮短讓位（未揀歌，所以歌書同 MV 兩粒係灰色）；冇唱臂，因為唱片機喺右上角。</li>
         <li>㩒碟面（或者中間唱片夾）：歌單欄嘅歌名飄落弧線，變成弧線歌單；㩒唱片夾播框入面嗰首：隻碟放入唱片機，落針，細唱片機消失。歌單欄本身純睇：行唔㩒得，只可以上下捲。</li>
         <li>或者㩒右上角細唱片機：放低隻碟，返去播緊嗰隻碟。</li>
     </ol>
-    <p class="lede"><b>新（等你確認）：揀碟就出歌單，歌單純睇。</b>只要字母盤開住（揀緊碟），有冇歌播緊都會喺碟名下面出嗰隻碟嘅歌單；快擰途中唔顯示，停定先出。歌單欄任何時候都唔會觸發播放：行唔㩒得，只可以捲。鬆手之後歌單欄唔收：冇歌播緊時，唱臂、三粒細掣同 play 出返，歌單底部縮短讓位畀細掣（唱臂可以疊喺歌單上面）；有歌播緊而鬆手喺另一隻碟（拎住隻碟），歌單排到最低，play 出現，右上角細唱片機照播。<b>㩒 play = 播呢隻碟第一首；㩒碟面 = 歌單欄收起，開弧線歌單揀歌</b>（兩個歌單唔會同時出現；㩒暗位收返弧線歌單，歌單欄出返）。開始播之後歌單欄收起。</p>
+    <p class="lede"><b>新（等你確認）：揀碟就出歌單，歌單純睇。</b>只要字母盤開住（揀緊碟），有冇歌播緊都會喺碟名下面出嗰隻碟嘅歌單；快擰途中唔顯示，停定先出。歌單欄任何時候都唔會觸發播放：行唔㩒得，只可以捲。鬆手之後歌單欄唔收，三粒細掣出返，歌單底部縮短讓位畀細掣：冇歌播緊時唱臂都出返（可以疊喺歌單上面）；有歌播緊而鬆手喺另一隻碟（拎住隻碟），右上角有細唱片機照播，所以冇唱臂。<b>㩒 play = 播呢隻碟第一首；㩒碟面 = 歌單欄收起，開弧線歌單揀歌</b>（兩個歌單唔會同時出現；㩒暗位收返弧線歌單，歌單欄出返）。開始播之後歌單欄收起。</p>
     <p class="lede"><b>新（等你確認）：歌單欄飄落。</b>歌單欄每次出現或者換碟（上面第 2、3 步），唔再一下子出現：歌名由右上一行一行飄落自己嘅位置。每轉去一隻碟都播一次。</p>
     <p class="lede"><b>拎住另一隻碟時㩒碟面：</b>歌單欄嘅歌名由碟名下面逐行飄落弧線，暗層淡入，白色框線由唱片夾伸出；㩒暗位收返（返去歌單欄）。字母盤開住時㩒碟面冇反應，要鬆手先㩒得。</p>
     <div class="hero">
@@ -527,7 +527,7 @@ tr:last-child td { border-bottom: 0; }
         ['轉碟中', '半透明字母盤環繞旋鈕；空心碟互相疊住，之後嘅碟蓋過唱片機中心；唱片夾留喺原位', { album: 'komorebi', song: false, booklet: false, wheel: 1 }],
         ['播緊時揀碟', '第 18 版：聲照播；唱臂、左下三粒細掣同左上歌名嗰部分淡出，只留碟名；隻碟停轉；轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉', { album: 'komorebi', song: true, wheel: 1 }],
         ['播緊時揀碟：轉到另一隻碟', '第 18 版：好似行開去碟架拎第二隻碟睇——唱片機縮去右上角照播；左上碟名跟住旋鈕指住嘅碟變，碟名下面即刻列出呢隻碟嘅歌單。冇黑色層：黑字，字級比「播放中」大一級；隻碟左邊蓋一層半透明嘅底色', { album: 'juntos', song: false, wheel: 1, away: true, loaded: 'komorebi' }],
-        ['播緊時，手上拎住另一隻碟', '第 18 版：鬆手之後，歌單向下排多幾行。㩒一行 = 將隻碟放入唱片機播嗰首：原本首歌停，隻碟落轉盤，唱針由泊位轉過嚟落碟。㩒右上角細唱片機 = 放低隻碟，返去播緊嗰隻', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
+        ['播緊時，手上拎住另一隻碟', '鬆手之後：歌單欄留低（純睇），底部縮短讓位畀三粒細掣；有細唱片機所以冇唱臂；有 play。㩒 play = 隻碟入機播第一首；㩒碟面 = 開弧線歌單揀歌；㩒右上角細唱片機 = 放低隻碟，返去播緊嗰隻', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
         ['長歌單（30 首）', '第 18 版：一版見到約 20 首；放唔晒就上下捲，頂同底淡出表示仲有，左邊有位置條；歌名太長用「…」', { album: 'we-are-rubberband', song: false, wheel: 0, away: true, loaded: 'komorebi', listScroll: 0.5 }],
         ['拎住另一隻碟：播緊嘅歌名好長', '「播放中」同歌名推上咗，喺歌單第一行上面，歌名可以向左伸長：放唔落先縮字，再放唔落先用「…」收尾，唔會疊住歌單', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', loadedTitle: '(Just Like) Starting Over' }],
         ['拎住另一隻碟，播緊嗰隻碟播完咗', '細唱片機留低，字寫「已播完」，唱針離開碟返泊位；歌單欄唔收。㩒細唱片機返去嗰隻碟', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', loadedEnded: true }],
@@ -890,16 +890,16 @@ tr:last-child td { border-bottom: 0; }
      * 畫面蓋一層半透明嘅底色：由左邊 62% 直線淡到右邊 0%（唔係壓暗），隻碟仍然透得出嚟，歌名又睇得清楚。
      * 㩒一行 = 將隻碟放入唱片機播嗰首。歌多就上下捲：頂（捲咗先有）同底（下面仲有先有）淡出，左邊有位置條。
      */
-    const TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomHeld: 1650, bottomIdle: 1290, size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, barX: 44, scrimSolid: 0, scrimEnd: W, scrimOpacity: 0.62, rowPad: 20 }; // 淺色層：由左 62% 直線淡到右邊 0%
+    const TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomIdle: 1290, size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, barX: 44, scrimSolid: 0, scrimEnd: W, scrimOpacity: 0.62, rowPad: 20 }; // 淺色層：由左 62% 直線淡到右邊 0%
     const trackPitch = () => TRACKLIST.pitch;
     /** 歌單欄飄落：每行由右上（dx、dy）飄落自己嘅位置兼淡入；逐行遲 stagger 毫秒，成欄最多攤開 spread 毫秒。CSS 入面嘅數值同呢度一致 */
     const PANEL_FLOAT = { stagger: 60, spread: 560, duration: 460, dx: 170, dy: -62, settle: 140 }; // settle：旋鈕停定咁耐先出歌單欄；快擰途中唔顯示 // 第 2 版：由右上飄落，飄落途中同上一行嘅橫向距離大啲
     const panelMetrics = (st) => {
         const rows = (TRACKS[st.album] ?? { rows: [] }).rows;
         const top = st.panelTop ?? TRACKLIST.top;
-        // 底：字母盤開住到旋鈕上面（bottomOpen）；拎住另一隻碟（冇細掣）排到最低（bottomHeld）；
-        // 冇歌載入而鬆咗手：縮短讓位畀三粒細掣（bottomIdle）。頂唔變：泊位嘅唱臂可以疊喺歌單上面（唔係掣）
-        const room = (st.panelBottom ?? (st.wheel > 0 ? TRACKLIST.bottomOpen : st.keepPanel ? TRACKLIST.bottomIdle : TRACKLIST.bottomHeld)) - top;
+        // 底：字母盤開住（冇細掣）到旋鈕上面（bottomOpen）；鬆咗手（有細掣）縮短讓位畀三粒細掣（bottomIdle），拎住另一隻碟都一樣。
+        // 頂唔變：泊位嘅唱臂可以疊喺歌單上面（唔係掣）
+        const room = (st.panelBottom ?? (st.wheel > 0 ? TRACKLIST.bottomOpen : TRACKLIST.bottomIdle)) - top;
         return { rows, top, room, hidden: Math.max(0, rows.length * trackPitch() - room) };
     };
     /** 隻碟左邊向底色淡出（喺碟上面、旋鈕同字母盤下面） */
@@ -1411,7 +1411,7 @@ tr:last-child td { border-bottom: 0; }
         if (floating && st.listFromColumn) {
             // 嗰欄其餘嘅行（弧線上見唔到嘅）原地淡出
             const textX = TRACKLIST.x + TRACKLIST.numberW;
-            const room = TRACKLIST.bottomHeld - TRACKLIST.top;
+            const room = TRACKLIST.bottomIdle - TRACKLIST.top;
             let ghosts = '';
             for (let j = slot; j < rows.length && trackPitch() * (j + 0.5) < room; j += 1) {
                 const y = n(TRACKLIST.top + trackPitch() * (j + 0.5));
@@ -1750,7 +1750,11 @@ tr:last-child td { border-bottom: 0; }
         const fade = homeOpacity(st);
         // 第 18 版：手上拎住另一隻碟（away）——冇轉盤、冇唱臂、冇細掣；唱片機縮咗去右上角
         const away = Boolean(st.away);
-        const machineFade = away ? 0 : fade;
+        // 用戶 2026-11-26 嘅兩條規則：
+        // ① 字母盤開住 = 冇細掣；鬆手 = 有細掣（拎住另一隻碟都一樣）
+        // ② 有細唱片機 = 冇唱臂；冇細唱片機而揀緊碟（未鬆手）= 冇唱臂；鬆咗手 = 有唱臂
+        const armFade = away ? 0 : fade;
+        const buttonsFade = fade;
         const turntable = [
             `<rect width="${W}" height="${H}" fill="url(#gStage)"/>`,
             screws(),
@@ -1760,10 +1764,10 @@ tr:last-child td { border-bottom: 0; }
             dialRing(st),
             knob(st),
             favHeart(st),
-            `<g data-anim="armfade" style="opacity: ${machineFade}"${machineFade === 0 ? ' pointer-events="none"' : ''}>${tonearm(st)}</g>`,
+            `<g data-anim="armfade" style="opacity: ${armFade}"${armFade === 0 ? ' pointer-events="none"' : ''}>${tonearm(st)}</g>`,
             `<g data-anim="mini" style="opacity: ${away ? 1 : 0}"${away ? '' : ' pointer-events="none"'}><g data-swap="mini">${miniTurntable(st, fid)}</g></g>`,
         ].join('');
-        const buttons = `<g data-anim="buttons" style="opacity: ${machineFade}"${machineFade === 0 ? ' pointer-events="none"' : ''}><g data-swap="buttons">${BUTTONS.map((b) => button(b, st)).join('')}</g></g>`;
+        const buttons = `<g data-anim="buttons" style="opacity: ${buttonsFade}"${buttonsFade === 0 ? ' pointer-events="none"' : ''}><g data-swap="buttons">${BUTTONS.map((b) => button(b, st)).join('')}</g></g>`;
         // 第 18 版：揀碟時（同換碟嗰下）歌名嗰部分同唱臂、細掣一齊淡出；碟名留低，跟住旋鈕指住嘅碟變
         const songFade = st.list || st.booklet ? 1 : fade;
         const infoLayer =
@@ -1940,7 +1944,7 @@ tr:last-child td { border-bottom: 0; }
             live.wheel = live.wheel > 0.5 ? 0 : 1;
             live.booklet = false;
             if (live.wheel === 1) live.browsed = true;
-            else if (!live.song && !reducedMotion()) { live.panelShrink = true; requestAnimationFrame(() => { live.panelShrink = false; }); } // 鬆手：歌單底部縮短（簡單過場）
+            else if ((!live.song || liveView().away) && !reducedMotion()) { live.panelShrink = true; requestAnimationFrame(() => { live.panelShrink = false; }); } // 鬆手：歌單底部縮短讓位畀細掣（簡單過場）
             if (live.wheel === 1 && !liveView().away) { // 一打開字母盤就出而家隻碟嘅歌單（飄落）
                 Object.assign(live, { listScroll: 0, panelFresh: !reducedMotion() });
                 requestAnimationFrame(() => { live.panelFresh = false; });
