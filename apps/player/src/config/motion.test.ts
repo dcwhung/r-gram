@@ -53,8 +53,17 @@ describe('motion tokens', () => {
         );
     });
 
+    // S-152（B-083 ①）：㩒住旋鈕幾耐先開字母盤（輸入規則，減少動態效果都一樣）
+    it('should open the dial after a short hold', () => {
+        expect(MOTION.input.dialHoldMs).toBe(180);
+    });
+
     it('should only hold positive whole milliseconds', () => {
-        const all = [...Object.values(MOTION.feedback), ...Object.values(MOTION.scene)];
+        const all = [
+            ...Object.values(MOTION.feedback),
+            ...Object.values(MOTION.scene),
+            ...Object.values(MOTION.input),
+        ];
         expect(all.every((ms) => Number.isInteger(ms) && ms > 0)).toBe(true);
     });
 });

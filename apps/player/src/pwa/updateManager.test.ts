@@ -27,6 +27,9 @@ const setup = (overrides: Partial<UpdateManagerDeps> = {}) => {
         blockReloads: () => {
             reloadAllowed = false;
         },
+        allowReloads: () => {
+            reloadAllowed = true;
+        },
     };
 };
 
@@ -62,65 +65,50 @@ describe('UpdateManager.checkNow', () => {
     });
 });
 
-describe('UpdateManager: a new version is waiting', () => {
-    it('should apply it at once while nothing is playing (Functional Spec D14)', () => {
+/*
+ * S-197（用戶決定 B-084 ④）：新版只喺開 app 時（Preload 期間）自動換、reload 一次；用緊 app 時唔會自己 reload，
+ * 有新版就出「已有新版本／立即更新」，由聽眾揀
+ */
+describe('UpdateManager: during start-up', () => {
+    it('should activate a version found waiting and reload once it takes control', () => {
         const { deps, manager } = setup();
         manager.handleNeedRefresh();
         expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
-    });
-
-    it('should reload once the new service worker takes control', () => {
-        const { deps, manager } = setup();
-        manager.handleNeedRefresh();
         manager.handleControllerChange();
         manager.handleNeedReload();
         expect(deps.reload).toHaveBeenCalledTimes(1);
         expect(deps.guard.mark).toHaveBeenCalledTimes(1);
     });
 
-    it('should wait while music or an MV is playing and apply when it stops', () => {
+    it('should reload when another tab already activated a new version', () => {
         const { deps, manager } = setup();
-        manager.setPlaying(true);
-        manager.handleNeedRefresh();
+        manager.handleControllerChange();
+        expect(deps.reload).toHaveBeenCalledTimes(1);
         expect(deps.applyUpdate).not.toHaveBeenCalled();
-        manager.setPlaying(false);
-        expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
     });
 
-    it('should wait for the finger to lift during a gesture', () => {
-        const { deps, manager } = setup();
-        manager.setGesturing(true);
+    it('should not show the prompt over the start-up screen', () => {
+        const { manager, blockReloads } = setup();
+        blockReloads();
         manager.handleNeedRefresh();
-        expect(deps.applyUpdate).not.toHaveBeenCalled();
-        manager.setGesturing(false);
-        expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
-    });
-
-    it('should report "waiting" only while the update is held back by playback', () => {
-        const { manager, listener } = setup();
         expect(manager.getSnapshot()).toBe('none');
-        manager.setPlaying(true);
+    });
+
+    // 防 loop：啱啱 reload 過（例如部署壞咗）就唔自動換，開完 app 出提示
+    it('should leave the version waiting when the loop guard saw a reload just now', () => {
+        const { deps, manager, listener, blockReloads } = setup();
+        blockReloads();
         manager.handleNeedRefresh();
+        expect(deps.applyUpdate).not.toHaveBeenCalled();
+        manager.endLaunch();
         expect(manager.getSnapshot()).toBe('waiting');
         expect(listener).toHaveBeenCalledTimes(1);
-        manager.setPlaying(false);
-        expect(manager.getSnapshot()).toBe('none');
-        expect(listener).toHaveBeenCalledTimes(2);
     });
 
-    it('should not report "waiting" for a short gesture', () => {
-        const { manager } = setup();
-        manager.setGesturing(true);
-        manager.handleNeedRefresh();
-        expect(manager.getSnapshot()).toBe('none');
-    });
-
-    it('should apply and reload during playback when the listener asks for it', () => {
+    it('should still reload for a version it activated just before start-up ended', () => {
         const { deps, manager } = setup();
-        manager.setPlaying(true);
         manager.handleNeedRefresh();
-        manager.applyNow();
-        expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
+        manager.endLaunch();
         manager.handleControllerChange();
         expect(deps.reload).toHaveBeenCalledTimes(1);
     });
@@ -131,9 +119,62 @@ describe('UpdateManager: a new version is waiting', () => {
         manager.handleNeedRefresh();
         expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
     });
+});
 
-    it('should do nothing on "apply now" when no update is waiting', () => {
-        const { deps, manager } = setup();
+describe('UpdateManager: while the app is in use', () => {
+    const inUse = (overrides: Partial<UpdateManagerDeps> = {}) => {
+        const context = setup(overrides);
+        context.manager.endLaunch();
+        return context;
+    };
+
+    it('should never activate a waiting version on its own, and show the prompt', () => {
+        const { deps, manager, listener } = inUse();
+        manager.handleNeedRefresh();
+        expect(deps.applyUpdate).not.toHaveBeenCalled();
+        expect(deps.reload).not.toHaveBeenCalled();
+        expect(manager.getSnapshot()).toBe('waiting');
+        expect(listener).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not reload on its own when another tab activated a new version', () => {
+        const { deps, manager } = inUse();
+        manager.handleControllerChange();
+        manager.handleNeedReload();
+        expect(deps.reload).not.toHaveBeenCalled();
+        expect(manager.getSnapshot()).toBe('waiting');
+    });
+
+    it('should activate and reload when the listener presses "update now"', () => {
+        const { deps, manager } = inUse();
+        manager.handleNeedRefresh();
+        manager.applyNow();
+        expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
+        manager.handleControllerChange();
+        expect(deps.reload).toHaveBeenCalledTimes(1);
+        expect(deps.guard.mark).toHaveBeenCalledTimes(1);
+    });
+
+    it('should reload at once on "update now" after another tab took over', () => {
+        const { deps, manager } = inUse();
+        manager.handleControllerChange();
+        manager.applyNow();
+        expect(deps.reload).toHaveBeenCalledTimes(1);
+        expect(deps.applyUpdate).not.toHaveBeenCalled();
+    });
+
+    // 聽眾自己揀嘅 reload 唔係 loop：防 loop 只管自動嗰次（W-049：「立即更新」只算今次，之後唔會自動 reload）
+    it('should reload on "update now" even inside the loop window', () => {
+        const { deps, manager, blockReloads } = inUse();
+        blockReloads();
+        manager.handleNeedRefresh();
+        manager.applyNow();
+        manager.handleControllerChange();
+        expect(deps.reload).toHaveBeenCalledTimes(1);
+    });
+
+    it('should do nothing on "update now" when no update is waiting', () => {
+        const { deps, manager } = inUse();
         manager.applyNow();
         expect(deps.applyUpdate).not.toHaveBeenCalled();
         expect(deps.reload).not.toHaveBeenCalled();
@@ -150,32 +191,19 @@ describe('UpdateManager: reloading', () => {
         expect(deps.reload).toHaveBeenCalledTimes(1);
     });
 
-    it('should not reload when the guard sees a reload loop', () => {
-        const { deps, manager, blockReloads } = setup();
-        blockReloads();
+    // W-049：自動 reload 被防 loop 擋咗：還原做「等緊」，開完 app 出提示；之後唔會自己 reload
+    it('should fall back to the prompt when the loop guard blocks the reload', () => {
+        const { deps, manager, blockReloads, allowReloads } = setup();
         manager.handleNeedRefresh();
+        blockReloads();
         manager.handleControllerChange();
         expect(deps.reload).not.toHaveBeenCalled();
-    });
-
-    it('should hold a takeover by another tab until playback stops', () => {
-        const { deps, manager } = setup();
-        manager.setPlaying(true);
+        manager.endLaunch();
+        allowReloads();
         manager.handleControllerChange();
         expect(deps.reload).not.toHaveBeenCalled();
         expect(manager.getSnapshot()).toBe('waiting');
-        manager.setPlaying(false);
-        expect(deps.reload).toHaveBeenCalledTimes(1);
-        expect(deps.applyUpdate).not.toHaveBeenCalled();
-    });
-
-    it('should hold the reload if playback started between applying and the takeover', () => {
-        const { deps, manager } = setup();
-        manager.handleNeedRefresh();
-        manager.setPlaying(true);
-        manager.handleControllerChange();
-        expect(deps.reload).not.toHaveBeenCalled();
-        manager.setPlaying(false);
+        manager.applyNow();
         expect(deps.reload).toHaveBeenCalledTimes(1);
     });
 
@@ -185,6 +213,17 @@ describe('UpdateManager: reloading', () => {
         expect(deps.reload).not.toHaveBeenCalled();
         manager.handleControllerChange();
         expect(deps.reload).toHaveBeenCalledTimes(1);
+    });
+
+    // W-053 ①（903-player S-647）：第一次安裝嘅分頁知道有新版之後，另一個分頁先換：呢下 controllerchange 係換版
+    it('should treat a takeover after a known waiting version as an update on a first install', () => {
+        const { deps, manager } = setup({ controlledAtLoad: false });
+        manager.endLaunch();
+        manager.handleNeedRefresh();
+        manager.handleControllerChange();
+        manager.applyNow();
+        expect(deps.reload).toHaveBeenCalledTimes(1);
+        expect(deps.applyUpdate).not.toHaveBeenCalled();
     });
 
     it('should treat the first takeover as an update after a hard reload', () => {
@@ -199,7 +238,7 @@ describe('UpdateManager: reloading', () => {
         const listener = vi.fn();
         const unsubscribe = manager.subscribe(listener);
         unsubscribe();
-        manager.setPlaying(true);
+        manager.endLaunch();
         manager.handleNeedRefresh();
         expect(listener).not.toHaveBeenCalled();
     });

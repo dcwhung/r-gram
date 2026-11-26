@@ -1,4 +1,5 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { MOTION } from '../../config/motion';
 import { PHONE_LAYOUT as LAYOUT } from '../../stage/layouts';
 import { Knob } from './Knob';
 
@@ -48,6 +49,15 @@ const at = (deg: number, distance = RADIUS_PX * 2, pointerId = 1) => ({
 const SECOND = 2;
 /** 滑鼠右掣 */
 const SECONDARY_BUTTON = 2;
+const { dialHoldMs } = MOTION.input;
+/** 輕點：㩒落放手之間嘅時間（短過 dialHoldMs） */
+const TAP_MS = 80;
+
+/** 㩒住旋鈕夠時間（S-152：㩒住或者開始擰先開字母盤） */
+const hold = (knob: Element, point = at(0)) => {
+    fireEvent.pointerDown(knob, point);
+    act(() => vi.advanceTimersByTime(dialHoldMs));
+};
 
 describe('Knob', () => {
     // Technical Spec 實現注意事項 14：旋鈕 = role="slider" + aria-valuenow
@@ -83,11 +93,80 @@ describe('Knob', () => {
     });
 
     describe('dragging', () => {
-        it('should open the dial when the knob is grabbed', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        // S-152（用戶決定 B-083 ①）：㩒住夠 dialHoldMs 先開字母盤
+        it('should open the dial once the knob has been held for the hold time', () => {
             const { knob, spies } = renderKnob();
             fireEvent.pointerDown(knob, at(0));
+            act(() => vi.advanceTimersByTime(dialHoldMs - 1));
+            expect(spies.onStart).not.toHaveBeenCalled();
+            act(() => vi.advanceTimersByTime(1));
             expect(spies.onStart).toHaveBeenCalledTimes(1);
             expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
+        // S-152：輕點（冇擰）唔開字母盤，亦唔會開咗即刻收（閃一下）
+        it('should do nothing on a quick tap', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            act(() => vi.advanceTimersByTime(TAP_MS));
+            fireEvent.pointerUp(knob, at(0));
+            act(() => vi.advanceTimersByTime(dialHoldMs));
+            expect(spies.onStart).not.toHaveBeenCalled();
+            expect(spies.onEnd).not.toHaveBeenCalled();
+            expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
+        it('should open the dial at once when the pointer starts turning', () => {
+            const { knob, spies } = renderKnob();
+            const order: string[] = [];
+            spies.onStart.mockImplementation(() => order.push('start'));
+            spies.onTurn.mockImplementation(() => order.push('turn'));
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.pointerMove(knob, at(STEP_DEG));
+            expect(order).toEqual(['start', 'turn']);
+            act(() => vi.advanceTimersByTime(dialHoldMs));
+            expect(spies.onStart).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not open for a wobble below the turn threshold', () => {
+            const { knob, spies } = renderKnob();
+            const start = at(0);
+            fireEvent.pointerDown(knob, start);
+            const wobble = LAYOUT.knob.turnThresholdPx - 1;
+            fireEvent.pointerMove(knob, { ...start, clientY: start.clientY + wobble });
+            fireEvent.pointerUp(knob, start);
+            expect(spies.onStart).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['cancelled', (knob: Element) => fireEvent.pointerCancel(knob, at(0))],
+            ['left', (knob: Element) => fireEvent.pointerLeave(knob, at(0))],
+            ['loses the capture', (knob: Element) => fireEvent.lostPointerCapture(knob, at(0))],
+        ])('should not open later when the press is %s before the hold time', (_, end) => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            end(knob);
+            act(() => vi.advanceTimersByTime(dialHoldMs));
+            expect(spies.onStart).not.toHaveBeenCalled();
+            expect(spies.onEnd).not.toHaveBeenCalled();
+            // 之後可以再㩒
+            hold(knob);
+            expect(spies.onStart).toHaveBeenCalledTimes(1);
+        });
+
+        it('should drop a pending open when it is removed', () => {
+            const { knob, spies, unmount } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            unmount();
+            act(() => vi.advanceTimersByTime(dialHoldMs));
+            expect(spies.onStart).not.toHaveBeenCalled();
         });
 
         // 手指離開旋鈕都照轉：㩒落嗰陣攞 pointer capture
@@ -124,10 +203,10 @@ describe('Knob', () => {
 
         it('should close the dial on the chosen disc when released or cancelled', () => {
             const { knob, spies } = renderKnob();
-            fireEvent.pointerDown(knob, at(0));
+            hold(knob);
             fireEvent.pointerUp(knob, at(0));
             expect(spies.onEnd).toHaveBeenCalledTimes(1);
-            fireEvent.pointerDown(knob, at(0));
+            hold(knob);
             fireEvent.pointerCancel(knob, at(0));
             expect(spies.onEnd).toHaveBeenCalledTimes(2);
         });
@@ -159,7 +238,7 @@ describe('Knob', () => {
 
         it('should close the dial when the knob loses the pointer capture', () => {
             const { knob, spies } = renderKnob();
-            fireEvent.pointerDown(knob, at(0));
+            hold(knob);
             fireEvent.lostPointerCapture(knob, { pointerId: 1 });
             expect(spies.onEnd).toHaveBeenCalledTimes(1);
             fireEvent.pointerMove(knob, at(STEP_DEG * 2));

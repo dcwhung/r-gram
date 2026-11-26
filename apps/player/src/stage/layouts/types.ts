@@ -106,16 +106,16 @@ export interface PreloadLayout {
 
 /**
  * 右上角細唱片機（設計稿第 18 版 MINI、miniTurntable()；T-048）：碟心同半徑（成部唱片機按 r ÷ 轉盤半徑縮細）；
- * 兩行字靠右對齊喺碟左邊 `labelGap`：「播放中」喺圓心上面 `rise`、歌名喺圓心下面 `drop`；
- * 感應範圍 = 碟（2r × 2r）再向左伸 `hitPad`，連埋兩行字。歌名放唔落就每次縮 `step`，最細 `minSize`，再唔得先「…」；
- * 可用闊度除返 1 + `renderSlack`（render 比量字闊嘅比例），留餘位
+ * 兩行字靠右對齊喺碟左邊 `labelGap`：「播放中」基線喺 y + `label.dy`、歌名基線喺 y + `title.dy`（都喺歌單第一行上面）；
+ * 感應範圍 = 碟（2r × 2r）再向左伸 `hitPad`，連埋兩行字。歌名最左去到 `title.left`：放唔落就每次縮 `step`，
+ * 最細 `minSize`，再唔得先「…」
  */
 export interface MiniTurntableLayout extends Point {
     r: number;
     labelGap: number;
     hitPad: number;
-    label: { size: number; rise: number; spacing: number };
-    title: { size: number; drop: number; minSize: number; step: number; renderSlack: number };
+    label: { size: number; dy: number; spacing: number };
+    title: { size: number; dy: number; minSize: number; step: number; left: number };
 }
 
 /**
@@ -202,9 +202,10 @@ export interface StageLayout {
     };
     /**
      * 轉碟旋鈕；`heartHitGap` = ♥ 嘅感應方格離旋鈕邊幾遠（方格由旋鈕邊向外伸，唔同旋鈕重疊）；
-     * `turnDeadZone` = 拖動時 pointer 離旋鈕中心少過幾多（× 感應半徑）唔計角度（太近中心，角度會亂跳）
+     * `turnDeadZone` = 拖動時 pointer 離旋鈕中心少過幾多（× 感應半徑）唔計角度（太近中心，角度會亂跳）；
+     * `turnThresholdPx` = 未㩒夠時間，pointer 郁過幾多 CSS px 就當開始擰（即刻開字母盤，S-152）
      */
-    knob: Point & { r: number; heartHitGap: number; turnDeadZone: number };
+    knob: Point & { r: number; heartHitGap: number; turnDeadZone: number; turnThresholdPx: number };
     /** 刻度弧：固定由 fromDeg 去到 toDeg；每張專輯一格平均分佈，最尾一格（toDeg）係 ♥ */
     scale: {
         fromDeg: number;

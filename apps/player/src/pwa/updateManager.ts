@@ -1,17 +1,19 @@
 import type { ReloadGuard } from './reloadGuard';
 
 /*
- * PWA 更新（T-039；Functional Spec US-011、D14；Technical Spec 實現注意事項 12）。移植自 903-player 嘅 updateManager，
- * 規則跟 R Gram 嘅 spec：新 Service Worker 喺 waiting 等；播放狀態係 idle / paused（而且冇開 MV）先 SKIP_WAITING
- * → controllerchange → reload 一次。另外手指㩒住畫面（轉旋鈕、拖歌單）期間都等放手先換。
- * 播緊時有新版：唔 reload，出細提示（UpdatePrompt）；聽眾自己㩒「立即更新」先即刻換，否則等停咗自動換。
+ * PWA 更新（T-039；Functional Spec US-011、D14；Technical Spec 實現注意事項 12；用戶決定 S-197 / B-084 ④）。
+ * 移植自 903-player 嘅 updateManager，規則跟 R Gram：
+ * - 開 app（Preload 期間）搵到新版：即刻 SKIP_WAITING → controllerchange → reload 一次（sessionStorage 防 loop），
+ *   聽眾未郁過任何嘢
+ * - 用緊 app（Preload 之後）：唔會自己換、唔會自己 reload（播緊、暫停、閒置、返前景都一樣），只係出提示
+ *（UpdatePrompt「已有新版本／立即更新」）；聽眾㩒「立即更新」先換
  * 所有副作用（SW、時間、reload）由外面注入，方便測試。
  */
 
 /** 兩次檢查之間最少隔幾耐（開 app 同返回前景好近，唔使撞兩次） */
 export const UPDATE_CHECK_THROTTLE_MS = 60 * 1000;
 
-/** `waiting`：有新版，但因為播緊歌／MV 等緊（畫面出提示） */
+/** `waiting`：有新版等緊聽眾揀（畫面出提示） */
 export type UpdateStatus = 'none' | 'waiting';
 
 export interface UpdateManagerDeps {
@@ -32,13 +34,13 @@ export class UpdateManager {
     private lastCheckedAt = Number.NEGATIVE_INFINITY;
     /** refresh = 新 SW 喺 waiting；reload = 新 SW 已經接管（例如另一個分頁換咗） */
     private pending: 'refresh' | 'reload' | undefined;
-    /** 已經發咗 SKIP_WAITING */
+    /** 已經發咗 SKIP_WAITING：接管之後要 reload */
     private applied = false;
-    /** 聽眾㩒咗「立即更新」：唔再等播放停 */
-    private forced = false;
+    /** 聽眾㩒咗「立即更新」：自己揀嘅 reload，唔使防 loop */
+    private chosen = false;
     private reloaded = false;
-    private playing = false;
-    private gesturing = false;
+    /** 仲喺開 app（Preload）：呢段時間先會自動換版 */
+    private launching = true;
     private hasSeenController: boolean;
     private status: UpdateStatus = 'none';
     private readonly listeners = new Set<() => void>();
@@ -71,9 +73,9 @@ export class UpdateManager {
         this.evaluate();
     };
 
-    /** 新 SW 已經接管：自己 apply 而仲可以換就即刻 reload；否則等（播緊、手指㩒住、另一個分頁換咗版） */
+    /** 新 SW 已經接管：自己 apply 過就 reload；否則當新版等緊（開 app 時照自動換） */
     handleNeedReload = (): void => {
-        if (this.applied && this.canApply()) {
+        if (this.applied) {
             this.reloadOnce();
             return;
         }
@@ -96,30 +98,23 @@ export class UpdateManager {
         this.hasSeenController = true;
     };
 
-    /** 播緊歌或者開住 MV（App 由播放狀態計，pwa/playbackActivity.ts） */
-    setPlaying = (playing: boolean): void => {
-        this.playing = playing;
-        this.evaluate();
+    /** Preload 完咗、聽眾開始用 app：之後只出提示，唔再自動換（App 叫） */
+    endLaunch = (): void => {
+        this.launching = false;
+        this.publish();
     };
 
-    setGesturing = (gesturing: boolean): void => {
-        this.gesturing = gesturing;
-        this.evaluate();
-    };
-
-    /** 更新提示嘅「立即更新」：聽眾自己揀打斷播放 */
+    /** 更新提示嘅「立即更新」：聽眾自己揀換版（會打斷播放） */
     applyNow = (): void => {
         if (this.pending === undefined) return;
-        this.forced = true;
-        this.evaluate();
+        this.chosen = true;
+        this.apply();
+        this.publish();
     };
 
-    private canApply(): boolean {
-        return this.forced || (!this.playing && !this.gesturing);
-    }
-
+    /** 開 app 時自動換；啱啱因為新版 reload 過（防 loop）就唔換，留畀提示 */
     private evaluate(): void {
-        if (this.pending !== undefined && this.canApply()) this.apply();
+        if (this.pending !== undefined && this.launching && this.deps.guard.allow()) this.apply();
         this.publish();
     }
 
@@ -134,17 +129,27 @@ export class UpdateManager {
         this.deps.applyUpdate();
     }
 
-    /** controllerchange 同 library 嘅 onNeedReload 會撞埋一齊：只 reload 一次；防 loop 擋咗就等下次開 app */
+    /**
+     * controllerchange 同 library 嘅 onNeedReload 會撞埋一齊：只 reload 一次。
+     * 自動嗰次被防 loop 擋咗（W-049）：還原做「新版已接管、未 reload」，出提示等聽眾揀
+     */
     private reloadOnce(): void {
-        if (this.reloaded || !this.deps.guard.allow()) return;
+        if (this.reloaded) return;
+        if (!this.chosen && !this.deps.guard.allow()) {
+            this.applied = false;
+            this.pending = 'reload';
+            this.publish();
+            return;
+        }
         this.reloaded = true;
         this.deps.guard.mark();
         this.deps.reload();
     }
 
-    /** 只有播放擋住先出提示：手指㩒住係一陣間嘅事，唔使閃一下提示 */
+    /** Preload 期間唔出提示（自動換緊，或者防 loop 擋住：開完 app 先出） */
     private publish(): void {
-        const next: UpdateStatus = this.pending !== undefined && this.playing ? 'waiting' : 'none';
+        const next: UpdateStatus =
+            this.pending !== undefined && !this.launching ? 'waiting' : 'none';
         if (next === this.status) return;
         this.status = next;
         this.listeners.forEach((listener) => listener());

@@ -23,10 +23,12 @@ interface ArcRowProps {
     list: ArcListLayout;
     /** 感應範圍右邊（碟芯膠圈邊，框嘅右端） */
     hitRight: number;
-    onPlay: (trackId: string) => void;
 }
 
-/** 感應範圍：上下 = 前後半行（相鄰兩行剛好接住），左邊 = 框嘅圓頭，右邊 = 框嘅右端 */
+/**
+ * 行嘅範圍：上下 = 前後半行（相鄰兩行剛好接住），左邊 = 框嘅圓頭，右邊 = 框嘅右端。
+ * 唔係掣（W-051）：㩒落冇反應，只係擋住下面嘅暗層（㩒行唔會收返歌單）；喺度拖照捲
+ */
 const HitBand = ({ pose, list, hitRight }: Pick<ArcRowProps, 'pose' | 'list' | 'hitRight'>) => {
     const left = pose.x - list.frame.gap - list.frame.height / 2;
     return (
@@ -43,10 +45,11 @@ const HitBand = ({ pose, list, hitRight }: Pick<ArcRowProps, 'pose' | 'list' | '
 
 /**
  * 弧線歌單一行（設計稿第 18 版 listLayer()；role="option"）：歌號（專輯色 slab，track.no，D60）+ 歌名（CJK，白）。
- * 播得 = 㩒一下播；未有音檔 = 灰色、`aria-disabled`、㩒唔到（D11）。memo：props 冇變就唔 render
+ * 行唔㩒得（W-051，用戶決定）：播歌經唱片夾或者 Enter（listbox 嘅 aria-activedescendant 指住框入面嗰行）。
+ * 未有音檔 = 灰色、`aria-disabled`（D11）。memo：props 冇變就唔 render
  */
 export const ArcRow = memo(function ArcRow(props: ArcRowProps) {
-    const { row, pose, list, accent, onPlay } = props;
+    const { row, pose, list, accent } = props;
     const numberSize = pose.size * list.number.scale;
     const titleX = pose.x + numberSize * list.number.gapEm + list.number.pad;
     const names = { no: row.no, title: row.title };
@@ -62,7 +65,6 @@ export const ArcRow = memo(function ArcRow(props: ArcRowProps) {
             aria-posinset={props.position}
             aria-setsize={props.count}
             opacity={ratio(pose.opacity)}
-            onClick={row.playable ? () => onPlay(row.id) : undefined}
         >
             <HitBand pose={pose} list={list} hitRight={props.hitRight} />
             <g aria-hidden="true">

@@ -7,6 +7,7 @@ import {
     miniHitBox,
     miniLabelX,
     miniScale,
+    miniTitleMaxWidth,
     orbitPose,
     platterLeftAt,
     polar,
@@ -141,6 +142,11 @@ describe('mini turntable geometry', () => {
 
     it('should right-align the two lines of text at MINI.x − MINI.r − labelGap', () => {
         expect(miniLabelX(PHONE_LAYOUT)).toBe(782);
+    });
+
+    // B-083 ④：歌名由 782 向左用到 MINI.titleLeft（330）
+    it('should give the mini title the width from titleLeft to the label edge', () => {
+        expect(miniTitleMaxWidth(PHONE_LAYOUT)).toBe(452);
     });
 });
 

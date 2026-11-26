@@ -1,8 +1,7 @@
 import { PreloadScreen } from '../components/flag/PreloadScreen';
 import { RotateNotice } from '../components/rotate-notice/RotateNotice';
 import { UpdatePrompt } from '../components/update-prompt/UpdatePrompt';
-import { blocksUpdate } from '../pwa/playbackActivity';
-import { NO_UPDATES, type UpdatePort } from '../pwa/useUpdates';
+import { NO_UPDATES, type UpdatePort, useLaunchEnd } from '../pwa/useUpdates';
 import { Stage } from '../stage/Stage';
 import { usePhoneLandscape } from '../stage/usePhoneLandscape';
 import { backdropFor, useStageBackdrop } from '../stage/useStageBackdrop';
@@ -21,7 +20,7 @@ interface AppProps {
 /**
  * 舞台 + 場景：Preload（旗幟、真實載入進度，T-034）→ 主頁。Preload 淡出期間主頁已經喺下面。
  * 歌單、轉碟、歌書、MV 喺之後嘅任務加畫面。
- * PWA（T-039）：播緊歌／MV 時有新版出更新提示；手機打橫用「請打直」蓋住舞台。
+ * PWA（T-039、S-197）：Preload 期間搵到新版就自動換；主頁出咗之後有新版只出更新提示；手機打橫用「請打直」蓋住舞台。
  */
 export const App = ({ startup, updates = NO_UPDATES }: AppProps) => {
     const { home, preload } = useBoot(startup);
@@ -31,7 +30,7 @@ export const App = ({ startup, updates = NO_UPDATES }: AppProps) => {
     useStageBackdrop(backdropFor(preload.exit === 'gone' ? home.stage.scene : 'preload'));
     const landscape = usePhoneLandscape();
     const { view, handlers } = home;
-    const playing = blocksUpdate(home.playback, view?.mvOpen ?? false);
+    useLaunchEnd(updates, home.stage.scene !== 'preload');
     return (
         <>
             <Stage covered={landscape}>
@@ -40,8 +39,8 @@ export const App = ({ startup, updates = NO_UPDATES }: AppProps) => {
                 ) : null}
                 {preload.exit === 'gone' ? null : <PreloadScreen status={preload} />}
             </Stage>
-            {/* 打橫時提示照樣跟住播放狀態，只係唔顯示（唔好蓋住「請打直」） */}
-            <UpdatePrompt port={updates} playing={playing} covered={landscape} />
+            {/* 打橫時唔顯示提示（唔好蓋住「請打直」） */}
+            <UpdatePrompt port={updates} covered={landscape} />
             {landscape ? <RotateNotice /> : null}
         </>
     );

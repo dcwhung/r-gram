@@ -106,6 +106,16 @@ describe('ArcTrackList', () => {
         expect(title?.textContent?.length).toBeLessThanOrEqual(PHONE_LAYOUT.list.titleChars + 1);
     });
 
+    // W-053 ②：截短闊度 = titleChars 個全形字（揀中字級）：啱啱 8 個字原樣，9 個字先「…」
+    it('should keep a title of exactly eight full-width characters and cut one of nine', () => {
+        const eight = '長夜漫漫我的愛晚';
+        const nine = `${eight}安`;
+        const { option, part } = renderList(view([row(1, true, eight), row(2, true, nine)]));
+        expect(part(option(`第 1 首：${eight}`), 'arc-title')).toHaveTextContent(eight);
+        const cut = part(option(`第 2 首：${nine}`), 'arc-title');
+        expect(cut?.textContent?.endsWith('…')).toBe(true);
+    });
+
     // D11：未有音檔 = 灰色、㩒唔到；鍵盤同吸附都唔停喺佢
     it('should grey out a row without audio, ignore presses on it and skip it', () => {
         const { option, onPlay, listbox, selected } = renderList(
@@ -138,12 +148,36 @@ describe('ArcTrackList', () => {
         ]);
     });
 
-    it('should play the focused row with Enter or Space, and a row that is tapped', () => {
-        const { listbox, option, onPlay } = renderList(view([row(1), row(2), row(3)], 1));
+    it('should play the focused row with Enter or Space', () => {
+        const { listbox, onPlay } = renderList(view([row(1), row(2), row(3)], 1));
         fireEvent.keyDown(listbox(), { key: 'Enter' });
         fireEvent.keyDown(listbox(), { key: ' ' });
-        fireEvent.click(option('第 3 首：歌 3'));
-        expect(onPlay.mock.calls).toEqual([['komorebi-02'], ['komorebi-02'], ['komorebi-03']]);
+        expect(onPlay.mock.calls).toEqual([['komorebi-02'], ['komorebi-02']]);
+    });
+
+    // W-051（用戶決定）：行唔㩒得：㩒框入面或者淡色嗰行都冇反應（唔播、唔收、唔移）；播歌經唱片夾或者 Enter
+    it('should do nothing when a row is tapped, framed or dim', () => {
+        const { option, onPlay, onClose, onFocusTrack, selected } = renderList(view(LONG, 0));
+        const framed = option('第 1 首：歌 1');
+        const dim = option('第 4 首：歌 4');
+        for (const target of [framed, dim]) {
+            const hit = target.querySelector('[data-part="arc-hit"]');
+            if (!hit) throw new Error('no hit band');
+            fireEvent.pointerDown(hit, { pointerId: 1, clientY: 600 });
+            fireEvent.pointerUp(hit, { pointerId: 1, clientY: 600 });
+            fireEvent.click(hit);
+        }
+        expect(onPlay).not.toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
+        expect(onFocusTrack).not.toHaveBeenCalled();
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
+    });
+
+    it('should not present the rows as buttons', () => {
+        const { option } = renderList(view([row(1), row(2)]));
+        expect(screen.queryByRole('button', { name: /第 2 首/ })).toBeNull();
+        expect(option('第 2 首：歌 2')).not.toHaveAttribute('tabindex');
+        expect(option('第 2 首：歌 2')).not.toHaveClass('pressable');
     });
 
     // D25：㩒暗位收返；Esc 一樣
@@ -185,14 +219,72 @@ describe('ArcTrackList', () => {
         expect(onClose).not.toHaveBeenCalled();
     });
 
-    it('should treat a small movement as a tap', () => {
-        const { option, onPlay } = renderList(view([row(1), row(2)]));
+    // W-050：第二隻手指（或者手掌）唔好取消第一隻手指嘅拖動；拖完一定停喺一行
+    it('should keep the first finger dragging when a second finger touches, and snap to a row', () => {
+        const { container, selected, onFocusTrack } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.pointerDown(root, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 1.25 });
+        fireEvent.pointerDown(root, { pointerId: 2, clientY: 400 });
+        fireEvent.pointerUp(root, { pointerId: 2 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 2.25 });
+        fireEvent.pointerUp(root, { pointerId: 1 });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3');
+        expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-03');
+        const number = selected().querySelector('[data-part="arc-number"]');
+        expect(number).toHaveAttribute('y', '1196');
+    });
+
+    it('should snap to a row when the drag is cancelled or loses the pointer', () => {
+        const { container, selected, onFocusTrack } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.pointerDown(root, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 1.4 });
+        fireEvent.lostPointerCapture(root, { pointerId: 1 });
+        expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-02');
+        fireEvent.pointerDown(root, { pointerId: 3, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 3, clientY: 1000 - PITCH * 0.8 });
+        fireEvent.pointerCancel(root, { pointerId: 3 });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3');
+        expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-03');
+    });
+
+    // W-050：手指嘅隱含 capture 由行轉去成個歌單（setPointerCapture）時，行收到 lostpointercapture：唔係拖完
+    it('should keep dragging when the capture moves from a row to the list', () => {
+        const { container, option, selected } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        const row = option('第 1 首：歌 1');
+        fireEvent.pointerDown(row, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerMove(row, { pointerId: 1, clientY: 1000 - PITCH });
+        fireEvent.lostPointerCapture(row, { pointerId: 1 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 2 });
+        fireEvent.pointerUp(root, { pointerId: 1 });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3');
+    });
+
+    it('should let a new press replace one that never started dragging', () => {
+        const { container, selected } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.pointerDown(root, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerDown(root, { pointerId: 2, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 2, clientY: 1000 - PITCH });
+        fireEvent.pointerUp(root, { pointerId: 2 });
+        expect(selected()).toHaveAccessibleName('第 2 首：歌 2');
+    });
+
+    it('should neither scroll nor play on a small movement over a row', () => {
+        const { option, onPlay, selected } = renderList(view([row(1), row(2)]));
         const target = option('第 2 首：歌 2');
         fireEvent.pointerDown(target, { pointerId: 1, clientY: 600 });
         fireEvent.pointerMove(target, { pointerId: 1, clientY: 600 - (dragThresholdPx - 1) });
         fireEvent.pointerUp(target, { pointerId: 1 });
         fireEvent.click(target);
-        expect(onPlay).toHaveBeenCalledWith('komorebi-02');
+        expect(onPlay).not.toHaveBeenCalled();
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
     });
 
     it('should step a row per wheel row and keep the page from scrolling', () => {
@@ -206,6 +298,17 @@ describe('ArcTrackList', () => {
         fireEvent.wheel(root, { deltaY: PITCH * 0.6 });
         expect(selected()).toHaveAccessibleName('第 2 首：歌 2');
         fireEvent.wheel(root, { deltaY: -1, deltaMode: 1 });
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
+    });
+
+    // S-198：Ctrl + 滾輪 / 觸控板 pinch 係縮放：留畀瀏覽器，歌單唔捲
+    it('should leave a pinch-zoom wheel to the browser', () => {
+        const { container, selected } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        const wheel = createEvent.wheel(root, { deltaY: 3, deltaMode: 1, ctrlKey: true });
+        fireEvent(root, wheel);
+        expect(wheel.defaultPrevented).toBe(false);
         expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
     });
 
@@ -243,7 +346,7 @@ describe('ArcTrackList', () => {
         expect(shown.getAttribute('d')).toContain('a112 112 0 1 0 224 0');
     });
 
-    // 全部都未有音檔：照可以捲（停喺最近一行），但冇嘢播
+    // 全部都未有音檔：滾輪同方向鍵一樣逐行捲（S-204），但冇嘢播
     it('should still scroll a disc where nothing can play, and play nothing', () => {
         const silent = [row(1, false), row(2, false), row(3, false)];
         const { container, listbox, selected, onPlay } = renderList(view(silent, 0));
@@ -252,7 +355,11 @@ describe('ArcTrackList', () => {
         fireEvent.wheel(root, { deltaY: 1, deltaMode: 1 });
         expect(selected()).toHaveAccessibleName('第 2 首：歌 2（未有音檔）');
         fireEvent.keyDown(listbox(), { key: 'ArrowDown' });
-        expect(selected()).toHaveAccessibleName('第 2 首：歌 2（未有音檔）');
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3（未有音檔）');
+        fireEvent.keyDown(listbox(), { key: 'Home' });
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1（未有音檔）');
+        fireEvent.keyDown(listbox(), { key: 'End' });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3（未有音檔）');
         fireEvent.keyDown(listbox(), { key: 'Enter' });
         expect(onPlay).not.toHaveBeenCalled();
     });

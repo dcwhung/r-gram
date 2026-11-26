@@ -3,7 +3,6 @@
  * 要喺 main.tsx 一開始同步叫：controlledAtLoad、controllerchange listener 要趕喺 SW 狀態變之前（同 903-player）。
  */
 import { registerSW } from 'virtual:pwa-register';
-import { trackGestures } from './gestures';
 import { createReloadGuard } from './reloadGuard';
 import { isHardReload, startUpdateChecks } from './updateChecks';
 import { UpdateManager } from './updateManager';
@@ -58,7 +57,6 @@ export const startBrowserUpdates = (env: BrowserUpdateEnv): UpdateManager => {
     const container = containerOf(env);
     if (!container) return manager;
     container.addEventListener('controllerchange', manager.handleControllerChange);
-    trackGestures(env.window, manager.setGesturing);
     // Shift-reload 要喺 registerSW 之前判斷（903-player S-648）
     void isHardReload(container)
         .then((hardReload) => (hardReload ? manager.markControlled() : undefined))

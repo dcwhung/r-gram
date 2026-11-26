@@ -76,10 +76,17 @@ const useWheelStep = (
     return useWheel(onWheel);
 };
 
-/** 播得嘅行（由細到大）：鍵盤、吸附、滾輪只停喺呢啲 */
+/**
+ * 停得嘅行（由細到大）：鍵盤、吸附、滾輪只停喺呢啲 = 播得嘅行；全部都未有音檔就每行都停得，
+ * 方向鍵同滾輪一樣逐行捲（S-204）
+ */
 const usePressable = (rows: readonly TrackRow[]) => {
     const key = rows.map((row) => (row.playable ? '1' : '0')).join('');
-    return useMemo(() => [...key].flatMap((flag, index) => (flag === '1' ? [index] : [])), [key]);
+    return useMemo(() => {
+        const all = [...key].map((_, index) => index);
+        const playable = all.filter((index) => key[index] === '1');
+        return playable.length > 0 ? playable : all;
+    }, [key]);
 };
 
 const keyHandler =

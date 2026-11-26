@@ -171,6 +171,15 @@ describe('HeldTrackList', () => {
         expect(wheel.defaultPrevented).toBe(true);
     });
 
+    // S-198：Ctrl + 滾輪 / 觸控板 pinch 係縮放：留畀瀏覽器，欄唔捲
+    it('should leave a pinch-zoom wheel to the browser', () => {
+        const { list, rowY } = renderList(held(LONG));
+        const wheel = createEvent.wheel(list(), { deltaY: pitch, ctrlKey: true });
+        fireEvent(list(), wheel);
+        expect(wheel.defaultPrevented).toBe(false);
+        expect(rowY('播放第 1 首：歌 1')).toBe(top + pitch * 0.5);
+    });
+
     it('should only put a column that can scroll in the Tab order', () => {
         const short = renderList(held([row(1), row(2)]));
         expect(short.list()).not.toHaveAttribute('tabindex');
@@ -322,6 +331,21 @@ describe('HeldTrackList', () => {
         expect(rowY('播放第 3 首：歌 3')).toBe(top + pitch * 1.5);
         fireEvent.click(button);
         expect(onPlay).toHaveBeenCalledWith('room-03');
+    });
+
+    // W-050：第二隻手指唔好取消第一隻手指嘅拖動
+    it('should keep following the first finger when a second finger touches', () => {
+        const { onPlay, rowY } = renderList(held(LONG));
+        const button = screen.getByRole('button', { name: '播放第 3 首：歌 3' });
+        fireEvent.pointerDown(button, { pointerId: 1, clientY: 600 });
+        fireEvent.pointerMove(button, { pointerId: 1, clientY: 600 - pitch * UNIT });
+        fireEvent.pointerDown(button, { pointerId: 2, clientY: 300 });
+        fireEvent.pointerUp(button, { pointerId: 2, clientY: 300 });
+        fireEvent.pointerMove(button, { pointerId: 1, clientY: 600 - pitch * 2 * UNIT });
+        fireEvent.pointerUp(button, { pointerId: 1, clientY: 600 - pitch * 2 * UNIT });
+        fireEvent.click(button);
+        expect(onPlay).not.toHaveBeenCalled();
+        expect(rowY('播放第 3 首：歌 3')).toBe(top + pitch * 0.5);
     });
 
     it('should treat a small wobble as a tap', () => {
