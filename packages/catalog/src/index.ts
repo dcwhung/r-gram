@@ -99,6 +99,13 @@ export {
 } from './sync/checks';
 export { planFolderSync } from './sync/planFolderSync';
 export {
+    SONG_TEXT_NAME_MAX_CHARS,
+    songTextFileName,
+    songTextTarget,
+    type SongTextTarget,
+    type SongTextTargetInput,
+} from './sync/songTextTarget';
+export {
     carriedChecks,
     sortChecks,
     textChecks,
