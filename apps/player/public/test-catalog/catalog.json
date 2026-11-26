@@ -2,8 +2,8 @@
     "version": 1,
     "generatedAt": "2026-11-26T00:00:00.000Z",
     "mediaBase": "https://pub-fd99bea8c79a485b8a7eb3847cea696c.r2.dev/",
-    "imageBase": "https://r-gram-api.example.workers.dev/catalog/v1/img/",
-    "lyricsBase": "https://r-gram-api.example.workers.dev/catalog/v1/lyrics/",
+    "imageBase": "https://r-gram-api.dcwhung.workers.dev/catalog/v1/img/",
+    "lyricsBase": "https://r-gram-api.dcwhung.workers.dev/catalog/v1/lyrics/",
     "albums": [
         {
             "id": "apollo-18",
