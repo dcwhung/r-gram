@@ -99,6 +99,18 @@ describe('playbackReducer engine actions', () => {
         ).toBe(IDLE_PLAYBACK);
     });
 
+    // S-241（M43）：長度遲過第一秒先到，都要即刻換 state（進度圈唔可以頭一秒係 0）
+    it('should update the state when only the duration changes', () => {
+        const first = playbackReducer(playing, {
+            type: 'time',
+            positionSec: 0.3,
+            durationSec: null,
+        });
+        expect(
+            playbackReducer(first, { type: 'time', positionSec: 0.4, durationSec: 90 }),
+        ).toMatchObject({ positionSec: 0.4, durationSec: 90 });
+    });
+
     // US-004、D36 ③：載入失敗 = 泊位、一行提示；被拒（blocked）= 當重開 app 回復（下一下行完整開場）
     it('should record a failed load, and a blocked play as a restore pause', () => {
         expect(playbackReducer(playing, { type: 'failed', reason: 'network' })).toMatchObject({
