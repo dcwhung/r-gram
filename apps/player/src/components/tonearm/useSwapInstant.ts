@@ -17,13 +17,14 @@ export const useSwapInstant = (key: string | null): boolean => {
     const changed = state.key !== key;
     // React「render 期間調整 state」：同一次 commit 已經用到記號
     if (changed) setState({ key, framesLeft: FRAMES_TO_HOLD });
-    const { framesLeft } = state;
+    // 每次 state 換（換碟重新計、過咗一格）都重新排一格。唔可以只睇 framesLeft：一格到咗（2 → 1）
+    // 同再換碟（→ 2）喺同一次 render 處理，commit 落嚟仍然係 2，effect 就唔會再排，記號會卡住
     useEffect(() => {
-        if (framesLeft === 0) return undefined;
+        if (state.framesLeft === 0) return undefined;
         const frame = requestAnimationFrame(() =>
             setState((current) => ({ ...current, framesLeft: current.framesLeft - 1 })),
         );
         return () => cancelAnimationFrame(frame);
-    }, [framesLeft]);
-    return changed || framesLeft > 0;
+    }, [state]);
+    return changed || state.framesLeft > 0;
 };

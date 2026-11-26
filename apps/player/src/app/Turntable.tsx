@@ -1,5 +1,4 @@
-import { useRef } from 'react';
-import { flushSync } from 'react-dom';
+import type { RefObject } from 'react';
 import { ChromeFade } from '../components/chrome-fade/ChromeFade';
 import { DiscStack } from '../components/disc-stack/DiscStack';
 import { Screws } from '../components/metal/Screws';
@@ -29,23 +28,12 @@ export interface HomeHandlers extends DialHandlers {
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */
 export const isLowerHalf = ({ y }: Point) => y > DESIGN_HEIGHT / 2;
 
-/**
- * S-074：暗層係 focus 緊嘅掣，收返之後佢冇咗：focus 交返唱片夾，唔好跌去 body。
- * 收返之後唱片夾由暗層上面搬返去碟後面（重新 mount），所以先同步 render 完先 focus 新嗰個。
- */
-const useCloseList = (onCloseList: () => void) => {
-    const spindleRef = useRef<SVGGElement>(null);
-    const closeList = () => {
-        flushSync(onCloseList);
-        spindleRef.current?.focus();
-    };
-    return { spindleRef, closeList };
-};
-
 interface TurntableProps {
     layout: StageLayout;
     view: HomeView;
     handlers: HomeHandlers;
+    /** 唱片夾（`useSpindleFocus`）：收返歌單（S-074）之後 focus 交返佢；`onCloseList` 已經包好 */
+    spindleRef: RefObject<SVGGElement | null>;
 }
 
 /**
@@ -54,10 +42,9 @@ interface TurntableProps {
  * 拎住另一隻碟時（T-048）轉盤都淡出、唱片夾唔係掣；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
  * 歌單嘅暗層（暫時嘅佔位，T-037）蓋住全部，只有唱片夾喺佢上面。
  */
-export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
+export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps) => {
     const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
     const leadIn = useArmLeadIn(view.armPose, instant);
-    const { spindleRef, closeList } = useCloseList(handlers.onCloseList);
     const spindle = (
         <Spindle
             ref={spindleRef}
@@ -97,7 +84,7 @@ export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
                 instant={instant}
             />
             <DialControls layout={layout} view={view} handlers={handlers} />
-            {view.listOpen && <ListVeil onClose={closeList} />}
+            {view.listOpen && <ListVeil onClose={handlers.onCloseList} />}
             {view.listOpen && spindle}
         </>
     );
