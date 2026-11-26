@@ -88,6 +88,18 @@ describe('playbackController with Media Session', () => {
         expect(element.paused).toBe(false);
     });
 
+    // D110：鎖屏上一首喺 10 秒 = 同一首由頭，鎖屏位置即刻報 0
+    it('should restart the track from the lock screen after 3 s and report position 0', () => {
+        const { element, session, controller, state } = setup();
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(180);
+        element.advance(10);
+        session.trigger('previoustrack');
+        expect(state().trackId).toBe('room-02');
+        expect(element.currentTime).toBe(0);
+        expect(session.lastPosition).toEqual({ duration: 180, position: 0, playbackRate: 1 });
+    });
+
     it('should play the first track without a lead-in on lock-screen play after the end', () => {
         const { element, session, controller, state } = setup({ hidden: true });
         controller.start(SOURCE, 'room-03');

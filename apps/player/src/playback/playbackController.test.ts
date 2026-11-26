@@ -1,4 +1,5 @@
 import { leadInMs } from '../components/tonearm/armPose';
+import { PREVIOUS_RESTART_S } from '../config/limits';
 import { PLAY_MODE_STORAGE_KEY } from '../config/storageKeys';
 import { createAudioEngine } from './audioEngine';
 import { createPlaybackController, type PlaybackSource } from './playbackController';
@@ -235,6 +236,33 @@ describe('playbackController queue and end of the disc', () => {
         expect(state().trackId).toBe('room-01');
         controller.previous();
         expect(state().trackId).toBe('room-01');
+    });
+
+    // Functional Spec D110（Plan P6）：播咗超過 PREVIOUS_RESTART_S = 由頭播；否則上一首；冇上一首都由頭
+    it.each([
+        [PREVIOUS_RESTART_S + 0.5, 'room-02', 0],
+        [PREVIOUS_RESTART_S, 'room-01', 0],
+        [PREVIOUS_RESTART_S - 1, 'room-01', 0],
+    ])('should handle previous at %d s by restarting or going back (D110)', (at, trackId, time) => {
+        const { element, controller, state } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(120);
+        element.advance(at);
+        controller.previous();
+        expect(state().trackId).toBe(trackId);
+        expect(element.currentTime).toBe(time);
+        expect(element.paused).toBe(false);
+    });
+
+    it('should restart the first track on previous when there is no track before it (D110)', () => {
+        const { element, controller, state } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-01');
+        element.loadMetadata(120);
+        element.advance(1);
+        controller.previous();
+        expect(state().trackId).toBe('room-01');
+        expect(element.currentTime).toBe(0);
+        expect(element.seeks.at(-1)).toBe(0);
     });
 
     it('should put the disc down and release the audio on release', () => {
