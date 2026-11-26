@@ -134,4 +134,16 @@ describe('useHome real playback', () => {
         act(() => home.result.current.handlers?.onMode());
         expect(home.result.current.view?.mode).toBe('all');
     });
+
+    // 碟只喺真係出緊聲先轉：等數據、卡住時停（唱臂照落針）
+    it('should spin the disc only while the record is audible', () => {
+        const home = mount();
+        home.element.playMode = 'hold';
+        act(() => home.result.current.handlers?.onSpindle());
+        expect(home.result.current.view).toMatchObject({ armPose: 'playing', spinning: false });
+        act(() => home.element.resolvePlay());
+        expect(home.result.current.view?.spinning).toBe(true);
+        act(() => home.result.current.handlers?.onSpindle());
+        expect(home.result.current.view?.spinning).toBe(false);
+    });
 });
