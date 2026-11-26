@@ -6,5 +6,5 @@ const BYTES_PER_KIB = 1024;
 const INFO_TEXT_MAX_KIB = 16;
 
 export const INFO_TEXT_MAX_BYTES = INFO_TEXT_MAX_KIB * BYTES_PER_KIB;
-/** 包括空行；一張碟幾十首歌，1000 行已經好鬆 */
+/** 有內容嘅行，包括中間嘅空行（檔尾換行之後唔計，S-160）；一張碟幾十首歌，1000 行已經好鬆 */
 export const INFO_TEXT_MAX_LINES = 1000;

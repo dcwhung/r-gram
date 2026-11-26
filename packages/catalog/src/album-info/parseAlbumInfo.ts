@@ -44,6 +44,12 @@ const tooLarge = (): AlbumInfo => ({
 const isTooManyBytes = (text: string): boolean =>
     text.length > INFO_TEXT_MAX_BYTES || byteLength(text) > INFO_TEXT_MAX_BYTES;
 
+/** 檔尾嘅換行之後嗰個空位唔算一行（S-160）：`formatAlbumInfo()` 一定喺檔尾加換行，上限嗰度都要 round-trip */
+const FINAL_LINE_BREAK = /(?:\r\n?|\n)$/u;
+
+const contentLineCount = (text: string, lines: readonly string[]): number =>
+    FINAL_LINE_BREAK.test(text) ? lines.length - 1 : lines.length;
+
 /** 空（包括淨係睇唔到嘅字元，S-158）= 冇碟名，最尾出 INFO_NO_TITLE */
 const readTitle = (raw: string, line: number, state: ReadState): void => {
     const value = cleanTitle(raw);
@@ -106,7 +112,7 @@ const byLine = (a: Check, b: Check): number =>
 export const parseAlbumInfo = (text: string): AlbumInfo => {
     if (isTooManyBytes(text)) return tooLarge();
     const lines = songLines(text);
-    if (lines.length > INFO_TEXT_MAX_LINES) return tooLarge();
+    if (contentLineCount(text, lines) > INFO_TEXT_MAX_LINES) return tooLarge();
     const state: ReadState = {
         seen: new Set(),
         title: null,
