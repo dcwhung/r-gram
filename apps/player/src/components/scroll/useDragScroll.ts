@@ -41,6 +41,22 @@ const usePress =
         dragged.current = false;
     };
 
+/**
+ * 放手：只有拖緊嗰隻手指先結束到拖動（拖過就叫 onDragEnd）。手指嘅隱含 capture 由子元素轉去元件本身時，
+ * 子元素收到 lostpointercapture（bubble 上嚟）：唔係拖完
+ */
+const useRelease = (drag: Ref<DragState | null>, dragged: Ref<boolean>, onDragEnd?: () => void) => {
+    const end = ({ pointerId }: PointerEvent<SVGGElement>) => {
+        if (drag.current?.pointerId !== pointerId) return;
+        dragged.current = drag.current.moved;
+        drag.current = null;
+        if (dragged.current) onDragEnd?.();
+    };
+    const onLostPointerCapture = (event: PointerEvent<SVGGElement>) =>
+        event.target === event.currentTarget ? end(event) : undefined;
+    return { onPointerUp: end, onPointerCancel: end, onLostPointerCapture };
+};
+
 /** `scrollBy(units)`：捲幾多設計單位；`onDragEnd`：拖完（真係拖過）鬆手（例如吸附） */
 export const useDragScroll = (
     spec: DragSpec,
@@ -50,12 +66,7 @@ export const useDragScroll = (
     const drag = useRef<DragState | null>(null);
     const dragged = useRef(false);
     const onPointerDown = usePress(drag, dragged);
-    const end = ({ pointerId }: PointerEvent<SVGGElement>) => {
-        if (drag.current?.pointerId !== pointerId) return;
-        dragged.current = drag.current.moved;
-        drag.current = null;
-        if (dragged.current) onDragEnd?.();
-    };
+    const release = useRelease(drag, dragged, onDragEnd);
     return {
         onPointerDown,
         onPointerMove: (event: PointerEvent<SVGGElement>) => {
@@ -63,9 +74,7 @@ export const useDragScroll = (
             const units = dragMove(drag.current, event, spec);
             if (units !== null) scrollBy(units);
         },
-        onPointerUp: end,
-        onPointerCancel: end,
-        onLostPointerCapture: end,
+        ...release,
         onClickCapture: (event: MouseEvent) => {
             if (dragged.current) event.stopPropagation();
             dragged.current = false;
