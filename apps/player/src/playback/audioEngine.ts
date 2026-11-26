@@ -97,6 +97,8 @@ class Engine implements AudioEngine {
     private overdue = false;
     /** 呢首歌（呢次載入）出過聲未：隱藏時網絡錯誤用嚟分「歌中途」定「未開始」（W-062、D109） */
     private heard = false;
+    /** 暫停緊時網絡斷咗（W-064）：唔自己重載、唔報錯；下一次 play() 先喺同一個位置重載 */
+    private reloadOnPlay = false;
     private timers: Timer[] = [];
     private resolveNext: (currentTrackId: string) => EngineTrack | null = () => null;
     private readonly listeners = new Set<(event: EngineEvent) => void>();
@@ -149,8 +151,10 @@ class Engine implements AudioEngine {
 
     play(): void {
         if (this.phase === 'priming' || this.phase === 'primed') this.land();
-        else if (this.phase === 'live' && this.overdue) this.retryOrFail();
-        else if (this.phase === 'live' && this.element.paused) {
+        else if (this.phase === 'live' && (this.overdue || this.reloadOnPlay)) {
+            this.reloadOnPlay = false;
+            this.retryOrFail();
+        } else if (this.phase === 'live' && this.element.paused) {
             this.expectSound();
             this.playElement();
         }
@@ -225,6 +229,7 @@ class Engine implements AudioEngine {
         this.pendingSeek = null;
         this.retries = 0;
         this.heard = false;
+        this.reloadOnPlay = false;
         this.element.src = track.url;
     }
 
@@ -337,7 +342,8 @@ class Engine implements AudioEngine {
         if (!trackId || this.phase === 'idle' || code === undefined) return;
         if (code === MEDIA_ERR_ABORTED) return;
         if (code === MEDIA_ERR_NETWORK) {
-            if (this.env.isHidden()) this.onHiddenNetworkError(trackId);
+            if (this.phase === 'live' && !this.wantsSound) this.markReloadOnPlay();
+            else if (this.env.isHidden()) this.onHiddenNetworkError(trackId);
             else this.retryOrFail();
             return;
         }
@@ -345,6 +351,15 @@ class Engine implements AudioEngine {
         this.stopWatching();
         const reason = code === MEDIA_ERR_DECODE ? 'decode' : 'unsupported';
         this.emit({ type: 'error', trackId, reason });
+    }
+
+    /**
+     * W-064：暫停緊（用戶或者系統）時網絡錯誤：唔可以自己出聲（retry 會 play()），亦唔係載入失敗
+     *（唱臂升針、位置留住）。等用戶再播，先記住位置重載（重載失敗就行一般嘅錯誤路徑）
+     */
+    private markReloadOnPlay(): void {
+        this.stopWatching();
+        this.reloadOnPlay = true;
     }
 
     /**

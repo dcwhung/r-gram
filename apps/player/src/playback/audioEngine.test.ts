@@ -398,7 +398,8 @@ describe('audioEngine errors and stalls', () => {
             expect(element.src).toBe(ONE.url);
             element.loadMetadata(DURATION_SEC);
             expect(element.currentTime).toBe(20);
-            expect(events.at(-1)).toEqual({ type: 'playing', trackId: 'one' });
+            const states = events.filter(({ type }) => type === 'playing' || type === 'paused');
+            expect(states.at(-1)).toEqual({ type: 'playing', trackId: 'one' });
         },
     );
 
