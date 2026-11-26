@@ -25,8 +25,10 @@ const TITLE_MIN_SIZE = 48;
 /*
  * 細唱片機（T-048）照設計稿第 18 版 MINI 同 miniTurntable()：「播放中」y − 18、歌名 y + 30。
  * 拎住另一隻碟時碟名停喺細唱片機左邊 MINI_TITLE_GAP 之外（設計稿 info()：MINI.x − MINI.r − 20）。
- * 歌名最細縮到同「播放中」一樣大（設計稿 titleMin），每次縮 titleStep（S-193）
+ * 歌名最細縮到同「播放中」一樣大（設計稿 titleMin），每次縮 titleStep（S-193）。
+ * 瀏覽器 render 出嚟比 canvas 量字闊約 2%（QA S-192 量度），歌名可用闊度留返咁多餘位，啱啱放得落都唔掂到歌單行
  */
+const MINI_RENDER_SLACK = 0.02;
 const MINI = {
     x: 930,
     y: 322,
@@ -34,7 +36,7 @@ const MINI = {
     labelGap: 28,
     hitPad: 300,
     label: { size: 24, rise: 18, spacing: 4 },
-    title: { size: 36, drop: 30, minSize: 24, step: 2 },
+    title: { size: 36, drop: 30, minSize: 24, step: 2, renderSlack: MINI_RENDER_SLACK },
 } as const;
 const MINI_TITLE_GAP = 20;
 

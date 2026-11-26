@@ -173,10 +173,11 @@ export const heldRowHitRight = ({ heldTracks }: StageLayout): number =>
 
 /**
  * 細唱片機歌名可用嘅闊度（review W-045 方案 A）：由歌單行感應範圍右邊到兩行字嘅右邊（靠右對齊），
- * 唔會伸入歌單欄第一行（兩者垂直重疊）。設計稿冇畫長歌名，放唔落就縮字再「…」
+ * 唔會伸入歌單欄第一行（兩者垂直重疊）。放唔落就縮字再「…」。
+ * 量出嚟嘅闊度 × (1 + renderSlack) 都要放得落：render 比量字闊少少都唔掂到行（S-192）
  */
 export const miniTitleMaxWidth = (layout: StageLayout): number =>
-    miniLabelX(layout) - heldRowHitRight(layout);
+    (miniLabelX(layout) - heldRowHitRight(layout)) / (1 + layout.miniTurntable.title.renderSlack);
 
 /** 感應範圍：`round` 係圓形（half = 半徑），`square` 係正方形（half = 半邊長） */
 export interface HitArea extends Point {
