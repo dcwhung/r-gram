@@ -173,12 +173,38 @@ describe('App home scene', () => {
             await userEvent.tab();
             stops.add(document.activeElement?.getAttribute('aria-label'));
         }
-        expect([...stops].filter(Boolean).sort()).toEqual(['播放', '關閉歌單'].sort());
+        // T-037：Tab 只喺歌單（listbox）、唱片夾（播放）同暗層（關閉）之間轉
+        expect([...stops].filter(Boolean).sort()).toEqual(
+            ['APOLLO-18 的歌曲', '播放', '關閉歌單'].sort(),
+        );
         expect(screen.queryByRole('button', { name: '觀看 MV' })).toBeNull();
         button('關閉歌單').focus();
         await userEvent.keyboard('{Enter}');
         expect(document.activeElement).toBe(button('開啟歌單'));
         expect(button('觀看 MV')).toHaveAttribute('tabindex', '0');
+    });
+
+    // T-037：鍵盤揀歌：開歌單 → 下鍵（灰色嗰首跳過）→ Enter 播；再㩒碟面開返載入嘅碟，框入面係播緊嗰首
+    it('should choose a track from the list with the keyboard and reopen it from the disc face', async () => {
+        const { part, button } = await renderHome();
+        await userEvent.click(button('開啟歌單'));
+        const listbox = screen.getByRole('listbox', { name: 'APOLLO-18 的歌曲' });
+        expect(listbox).toHaveFocus();
+        await userEvent.keyboard('{ArrowDown}');
+        expect(screen.getByRole('option', { selected: true })).toHaveAccessibleName(
+            '第 3 首：apollo-18 3',
+        );
+        expect(part('list-number')).toHaveTextContent('03');
+        await userEvent.keyboard('{Enter}');
+        expect(part('song-title')).toHaveTextContent('apollo-18 3');
+        expect(button('暫停')).toHaveFocus();
+        await userEvent.click(button('開啟歌單'));
+        expect(screen.getByRole('option', { selected: true })).toHaveAccessibleName(
+            '第 3 首：apollo-18 3',
+        );
+        await userEvent.keyboard('{Escape}');
+        expect(screen.queryByRole('listbox')).toBeNull();
+        expect(button('開啟歌單')).toHaveFocus();
     });
 
     it('should light the mode button only while playing', async () => {

@@ -156,6 +156,15 @@ describe('useHome holding another disc', () => {
         expect(result.current.playback).toBe(before.playback);
     });
 
+    // T-037：拎住嘅碟唔開弧線歌單（佢嘅歌單喺碟名下面，T-049）；碟面亦唔係掣
+    it('should not open the arc list from the face of the held disc', () => {
+        const result = holdRoom();
+        const before = result.current.stage;
+        act(() => result.current.handlers?.onOpenList());
+        expect(result.current.stage).toBe(before);
+        expect(result.current.view?.canOpenList).toBe(false);
+    });
+
     it('should put the held disc back and show the loaded one without touching playback', () => {
         const result = holdRoom();
         const playback = result.current.playback;
@@ -233,5 +242,77 @@ describe('useHome holding another disc', () => {
         });
         act(() => result.current.handlers?.onTurnStart());
         expect(result.current.view?.heldTracks).toMatchObject({ pressable: false, dialOpen: true });
+    });
+});
+
+/* T-037：弧線歌單（Functional Spec US-004、D25、D52；設計稿第 18 版「歌單（㩒碟面）」） */
+describe('useHome arc list', () => {
+    const open = () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        act(() => result.current.handlers?.onOpenList());
+        return result;
+    };
+
+    it('should open the list from the disc face with the first playable track in the frame', () => {
+        const result = open();
+        expect(result.current.stage).toMatchObject({
+            scene: 'list',
+            selectedTrackId: 'apollo-18-01',
+        });
+        expect(result.current.view?.list?.focusIndex).toBe(0);
+    });
+
+    it('should move the frame to the track scrolled into it', () => {
+        const result = open();
+        act(() => result.current.handlers?.onFocusListTrack('apollo-18-03'));
+        expect(result.current.view?.listTrack?.id).toBe('apollo-18-03');
+        expect(result.current.playback.status).toBe('idle');
+    });
+
+    // 㩒一行（或者 Enter）= 揀嗰首播：同㩒唱片夾播框入面嗰首一樣（返主頁、播放狀態 start）
+    it('should play a chosen row and go back home', () => {
+        const result = open();
+        act(() => result.current.handlers?.onPlayListTrack('apollo-18-03'));
+        expect(result.current.stage).toMatchObject({
+            scene: 'home',
+            selectedTrackId: 'apollo-18-03',
+        });
+        expect(result.current.playback).toMatchObject({
+            status: 'playing',
+            albumId: 'apollo-18',
+            trackId: 'apollo-18-03',
+        });
+    });
+
+    it('should ignore a grey row or a track that is not on the disc', () => {
+        const result = open();
+        const before = { stage: result.current.stage, playback: result.current.playback };
+        act(() => result.current.handlers?.onPlayListTrack('apollo-18-02'));
+        act(() => result.current.handlers?.onPlayListTrack('room-01'));
+        expect(result.current.stage).toBe(before.stage);
+        expect(result.current.playback).toBe(before.playback);
+    });
+
+    // 載入嘅碟：主頁㩒碟面照開弧線歌單，框入面係播緊嗰首
+    it('should open the list of the loaded disc on the playing track', () => {
+        const result = open();
+        act(() => result.current.handlers?.onPlayListTrack('apollo-18-03'));
+        act(() => result.current.handlers?.onOpenList());
+        expect(result.current.stage).toMatchObject({ scene: 'list' });
+        expect(result.current.view?.list?.focusIndex).toBe(2);
+        expect(result.current.playback.status).toBe('playing');
+    });
+});
+
+/* T-037：設計稿 ACTIONS.playpause：冇歌嘅碟（D39）歌單入面㩒唱片夾 = 收返歌單 */
+describe('useHome empty list', () => {
+    it('should close the list of an album without tracks when the clamp is pressed', () => {
+        const document = makeDocument([makeAlbum('room', [])]);
+        const { result } = renderHook(() => useHome(document));
+        press(result, 'onSpindle');
+        expect(result.current.stage.scene).toBe('list');
+        press(result, 'onSpindle');
+        expect(result.current.stage.scene).toBe('home');
+        expect(result.current.playback.status).toBe('idle');
     });
 });

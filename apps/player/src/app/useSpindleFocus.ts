@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { flushSync } from 'react-dom';
 
 /** 讀屏睇得到（唔喺 aria-hidden / inert 入面）：拎住另一隻碟時唱片夾唔係掣，唔好 focus 落去 */
-const isButtonNow = (element: Element): boolean =>
+export const isButtonNow = (element: Element): boolean =>
     element.closest('[aria-hidden="true"], [inert]') === null;
 
 /**

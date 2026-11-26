@@ -24,7 +24,19 @@ export interface SongFit {
     heart: { x: number; y: number };
 }
 
-export const fitSongTitle = (title: string, info: InfoLayout, measure: TextMeasure): SongFit => {
+/** 第一行同第二行可用嘅闊度：心形連佢右半邊都要喺上限之內（冇心形就唔使留） */
+const roomFor = ({ song, heart }: InfoLayout, withHeart: boolean) => ({
+    maxWidth: song.maxRight - song.x - (withHeart ? heart.gap + heart.size / 2 : 0),
+    secondMaxWidth: song.secondRight - song.x,
+});
+
+/** `withHeart = false`：歌單開住時冇心形（設計稿 fitSong(title, false)），可用闊度多返心形嗰段 */
+export const fitSongTitle = (
+    title: string,
+    info: InfoLayout,
+    measure: TextMeasure,
+    withHeart = true,
+): SongFit => {
     const { song, heart } = info;
     const widthAt = (text: string, size: number) =>
         measure(text, { family: 'cjk', size, weight: SONG_WEIGHT, spacing: 0 });
@@ -32,9 +44,7 @@ export const fitSongTitle = (title: string, info: InfoLayout, measure: TextMeasu
         size: song.size,
         minSize: song.minSize,
         step: song.step,
-        // 心形連佢右半邊都要喺上限之內
-        maxWidth: song.maxRight - song.x - heart.gap - heart.size / 2,
-        secondMaxWidth: song.secondRight - song.x,
+        ...roomFor(info, withHeart),
         measure: widthAt,
     });
     // 兩行：第一行向上移，「第 nn 首」行唔郁

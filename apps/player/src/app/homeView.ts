@@ -18,8 +18,9 @@ import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
 import { type HeldTracksView, heldTracksView } from './heldTracksView';
 import { isHolding, loadedAlbumOf } from './holding';
+import { type ArcListView, listView } from './listView';
 import { loadedArmPose, type MiniView, miniView } from './miniView';
-import type { PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
 import type { StageState } from './stageReducer';
 
 /** 播放狀態入面有歌，而且係畫面上呢隻碟嘅（暫停期間轉去睇另一隻碟就唔係：D36 ④） */
@@ -40,8 +41,16 @@ export const spindleMode = (stage: StageState, playback: PlaybackState): Spindle
     return playback.status === 'playing' && stage.overlay !== 'mv' ? 'playing' : 'paused';
 };
 
-/** 打開歌單時預先揀中嘅歌（US-004）：已揀中嗰首，否則第一首播得嘅 */
-export const listFocusTrackId = (document: CatalogDocument, stage: StageState): string | null => {
+/**
+ * 打開歌單時預先揀中嘅歌（US-004）：載入嘅碟 = 播緊（暫停緊）嗰首（設計稿 SONG = 框入面嗰首，T-037）；
+ * 否則已揀中嗰首，再唔係第一首播得嘅
+ */
+export const listFocusTrackId = (
+    document: CatalogDocument,
+    stage: StageState,
+    playback: PlaybackState = IDLE_PLAYBACK,
+): string | null => {
+    if (isLoadedHere(stage, playback)) return playback.trackId;
     if (stage.selectedTrackId) return stage.selectedTrackId;
     if (!stage.viewAlbumId) return null;
     return albumTracks(document, stage.viewAlbumId).find(isPlayable)?.id ?? null;
@@ -82,6 +91,12 @@ export interface HomeView {
     mini: MiniView | null;
     /** 碟名下面拎住嘅碟嘅歌單欄（T-049）；冇拎住另一隻碟 = null */
     heldTracks: HeldTracksView | null;
+    /** 主頁㩒碟面開弧線歌單（T-037）：冇歌載入時揀中嘅碟、或者載入嘅碟；拎住另一隻碟、電視開住都唔得 */
+    canOpenList: boolean;
+    /** 弧線歌單（T-037）；冇開 = null */
+    list: ArcListView | null;
+    /** 歌單開住時框入面嗰首（左上白字顯示）；冇 = null */
+    listTrack: CatalogTrack | null;
 }
 
 const loadedTrack = (album: CatalogAlbum | null, stage: StageState, playback: PlaybackState) =>
@@ -132,6 +147,28 @@ const heldParts = (
     heldTracks: heldTracksView(document, stage, holding),
 });
 
+/** 歌單、歌書、電視開住未 */
+const openFlags = (stage: StageState) => ({
+    listOpen: stage.scene === 'list',
+    bookletOpen: stage.overlay === 'booklet',
+    mvOpen: stage.overlay === 'mv',
+});
+
+/** 弧線歌單：設計稿 ACTIONS.list = 主頁（冇開歌單、電視、字母盤）而且唔係拎住另一隻碟 */
+const listParts = (
+    document: CatalogDocument,
+    album: CatalogAlbum | null,
+    stage: StageState,
+    holding: boolean,
+) => ({
+    canOpenList: album !== null && stage.scene === 'home' && stage.overlay !== 'mv' && !holding,
+    list: listView(document, stage),
+    listTrack:
+        stage.scene === 'list'
+            ? (album?.tracks.find((track) => track.id === stage.selectedTrackId) ?? null)
+            : null,
+});
+
 export const homeView = (
     document: CatalogDocument,
     stage: StageState,
@@ -154,11 +191,10 @@ export const homeView = (
         hasSong: track !== null,
         hasMv: Boolean(track?.mv),
         playing: spindle === 'playing',
-        listOpen: stage.scene === 'list',
-        bookletOpen: stage.overlay === 'booklet',
-        mvOpen: stage.overlay === 'mv',
+        ...openFlags(stage),
         dial,
         ...choosing,
         ...heldParts(document, stage, playback, dial, choosing.holding),
+        ...listParts(document, album, stage, choosing.holding),
     };
 };

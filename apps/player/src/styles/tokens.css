@@ -15,8 +15,12 @@
     --color-info-soft: #555555;
     --color-info-faint: #777777;
     --color-version: #8a8a8a;
+    /* 歌單開住（暗層上面）左上資訊：年份（設計稿 infoParts() 嘅 soft） */
+    --color-info-soft-dark: #b5b2aa;
     /* 拎住嘅碟嘅歌單欄（設計稿第 18 版 trackPanel()）：未有音檔嘅歌號、位置條嘅底條（黑 7%） */
     --color-track-off: #b0b0ac;
+    /* 弧線歌單（暗層上面）未有音檔嘅歌號（設計稿 listLayer()） */
+    --color-arc-off: #9a978f;
     --color-held-bar-track: rgb(0 0 0 / 7%);
     /* 歌單壓暗咗嘅舞台（--color-stage 上面疊 80% 黑）：安全區外面用 */
     --color-stage-dimmed: #313130;

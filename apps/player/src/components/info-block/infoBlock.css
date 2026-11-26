@@ -38,3 +38,21 @@
     fill: var(--color-version);
     font-family: var(--font-slab-light);
 }
+
+/* 歌單開住（T-037；設計稿 infoParts() 嘅 st.list）：暗層上面轉白字 */
+.info--dark .info-title,
+.info--dark .info-song {
+    fill: var(--color-paper);
+}
+
+.info--dark .info-year {
+    fill: var(--color-info-soft-dark);
+}
+
+.info-version--dark {
+    fill: var(--color-muted);
+}
+
+.info-list-number {
+    font-family: var(--font-slab);
+}

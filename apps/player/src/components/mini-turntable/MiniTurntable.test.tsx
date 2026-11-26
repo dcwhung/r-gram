@@ -133,6 +133,28 @@ describe('MiniTurntable', () => {
             },
         );
 
+        // S-193：設計稿 miniTitle() 每次縮 MINI.titleStep（2）：6 個字放 162 闊，每次縮 1 會停喺 27，縮 2 停喺 26
+        it('should shrink the title in steps of the layout table', () => {
+            const node = renderMini(mini({ title: '下一位參賽者' })).part('mini-title');
+            expect(node).toHaveTextContent('下一位參賽者');
+            expect(node).toHaveAttribute('font-size', '26');
+            const size = Number(node?.getAttribute('font-size'));
+            expect((shape.title.size - size) % shape.title.step).toBe(0);
+        });
+
+        /*
+         * S-192：量字（canvas）比實際 render 窄約 2%。「長夜的晚安」32 號量出嚟 160，啱啱放得落 162；
+         * render 闊 2% 就入咗行嘅感應範圍。要留返餘位：render 闊 renderSlack 都唔掂到行
+         */
+        it('should keep a title that only just fits clear of the rows when it renders wider', () => {
+            const node = renderMini(mini({ title: '長夜的晚安' })).part('mini-title');
+            const size = Number(node?.getAttribute('font-size'));
+            const font = { family: 'cjk', size, weight: 700, spacing: 0 } as const;
+            const measured = estimateTextWidth(node?.textContent ?? '', font);
+            const rendered = measured * (1 + shape.title.renderSlack);
+            expect(miniLabelX(PHONE_LAYOUT) - rendered).toBeGreaterThanOrEqual(rowsRight);
+        });
+
         it('should only shrink a title that fits at the minimum size', () => {
             const node = renderMini(mini({ title: '長夜的晚安' })).part('mini-title');
             expect(node).toHaveTextContent('長夜的晚安');

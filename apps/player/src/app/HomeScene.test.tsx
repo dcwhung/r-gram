@@ -20,6 +20,9 @@ const handlers = {
     onFavourites: vi.fn(),
     onReturnToLoaded: vi.fn(),
     onPlayHeldTrack: vi.fn(),
+    onOpenList: vi.fn(),
+    onFocusListTrack: vi.fn(),
+    onPlayListTrack: vi.fn(),
 };
 
 const viewOf = (
@@ -165,9 +168,23 @@ describe('HomeScene choosing a disc', () => {
         );
     });
 
-    it('should keep the spindle above the list veil while the list is open', () => {
+    // T-037：暗層、框同歌名喺貼頂組（設計稿 scene()：listLayer() 喺螺絲同唱片機上面、左上資訊下面）；
+    // 暗層中間留返唱片夾個窿，唱片夾（play）照㩒得
+    it('should lay the arc list over the machine and the screws, under the top-left info', () => {
         const { container } = render(scene(viewOf('room', null, { scene: 'list' })));
-        expect(part(container, 'list-veil')?.nextElementSibling).toHaveClass('spindle');
+        const list = part(container, 'arc-list');
+        expect(list?.closest('[data-anchor="top"]')).not.toBeNull();
+        expect(list?.previousElementSibling).toHaveAttribute('data-part', 'screws');
+        expect(list?.nextElementSibling).toHaveAttribute('data-part', 'info');
+        expect(screen.getByRole('button', { name: '播放' })).toHaveAttribute('tabindex', '0');
+    });
+
+    it('should turn the top-left info white and show the focused track while the list is open', () => {
+        const stage = { scene: 'list' as const, selectedTrackId: 'apollo-18-03' };
+        const { container } = render(scene(viewOf('apollo-18', null, stage)));
+        expect(part(container, 'info')).toHaveClass('info--dark');
+        expect(part(container, 'list-number')).toHaveTextContent('03');
+        expect(part(container, 'version')).toHaveClass('info-version--dark');
     });
 });
 
@@ -326,5 +343,65 @@ describe('HomeScene holding another disc', () => {
         fireEvent.keyDown(button, { key: 'Enter' });
         expect(handlers.onPlayHeldTrack).toHaveBeenCalledWith('room-01');
         expect(document.activeElement).toBe(container.querySelector('.spindle'));
+    });
+});
+
+/* T-037：主頁㩒碟面打開弧線歌單（Functional Spec FR-005（第 18 版）、US-004；設計稿「碟面：打開歌單」） */
+describe('HomeScene disc face', () => {
+    const PLAYING: PlaybackState = {
+        ...IDLE_PLAYBACK,
+        status: 'playing',
+        albumId: 'apollo-18',
+        trackId: 'apollo-18-01',
+    };
+    const part = (container: HTMLElement, name: string) =>
+        container.querySelector<SVGElement>(`[data-part="${name}"]`);
+
+    it('should open the list from the face of the loaded disc, in the Tab order', () => {
+        handlers.onOpenList.mockClear();
+        const { container } = render(scene(viewOf('apollo-18', null, {}, PLAYING)));
+        const disc = part(container, 'disc-face');
+        expect(disc).toHaveAttribute('tabindex', '0');
+        expect(disc).toHaveAccessibleName('開啟歌單');
+        if (disc) fireEvent.click(disc);
+        expect(handlers.onOpenList).toHaveBeenCalledTimes(1);
+        // 唱片夾喺碟面上面：碟面嘅感應範圍中間留返唱片夾嘅位
+        expect(disc?.previousElementSibling).toHaveClass('spindle');
+        expect(disc).toHaveAttribute('fill-rule', 'evenodd');
+    });
+
+    // 冇歌載入時唱片夾本身就係「開啟歌單」：碟面只係畀手指㩒，讀屏同 Tab 唔重覆
+    it('should leave the face to pointers when the clamp already opens the list', () => {
+        const { container } = render(scene(viewOf('apollo-18')));
+        const disc = part(container, 'disc-face');
+        expect(disc).toHaveAttribute('tabindex', '-1');
+        expect(disc).toHaveAttribute('aria-hidden', 'true');
+        expect(screen.getByRole('button', { name: '開啟歌單' })).toHaveClass('spindle');
+    });
+
+    // T-048 守衛：拎住另一隻碟唔開弧線歌單
+    it('should have no disc face while another disc is held', () => {
+        const { container } = render(scene(viewOf('room', null, {}, PLAYING)));
+        expect(part(container, 'disc-face')).toBeNull();
+    });
+
+    it('should hand the focus back to the disc face when the list it opened closes', () => {
+        const home = viewOf('apollo-18', null, {}, PLAYING);
+        const list = viewOf('apollo-18', null, { scene: 'list' }, PLAYING);
+        const Toggle = () => {
+            const [view, setView] = useState(home);
+            const live = {
+                ...handlers,
+                onOpenList: () => setView(list),
+                onCloseList: () => setView(home),
+            };
+            return <HomeScene view={view} handlers={live} measure={estimateTextWidth} />;
+        };
+        const { container } = render(<Toggle />);
+        const disc = part(container, 'disc-face');
+        if (disc) fireEvent.click(disc);
+        expect(screen.getByRole('listbox')).toHaveFocus();
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(part(container, 'disc-face')).toHaveFocus();
     });
 });

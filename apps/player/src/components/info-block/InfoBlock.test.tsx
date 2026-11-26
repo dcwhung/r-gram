@@ -255,3 +255,56 @@ describe('InfoBlock while holding another disc', () => {
         expect(sizeOf('ROOM', true)).toBe(88);
     });
 });
+
+/*
+ * T-037：歌單開住時左上資訊轉白字（設計稿第 18 版 infoParts()：st.list → PAPER），歌名嗰部分顯示框入面嗰首：
+ * 歌號（slab 32、專輯色，喺歌名第一行基線上面 2）+ 歌名（冇心形，所以可用闊度多返心形嗰段）；冇時間、冇三條棒
+ */
+describe('InfoBlock while the list is open', () => {
+    const FOURTEEN = '一二三四五六七八九十一二三四';
+
+    it('should turn white and show the focused track with its number in the album colour', () => {
+        const part = renderInfo({ listOpen: true, listTrack: track() });
+        expect(part('info')).toHaveClass('info--dark');
+        expect(part('list-number')).toHaveTextContent('07');
+        expect(part('list-number')).toHaveAttribute('fill', '#2f8f57');
+        expect(part('list-number')).toHaveAttribute('x', '74');
+        expect(part('list-number')).toHaveAttribute('y', '316');
+        expect(part('list-number')).toHaveAttribute('font-size', '32');
+        expect(part('song-title')).toHaveTextContent('我永遠記得');
+        expect(part('song-heart')).toBeNull();
+        expect(part('song-bars')).toBeNull();
+        expect(part('track-line')).toBeNull();
+    });
+
+    it('should give the title the room of the missing heart', () => {
+        const title = renderInfo({ listOpen: true, listTrack: track({ title: FOURTEEN }) })(
+            'song-title',
+        );
+        expect(title).toHaveAttribute('font-size', '44');
+        const playing = renderInfo({ track: track({ title: FOURTEEN }) })('song-title');
+        expect(Number(playing?.getAttribute('font-size'))).toBeLessThan(44);
+    });
+
+    it('should show the playing track instead of the list track once the list is closed', () => {
+        const part = renderInfo({ track: track(), listTrack: null });
+        expect(part('info')).not.toHaveClass('info--dark');
+        expect(part('list-number')).toBeNull();
+        expect(part('track-line')).toBeInTheDocument();
+    });
+
+    it('should show only the album part for an empty album', () => {
+        const part = renderInfo({ listOpen: true, listTrack: null, track: track() });
+        expect(part('song-title')).toBeNull();
+        expect(part('album-title')).toBeInTheDocument();
+    });
+
+    it('should dim the version text on the dark list', () => {
+        const { container } = render(
+            <svg>
+                <VersionText version={PHONE_LAYOUT.info.version} dark />
+            </svg>,
+        );
+        expect(container.querySelector('[data-part="version"]')).toHaveClass('info-version--dark');
+    });
+});

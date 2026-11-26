@@ -15,7 +15,8 @@ import type { StageState } from './stageReducer';
 /** 歌號最少兩位（設計稿 `padStart(2, '0')`） */
 const NUMBER_DIGITS = 2;
 
-export interface HeldTrackRow {
+/** 歌單一行（拎住嘅碟嘅歌單欄、弧線歌單共用） */
+export interface TrackRow {
     id: string;
     /** 真正嘅歌號（`track.no`，可以跳號，D60） */
     no: number;
@@ -25,6 +26,9 @@ export interface HeldTrackRow {
     /** 有音檔先播得；冇 = 灰色、唔係掣 */
     playable: boolean;
 }
+
+/** 歌單欄嘅行（同弧線歌單嘅行一樣） */
+export type HeldTrackRow = TrackRow;
 
 export interface HeldTracksView {
     albumId: string;
@@ -39,7 +43,7 @@ export interface HeldTracksView {
     pressable: boolean;
 }
 
-const rowOf = (track: CatalogTrack): HeldTrackRow => ({
+export const trackRow = (track: CatalogTrack): TrackRow => ({
     id: track.id,
     no: track.no,
     number: String(track.no).padStart(NUMBER_DIGITS, '0'),
@@ -60,7 +64,7 @@ export const heldTracksView = (
     return {
         albumId,
         accent: findAlbum(document, albumId)?.accent ?? NEUTRAL_ACCENT,
-        rows: albumTracks(document, albumId).map(rowOf),
+        rows: albumTracks(document, albumId).map(trackRow),
         emptyText: t(favourites ? 'favourites.empty' : 'list.empty'),
         dialOpen,
         pressable: !dialOpen,

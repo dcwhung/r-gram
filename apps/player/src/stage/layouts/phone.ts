@@ -25,8 +25,10 @@ const TITLE_MIN_SIZE = 48;
 /*
  * 細唱片機（T-048）照設計稿第 18 版 MINI 同 miniTurntable()：「播放中」y − 18、歌名 y + 30。
  * 拎住另一隻碟時碟名停喺細唱片機左邊 MINI_TITLE_GAP 之外（設計稿 info()：MINI.x − MINI.r − 20）。
- * 歌名最細縮到同「播放中」一樣大（設計稿冇畫長歌名，T-048 定）
+ * 歌名最細縮到同「播放中」一樣大（設計稿 titleMin），每次縮 titleStep（S-193）。
+ * 瀏覽器 render 出嚟比 canvas 量字闊約 2%（QA S-192 量度），歌名可用闊度留返咁多餘位，啱啱放得落都唔掂到歌單行
  */
+const MINI_RENDER_SLACK = 0.02;
 const MINI = {
     x: 930,
     y: 322,
@@ -34,7 +36,7 @@ const MINI = {
     labelGap: 28,
     hitPad: 300,
     label: { size: 24, rise: 18, spacing: 4 },
-    title: { size: 36, drop: 30, minSize: 24 },
+    title: { size: 36, drop: 30, minSize: 24, step: 2, renderSlack: MINI_RENDER_SLACK },
 } as const;
 const MINI_TITLE_GAP = 20;
 
@@ -55,6 +57,24 @@ const HELD_TRACKS = {
     bar: { width: 5, x: 44, minLength: 60 },
     rowReach: 20,
     scrim: { solid: 0, end: DESIGN_WIDTH, opacity: 0.62 },
+    dragThresholdPx: 6,
+} as const;
+
+/*
+ * 弧線歌單（T-037）照設計稿第 18 版 LIST（focus、rest、number、frame、visible）；listLayer()、focusFrame()、dimLayer()
+ * 入面寫死嘅數變成有名常數：歌名 x = 歌號 x + 歌號字級 × 1.25 + 18；框左邊圓頭前面 6、線粗 3；淡出指數 1.5、
+ * 其他行 × 0.62、未有音檔 × 0.5、最淡 0.06；暗層 0.8。歌名約 8 個中文字（設計稿表格、Functional Spec D23）
+ */
+const ARC_LIST = {
+    focusSize: 42,
+    restSize: 32,
+    number: { scale: 0.72, gapEm: 1.25, pad: 18 },
+    frame: { height: 88, gap: 6, stroke: 3 },
+    visible: 4.3,
+    fade: { power: 1.5, rest: 0.62, off: 0.5, min: 0.06 },
+    veil: 0.8,
+    titleChars: 8,
+    // 同歌單欄一樣（設計稿互動格嘅拖動門檻）
     dragThresholdPx: 6,
 } as const;
 
@@ -197,11 +217,14 @@ export const PHONE_LAYOUT: StageLayout = {
         },
         heart: { gap: 46, size: 50, rise: 0.364, stroke: 2.6 },
         track: { x: 74, y: 368, size: 22, spacing: 3 },
+        // 歌單開住（設計稿 infoParts() st.list）：框入面嗰首嘅歌號，slab 32、喺歌名第一行基線上面 2
+        listNumber: { x: 74, size: 32, lift: 2 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
     },
     miniTurntable: MINI,
     heldTracks: HELD_TRACKS,
     preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
+    list: ARC_LIST,
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },
 };

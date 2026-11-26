@@ -1,6 +1,6 @@
 import type { Ref } from 'react';
 import { t, type MessageKey } from '../../i18n/t';
-import { hitSizeUnits } from '../../stage/geometry';
+import { spindleHitRadius } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
 import { Shadow } from '../metal/Metal';
 import { pressable } from '../pressable';
@@ -16,7 +16,7 @@ const { play, listRing } = SPINDLE_SHAPE;
 export type SpindleMode = 'idle' | 'list' | 'playing' | 'paused';
 
 /** 㩒落去會做乜，亦即係畀讀屏嘅名 */
-const LABEL: Readonly<Record<SpindleMode, MessageKey & `${'list' | 'playback'}.${string}`>> = {
+const LABEL: Readonly<Record<SpindleMode, MessageKey & ('list.open' | `playback.${string}`)>> = {
     idle: 'list.open',
     list: 'playback.play',
     playing: 'playback.pause',
@@ -91,7 +91,7 @@ export const Spindle = (props: SpindleProps) => {
                 data-part="hit"
                 cx={disc.x}
                 cy={disc.y}
-                r={px(Math.max(r, hitSizeUnits(layout) / 2))}
+                r={px(spindleHitRadius(layout))}
                 fill="transparent"
             />
             <Shadow cx={disc.x} cy={disc.y} r={r} {...SPINDLE_SHAPE.shadow} />

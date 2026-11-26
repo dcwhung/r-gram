@@ -60,6 +60,8 @@ export interface InfoLayout {
     heart: { gap: number; size: number; rise: number; stroke: number };
     /** 「第 nn 首 · m:ss」 */
     track: TextLine;
+    /** 歌單開住時框入面嗰首嘅歌號（專輯色 slab）：x、字級、喺歌名第一行基線上面幾多 */
+    listNumber: { x: number; size: number; lift: number };
     /** 右上版本號（靠右對齊：x 係右邊） */
     version: TextLine;
 }
@@ -105,14 +107,15 @@ export interface PreloadLayout {
 /**
  * 右上角細唱片機（設計稿第 18 版 MINI、miniTurntable()；T-048）：碟心同半徑（成部唱片機按 r ÷ 轉盤半徑縮細）；
  * 兩行字靠右對齊喺碟左邊 `labelGap`：「播放中」喺圓心上面 `rise`、歌名喺圓心下面 `drop`；
- * 感應範圍 = 碟（2r × 2r）再向左伸 `hitPad`，連埋兩行字。歌名放唔落就縮字，最細 `minSize`，再唔得先「…」
+ * 感應範圍 = 碟（2r × 2r）再向左伸 `hitPad`，連埋兩行字。歌名放唔落就每次縮 `step`，最細 `minSize`，再唔得先「…」；
+ * 可用闊度除返 1 + `renderSlack`（render 比量字闊嘅比例），留餘位
  */
 export interface MiniTurntableLayout extends Point {
     r: number;
     labelGap: number;
     hitPad: number;
     label: { size: number; rise: number; spacing: number };
-    title: { size: number; drop: number; minSize: number };
+    title: { size: number; drop: number; minSize: number; step: number; renderSlack: number };
 }
 
 /**
@@ -136,6 +139,27 @@ export interface HeldTracksLayout {
     bar: { width: number; x: number; minLength: number };
     rowReach: number;
     scrim: { solid: number; end: number; opacity: number };
+    dragThresholdPx: number;
+}
+
+/**
+ * 弧線歌單（設計稿第 18 版 LIST、listLayer()、focusFrame()、dimLayer()；T-037）。弧線半徑同每行角度喺 `arc`。
+ * 揀中嗰行（框入面）字級 `focusSize`，其他 `restSize`；歌號字級 = 行字級 × `number.scale`，歌名喺歌號後面
+ * 歌號字級 × `number.gapEm` + `number.pad`。框高 `frame.height`、左邊圓頭前面留 `frame.gap`、線粗 `frame.stroke`
+ *（CSS px，唔跟縮放）。越遠越淡：(1 − |k| ÷ `visible`)^`fade.power`，唔係揀中 × `fade.rest`，未有音檔 × `fade.off`，
+ * 最淡 `fade.min`；|k| > `visible` 唔畫。暗層黑色 `veil`。歌名放唔落 `titleChars` 個（揀中字級）全形字就「…」。
+ * 拖動要過 `dragThresholdPx`（CSS px）先當拖
+ */
+export interface ArcListLayout {
+    focusSize: number;
+    restSize: number;
+    number: { scale: number; gapEm: number; pad: number };
+    frame: { height: number; gap: number; stroke: number };
+    visible: number;
+    fade: { power: number; rest: number; off: number; min: number };
+    veil: number;
+    titleChars: number;
+    /** 拖動要過幾多 CSS px 先當拖（拖過唔當㩒） */
     dragThresholdPx: number;
 }
 
@@ -225,6 +249,8 @@ export interface StageLayout {
     preload: PreloadLayout;
     /** 歌單同歌書：沿住同碟同心嘅弧線排 */
     arc: { r: number; stepDeg: number };
+    /** 弧線歌單（㩒碟面；T-037） */
+    list: ArcListLayout;
     /** 淨空同感應範圍規則（Functional Spec CR-002） */
     clearance: {
         /** 掣（連光圈）同 CD */

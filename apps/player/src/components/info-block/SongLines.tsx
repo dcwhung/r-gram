@@ -55,6 +55,23 @@ const HeartPlaceholder = ({ info, at }: { info: InfoLayout; at: SongFit['heart']
     </g>
 );
 
+/** 歌名（一行或者兩行；歌單開住時亦用，T-037） */
+export const SongTitle = ({ x, fit, title }: { x: number; fit: SongFit; title: string }) => (
+    <text
+        data-part="song-title"
+        className="info-song"
+        fontSize={fit.size}
+        // 兩行之間冇空格、「…」截走咗嘅字：讀屏讀成個歌名（B-072 ①）
+        aria-label={title}
+    >
+        {fit.rows.map((row, index) => (
+            <tspan key={index} x={x} y={px(row.y)}>
+                {row.text}
+            </tspan>
+        ))}
+    </text>
+);
+
 /** 歌名（縮字 → 兩行 → 「…」，FR-036、D51）、心形、「第 nn 首 · m:ss」 */
 export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesProps) => {
     const { song, track: line } = info;
@@ -66,19 +83,7 @@ export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesP
     return (
         <>
             <Bars info={info} accent={accent} top={fit.top} />
-            <text
-                data-part="song-title"
-                className="info-song"
-                fontSize={fit.size}
-                // 兩行之間冇空格、「…」截走咗嘅字：讀屏讀成個歌名（B-072 ①）
-                aria-label={track.title}
-            >
-                {fit.rows.map((row, index) => (
-                    <tspan key={index} x={song.x} y={px(row.y)}>
-                        {row.text}
-                    </tspan>
-                ))}
-            </text>
+            <SongTitle x={song.x} fit={fit} title={track.title} />
             <HeartPlaceholder info={info} at={fit.heart} />
             <text
                 data-part="track-line"

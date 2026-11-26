@@ -68,6 +68,7 @@ const Caption = ({ layout, mini, measure }: CaptionProps) => {
     const fitted = fitText(mini.title, {
         size: shape.title.size,
         minSize: shape.title.minSize,
+        step: shape.title.step,
         maxWidth: miniTitleMaxWidth(layout),
         measure: (text, size) =>
             measure(text, { family: 'cjk', size, weight: TITLE_WEIGHT, spacing: 0 }),

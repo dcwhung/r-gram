@@ -81,6 +81,18 @@ describe('listFocusTrackId', () => {
         expect(listFocusTrackId(skipsSilent, home({ viewAlbumId: 'room' }))).toBe('room-02');
     });
 
+    // T-037：載入嘅碟（㩒碟面）：框入面係播緊（或者暫停緊）嗰首（設計稿 SONG = TRACKS.komorebi.focus）
+    it('should focus the loaded track when the list opens on the loaded disc', () => {
+        const stage = home({ selectedTrackId: 'apollo-18-01' });
+        expect(listFocusTrackId(document, stage, playback({ trackId: 'apollo-18-03' }))).toBe(
+            'apollo-18-03',
+        );
+        expect(listFocusTrackId(document, stage, playback({ albumId: 'room' }))).toBe(
+            'apollo-18-01',
+        );
+        expect(listFocusTrackId(document, home(), IDLE_PLAYBACK)).toBe('apollo-18-01');
+    });
+
     it('should focus nothing when the disc has no playable track', () => {
         const silent = makeDocument([makeAlbum('room', [null])]);
         expect(listFocusTrackId(silent, home({ viewAlbumId: 'room' }))).toBeNull();
@@ -286,5 +298,33 @@ describe('homeView mini turntable', () => {
 
     it('should keep the big tonearm parked behind the fade while another disc is held', () => {
         expect(homeView(document, holdingRoom, playback()).armPose).toBe('parked');
+    });
+});
+
+/*
+ * T-037：弧線歌單（Functional Spec FR-005（第 18 版）、US-004、D52；設計稿第 18 版「歌單（㩒碟面）」）：
+ * 只喺冇歌載入時揀中嘅碟、或者載入嘅碟（主頁㩒碟面）先開；拎住另一隻碟唔開
+ */
+describe('homeView arc list', () => {
+    const document = sampleDocument();
+
+    it.each([
+        ['nothing is loaded', home(), IDLE_PLAYBACK, true],
+        ['the loaded disc is on screen', home(), playback(), true],
+        ['another disc is held', home({ viewAlbumId: 'room' }), playback(), false],
+        ['the dial is open', home({ scene: 'discChange' }), IDLE_PLAYBACK, false],
+        ['the list is already open', home({ scene: 'list' }), IDLE_PLAYBACK, false],
+        ['the MV is open', home({ overlay: 'mv' }), playback(), false],
+    ])('should tell whether the disc face opens the list when %s', (_c, stage, state, can) => {
+        expect(homeView(document, stage, state).canOpenList).toBe(can);
+    });
+
+    it('should carry the list and the focused track only while the list is open', () => {
+        const closed = homeView(document, home(), IDLE_PLAYBACK);
+        expect(closed).toMatchObject({ list: null, listTrack: null });
+        const stage = home({ scene: 'list', selectedTrackId: 'apollo-18-03' });
+        const open = homeView(document, stage, IDLE_PLAYBACK);
+        expect(open.list?.focusIndex).toBe(2);
+        expect(open.listTrack?.id).toBe('apollo-18-03');
     });
 });
