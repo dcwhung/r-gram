@@ -236,6 +236,24 @@ describe('PUT /api/albums/:id/cover: checks', () => {
         );
     });
 
+    // S-187：讀專輯之後另一個請求改咗專輯（同步寫檢查結果、或者改咗 updated_at）→ 409 STALE，唔蓋走
+    it.each([
+        [
+            'the checks',
+            `UPDATE albums SET checks = '[{"code":"NO_INFO","level":"warning","params":{}}]'`,
+        ],
+        ['the version', "UPDATE albums SET updated_at = '2030-01-01T00:00:00.000Z'"],
+    ])('should answer 409 STALE when %s changed since the album was read', async (_name, sql) => {
+        const body = await firstCover();
+        const before = await albumRow(ALBUM_ID);
+        const db = dbWithHook('SELECT name FROM assets', () => env.DB.prepare(sql).run());
+        const { status, body: answer } = await putCover(body, ALBUM_ID, { ...env, DB: db });
+        expect(status).toBe(409);
+        expect(answer.error.code).toBe('STALE');
+        const after = await albumRow(ALBUM_ID);
+        expect(after).toMatchObject({ cover: null, accent: before?.accent });
+    });
+
     it('should answer 409 STALE when the source changed or is gone', async () => {
         const body = await firstCover();
         await putMedia('cover.jpg', 'another jpeg');
