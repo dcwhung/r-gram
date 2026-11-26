@@ -12,6 +12,8 @@ export const MEDIA_QUERY_PARAM = 'media';
 export const UNLOCK_DELAY_MS = 1500;
 /** ② 「跳到結尾前」幾多秒 */
 export const JUMP_BEFORE_END_S = 10;
+/** ② 第一首自動跳去結尾前幾多秒：留時間畀用戶聽到聲之後鎖機 */
+export const FIRST_JUMP_BEFORE_END_S = 25;
 /** ② 連續播幾多首（第 1 首 + 自動下一首兩次） */
 export const AUTO_NEXT_PLAYS = 3;
 /** ⑤ 每次量度幾耐 */

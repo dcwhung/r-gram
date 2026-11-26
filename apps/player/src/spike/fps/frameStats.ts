@@ -1,4 +1,5 @@
 /* ⑤ 幀率：由 requestAnimationFrame 嘅時間戳計平均 fps、最慢一格、掉格比例（以 60 Hz 做一格） */
+import { TEXT } from '../text';
 
 export interface FrameStats {
     frames: number;
@@ -44,6 +45,10 @@ export const frameStats = (timestamps: readonly number[]): FrameStats => {
 };
 
 export const formatFrameStats = (stats: FrameStats): string =>
-    `平均 ${stats.averageFps.toFixed(1)} fps · 最慢一格 ${stats.worstMs.toFixed(1)} ms · ` +
-    `掉格 ${stats.droppedPercent.toFixed(1)}%（${stats.frames} 格 / ` +
-    `${(stats.durationMs / MS_PER_SECOND).toFixed(2)} 秒）`;
+    TEXT.fps.stats(
+        stats.averageFps.toFixed(1),
+        stats.worstMs.toFixed(1),
+        stats.droppedPercent.toFixed(1),
+        stats.frames,
+        (stats.durationMs / MS_PER_SECOND).toFixed(2),
+    );
