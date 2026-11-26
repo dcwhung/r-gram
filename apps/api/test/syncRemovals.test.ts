@@ -6,6 +6,7 @@
 import { NEUTRAL_ACCENT } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
 import { SYNC_REMOVALS_MAX } from '../src/config';
+import { clearTrackFile } from '../src/sync/removalStore';
 import { albumRow, api, countOf, insertAsset } from './albumFixtures';
 import { liveDocument, stateRow } from './catalogFixtures';
 import {
@@ -142,6 +143,31 @@ describe('POST /api/sync/removals: track files', () => {
             ok: false,
             code: 'NOT_FOUND',
         });
+    });
+});
+
+describe('POST /api/sync/removals: forged and raced items', () => {
+    it('should answer NOT_FOUND for a track of another album', async () => {
+        await putMedia('01 a.m4a', 'a', 'album-02-other');
+        await putMedia('01 a.mp4', 'v', 'album-02-other');
+        await syncFolder('album-02-other');
+        await deleteMedia('01 a.mp4', 'album-02-other');
+        const item = {
+            kind: 'mv',
+            albumId: ALBUM_ID,
+            trackId: 'other-01',
+            key: mediaKey('01 a.mp4', 'album-02-other'),
+        };
+        const { body } = await confirmRemovals([item]);
+        expect(body.results[0]).toMatchObject({ ok: false, code: 'NOT_FOUND' });
+        expect((await tracksOf('other'))[0]?.mv_key).toBe(item.key);
+    });
+
+    it('should keep the lyrics when the link changed just before the clear', async () => {
+        const track = { id: 'komorebi-05', updated_at: 'x' };
+        expect(await clearTrackFile(env.DB, track, 'text', mediaKey('05 舊.txt'))).toBe(false);
+        expect(await lyricsRow('komorebi-05')).not.toBeNull();
+        expect((await tracksOf())[4]?.composer).toBe('RubberBand');
     });
 });
 

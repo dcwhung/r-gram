@@ -4,13 +4,15 @@
  */
 import { env } from 'cloudflare:test';
 import { SCAN_LIST_PAGES_MAX } from '../src/config';
-import { insertAlbum } from './albumFixtures';
+import { albumRow, countOf, insertAlbum, insertAsset } from './albumFixtures';
 import {
     ALBUM_ID,
     FOLDER,
     confirmRemovals,
     mediaWith,
     putKomorebi,
+    deleteMedia,
+    KOMOREBI_INFO,
     putMedia,
     syncFolder,
     syncOverview,
@@ -68,5 +70,37 @@ describe('sync limits: listing pages', () => {
         };
         const { body } = await confirmRemovals([item], bindings);
         expect(body.results[0]).toMatchObject({ ok: false, code: 'STALE' });
+    });
+
+    it('should not delete an album while the bucket listing is incomplete', async () => {
+        await insertAlbum('gone', 0);
+        const { bindings } = endlessList();
+        const { body } = await confirmRemovals([{ kind: 'album', albumId: 'gone' }], bindings);
+        expect(body.results[0]).toMatchObject({ ok: false, code: 'STALE' });
+        expect(await countOf('albums')).toBe(1);
+    });
+
+    it('should not delete a track while the folder listing is incomplete', async () => {
+        await putKomorebi();
+        await syncFolder();
+        await putMedia('info.txt', KOMOREBI_INFO.replace('4. 毒蟲圖鑑\n', ''));
+        const { bindings } = endlessList();
+        const item = { kind: 'track', albumId: ALBUM_ID, trackId: 'komorebi-04' };
+        const { body } = await confirmRemovals([item], bindings);
+        expect(body.results[0]).toMatchObject({ ok: false, code: 'STALE' });
+        expect(await countOf('tracks')).toBe(5);
+    });
+
+    it('should not clear a cover while the folder listing is incomplete', async () => {
+        await putKomorebi();
+        await syncFolder();
+        await insertAsset('cover0000000000a.webp');
+        await env.DB.prepare("UPDATE albums SET cover = 'cover0000000000a.webp'").run();
+        await deleteMedia('cover.jpg');
+        const { bindings } = endlessList();
+        const item = { kind: 'cover', albumId: ALBUM_ID, slot: 'cover' };
+        const { body } = await confirmRemovals([item], bindings);
+        expect(body.results[0]).toMatchObject({ ok: false, code: 'STALE' });
+        expect((await albumRow(ALBUM_ID))?.cover).toBe('cover0000000000a.webp');
     });
 });

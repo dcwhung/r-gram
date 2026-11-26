@@ -440,6 +440,27 @@ describe('planFolderSync', () => {
             expect(result.pendingRemovals.map(({ kind }) => kind)).toEqual(['audio']);
         });
 
+        it('should keep the MV and song text links of a track whose audio is gone until it is confirmed', () => {
+            const tracks = [
+                track(1, {
+                    title: '下一位參賽者',
+                    audioKey: key('01 a.m4a'),
+                    mvKey: key('01 a.mp4'),
+                    textKey: key('01 a.txt'),
+                    textSourceEtag: '"t1"',
+                }),
+            ];
+            const files = [file('01 a.mp4'), file('01 a.txt', '"t9"')];
+            const [first] = plan({ files, tracks, album: album() }).tracks;
+            expect(first).toMatchObject({
+                audioKey: key('01 a.m4a'),
+                mvKey: key('01 a.mp4'),
+                textKey: key('01 a.txt'),
+                read: null,
+                changed: false,
+            });
+        });
+
         it('should list covers that are gone', () => {
             const stored = album({
                 hasCover: true,
