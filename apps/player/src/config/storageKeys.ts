@@ -6,6 +6,9 @@
 /** `{ etag, document }`：上次成功載入嘅 catalog */
 export const CATALOG_STORAGE_KEY = 'rgram.catalog.v1';
 
+/** `{ shuffle, repeat }`：播放模式（Functional Spec「播放模式」儲存；playback/playModes.ts） */
+export const PLAY_MODE_STORAGE_KEY = 'rgram.playMode.v1';
+
 /**
  * sessionStorage（只限呢個分頁）：上次因為新版而 reload 嘅時間（毫秒）。PWA 更新防 loop 用
  *（Technical Spec 實現注意事項 12；pwa/reloadGuard.ts）
