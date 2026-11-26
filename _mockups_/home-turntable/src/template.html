@@ -502,6 +502,7 @@ tr:last-child td { border-bottom: 0; }
         ['播緊時揀碟：轉到另一隻碟', '第 18 版：好似行開去碟架拎第二隻碟睇——唱片機縮去右上角照播；左上碟名跟住旋鈕指住嘅碟變，碟名下面即刻列出呢隻碟嘅歌單。冇黑色層：黑字，字級比「播放中」大一級；隻碟左邊蓋一層半透明嘅底色', { album: 'juntos', song: false, wheel: 1, away: true, loaded: 'komorebi' }],
         ['播緊時，手上拎住另一隻碟', '第 18 版：鬆手之後，歌單向下排多幾行。㩒一行 = 將隻碟放入唱片機播嗰首：原本首歌停，隻碟落轉盤，唱針由泊位轉過嚟落碟。㩒右上角細唱片機 = 放低隻碟，返去播緊嗰隻', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
         ['長歌單（30 首）', '第 18 版：一版見到約 20 首；放唔晒就上下捲，頂同底淡出表示仲有，左邊有位置條；歌名太長用「…」', { album: 'we-are-rubberband', song: false, wheel: 0, away: true, loaded: 'komorebi', listScroll: 0.5 }],
+        ['拎住另一隻碟：播緊嘅歌名好長', '細唱片機旁邊嘅歌名只用歌單右邊嘅位：放唔落先縮字，再放唔落用「…」收尾，唔會疊住歌單第一行', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', loadedTitle: '(Just Like) Starting Over' }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 未有音檔（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
         ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
@@ -819,8 +820,18 @@ tr:last-child td { border-bottom: 0; }
      * 第 18 版：唱片機播緊（或者暫停緊）一隻碟，而畫面係另一隻碟 = 「人行開咗去拎第二隻碟睇」。
      * 唱片機縮細去右上角照播（碟照轉、唱針喺碟上面），旁邊寫住播緊邊首；㩒佢 = 返去唱片機。
      */
-    const MINI = { x: 930, y: 322, r: 120, labelGap: 28, hitPad: 300, label: 24, title: 36 };
+    const MINI = { x: 930, y: 322, r: 120, labelGap: 28, hitPad: 300, label: 24, title: 36, titleMin: 24, titleStep: 2 };
     const ghostOnly = (html) => html.replace(/ data-(swap|anim|act|follow)=/g, ' data-ghost-$1='); // 只係畫面，唔參與互動格嘅動畫配對
+    /**
+     * 細唱片機旁邊嘅歌名只可以用歌單行（㩒得嘅範圍）右邊至細唱片機之間嘅位：放唔落先縮字（title → titleMin），
+     * 最細字都放唔落就用「…」收尾，唔會疊住歌單第一行。完整歌名喺掣嘅 aria-label。
+     */
+    const miniTitle = (title, room) => {
+        let size = MINI.title;
+        while (size > MINI.titleMin && textWidth(title, size) > room) size -= MINI.titleStep;
+        if (textWidth(title, size) <= room) return { size, text: title };
+        return { size, text: `${breakAt(title, size, room - size)[0]}…` };
+    };
     const miniTurntable = (st, fid) => {
         if (!st.loaded) return '';
         const k = MINI.r / PLATTER.r;
@@ -828,13 +839,14 @@ tr:last-child td { border-bottom: 0; }
         const machine = { album: st.loaded, song: true, paused, wheel: 0 };
         const art = discArt(ALBUMS[st.loaded].cover, `clip-${fid}-mini`, { spin: !paused }).replace('class="spin"', 'class="spin mini-spin"');
         const labelX = MINI.x - MINI.r - MINI.labelGap;
+        const loadedTitle = miniTitle(st.loadedTitle ?? SONG.title, labelX - (TRACKLIST.right + TRACKLIST.rowPad));
         return (
-            `<g data-act="back" role="button" aria-label="${T.backToPlaying}">${hitRect(MINI.x - MINI.hitPad / 2, MINI.y, MINI.r * 2 + MINI.hitPad, MINI.r * 2)}` +
+            `<g data-act="back" role="button" aria-label="${T.backToPlaying}：${esc(st.loadedTitle ?? SONG.title)}">${hitRect(MINI.x - MINI.hitPad / 2, MINI.y, MINI.r * 2 + MINI.hitPad, MINI.r * 2)}` +
             `<g transform="translate(${n(MINI.x - DISC.x * k)} ${n(MINI.y - DISC.y * k)}) scale(${k.toFixed(4)})">${platter()}` +
             `<g transform="translate(${DISC.x} ${DISC.y}) scale(${(DISC.r / ART).toFixed(4)})">${art}</g>` +
             `<g transform="translate(${DISC.x} ${DISC.y})">${clamp(DISC.r * HUB.clamp)}</g>${ghostOnly(tonearm(machine))}</g>` +
             `<text x="${labelX}" y="${MINI.y - 18}" text-anchor="end" font-family="${CJK}" font-size="${MINI.label}" fill="#777" letter-spacing="4">${paused ? T.loadedPaused : T.nowPlaying}</text>` +
-            `<text x="${labelX}" y="${MINI.y + 30}" text-anchor="end" font-family="${CJK}" font-weight="700" font-size="${MINI.title}" fill="${INK}">${esc(st.loadedTitle ?? SONG.title)}</text></g>`
+            `<text x="${labelX}" y="${MINI.y + 30}" text-anchor="end" font-family="${CJK}" font-weight="700" font-size="${loadedTitle.size}" fill="${INK}">${esc(loadedTitle.text)}</text></g>`
         );
     };
 
@@ -844,7 +856,7 @@ tr:last-child td { border-bottom: 0; }
      * 畫面蓋一層半透明嘅底色：由左邊 62% 直線淡到右邊 0%（唔係壓暗），隻碟仍然透得出嚟，歌名又睇得清楚。
      * 㩒一行 = 將隻碟放入唱片機播嗰首。歌多就上下捲：頂（捲咗先有）同底（下面仲有先有）淡出，左邊有位置條。
      */
-    const TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomHeld: 1650, size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, barX: 44, scrimSolid: 0, scrimEnd: W, scrimOpacity: 0.62 }; // 淺色層：由左 62% 直線淡到右邊 0%
+    const TRACKLIST = { x: 74, right: 600, top: 330, bottomOpen: 1470, bottomHeld: 1650, size: 28, pitch: 66, number: 0.72, numberW: 56, fade: 100, bar: 5, barX: 44, scrimSolid: 0, scrimEnd: W, scrimOpacity: 0.62, rowPad: 20 }; // 淺色層：由左 62% 直線淡到右邊 0%
     const trackPitch = () => TRACKLIST.pitch;
     const panelMetrics = (st) => {
         const rows = (TRACKS[st.album] ?? { rows: [] }).rows;
@@ -884,7 +896,7 @@ tr:last-child td { border-bottom: 0; }
             const off = flag === 'off';
             const shown = textWidth(title, size) > titleRoom ? `${breakAt(title, size, titleRoom - size)[0]}…` : title;
             const row =
-                `<rect x="0" y="${n(y - pitch / 2)}" width="${TRACKLIST.right + 20}" height="${n(pitch)}" fill="#fff" fill-opacity="0"/>` +
+                `<rect x="0" y="${n(y - pitch / 2)}" width="${TRACKLIST.right + TRACKLIST.rowPad}" height="${n(pitch)}" fill="#fff" fill-opacity="0"/>` +
                 `<text x="${TRACKLIST.x}" y="${n(y)}" dominant-baseline="central" font-family="${SLAB}" font-size="${n(size * TRACKLIST.number)}" fill="${off ? '#b0b0ac' : accent}">${String(i + 1).padStart(2, '0')}</text>` +
                 `<text x="${textX}" y="${n(y)}" dominant-baseline="central" font-family="${MIXED}" font-weight="500" font-size="${size}" fill="${INK}" opacity="${off ? 0.32 : 0.9}">${esc(shown)}</text>`;
             list += off ? `<g>${row}</g>` : `<g data-act="playrow" data-i="${i}" role="button" aria-label="${T.play}：${esc(title)}">${row}</g>`;
