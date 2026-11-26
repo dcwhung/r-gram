@@ -20,4 +20,4 @@
     - W-037：MutationObserver + 逐 frame 取樣離開轉盤嗰隻碟嘅 computed transform（向後、向前各一格）；打開時碟位置對 `discPose()`
     - 載入歌（唱片夾 → 歌單 → 播）之後逐 frame 取樣三組淡出淡入、封面轉動、唱臂 transform；鍵盤全套；♥；歌單開住嘅 Tab；`reducedMotion: 'reduce'`；儲存
 - PWA gate: no（冇改 build 設定、manifest、Service Worker）。Security / Data gate: no（冇新輸入面）。Performance gate: no（真機 fps 係 review S-153，backlog）
-- Out of scope（已知、已接受）：細唱片機、拎住嘅碟嘅歌單欄（T-048、T-049）；S-155 接駁位（T-048 之前喺另一隻碟鬆手 = 大唱片機冇唱臂、唱片夾開弧線歌單）；S-151（spec 字眼）、S-152（單㩒開即收，等用戶）、S-153（真機性能）；Favourites 碟面同左上「我的收藏」（T-070）；跳多格時新碟直接出現（review 接受）
+- Out of scope（已知、已接受）：細唱片機、拎住嘅碟嘅歌單欄（T-048、T-049，見 `plans/player-holding.md`；`MachineChrome` 拎住時轉盤淡出、細掣唔入 Tab 喺嗰度驗）；S-155 已由 T-048 取代；S-151（spec 字眼）、S-152（單㩒開即收，等用戶）、S-153（真機性能）；Favourites 碟面同左上「我的收藏」（T-070）；跳多格時新碟直接出現（review 接受）
