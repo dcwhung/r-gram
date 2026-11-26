@@ -15,7 +15,8 @@ body {
     margin: 0;
     overflow: hidden;
     overscroll-behavior: none;
-    background: var(--color-flag-bg);
+    /* Safari 分頁嘅狀態列同工具列後面由頁面底色填：跟場景（useStageBackdrop）；未設之前用 Preload 嘅黑色，避免閃白 */
+    background: var(--stage-backdrop, var(--color-flag-bg));
     font-family: var(--font-mixed);
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
