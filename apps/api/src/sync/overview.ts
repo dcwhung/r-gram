@@ -4,6 +4,7 @@
  *   duplicate（同一個 id 有幾個資料夾，而呢個唔係 D1 用緊嗰個：API-034 會回 409，D67）
  * - invalid：名唔啱格式（檢查結果 INVALID_FOLDER_NAME）；duplicateIds：同一個 id 嘅資料夾
  * - missingAlbums：D1 有而 bucket 冇呢個 id 嘅資料夾 = 專輯移除候選（list 唔齊就唔列）
+ * - mediaBase：媒體 bucket 公開網址（T-116）：管理端由 mediaBase + coverJobs 嘅 key 攞封面來源
  */
 import { albumOrder } from '@r-gram/catalog';
 import type { Context } from 'hono';
@@ -68,5 +69,6 @@ export const syncOverview = async (c: Context<AppEnv>) => {
             title,
         })),
         truncated: listed.truncated,
+        mediaBase: c.env.MEDIA_BASE,
     });
 };

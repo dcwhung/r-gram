@@ -37,6 +37,7 @@ export {
     TRACK_NO_MIN,
     trackIdFor,
 } from './schema/ids';
+export { COVER_SIDE_PX, IMAGE_MAX_BYTES, IMAGE_MAX_MB, THUMB_SIDE_PX } from './schema/coverSize';
 export type { CatalogError, CatalogErrorCode } from './schema/issues';
 export { mediaUrl } from './schema/mediaUrl';
 export {

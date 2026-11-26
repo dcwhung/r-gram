@@ -6,14 +6,16 @@ export default defineConfig({
     test: {
         projects: [
             'apps/player',
+            'apps/admin',
             'packages/catalog',
             'apps/api',
-            // repo 根 scripts/（CI 用嘅 shell script）：喺 Node 入面對臨時 git repo 真係跑一次
+            // repo 根 scripts/（CI 用嘅 shell script）：喺 Node 入面對臨時 git repo 真係跑一次；
+            // apps/*/scripts/：app 自己嘅 Node script（例如 apps/api 嘅部署前檢查）
             {
                 test: {
                     name: '@r-gram/repo-scripts',
                     environment: 'node',
-                    include: ['scripts/**/*.test.mjs'],
+                    include: ['scripts/**/*.test.mjs', 'apps/*/scripts/**/*.test.mjs'],
                 },
             },
         ],

@@ -1,5 +1,5 @@
 /*
- * /catalog/v1/*：由 private bucket r-gram-catalog 出公開內容（唔使 session）。
+ * /catalog/v1/*：由 private bucket rb-discography-catalog 出公開內容（唔使 session）。
  * - API-070 catalog.json（T-026）：max-age=60；ETag = 內容 hash（生成時寫入 R2 customMetadata）；未生成過 → 404 NOT_READY
  * - API-071 img/<16 hex>.<webp|jpg|png>（T-024）、API-072 lyrics/<16 hex>.json（T-026）：內容 hash 檔名 → immutable
  * 檔名唔啱固定寫法就 404，唔會砌出其他 key（path traversal）；content type 由 route 決定，唔靠 R2 metadata。

@@ -5,9 +5,10 @@ SESSION_SECRET=fake-local-only-secret-replace-with-openssl-rand
 # 本機要用 https（__Host- cookie 要 Secure）：wrangler dev --local-protocol https
 WORKER_ORIGIN=https://localhost:8787
 PLAYER_ORIGINS=http://localhost:5173
-# wrangler.toml [vars] 仲係 placeholder 嗰陣，本機可以喺呢度蓋過（.dev.vars 優先）：
+# 管理員 Google 帳戶（production 係 secret：wrangler secret put ADMIN_EMAILS）。本機用 Google 登入就換做自己嘅帳戶
+ADMIN_EMAILS=admin@example.com
+# wrangler.toml [vars] 已經係 production 嘅值；本機想用另一個 OAuth client 可以喺呢度蓋過（.dev.vars 優先）：
 # GOOGLE_CLIENT_ID=paste-from-google-cloud-console
-# ADMIN_EMAILS=your-google-account
 # 媒體 bucket rb-discography 嘅公開網址（要 / 結尾，寫入 catalog.json 嘅 mediaBase）。wrangler.toml 已有真網址；
 # 本機想指去另一個地方（例如本機模擬 bucket 或者測試用 bucket）先喺度蓋過：
 # MEDIA_BASE=https://pub-xxxxxxxx.r2.dev/

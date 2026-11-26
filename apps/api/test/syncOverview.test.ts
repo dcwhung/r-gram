@@ -87,6 +87,11 @@ describe('GET /api/sync', () => {
         ]);
     });
 
+    // T-116：管理端由媒體 bucket 公開網址攞封面來源（coverJobs 嘅 key 接喺後面），唔另外喺 build 時設定
+    it('should give the public media base for the cover sources', async () => {
+        expect((await syncOverview()).mediaBase).toBe(env.MEDIA_BASE);
+    });
+
     it('should not write anything', async () => {
         await putMedia('01 a.m4a', 'a', 'album-01-new');
         await syncOverview();

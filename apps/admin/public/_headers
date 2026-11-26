@@ -1,0 +1,9 @@
+# 管理端靜態檔嘅 header（Workers static assets 讀呢個檔；Technical Spec「安全設計 → Header」）。
+# /api、/auth、/catalog 由 Worker 自己出 header。connect-src 要 https:：封面來源由媒體 bucket 公開網址攞；
+# wasm-unsafe-eval：Safari 冇 canvas WebP，用 @jsquash/webp（wasm）編碼
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self' https:; img-src 'self' blob: data:; style-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  X-Robots-Tag: noindex
