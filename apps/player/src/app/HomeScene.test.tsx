@@ -384,6 +384,20 @@ describe('HomeScene track column while turning', () => {
     });
 });
 
+/* 設計稿第 19 版：由歌單欄開弧線歌單時左上資訊交叉淡入（黑字留喺暗層下面，白字淡入） */
+describe('HomeScene arc list opened from the column', () => {
+    it('should cross-fade the top-left info while the rows float in', () => {
+        const { container, rerender } = render(scene(viewOf('room')));
+        rerender(scene(viewOf('room', null, { scene: 'list' })));
+        const ghost = container.querySelector('[data-part="list-info-ghost"]');
+        expect(ghost).toHaveAttribute('aria-hidden', 'true');
+        expect(container.querySelector('.list-info-in')).not.toBeNull();
+        const veil = container.querySelector('[data-part="arc-veil"]');
+        const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(ghost && veil && ghost.compareDocumentPosition(veil) & follows).toBeTruthy();
+    });
+});
+
 describe('HomeScene disc face', () => {
     const PLAYING: PlaybackState = {
         ...IDLE_PLAYBACK,

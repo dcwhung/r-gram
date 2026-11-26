@@ -63,6 +63,18 @@ describe('motion tokens', () => {
         expect(MOTION.input.columnSettleMs).toBe(140);
     });
 
+    // 設計稿第 19 版 LIST_FLOAT：由歌單欄開弧線歌單：每行 560ms、遲 80ms；暗層 360ms；框 280ms 後 300ms；餘下嘅行 240ms 淡出
+    it('should use the list float of mockup version 19', () => {
+        expect(MOTION.scene).toMatchObject({
+            listRowFloatMs: 560,
+            listRowStaggerMs: 80,
+            listVeilMs: 360,
+            listFrameDelayMs: 280,
+            listFrameMs: 300,
+            listGhostOutMs: 240,
+        });
+    });
+
     // S-152（B-083 ①）：㩒住旋鈕幾耐先開字母盤（輸入規則，減少動態效果都一樣）
     it('should open the dial after a short hold', () => {
         expect(MOTION.input.dialHoldMs).toBe(180);

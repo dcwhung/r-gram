@@ -19,18 +19,23 @@ const row = (no: number, playable = true, title = `歌 ${no}`): TrackRow => ({
     playable,
 });
 
-const view = (rows: readonly TrackRow[], focusIndex = 0): ArcListView => ({
+const view = (rows: readonly TrackRow[], focusIndex = 0, fromColumn = false): ArcListView => ({
     albumId: 'komorebi',
     accent: ACCENT,
     rows,
     focusIndex,
     emptyText: '尚未有歌曲',
+    fromColumn,
 });
 
 /** 30 首、歌號跳號（每 7 首冇一個號）：同真資料一樣 */
 const LONG = Array.from({ length: 30 }, (_, index) => row(index + 1 + Math.floor(index / 7)));
 
-const renderList = (list: ArcListView, measure: TextMeasure = estimateTextWidth) => {
+const renderList = (
+    list: ArcListView,
+    measure: TextMeasure = estimateTextWidth,
+    floating = false,
+) => {
     const handlers = { onClose: vi.fn(), onFocusTrack: vi.fn(), onPlay: vi.fn() };
     const result = render(
         <svg>
@@ -39,6 +44,7 @@ const renderList = (list: ArcListView, measure: TextMeasure = estimateTextWidth)
                 list={list}
                 albumTitle="KOMOREBI"
                 measure={measure}
+                floating={floating}
                 {...handlers}
             />
         </svg>,
@@ -385,5 +391,45 @@ describe('ArcTrackList', () => {
         fireEvent.keyDown(outside, { key: 'Tab', shiftKey: true });
         expect(document.activeElement).toBe(listbox());
         outside.remove();
+    });
+});
+
+/*
+ * 設計稿第 19 版 LIST_FLOAT（B-086 ②）：由歌單欄開弧線歌單：見到嘅行由歌單欄嘅位飄去弧線（黑字變白字），
+ * 暗層淡入、框由唱片夾伸出，歌單欄其餘嘅行原地淡出。`floating` 由 TopGroup 決定（減少動態效果時 false）
+ */
+describe('ArcTrackList floating in from the column', () => {
+    const MANY = Array.from({ length: 12 }, (_, index) => row(index + 1));
+    const floats = (container: HTMLElement) =>
+        [...container.querySelectorAll<SVGGElement>('.arc-row-float')].map((element) =>
+            element.style.getPropertyValue('--float-delay'),
+        );
+
+    it('should float the visible rows in one after another, top first', () => {
+        const { container } = renderList(view(MANY, 0, true), estimateTextWidth, true);
+        const shown = screen.getAllByRole('option').length;
+        expect(floats(container)).toEqual(
+            Array.from({ length: shown }, (_, slot) => `${slot * 80}ms`),
+        );
+        expect(container.querySelector('[data-part="arc-veil"]')).toHaveClass('arc-veil--in');
+        expect(container.querySelector('.arc-frame-in')).not.toBeNull();
+    });
+
+    it('should fade out the column rows that do not reach the arc', () => {
+        const { container } = renderList(view(MANY, 0, true), estimateTextWidth, true);
+        const ghosts = container.querySelector('[data-part="arc-ghosts"]');
+        expect(ghosts).toHaveAttribute('aria-hidden', 'true');
+        const shown = screen.getAllByRole('option').length;
+        const titles = [...(ghosts?.querySelectorAll('[data-part="held-title"]') ?? [])];
+        expect(titles[0]).toHaveTextContent(`歌 ${shown + 1}`);
+        const { top, pitch, bottomIdle } = PHONE_LAYOUT.heldTracks;
+        expect(titles.length).toBe(Math.floor((bottomIdle - top) / pitch - 0.5) + 1 - shown);
+    });
+
+    it('should open with no float when not floating', () => {
+        const { container } = renderList(view(MANY), estimateTextWidth, false);
+        expect(floats(container)).toEqual([]);
+        expect(container.querySelector('[data-part="arc-ghosts"]')).toBeNull();
+        expect(container.querySelector('[data-part="arc-veil"]')).not.toHaveClass('arc-veil--in');
     });
 });
