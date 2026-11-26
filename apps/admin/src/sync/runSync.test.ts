@@ -1,5 +1,6 @@
 import { ApiError, NETWORK_ERROR } from '../api/client';
 import { CoverError } from '../covers/coverError';
+import { FOLDER_PAGES_MAX } from './folderPass';
 import { MAX_ATTEMPTS } from './retry';
 import { runSync, type SyncEvent } from './runSync';
 import {
@@ -130,6 +131,30 @@ describe('runSync', () => {
         });
     });
 
+    // S-230：批次上限用完仲有 `more` = 未做完，唔可以當做完
+    it('should report a folder as unfinished when it still has more after the page limit', async () => {
+        const pages = Array.from({ length: FOLDER_PAGES_MAX }, (_, index) =>
+            folderResult(A, { more: true, nextFrom: index + 2, coverJobs: [coverJob(A)] }),
+        );
+        const { api, events, summary } = await run({
+            overview: overviewOf([A, B]),
+            folders: { [A]: pages, [B]: [folderResult(B)] },
+        });
+        expect(api.syncFolder.mock.calls.filter(([folder]) => folder === A)).toHaveLength(
+            FOLDER_PAGES_MAX,
+        );
+        expect(events).toContainEqual({
+            type: 'folderProblem',
+            folder: A,
+            code: 'PAGES_EXHAUSTED',
+        });
+        expect(events).not.toContainEqual(
+            expect.objectContaining({ type: 'folderDone', folder: A }),
+        );
+        expect(api.putCover).not.toHaveBeenCalled();
+        expect(summary.failedFolders).toBe(1);
+    });
+
     it('should retry a folder after a network or server failure', async () => {
         const network = new ApiError(0, NETWORK_ERROR, 'offline');
         const { types, wait, summary } = await run({
@@ -169,6 +194,22 @@ describe('runSync', () => {
         expect(api.syncFolder).toHaveBeenCalledOnce();
         expect(events.at(-2)).toEqual({ type: 'stopped', code: 'UNAUTHORIZED' });
         expect(summary).toMatchObject({ stopped: 'UNAUTHORIZED', stats: null });
+    });
+
+    // S-231：封面途中 session 過期 = 成個同步停（唔當封面問題、唔做下一個資料夾）
+    it('should stop when the session expires while a cover is stored', async () => {
+        const { api, events, summary } = await run({
+            overview: overviewOf([A, B]),
+            folders: {
+                [A]: [folderResult(A, { coverJobs: [coverJob(A)] })],
+                [B]: [folderResult(B)],
+            },
+            uploads: [new ApiError(401, 'UNAUTHORIZED', 'x')],
+        });
+        expect(api.syncFolder.mock.calls.map(([folder]) => folder)).toEqual([A]);
+        expect(events).not.toContainEqual(expect.objectContaining({ type: 'coverProblem' }));
+        expect(events.at(-2)).toEqual({ type: 'stopped', code: 'UNAUTHORIZED' });
+        expect(summary).toMatchObject({ stopped: 'UNAUTHORIZED', coverProblems: 0 });
     });
 
     it('should stop when the folder list cannot be read', async () => {

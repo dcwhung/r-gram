@@ -17,21 +17,25 @@ interface AppProps {
 }
 
 const Body = ({ api, syncDeps }: AppProps) => {
-    const { session, signOut } = useSession(api);
+    const { session, signOut, expire } = useSession(api);
     if (session.kind === 'loading') return <p>{t('app.loading')}</p>;
     if (session.kind === 'error')
         return <p role="alert">{t('app.loadFailed', { code: session.code })}</p>;
     if (session.kind === 'signedOut')
         return (
-            <p>
-                <a href={SIGN_IN_HREF}>{t('login.signIn')}</a>
-            </p>
+            <>
+                {session.expired ? <p role="alert">{t('app.sessionExpired')}</p> : null}
+                <p>
+                    <a href={SIGN_IN_HREF}>{t('login.signIn')}</a>
+                </p>
+            </>
         );
     return (
         <SyncPanel
             email={session.email}
             signOutProblem={session.signOutProblem}
             onSignOut={() => void signOut()}
+            onExpired={expire}
             deps={syncDeps}
         />
     );

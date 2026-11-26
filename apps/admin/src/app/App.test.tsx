@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError } from '../api/client';
 import type { AdminApi } from '../api/adminApi';
-import { fakeDeps, folderResult, overviewOf, STATS } from '../sync/testing/fakeApi';
+import { coverJob, fakeDeps, folderResult, overviewOf, STATS } from '../sync/testing/fakeApi';
 import { App } from './App';
 
 const A = 'album-11-komorebi';
@@ -68,6 +68,21 @@ describe('App', () => {
         expect(screen.getByRole('button', { name: '同步中…' })).toBeDisabled();
         release();
         expect(await screen.findByRole('button', { name: '同步媒體資料夾' })).toBeEnabled();
+    });
+
+    // S-231：同步途中 session 過期 → 停低、轉返登入連結
+    it('should go back to the sign-in link when the session expires during a sync', async () => {
+        const fake = fakeDeps({
+            overview: overviewOf([A]),
+            folders: { [A]: [folderResult(A, { coverJobs: [coverJob(A)] })] },
+            uploads: [new ApiError(401, 'UNAUTHORIZED', 'x')],
+        });
+        const api: AdminApi = { ...fake.api, me: async () => 'a@example.com', logout: vi.fn() };
+        render(<App api={api} syncDeps={{ ...fake.deps, api }} />);
+        await userEvent.click(await screen.findByRole('button', { name: '同步媒體資料夾' }));
+        expect(await screen.findByRole('link', { name: '以 Google 登入' })).toBeInTheDocument();
+        expect(screen.getByText('登入已過期，請重新登入。')).toBeInTheDocument();
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
     it('should sign out and offer the sign-in link again', async () => {
