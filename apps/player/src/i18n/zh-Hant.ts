@@ -52,9 +52,12 @@ export const zhHant = {
     miniTurntable: {
         playing: '播放中',
         paused: '已暫停',
+        /** 載入嘅歌播完（設計稿第 19 版 T.loadedEnded） */
+        ended: '已播完',
         /** 成粒掣嘅名：講埋入面嗰首歌（完整歌名，唔截短；review S-175） */
         backPlaying: '返回播放中的唱片：{title}',
         backPaused: '返回已暫停的唱片：{title}',
+        backEnded: '返回已播完的唱片：{title}',
     },
     favourites: {
         title: '我的收藏',

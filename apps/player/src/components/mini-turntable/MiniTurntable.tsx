@@ -13,6 +13,13 @@ import { px, ratio } from '../svgNumber';
 import { Tonearm } from '../tonearm/Tonearm';
 import './miniTurntable.css';
 
+/** 「播放中」／「已暫停」／「已播完」同成粒掣嘅名 */
+const captionKeys = ({ paused, ended }: MiniView) => {
+    if (ended) return { label: 'miniTurntable.ended', back: 'miniTurntable.backEnded' } as const;
+    if (paused) return { label: 'miniTurntable.paused', back: 'miniTurntable.backPaused' } as const;
+    return { label: 'miniTurntable.playing', back: 'miniTurntable.backPlaying' } as const;
+};
+
 const TITLE_WEIGHT = 700;
 
 interface MiniTurntableProps {
@@ -84,7 +91,7 @@ const Caption = ({ layout, mini, measure }: CaptionProps) => {
                 fontSize={shape.label.size}
                 letterSpacing={shape.label.spacing}
             >
-                {t(mini.paused ? 'miniTurntable.paused' : 'miniTurntable.playing')}
+                {t(captionKeys(mini).label)}
             </text>
             <text
                 data-part="mini-title"
@@ -110,12 +117,7 @@ export const MiniTurntable = ({ layout, mini, measure, onPress }: MiniTurntableP
         <ChromeFade part="mini-turntable" hidden={!mini.shown}>
             <g
                 data-part="mini-button"
-                aria-label={t(
-                    mini.paused ? 'miniTurntable.backPaused' : 'miniTurntable.backPlaying',
-                    {
-                        title: mini.title,
-                    },
-                )}
+                aria-label={t(captionKeys(mini).back, { title: mini.title })}
                 {...pressable(onPress, !mini.shown, mini.shown)}
             >
                 <rect
