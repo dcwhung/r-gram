@@ -9,6 +9,7 @@
     第 4 版（2026-11-26，等用戶確認）。用戶意見（CR-007）：R2 媒體資料夾先係唯一資料來源——專輯由資料夾名（類別-序號-id）同 info.txt（唱片名稱、發行年份、曲目）決定，
     管理端只有「掃描」同「改文字檔」（一個 textarea，儲存就寫返落 R2）；新增同更新自動做，移除要確認；對唔上就出檢查結果。
     冇咗：新增專輯／歌曲、唱片公司、字母盤標記、序號、歌號、參考連結、備註、媒體檔指定、派台資料。info.txt 有列而未有音檔嘅歌照列出（播放端變灰）。
+    第 4 版補三（2026-11-26）。用戶草圖：主頁分三段——頂部鋁條、中間 CD 展示架（只有呢段上下捲）、底部固定一部 hi-fi 機（指針錶、旋鈕、掃描掣；機底有腳）。
     第 4 版補二（2026-11-26）。用戶意見：所有專輯連住排（唔分段、冇空位），類別用圖例（legend）顯示；專輯頁太多字，提示收入 tooltip；
     未有封面嘅碟用 Favourites 碟嗰個預設封面（黑底 + logo），再喺中圈上面加專輯名。
     第 4 版補（2026-11-26）：用戶提供參考圖——專輯頁改做牆上 CD 展示架（層板上一排排 CD 盒）；統計改做舊式 hi-fi 機面板（拉絲鋁、琥珀色背光指針錶）。
@@ -270,6 +271,41 @@ div.track:hover { background: none; }
     .kv { grid-template-columns: 1fr; gap: 2px; }
     .kv dd { margin-bottom: 8px; }
 }
+/* 第 4 版補三：主頁 = 頂部鋁條 + CD 架（只有呢段捲）+ 底部固定嘅 hi-fi 機 */
+html { height: 100%; }
+body.home { height: 100%; min-height: 0; overflow: hidden; display: flex; flex-direction: column; }
+body.home #root { flex: 1; min-height: 0; display: flex; }
+body.home .app { flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; padding-block: 14px 24px; }
+body.home .top { margin-bottom: 14px; flex: none; }
+body.home .wall { flex: 1; min-height: 0; margin-top: 0; display: flex; flex-direction: column; padding-bottom: 0; }
+.shelf-scroll { flex: 1; min-height: 0; overflow-y: auto; margin-top: 10px; padding-bottom: 8px; overscroll-behavior: contain;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 26px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 26px), transparent 100%); }
+body.home .hifi { flex: none; margin-top: 16px; grid-template-columns: auto 1fr auto; gap: 8px 26px; padding: 14px 34px 16px; }
+body.home .vu svg { max-width: 128px; }
+body.home .lcd { margin-top: 5px; font-size: 13px; padding: 1px 8px; }
+body.home .vu .cap { font-size: 12px; margin-top: 2px; }
+.hifi-controls { grid-template-columns: auto auto; align-items: center; gap: 6px 14px; }
+.hifi-controls svg { width: 60px; height: 60px; }
+.hifi-controls .last { grid-column: 1 / -1; justify-self: center; }
+.key .short { display: none; }
+@media (max-width: 900px) {
+    body.home .app { padding-block: 10px 20px; }
+    body.home .top { margin-bottom: 10px; }
+    body.home .hifi { grid-template-columns: 1fr auto; justify-items: stretch; gap: 6px 10px; padding: 12px 26px 12px; }
+    body.home .hifi .screw { display: none; }
+    .hifi-brand { display: none; }
+    body.home .meters { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    body.home .lcd { font-size: 10.5px; padding: 0 4px; letter-spacing: 0; }
+    body.home .vu .cap { font-size: 10px; font-weight: 400; }
+    .hifi-controls { grid-template-columns: auto; }
+    .hifi-controls svg { display: none; }
+    .hifi-controls .key { min-height: 44px; padding: 0 16px; }
+    .key .long { display: none; }
+    .key .short { display: inline; }
+    .hifi-controls .last { font-size: 9.5px; padding: 0 4px; letter-spacing: 0; }
+    .hifi .foot { width: 44px; }
+    .shelf { --cell: 150px; }
+}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -466,14 +502,15 @@ div.track:hover { background: none; }
             `</svg><div class="lcd">${have}／${total}</div><div class="cap">${label}</div></div>`
         );
     };
+    const VU_CAP = { audio: '音檔', lyrics: '歌詞', mv: 'MV', covers: '封面' };
     const hifi = (sum) =>
-        `<section class="plate hifi">${screws()}<i class="foot l"></i><i class="foot r"></i>` +
+        `<section class="plate hifi" aria-label="統計及掃描">${screws()}<i class="foot l"></i><i class="foot r"></i>` +
         `<div class="hifi-brand"><span class="power" aria-hidden="true"><i></i></span><div><div class="name">R Gram</div><div class="engrave">${sum.albums} 隻碟 · ${sum.tracks} 首歌</div></div></div>` +
-        `<div class="meters">${vuMeter('歌曲已有音檔', sum.audio, sum.tracks)}${vuMeter('歌曲已有歌詞', sum.lyrics, sum.tracks)}${vuMeter('歌曲已有 MV', sum.mv, sum.tracks)}${vuMeter('專輯已有封面', sum.covers, sum.albums)}</div>` +
+        `<div class="meters">${vuMeter(VU_CAP.audio, sum.audio, sum.tracks)}${vuMeter(VU_CAP.lyrics, sum.lyrics, sum.tracks)}${vuMeter(VU_CAP.mv, sum.mv, sum.tracks)}${vuMeter(VU_CAP.covers, sum.covers, sum.albums)}</div>` +
         `<div class="hifi-controls"><svg viewBox="-40 -40 80 80" aria-hidden="true">${shadow(0, 0, 33, { dx: 3, dy: 6, opacity: 0.34 })}<circle r="33" fill="url(#gCyl)" stroke="#5f5f5f" stroke-width="1"/>` +
         `<circle r="30" fill="none" stroke="#6b6b6b" stroke-opacity=".7" stroke-width="5" stroke-dasharray="2 2.8"/>${metal(0, 0, 26, { bevel: 0.07, withShadow: false })}<path d="M10 0H21" stroke="#111" stroke-width="4" stroke-linecap="round" transform="rotate(-60)"/></svg>` +
-        `<button class="key primary" data-act="scan">掃描媒體資料夾</button></div>` +
-        `<div class="tuner"><span>上次掃描</span><span class="scale" aria-hidden="true"></span><span>今日 14:32</span></div>` +
+        `<button class="key primary" data-act="scan"><span class="long">掃描媒體資料夾</span><span class="short">掃描</span></button>` +
+        `<span class="lcd last">上次掃描 今日 14:32</span></div>` +
         `</section>`;
 
     /* ---------- CD 展示架：牆上層板，所有碟連住排（唔分段）；類別用層板上嘅色條 + 圖例；有音檔嘅碟，隻 CD 會由盒入面露出嚟 ---------- */
@@ -502,10 +539,10 @@ div.track:hover { background: none; }
         const sorted = CATEGORIES.flatMap(([id]) => DATA.albums.filter((album) => album.category === id).sort((a, b) => a.categoryNo - b.categoryNo));
         const legend = CATEGORIES.map(([id, name]) => `<span class="lg"><i style="background: ${CATEGORY_COLOUR[id]}"></i>${name}<small>${DATA.albums.filter((album) => album.category === id).length}</small></span>`).join('');
         return (
-            hifi(sum) +
-            `<section class="wall"><div class="row"><span class="head"><h1>專輯</h1>${tip('專輯來自媒體資料夾，以資料夾為準。\n資料夾名稱（類別-序號-id）決定類別及次序；資料夾內的 info.txt 決定專輯名、年份及曲目。\nCD 由盒內露出來 = 已有音檔。未有封面的碟使用預設封面。\n新增或更改檔案後按「掃描媒體資料夾」，即時在播放端生效。')}</span>` +
+            `<section class="wall"><div class="row"><span class="head"><h1>專輯</h1>${tip('專輯來自媒體資料夾，以資料夾為準。\n四個指針錶：有音檔、有歌詞、有 MV 的歌曲數目，以及有封面的專輯數目。\n資料夾名稱（類別-序號-id）決定類別及次序；資料夾內的 info.txt 決定專輯名、年份及曲目。\nCD 由盒內露出來 = 已有音檔。未有封面的碟使用預設封面。\n新增或更改檔案後按「掃描媒體資料夾」，即時在播放端生效。')}</span>` +
             `<span class="spacer"></span><div class="legend" aria-label="類別圖例">${legend}</div></div>` +
-            `<div class="shelf" style="margin-top: 14px">${sorted.map(albumCard).join('')}</div></section>`
+            `<div class="shelf-scroll" tabindex="0" role="region" aria-label="專輯展示架"><div class="shelf">${sorted.map(albumCard).join('')}</div></div></section>` +
+            hifi(sum)
         );
     };
 
@@ -656,6 +693,7 @@ div.track:hover { background: none; }
     const render = () => {
         document.getElementById('switch').innerHTML = SCREENS.map(([id, name]) => `<button data-screen="${id}" aria-pressed="${state.screen === id}">${name}</button>`).join('');
         const screen = state.screen;
+        document.body.classList.toggle('home', screen === 'albums' || screen === 'scan'); // 主頁：只有 CD 架捲動
         const body = screen === 'login' || screen === 'denied' ? login(screen === 'denied') : `<div class="app" style="--accent: ${DEMO.accent}">${top()}${BODY[screen]()}</div>${screen === 'scan' ? scanDialog() : ''}`;
         document.getElementById('root').innerHTML = body + (state.toast ? `<div class="toast" role="status"><i></i>${state.toast}</div>` : '');
     };
