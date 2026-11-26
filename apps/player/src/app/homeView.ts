@@ -30,7 +30,7 @@ import type { StageState } from './stageReducer';
 export const armPose = (stage: StageState, playback: PlaybackState): ArmPose =>
     !isLoadedHere(stage, playback) || stage.overlay === 'mv' ? 'parked' : loadedArmPose(playback);
 
-/** 唱片夾：歌單入面係 play；呢隻碟有歌就 pause / play；冇就「開啟歌單」 */
+/** 唱片夾：歌單入面係 play；呢隻碟有歌就 pause / play；未揀歌 = play（播第一首，B-086 ③） */
 export const spindleMode = (stage: StageState, playback: PlaybackState): SpindleMode => {
     if (stage.scene === 'list') return 'list';
     if (!isLoadedHere(stage, playback)) return 'idle';

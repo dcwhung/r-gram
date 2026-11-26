@@ -247,7 +247,7 @@ export interface StageLayout {
     info: InfoLayout;
     /** 拎住另一隻碟時右上角嘅細唱片機（貼頂組） */
     miniTurntable: MiniTurntableLayout;
-    /** 拎住嘅碟嘅歌單欄同碟上面嘅半透明層 */
+    /** 碟名下面嘅歌單欄同碟上面嘅半透明層 */
     heldTracks: HeldTracksLayout;
     /** Preload 旗幟畫面 */
     preload: PreloadLayout;

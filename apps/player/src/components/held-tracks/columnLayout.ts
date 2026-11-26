@@ -1,5 +1,5 @@
 /*
- * 拎住嘅碟嘅歌單欄嘅幾何（純函數；設計稿第 18 版 panelMetrics()、trackPanel()；Functional Spec FR-044）。
+ * 碟名下面歌單欄嘅幾何同過場時間（純函數；設計稿第 19 版 panelMetrics()、trackPanel()；Functional Spec FR-044）。
  * 全部以欄頂做 0、設計單位計；`room` = 欄高（欄底 − 欄頂），`scroll` = 向上捲咗幾多。
  */
 
