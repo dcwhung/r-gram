@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { build, type InlineConfig, type PluginOption, type UserConfig } from 'vite';
@@ -63,5 +63,19 @@ describe('service worker precache', () => {
     // T-113：public/test-catalog 嘅臨時 catalog 由 loader 經網絡攞（離線用 loader 自己嘅本機副本），唔入預載清單
     it('should not precache the temporary test catalog', () => {
         expect(sw).not.toContain('test-catalog');
+    });
+
+    // T-115：T-010 嘅 spike 頁拆咗：config 冇 spike build，build 出嚟冇 spike 頁，預載清單亦冇
+    it('should not build or precache the retired spike page', () => {
+        const resolve = viteConfig as (env: { mode: string; command: 'build' }) => UserConfig;
+        const names = (resolve({ mode: 'production', command: 'build' }).plugins ?? [])
+            .flat()
+            .map((plugin) =>
+                plugin && typeof plugin === 'object' && 'name' in plugin ? plugin.name : '',
+            );
+        expect(names).not.toContain('spike-build');
+        expect(existsSync(join(outDir, 'spike.html'))).toBe(false);
+        expect(existsSync(join(outDir, 'spike-assets'))).toBe(false);
+        expect(sw).not.toContain('spike');
     });
 });
