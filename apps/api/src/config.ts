@@ -164,7 +164,12 @@ export const NO_SNIFF = 'nosniff';
  * list 第一層 ≤ SCAN_LIST_PAGES_MAX + findAlbum ≤ 1 + list 資料夾 ≤ SCAN_LIST_PAGES_MAX + D1 狀態 1 + `info.txt` 1 +
  * 專輯 1 + 每首（讀 `.txt` 1 + 歌詞 JSON put 1 + D1 1）× 100 + finishAlbum 1 + 生成 catalog 約 5 + 清歌詞 2 ≈ 320；
  * 極端情況（每首 id 撞晒、insertNumbered 試 4 次又 STALE 要即刻清檔）約 830，都喺假設嘅 1000 之內。
- * 原聲大碟 41 首一次過做得晒；超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔）
+ * 原聲大碟 41 首一次過做得晒；超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔）。
+ * 寫返媒體 bucket（T-106，review S-188）：API-019 `info.txt` = findAlbum 1 + 第一層 list ≤ SCAN_LIST_PAGES_MAX +
+ * findAlbum ≤ 1 + 資料夾 list ≤ SCAN_LIST_PAGES_MAX + put 1 + 上面嘅同步（約 320，極端約 830）≈ 335，極端約 845；
+ * API-041 歌曲文字一樣，另加讀 `info.txt` 1（曲目表，S-183）+ trackOf 1 ≈ 337，極端約 847：100 首嘅碟都喺 1000 之內，
+ * 但只剩約 15% 空位。API-017 封面結果 = findAlbum 1 + assets 1 + 讀圖頭 2（JPEG 頭唔夠再讀 1–2，S-186）+ head 1 +
+ * UPDATE 1（寫唔到再讀 1，S-187）+ 生成 catalog 約 5 ≈ 11，極端約 14
  */
 export const SYNC_TRACKS_MAX = 100;
 /**
