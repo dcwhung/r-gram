@@ -4,6 +4,7 @@ import { InfoBlock } from '../components/info-block/InfoBlock';
 import { VersionText } from '../components/info-block/VersionText';
 import { Screws } from '../components/metal/Screws';
 import { MiniTurntable } from '../components/mini-turntable/MiniTurntable';
+import { UpdateButton } from '../components/update-button/UpdateButton';
 import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
 import type { HomeView } from './homeView';
@@ -23,6 +24,12 @@ interface TopGroupProps {
      * 收返同播已經包好 focus 交接
      */
     listHandlers: Pick<HomeHandlers, 'onCloseList' | 'onFocusListTrack' | 'onPlayListTrack'>;
+    /** 有新版本等緊（T-109）：版本號變成掣，㩒 = 即刻更新；冇 = 照舊顯示版本號 */
+    update?: UpdateAction | null;
+}
+
+export interface UpdateAction {
+    onApply: () => void;
 }
 
 type PartProps = Pick<TopGroupProps, 'layout' | 'view' | 'measure'>;
@@ -87,13 +94,14 @@ const Info = ({ layout, view, measure, listOpen }: PartProps & { listOpen: boole
 );
 
 /**
- * 主頁貼頂組（FR-039；設計稿第 19 版 scene() 次序）：頂部螺絲 → 右上角細唱片機（T-048）→
+ * 主頁貼頂組（FR-039；設計稿第 19、20 版 scene() 次序）：頂部螺絲 →（有新版本：版本掣，T-109）→
+ * 右上角細唱片機（T-048）→
  *（飄落期間：暗層下面一份黑字左上資訊）→ 弧線歌單（T-037：暗層蓋住唱片機、細唱片機同螺絲）→
  * 碟名下面嘅歌單欄（B-086；喺泊位嘅唱臂上面）→
- * 左上資訊（飄落期間淡入）→ 右上版本號
+ * 左上資訊（飄落期間淡入）→ 右上版本號（有新版本時唔畫：變咗版本掣，喺暗層下面）
  */
 export const TopGroup = (props: TopGroupProps) => {
-    const { layout, view, measure, onReturnToLoaded } = props;
+    const { layout, view, measure, onReturnToLoaded, update } = props;
     const floating = useListFloating(view.list, layout);
     const parts = { layout, view, measure };
     return (
@@ -101,6 +109,14 @@ export const TopGroup = (props: TopGroupProps) => {
             <g data-part="screws">
                 <Screws points={layout.screws.points.filter((point) => !isLowerHalf(point))} />
             </g>
+            {update && (
+                <UpdateButton
+                    layout={layout}
+                    measure={measure}
+                    onPress={update.onApply}
+                    covered={view.listOpen || view.bookletOpen || view.mvOpen}
+                />
+            )}
             {view.mini && (
                 <MiniTurntable
                     layout={layout}
@@ -124,7 +140,7 @@ export const TopGroup = (props: TopGroupProps) => {
             ) : (
                 <Info {...parts} listOpen={view.listOpen} />
             )}
-            <VersionText version={layout.info.version} dark={view.listOpen} />
+            {update ? null : <VersionText version={layout.info.version} dark={view.listOpen} />}
         </>
     );
 };

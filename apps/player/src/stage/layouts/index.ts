@@ -12,6 +12,7 @@ export type {
     PreloadLayout,
     StageLayout,
     TextLine,
+    UpdateButtonLayout,
 } from './types';
 export { PHONE_LAYOUT };
 

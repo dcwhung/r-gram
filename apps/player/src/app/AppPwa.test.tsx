@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import type { UpdateStatus } from '../pwa/updateManager';

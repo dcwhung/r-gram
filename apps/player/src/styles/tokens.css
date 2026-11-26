@@ -15,6 +15,8 @@
     --color-info-soft: #555555;
     --color-info-faint: #777777;
     --color-version: #8a8a8a;
+    /* 有新版本時嘅版本掣（設計稿第 20 版 UPDATE_PILL.color；T-109）：框線同字，純色 */
+    --color-update: #f09a00;
     /* 歌單開住（暗層上面）左上資訊：年份（設計稿 infoParts() 嘅 soft） */
     --color-info-soft-dark: #b5b2aa;
     /* 碟名下面嘅歌單欄（設計稿第 19 版 trackPanel()）：未有音檔嘅歌號、位置條嘅底條（黑 7%） */
@@ -73,4 +75,6 @@
     --motion-scene-preload-step: 530ms;
     --motion-scene-preload-bar-delay: 200ms;
     --motion-scene-preload-bar-in: 300ms;
+    /* 不停重覆嘅提示（T-109；設計稿第 20 版 versionGlow） */
+    --motion-loop-update-blink: 1400ms;
 }
