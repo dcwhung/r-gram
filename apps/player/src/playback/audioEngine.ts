@@ -93,6 +93,8 @@ class Engine implements AudioEngine {
     private retries = 0;
     private lastTime = 0;
     private overdue = false;
+    /** 呢首歌（呢次載入）出過聲未：隱藏時網絡錯誤用嚟分「歌中途」定「未開始」（W-062、D109） */
+    private heard = false;
     private timers: Timer[] = [];
     private resolveNext: (currentTrackId: string) => EngineTrack | null = () => null;
     private readonly listeners = new Set<(event: EngineEvent) => void>();
@@ -220,6 +222,7 @@ class Engine implements AudioEngine {
         this.landPending = false;
         this.pendingSeek = null;
         this.retries = 0;
+        this.heard = false;
         this.element.src = track.url;
     }
 
@@ -249,6 +252,7 @@ class Engine implements AudioEngine {
         }
         if (this.phase !== 'live') return;
         this.stopWatching();
+        this.heard = true;
         this.emit({ type: 'playing', trackId });
     }
 
@@ -268,6 +272,7 @@ class Engine implements AudioEngine {
         this.phase = 'live';
         this.landPending = false;
         this.stopWatching();
+        this.heard = true;
         this.emit({ type: 'playing', trackId });
     }
 
@@ -329,13 +334,28 @@ class Engine implements AudioEngine {
         const code = this.element.error?.code;
         if (!trackId || this.phase === 'idle' || code === undefined) return;
         if (code === MEDIA_ERR_NETWORK) {
-            this.retryOrFail();
+            if (this.env.isHidden()) this.onHiddenNetworkError(trackId);
+            else this.retryOrFail();
             return;
         }
         this.wantsSound = false;
         this.stopWatching();
         const reason = code === MEDIA_ERR_DECODE ? 'decode' : 'unsupported';
         this.emit({ type: 'error', trackId, reason });
+    }
+
+    /**
+     * 畫面隱藏時唔重載（spike §2.3、903-player v1.20.8）：歌中途斷網 = 記住要重試，返前景或者 play() 先試；
+     * 未出過聲（例如自動下一首）= 即刻報 network，畀 controller 照 D109 跳一次或者停
+     */
+    private onHiddenNetworkError(trackId: string): void {
+        this.stopWatching();
+        if (this.heard && this.wantsSound) {
+            this.overdue = true;
+            return;
+        }
+        this.wantsSound = false;
+        this.emit({ type: 'error', trackId, reason: 'network' });
     }
 
     private expectSound(): void {
