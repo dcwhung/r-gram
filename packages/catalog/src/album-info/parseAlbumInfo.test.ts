@@ -1,6 +1,13 @@
 import { TITLE_MAX_CHARS } from '../song-text/limits';
+import { songLines } from '../song-text/lines';
 import { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from './limits';
 import { parseAlbumInfo } from './parseAlbumInfo';
+
+// W-038：睇 parser 有冇喺拆行之前先擋走太長嘅文字（行為照舊，只係包住真函數）
+vi.mock('../song-text/lines', async (original) => {
+    const actual = await original<typeof import('../song-text/lines')>();
+    return { ...actual, songLines: vi.fn(actual.songLines) };
+});
 
 /** 用戶嘅真實 `info.txt`（album-11-komorebi；Functional Spec §CR-007 決定 2） */
 const KOMOREBI = [
@@ -234,6 +241,24 @@ describe('parseAlbumInfo', () => {
                     },
                 ],
             });
+        });
+
+        it('should accept exactly the byte limit and refuse one byte more', () => {
+            expect(parseAlbumInfo('x'.repeat(INFO_TEXT_MAX_BYTES)).usable).toBe(true);
+            expect(parseAlbumInfo('x'.repeat(INFO_TEXT_MAX_BYTES + 1)).usable).toBe(false);
+        });
+
+        // 每個中文字 3 byte：字數少過上限，byte 數多過上限
+        it('should count UTF-8 bytes, not characters', () => {
+            const text = '歌'.repeat(6000);
+            expect(text.length).toBeLessThan(INFO_TEXT_MAX_BYTES);
+            expect(codes(text)).toEqual(['INFO_TOO_LARGE']);
+        });
+
+        it('should refuse an overlong text before splitting it into lines', () => {
+            vi.mocked(songLines).mockClear();
+            expect(parseAlbumInfo('\n'.repeat(INFO_TEXT_MAX_BYTES + 1)).usable).toBe(false);
+            expect(songLines).not.toHaveBeenCalled();
         });
 
         it('should be unusable when it has more lines than the limit', () => {
