@@ -38,11 +38,15 @@ const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
 };
 
 /** 螢幕上離旋鈕中心 distance px、角度 deg 嘅一點 */
-const at = (deg: number, distance = RADIUS_PX * 2) => ({
+const at = (deg: number, distance = RADIUS_PX * 2, pointerId = 1) => ({
     clientX: CENTRE.x + distance * Math.cos((deg * Math.PI) / 180),
     clientY: CENTRE.y + distance * Math.sin((deg * Math.PI) / 180),
-    pointerId: 1,
+    pointerId,
 });
+/** 第二隻手指（另一個 pointerId） */
+const SECOND = 2;
+/** 滑鼠右掣 */
+const SECONDARY_BUTTON = 2;
 
 describe('Knob', () => {
     // Technical Spec 實現注意事項 14：旋鈕 = role="slider" + aria-valuenow
@@ -109,6 +113,40 @@ describe('Knob', () => {
             fireEvent.pointerDown(knob, at(0));
             fireEvent.pointerCancel(knob, at(0));
             expect(spies.onEnd).toHaveBeenCalledTimes(2);
+        });
+
+        // S-150：手勢跟住㩒落嗰個 pointer；第二隻手指唔可以搶、唔可以令指針跳
+        it('should ignore a second finger while the first one turns the knob', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.pointerMove(knob, at(STEP_DEG));
+            fireEvent.pointerDown(knob, at(150, RADIUS_PX, SECOND));
+            fireEvent.pointerMove(knob, at(150 + 4 * STEP_DEG, RADIUS_PX * 2, SECOND));
+            fireEvent.pointerUp(knob, at(150 + 4 * STEP_DEG, RADIUS_PX * 2, SECOND));
+            expect(spies.onStart).toHaveBeenCalledTimes(1);
+            expect(spies.onTurn.mock.calls).toEqual([[11]]);
+            expect(spies.onEnd).not.toHaveBeenCalled();
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            fireEvent.pointerUp(knob, at(STEP_DEG * 2));
+            expect(spies.onTurn.mock.calls).toEqual([[11], [12]]);
+            expect(spies.onEnd).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not start a turn with a button other than the primary one', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, { ...at(0), button: SECONDARY_BUTTON });
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            expect(spies.onStart).not.toHaveBeenCalled();
+            expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
+        it('should close the dial when the knob loses the pointer capture', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.lostPointerCapture(knob, { pointerId: 1 });
+            expect(spies.onEnd).toHaveBeenCalledTimes(1);
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            expect(spies.onTurn).not.toHaveBeenCalled();
         });
 
         it('should not react to moves without a grab', () => {
