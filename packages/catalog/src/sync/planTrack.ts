@@ -1,6 +1,6 @@
 /*
  * 同步：曲目表入面一首歌嘅計劃（Technical Spec「同步嘅設計」步驟 3–5、7）。檔嘅揀法見 trackFiles.ts；
- * `.txt` 要讀：未匯入過、ETag 或者 key 唔同上次，或者歌名改咗（要再比第一行）；
+ * `.txt` 要讀：未匯入過、ETag 或者 key 唔同上次，或者比較第一行嘅對象改咗（info 模式 = 歌名；冇 `info.txt` = 音檔，S-163）；
  * info 模式：`info.txt` 嘅歌名同音檔檔名唔吻合 = TITLE_MISMATCH（只係提示，唔擋）
  */
 import type { NumberedFile } from '../scan/scanFiles';
@@ -54,11 +54,16 @@ const unanchored = (context: TrackContext): Linked => ({
     checks: noAudioChecks(context),
 });
 
-const needsRead = (text: NumberedFile, stored: SyncTrackState | undefined, title: string) =>
-    !stored ||
-    text.etag !== stored.textSourceEtag ||
-    text.key !== stored.textKey ||
-    title !== stored.title;
+/** 比較第一行嘅對象：info 模式 = 歌名；冇 `info.txt` = 音檔 key（改名之後要再比，S-163） */
+const compareSourceChanged = (
+    list: TrackList,
+    title: string,
+    audioKey: string | null,
+    stored: SyncTrackState,
+) => (list.mode === 'info' ? title !== stored.title : audioKey !== stored.audioKey);
+
+const needsRead = (text: NumberedFile, stored: SyncTrackState | undefined, changed: boolean) =>
+    !stored || text.etag !== stored.textSourceEtag || text.key !== stored.textKey || changed;
 
 const isChanged = (track: Omit<PlannedTrack, 'changed'>, stored: SyncTrackState | undefined) =>
     !stored ||
@@ -85,15 +90,17 @@ export const planTrack = (list: TrackList, title: string, context: TrackContext)
     const { no, stored } = context;
     const audio = slotOf(context, 'audio');
     const linked = audio.none ? unanchored(context) : anchored(context);
+    const audioKey = linkOf(context, 'audio', audio);
+    const moved = stored ? compareSourceChanged(list, title, audioKey, stored) : true;
     const base = {
         no,
         trackId: stored?.id ?? null,
         title,
         titleSource: list.mode,
-        audioKey: linkOf(context, 'audio', audio),
+        audioKey,
         mvKey: linked.mvKey,
         textKey: linked.textKey,
-        read: linked.text && needsRead(linked.text, stored, title) ? textSource(linked.text) : null,
+        read: linked.text && needsRead(linked.text, stored, moved) ? textSource(linked.text) : null,
         compareTitle: compareTitleOf(list, title, audio.file),
     };
     return {
