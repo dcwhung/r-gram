@@ -48,6 +48,17 @@ describe('playbackController with Media Session', () => {
         expect(session.playbackState).toBe('paused');
     });
 
+    // S-240（M15）：handler 喺 controller 建立時註冊一次，唔跟每首歌重設
+    it('should register each lock-screen handler once', () => {
+        const { session, controller, element } = setup();
+        controller.start(SOURCE, 'room-01');
+        element.finish();
+        controller.next();
+        controller.release();
+        expect([...session.registrations.values()].every((count) => count === 1)).toBe(true);
+        expect(session.registrations.size).toBe(8);
+    });
+
     it('should update the metadata inside the ended handler on auto-next', () => {
         const { element, session, controller } = setup();
         controller.start(SOURCE, 'room-01');
@@ -86,6 +97,18 @@ describe('playbackController with Media Session', () => {
         session.trigger('previoustrack');
         expect(state().trackId).toBe('room-02');
         expect(element.paused).toBe(false);
+    });
+
+    // D110：鎖屏上一首喺 10 秒 = 同一首由頭，鎖屏位置即刻報 0
+    it('should restart the track from the lock screen after 3 s and report position 0', () => {
+        const { element, session, controller, state } = setup();
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(180);
+        element.advance(10);
+        session.trigger('previoustrack');
+        expect(state().trackId).toBe('room-02');
+        expect(element.currentTime).toBe(0);
+        expect(session.lastPosition).toEqual({ duration: 180, position: 0, playbackRate: 1 });
     });
 
     it('should play the first track without a lead-in on lock-screen play after the end', () => {

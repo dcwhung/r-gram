@@ -14,8 +14,10 @@ import { Tonearm } from '../tonearm/Tonearm';
 import './miniTurntable.css';
 
 /** 「播放中」／「已暫停」／「已播完」同成粒掣嘅名 */
-const captionKeys = ({ paused, ended }: MiniView) => {
+const captionKeys = ({ paused, ended, failed }: MiniView) => {
     if (ended) return { label: 'miniTurntable.ended', back: 'miniTurntable.backEnded' } as const;
+    // S-242：載入失敗用同左上一樣嘅字（US-004），唔寫「已暫停」
+    if (failed) return { label: 'track.failed', back: 'miniTurntable.backFailed' } as const;
     if (paused) return { label: 'miniTurntable.paused', back: 'miniTurntable.backPaused' } as const;
     return { label: 'miniTurntable.playing', back: 'miniTurntable.backPlaying' } as const;
 };

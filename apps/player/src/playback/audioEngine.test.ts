@@ -264,6 +264,15 @@ describe('audioEngine errors and stalls', () => {
         expect(element.plays).toHaveLength(1);
     });
 
+    // S-243：MEDIA_ERR_ABORTED = 下載被中止（換 src、stop）；唔係檔案問題，唔報錯、唔重試
+    it('should ignore an aborted fetch', () => {
+        const { element, engine, types } = setup();
+        engine.playNow(ONE);
+        element.fail('aborted');
+        expect(types()).toEqual(['playing']);
+        expect(element.plays).toHaveLength(1);
+    });
+
     it('should retry a network error at the same position, then give up', () => {
         const { element, engine, events } = setup();
         engine.playNow(ONE);
@@ -335,5 +344,32 @@ describe('audioEngine errors and stalls', () => {
         vi.advanceTimersByTime(STALL_RETRY_MS);
         engine.play();
         expect(element.plays).toHaveLength(2);
+    });
+
+    // W-062（spike §2.3：畫面隱藏時唔重載）：歌中途斷網 = 等返前景先喺同一個位置重試
+    it('should wait for the page to be shown before retrying a mid-track network error', () => {
+        const { element, engine, events, hide } = setup();
+        engine.playNow(ONE);
+        element.loadMetadata(DURATION_SEC);
+        element.advance(30);
+        hide(true);
+        element.fail('network');
+        expect(element.plays).toHaveLength(1);
+        expect(events.at(-1)?.type).toBe('time');
+        hide(false);
+        expect(element.plays).toHaveLength(2);
+        element.loadMetadata(DURATION_SEC);
+        expect(element.currentTime).toBe(30);
+    });
+
+    // W-062 × D109：未出過聲嘅歌網絡錯誤（隱藏）= 即刻報錯，由 controller 決定跳一次
+    it('should report a network error of a track that has not played yet while hidden', () => {
+        const { element, engine, events, hide } = setup();
+        element.playMode = 'hold';
+        engine.playNow(ONE);
+        hide(true);
+        element.fail('network');
+        expect(element.plays).toHaveLength(1);
+        expect(events.at(-1)).toEqual({ type: 'error', trackId: 'one', reason: 'network' });
     });
 });

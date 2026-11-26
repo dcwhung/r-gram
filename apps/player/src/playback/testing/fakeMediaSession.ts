@@ -26,6 +26,8 @@ export class FakeMediaSession {
     metadata: FakeMetadata | null = null;
     playbackState: MediaSessionPlaybackState = 'none';
     readonly handlers = new Map<string, MediaSessionActionHandler | null>();
+    /** 每個 action 註冊咗幾多次（handler 只應該註冊一次，S-240） */
+    readonly registrations = new Map<string, number>();
     readonly positions: PositionCall[] = [];
     /** 呢啲 action 註冊時 throw（舊 Safari 唔識） */
     unsupported = new Set<string>();
@@ -33,6 +35,7 @@ export class FakeMediaSession {
     setActionHandler(action: string, handler: MediaSessionActionHandler | null): void {
         if (this.unsupported.has(action)) throw new TypeError(`${action} not supported`);
         this.handlers.set(action, handler);
+        this.registrations.set(action, (this.registrations.get(action) ?? 0) + 1);
     }
 
     setPositionState(state: PositionCall = {}): void {

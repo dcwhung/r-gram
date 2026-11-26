@@ -17,6 +17,8 @@ export interface MiniView {
     paused: boolean;
     /** 播完（寫「已播完」、唱針泊位，B-086 ⑥；觸發係 T-038） */
     ended: boolean;
+    /** 載入失敗（寫「未能播放」、唱針泊位；US-004、D58 ①、S-242） */
+    failed: boolean;
     armPose: ArmPose;
     /** 碟轉緊：播緊，而且細唱片機睇得到 */
     spinning: boolean;
@@ -51,6 +53,7 @@ export const miniView = (
         title: found?.track.title ?? '',
         paused: !playing,
         ended: playback.status === 'ended',
+        failed: playback.status === 'error',
         armPose: loadedArmPose(playback),
         spinning: playing && holding,
         accent: disc.accent,

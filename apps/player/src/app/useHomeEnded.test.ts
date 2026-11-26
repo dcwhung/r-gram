@@ -5,6 +5,8 @@ import { createTestPlayback } from '../playback/testing/testPlayback';
 import { useHome } from './useHome';
 
 const RELEASE_MS = MOTION.input.endedReleaseMs;
+/** 3 秒到之前幾耐再㩒 play（W-063） */
+const LATE_PLAY_BEFORE_MS = 500;
 
 /** 兩隻碟：apollo 兩首（播完 apollo-02 = 隊列完）；room 一首 */
 const document = () =>
@@ -64,6 +66,15 @@ describe('useHome end of the last track (D99)', () => {
             expect(element.src).toBe('https://media.example/apollo/01.m4a');
         },
     );
+
+    // W-063：3 秒內再播，舊 timer 要取消，唔可以喺原本嘅 3 秒到時放低新播緊嘅碟
+    it('should cancel the release when play starts again within the 3 seconds (E3)', () => {
+        const { result } = endLastTrack();
+        act(() => vi.advanceTimersByTime(RELEASE_MS - LATE_PLAY_BEFORE_MS));
+        act(() => result.current.handlers?.onSpindle());
+        act(() => vi.advanceTimersByTime(RELEASE_MS));
+        expect(result.current.playback).toMatchObject({ status: 'playing', trackId: 'apollo-01' });
+    });
 
     it('should end the wait at once when the knob turns or the list opens (E4 ①)', () => {
         const turned = endLastTrack();

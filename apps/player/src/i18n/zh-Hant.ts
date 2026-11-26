@@ -62,6 +62,8 @@ export const zhHant = {
         backPlaying: '返回播放中的唱片：{title}',
         backPaused: '返回已暫停的唱片：{title}',
         backEnded: '返回已播完的唱片：{title}',
+        /** 載入嘅歌載入失敗（S-242；細唱片機嘅字用 track.failed，同左上一樣） */
+        backFailed: '返回未能播放的唱片：{title}',
     },
     favourites: {
         title: '我的收藏',

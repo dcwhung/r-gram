@@ -6,8 +6,9 @@
  * 冇 DOM、冇元件；D99 嘅 3 秒要睇畫面，喺 `app/useEndedRelease`。
  */
 import { leadInMs } from '../components/tonearm/armPose';
+import { PREVIOUS_RESTART_S } from '../config/limits';
 import { prefersReducedMotion } from '../utils/motion';
-import type { AudioEngine, EngineEvent, EngineTrack } from './audioEngine';
+import type { AudioEngine, EngineErrorReason, EngineEvent, EngineTrack } from './audioEngine';
 import { createMediaSession, type MediaSessionPort } from './mediaSession';
 import {
     type ModeStorage,
@@ -68,8 +69,9 @@ export interface PlaybackController {
     /** 放低隻碟（D99）：停、放開音檔，冇歌載入 */
     release(): void;
     cycleMode(): void;
-    /** 鎖屏下一首／上一首：即刻換、冇開場；冇就唔做嘢 */
+    /** 鎖屏下一首：即刻換、冇開場；冇就唔做嘢 */
     next(): void;
+    /** 鎖屏上一首：播咗超過 3 秒 = 由頭（D110）；否則即刻換上一首 */
     previous(): void;
     seek(positionSec: number): void;
     /** 載入嘅碟（播完 3 秒內 `playFirst` 用） */
@@ -101,6 +103,10 @@ class Controller implements PlaybackController {
     private readonly isHidden: () => boolean;
     private readonly storage: ModeStorage | null;
     private readonly session: SessionSync;
+    /** D109：而家嗰首係自動下一首（或者跳過去嗰首），未出過聲 */
+    private autoUnplayed = false;
+    /** D109：今輪已經跳過一次（出咗聲先清） */
+    private skipped = false;
 
     constructor(deps: PlaybackControllerDeps) {
         this.engine = deps.engine;
@@ -143,6 +149,7 @@ class Controller implements PlaybackController {
         this.queue = createQueue(ids, this.snapshot.mode, trackId, this.random);
         this.clearLanding();
         this.silence();
+        this.chosenByListener();
         this.dispatch({ type: 'start', albumId: source.albumId, trackId });
         this.session.track(source, trackId);
         if (this.isHidden()) {
@@ -213,10 +220,20 @@ class Controller implements PlaybackController {
         this.skipTo(move.trackId);
     }
 
+    /**
+     * Functional Spec D110：播緊或者暫停緊，而播咗超過 PREVIOUS_RESTART_S（或者冇上一首）= 同一首由頭，
+     * 唔換歌；否則上一首。播完、載入失敗時冇位置可言，照去上一首
+     */
     previous(): void {
-        const { trackId } = this.playback;
-        if (!trackId || this.playback.status === 'idle') return;
-        this.skipTo(previousTrack(this.queue, trackId));
+        const { trackId, status } = this.playback;
+        if (!trackId || status === 'idle') return;
+        const previousId = previousTrack(this.queue, trackId);
+        const loaded = status === 'playing' || status === 'paused';
+        if (loaded && (this.engine.positionSec > PREVIOUS_RESTART_S || !previousId)) {
+            this.seek(0);
+            return;
+        }
+        this.skipTo(previousId);
     }
 
     /** 鎖屏拖進度：即刻報返新位置（時間顯示跟 element 嘅 timeupdate） */
@@ -229,6 +246,7 @@ class Controller implements PlaybackController {
         const track = this.trackOf(trackId);
         if (!track) return;
         this.clearLanding();
+        this.chosenByListener();
         this.engine.playNow(track);
         this.dispatch({ type: 'advanced', trackId: track.id });
         this.session.track(this.source, track.id);
@@ -283,10 +301,41 @@ class Controller implements PlaybackController {
         this.notify();
     }
 
+    /** 用戶揀嘅歌（開始播、鎖屏上／下一首）：唔係自動下一首，D109 唔跳 */
+    private chosenByListener(): void {
+        this.autoUnplayed = false;
+        this.skipped = false;
+    }
+
+    /** D109 嘅兩個 flag：自動下一首設；出咗聲就清 */
+    private trackAuto(event: EngineEvent): void {
+        if (event.type === 'advanced') this.autoUnplayed = true;
+        else if (event.type === 'playing') this.chosenByListener();
+    }
+
+    /**
+     * Functional Spec D109：畫面隱藏時自動下一首（未出過聲）載入失敗 = 同步跳去再下一首試一次（最多一次）。
+     * 前景、被拒、已經跳過、冇再下一首（順序最後一首；重覆一首會返同一首）= 唔跳，照 US-004 停
+     */
+    private skipFailed(failedId: string, reason: EngineErrorReason): boolean {
+        if (reason === 'blocked' || !this.isHidden() || !this.autoUnplayed || this.skipped)
+            return false;
+        const move = nextTrack(this.queue, failedId, 'auto', this.random);
+        const track = move.trackId === failedId ? null : this.trackOf(move.trackId);
+        if (!track) return false;
+        this.queue = move.queue;
+        this.skipped = true;
+        this.engine.playNow(track);
+        this.dispatch({ type: 'advanced', trackId: track.id });
+        this.session.track(this.source, track.id);
+        return true;
+    }
+
     private onEngine(event: EngineEvent): void {
         const { status } = this.playback;
         if (status === 'idle') return;
         this.hear(event);
+        this.trackAuto(event);
         this.session.onEvent(event, this.source);
         if (event.type === 'playing' && status === 'paused') this.dispatch({ type: 'resumed' });
         else if (event.type === 'paused' && !event.requested && status === 'playing') {
@@ -301,7 +350,7 @@ class Controller implements PlaybackController {
         } else if (event.type === 'advanced')
             this.dispatch({ type: 'advanced', trackId: event.trackId });
         else if (event.type === 'ended') this.dispatch({ type: 'ended' });
-        else if (event.type === 'error') {
+        else if (event.type === 'error' && !this.skipFailed(event.trackId, event.reason)) {
             this.clearLanding();
             this.dispatch({ type: 'failed', reason: event.reason });
         }
