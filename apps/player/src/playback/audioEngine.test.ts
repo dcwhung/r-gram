@@ -372,4 +372,45 @@ describe('audioEngine errors and stalls', () => {
         expect(element.plays).toHaveLength(1);
         expect(events.at(-1)).toEqual({ type: 'error', trackId: 'one', reason: 'network' });
     });
+
+    // W-064：暫停緊（用戶或者系統）時網絡錯誤：唔可以自己再播、唔可以報載入失敗；下一次 play() 先喺同一個位置重載
+    it.each([
+        ['in the foreground', false],
+        ['while hidden', true],
+    ])(
+        'should keep a paused track paused on a network error %s and reload on the next play()',
+        (_, hidden) => {
+            const { element, engine, events, hide } = setup();
+            engine.playNow(ONE);
+            element.loadMetadata(DURATION_SEC);
+            element.advance(20);
+            engine.pause();
+            hide(hidden);
+            element.fail('network');
+            vi.advanceTimersByTime(STALL_RETRY_MS * (STALL_MAX_RETRIES + 1));
+            expect(element.plays).toHaveLength(1);
+            expect(element.paused).toBe(true);
+            expect(events.at(-1)).toEqual({ type: 'paused', trackId: 'one', requested: true });
+            hide(false);
+            expect(element.plays).toHaveLength(1);
+            engine.play();
+            expect(element.plays).toHaveLength(2);
+            expect(element.src).toBe(ONE.url);
+            element.loadMetadata(DURATION_SEC);
+            expect(element.currentTime).toBe(20);
+            const states = events.filter(({ type }) => type === 'playing' || type === 'paused');
+            expect(states.at(-1)).toEqual({ type: 'playing', trackId: 'one' });
+        },
+    );
+
+    it('should report the error when the reload on play() fails for good', () => {
+        const { element, engine, events } = setup();
+        engine.playNow(ONE);
+        element.advance(5);
+        engine.pause();
+        element.fail('network');
+        engine.play();
+        element.fail('decode');
+        expect(events.at(-1)).toEqual({ type: 'error', trackId: 'one', reason: 'decode' });
+    });
 });

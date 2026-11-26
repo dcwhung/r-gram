@@ -1,8 +1,14 @@
 import { leadInMs } from '../components/tonearm/armPose';
-import { PREVIOUS_RESTART_S, STALL_NOTICE_MS } from '../config/limits';
+import {
+    PREVIOUS_RESTART_S,
+    STALL_MAX_RETRIES,
+    STALL_NOTICE_MS,
+    STALL_RETRY_MS,
+} from '../config/limits';
 import { PLAY_MODE_STORAGE_KEY } from '../config/storageKeys';
 import { createAudioEngine } from './audioEngine';
 import { createPlaybackController, type PlaybackSource } from './playbackController';
+import { createQueue, nextTrack } from './queue';
 import { asAudio, FakeAudioElement } from './testing/fakeAudioElement';
 
 const LEAD_IN_MS = leadInMs(false);
@@ -254,6 +260,29 @@ describe('playbackController queue and end of the disc', () => {
         expect(element.paused).toBe(false);
     });
 
+    // S-247（N19）：播完或者載入失敗之後冇嘢播緊可以由頭：「上一首」換去上一首，唔 seek
+    it('should go to the previous track after the disc ended, whatever the position (D110)', () => {
+        const { element, controller, state } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-03');
+        element.loadMetadata(120);
+        element.finish();
+        expect(state().status).toBe('ended');
+        controller.previous();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
+        expect(element.src).toBe(url(2));
+    });
+
+    it('should go to the previous track after a failure late in the track (D110)', () => {
+        const { element, controller, state } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(120);
+        element.advance(PREVIOUS_RESTART_S * 2);
+        element.fail('decode');
+        controller.previous();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-01' });
+        expect(element.src).toBe(url(1));
+    });
+
     it('should restart the first track on previous when there is no track before it (D110)', () => {
         const { element, controller, state } = setup({ reduceMotion: true });
         controller.start(SOURCE, 'room-01');
@@ -335,6 +364,29 @@ describe('playbackController errors (US-004, T-011 §2.3)', () => {
 });
 
 /* Functional Spec D109（CR-010；Plan T-038 P5）：畫面隱藏時自動下一首載入失敗 = 跳去再下一首試一次 */
+/* W-064：暫停緊時網絡錯誤：store 保持用戶暫停（升針、位置留住），再㩒即刻續播 */
+describe('playbackController network error while paused', () => {
+    it.each([
+        ['in the foreground', false],
+        ['while hidden', true],
+    ])('should stay paused with the position kept %s and resume from there', (_, hidden) => {
+        const { element, controller, state } = setup({ hidden, reduceMotion: true });
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(120);
+        element.advance(20);
+        controller.pause();
+        element.fail('network');
+        vi.advanceTimersByTime(STALL_RETRY_MS * (STALL_MAX_RETRIES + 1));
+        expect(state()).toMatchObject({ status: 'paused', pauseReason: 'user', positionSec: 20 });
+        expect(element.paused).toBe(true);
+        controller.resume();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
+        element.loadMetadata(120);
+        expect(element.currentTime).toBe(20);
+        expect(element.paused).toBe(false);
+    });
+});
+
 describe('playbackController hidden auto-next failure (D109)', () => {
     /** 隱藏、播緊 startId；佢播完之後嘅下一首未有數據（hold） */
     const hiddenAfterEnd = (startId: string, stored?: string) => {
@@ -403,5 +455,90 @@ describe('playbackController hidden auto-next failure (D109)', () => {
         element.finish();
         element.fail('unsupported');
         expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
+    });
+});
+
+/** 六首：隨機一輪夠長，新一輪同舊一輪嘅次序先分得出（S-246） */
+const SIX: PlaybackSource = {
+    albumId: 'six',
+    albumTitle: 'SIX',
+    tracks: [1, 2, 3, 4, 5, 6].map((no) => ({
+        id: `six-0${no}`,
+        title: `Six ${no}`,
+        url: `https://media.example/six/0${no}.m4a`,
+    })),
+    artwork: [],
+};
+
+/* S-246（N17）：D109 跳歌要推進隊列（隨機一輪尾跳去新一輪，之後照新一輪嘅次序） */
+describe('playbackController D109 skip advances the queue', () => {
+    it('should continue in the new shuffle round after skipping past the end of a round', () => {
+        const SHUFFLE = JSON.stringify({ shuffle: true, repeat: 'off' });
+        const ids = SIX.tracks.map((track) => track.id);
+        const zero = () => 0;
+        // controller 用同一個 random（() => 0）：用隊列純函數推算預期次序
+        const round = createQueue(ids, 'shuffle', ids[0] ?? '', zero);
+        const last = round.order[ids.length - 1] ?? '';
+        const skip = nextTrack(round, last, 'auto', zero);
+        const after = nextTrack(skip.queue, skip.trackId ?? '', 'auto', zero).trackId;
+        const { element, controller, state } = setup({ hidden: true, stored: SHUFFLE });
+        controller.start(SIX, ids[0] ?? '');
+        for (let step = 1; step < ids.length - 1; step += 1) element.finish();
+        element.playMode = 'hold';
+        element.finish();
+        expect(state().trackId).toBe(last);
+        element.fail('unsupported');
+        expect(state().trackId).toBe(skip.trackId);
+        element.resolvePlay();
+        element.finish();
+        expect(state().trackId).toBe(after);
+    });
+});
+
+/* S-245（N03、N15、N16）：D109 嘅 flag 喺聽眾揀歌、換碟時清 */
+describe('playbackController D109 flags reset by the listener', () => {
+    const ALL = JSON.stringify({ shuffle: false, repeat: 'all' });
+    const OTHER: PlaybackSource = {
+        albumId: 'hall',
+        albumTitle: 'HALL',
+        tracks: [1, 2].map((no) => ({
+            id: `hall-0${no}`,
+            title: `Hall ${no}`,
+            url: `https://media.example/hall/0${no}.m4a`,
+        })),
+        artwork: [],
+    };
+
+    it('should not skip a track chosen with lock-screen next while an auto-next track was unplayed', () => {
+        const { element, controller, state } = setup({ hidden: true, stored: ALL });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        controller.next();
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', trackId: 'room-03' });
+    });
+
+    it('should not skip the first track of another disc started while an auto-next track was unplayed', () => {
+        const { element, controller, state } = setup({ hidden: true, stored: ALL });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        controller.start(OTHER, 'hall-01');
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', albumId: 'hall', trackId: 'hall-01' });
+    });
+
+    it('should allow a new skip after the listener starts a disc, even before it played', () => {
+        const { element, controller, state } = setup({ hidden: true, stored: ALL });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        element.fail('unsupported');
+        expect(state().trackId).toBe('room-03');
+        controller.start(OTHER, 'hall-01');
+        element.finish();
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'hall-01' });
     });
 });

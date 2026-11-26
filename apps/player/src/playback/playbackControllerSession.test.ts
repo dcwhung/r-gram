@@ -122,6 +122,17 @@ describe('playbackController with Media Session', () => {
         expect(element.plays.at(-1)).toEqual({ src: url(1), muted: false });
     });
 
+    // S-246（N12）：D109 跳歌嗰下同步換鎖屏 metadata
+    it('should show the skipped-to track on the lock screen after a hidden auto-next failure', () => {
+        const { element, session, controller } = setup({ hidden: true });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        expect(session.metadata?.title).toBe('Room 2');
+        element.fail('unsupported');
+        expect(session.metadata?.title).toBe('Room 3');
+    });
+
     it('should clear the lock screen when the disc is put down', () => {
         const { session, controller } = setup();
         controller.start(SOURCE, 'room-01');
