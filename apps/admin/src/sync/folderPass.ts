@@ -4,10 +4,13 @@
  */
 import type { FolderSyncResult } from '../api/types';
 import type { SyncContext } from './context';
+import { PagesExhaustedError } from './pagesExhausted';
 import { withRetry } from './retry';
 
 /** 一個資料夾最多叫幾多批（999 首 ÷ 每批 100 首 = 10；多啲位，防止 Worker 回錯 nextFrom 時無限 loop） */
-const FOLDER_PAGES_MAX = 20;
+export const FOLDER_PAGES_MAX = 20;
+
+const hasMore = ({ more, nextFrom }: FolderSyncResult) => more && nextFrom !== null;
 
 export interface FolderOutcome {
     last: FolderSyncResult;
@@ -37,10 +40,9 @@ export const syncFolderPages = async (
     folder: string,
 ): Promise<FolderOutcome> => {
     let outcome = merge(null, await page(context, folder, undefined));
-    for (let pages = 1; pages < FOLDER_PAGES_MAX; pages += 1) {
-        const { more, nextFrom } = outcome.last;
-        if (!more || nextFrom === null) break;
-        outcome = merge(outcome, await page(context, folder, nextFrom));
+    for (let pages = 1; hasMore(outcome.last); pages += 1) {
+        if (pages >= FOLDER_PAGES_MAX) throw new PagesExhaustedError(folder);
+        outcome = merge(outcome, await page(context, folder, outcome.last.nextFrom ?? undefined));
     }
     return outcome;
 };

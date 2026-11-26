@@ -4,6 +4,7 @@
  */
 import { ApiError } from '../api/client';
 import { CoverError } from '../covers/coverError';
+import { PagesExhaustedError } from './pagesExhausted';
 
 export const UNKNOWN_PROBLEM = 'UNKNOWN';
 
@@ -15,5 +16,6 @@ export const problemCode = (error: unknown): string => {
         return withNote(error.code, reasons.join(', '));
     }
     if (error instanceof CoverError) return withNote(error.code, error.detail);
+    if (error instanceof PagesExhaustedError) return error.code;
     return UNKNOWN_PROBLEM;
 };
