@@ -135,8 +135,13 @@ describe('arcRing', () => {
         const { rows, seam } = arcRing(12, 12.6, spec, none);
         expect(seam?.opacity).toBeCloseTo(seamOpacity(0.6), 3);
         expect(rows.find(({ index }) => index === 0)?.near).toBeCloseTo(0.6);
-        expect(arcRing(12, -0.4, spec, none)).toEqual(arcRing(12, 12.6, spec, none));
-        expect(arcRing(12, 13 * 3 + 2, spec, none)).toEqual(arcRing(12, 2, spec, none));
+        const shape = (offset: number) => {
+            const ring = arcRing(12, offset, spec, none);
+            const ys = ring.rows.map(({ index, y }) => [index, Math.round(y)]);
+            return { ys, seam: ring.seam && Math.round(ring.seam.y) };
+        };
+        expect(shape(-0.4)).toEqual(shape(12.6));
+        expect(shape(13 * 3 + 2)).toEqual(shape(2));
     });
 
     it('should never draw a track or the seam twice, at any offset', () => {

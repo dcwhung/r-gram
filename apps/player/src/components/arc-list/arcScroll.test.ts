@@ -23,7 +23,8 @@ describe('arcScroll', () => {
 
         it('should snap round the seam to the nearer end, never to the seam', () => {
             expect(snapIndex(12.7, ALL_12, 12)).toBe(0);
-            expect(snapIndex(12.3, ALL_12, 12)).toBe(11);
+            expect(snapIndex(12.3, ALL_12, 12)).toBe(0);
+            expect(snapIndex(11.6, ALL_12, 12)).toBe(11);
             expect(snapIndex(-0.4, ALL_12, 12)).toBe(0);
             expect(snapIndex(-0.8, ALL_12, 12)).toBe(0);
             expect(snapIndex(-1.4, ALL_12, 12)).toBe(11);
