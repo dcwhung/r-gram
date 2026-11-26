@@ -1,8 +1,8 @@
 /*
  * 主頁用嘅收藏（T-070）：本機 store（外部 store，`useSyncExternalStore`）→ 加咗 Favourites 碟嘅 document、
  * 收藏咗嘅歌 id、心形掣嘅 toggle。
- * 喺 Favourites 碟取消收藏播緊嘅歌（US-013）：store 即刻拎走（心形變空心、重開 app 唔再有），
- * 但首歌喺播（或者暫停、載入失敗）期間照留喺 Favourites 碟原本嘅位置；播完、換歌、放低隻碟先消失。
+ * 喺 Favourites 碟取消收藏播緊嘅歌（US-013；呢個畫面或者其他分頁，W-067）：store 即刻拎走（心形變空心、
+ * 重開 app 唔再有），但首歌喺播（或者暫停、載入失敗）期間照留喺原本嘅位置；播完、換歌、放低隻碟先消失。
  */
 import { type CatalogDocument, FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
@@ -25,14 +25,24 @@ export interface Favourites {
     toggle: (trackId: string) => void;
 }
 
-/** 呢首歌係咪由 Favourites 碟載入咗（播緊、暫停、載入失敗；播完唔算） */
-const loadedFromFavourites = (playback: PlaybackState, trackId: string) =>
+/** 由 Favourites 碟載入嘅歌（播緊、暫停、載入失敗；播完唔算）；冇 = null */
+const loadedFavourite = (playback: PlaybackState): string | null =>
     playback.albumId === FAVOURITES_ALBUM_ID &&
-    playback.trackId === trackId &&
-    (playback.status === 'playing' || playback.status === 'paused' || playback.status === 'error');
+    (playback.status === 'playing' || playback.status === 'paused' || playback.status === 'error')
+        ? playback.trackId
+        : null;
 
-const keptWhileLoaded = (kept: FavouriteEntry | null, playback: PlaybackState) =>
-    kept && loadedFromFavourites(playback, kept.trackId) ? kept : null;
+/**
+ * W-067：載入嘅歌喺收藏入面時記低佢嗰項；之後佢喺收藏度冇咗（呢個畫面嘅心形掣、其他分頁都一樣）
+ * 就用記低嗰項排返原位，直到換歌、播完或者放低隻碟。用 render 期間調整 state（唔使 effect）
+ */
+const useKept = (entries: readonly FavouriteEntry[], playback: PlaybackState) => {
+    const loaded = loadedFavourite(playback);
+    const current = entries.find((entry) => entry.trackId === loaded) ?? null;
+    const [remembered, setRemembered] = useState<FavouriteEntry | null>(current);
+    if (current && current !== remembered) setRemembered(current);
+    return !current && loaded && remembered?.trackId === loaded ? remembered : null;
+};
 
 export const useFavourites = (
     catalog: CatalogDocument | null,
@@ -41,21 +51,16 @@ export const useFavourites = (
 ): Favourites => {
     const [favourites] = useState(() => store ?? createBrowserFavourites());
     const entries = useSyncExternalStore(favourites.subscribe, favourites.getSnapshot);
-    const [kept, setKept] = useState<FavouriteEntry | null>(null);
-    const shownKept = keptWhileLoaded(kept, playback);
+    const kept = useKept(entries, playback);
     const document = useMemo(
-        () => (catalog ? withFavourites(catalog, withKept(entries, shownKept)) : null),
-        [catalog, entries, shownKept],
+        () => (catalog ? withFavourites(catalog, withKept(entries, kept)) : null),
+        [catalog, entries, kept],
     );
     const ids = useMemo(() => new Set(entries.map((entry) => entry.trackId)), [entries]);
     const toggle = (trackId: string) => {
-        if (!favourites.has(trackId)) {
-            // 播緊嗰陣取消咗再收藏 = undo：放返原本嘅位置；其他重新收藏排最尾
-            favourites.add(trackId, shownKept?.trackId === trackId ? shownKept.addedAt : undefined);
-            return;
-        }
-        const removed = favourites.remove(trackId);
-        if (removed && loadedFromFavourites(playback, trackId)) setKept(removed);
+        if (favourites.has(trackId)) favourites.remove(trackId);
+        // 播緊嗰陣取消咗再收藏 = undo：放返原本嘅位置；其他重新收藏排最尾
+        else favourites.add(trackId, kept?.trackId === trackId ? kept.addedAt : undefined);
     };
     return { document, ids, toggle };
 };
