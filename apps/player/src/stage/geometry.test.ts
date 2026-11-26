@@ -2,6 +2,8 @@ import {
     armCentreYAt,
     heartHitPoint,
     heartPoint,
+    heldColumnBottom,
+    heldRowHitRight,
     miniHitBox,
     miniLabelX,
     miniScale,
@@ -139,5 +141,23 @@ describe('mini turntable geometry', () => {
 
     it('should right-align the two lines of text at MINI.x − MINI.r − labelGap', () => {
         expect(miniLabelX(PHONE_LAYOUT)).toBe(782);
+    });
+});
+
+/* T-049：拎住嘅碟嘅歌單欄（設計稿第 18 版 panelMetrics()、trackPanel()） */
+describe('held track column geometry', () => {
+    it('should end the column higher while the dial is open', () => {
+        expect(heldColumnBottom(PHONE_LAYOUT, true)).toBe(1470);
+        expect(heldColumnBottom(PHONE_LAYOUT, false)).toBe(1650);
+    });
+
+    // 欄底避開嘅字母盤同旋鈕貼底：高身手機跟住向下移，見到多幾行
+    it('should move the bottom down with the bottom group on a tall phone', () => {
+        expect(heldColumnBottom(PHONE_LAYOUT, false, 120)).toBe(1770);
+    });
+
+    // 設計稿：每行透明感應範圍 width = right + 20
+    it('should make the whole row tappable to a little past the right edge of the text', () => {
+        expect(heldRowHitRight(PHONE_LAYOUT)).toBe(620);
     });
 });

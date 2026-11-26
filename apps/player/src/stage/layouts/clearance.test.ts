@@ -6,6 +6,8 @@ import {
     buttonKnobGap,
     buttonPlatterGap,
     heartHitPoint,
+    heldColumnBottom,
+    heldRowHitRight,
     hitAreas,
     hitSizeUnits,
     miniHitBox,
@@ -19,6 +21,8 @@ import {
 import { LAYOUTS } from './index';
 import { PHONE_LAYOUT } from './phone';
 
+/** 感應範圍低過 44pt 嘅明文例外（Functional Spec D57、FR-010）：只得拎住嘅碟嘅歌單欄嘅行 */
+const BELOW_44PT_EXCEPTIONS = ['heldTrackRow'] as const;
 /** 設計稿嘅格數：17 張專輯 + ♥ */
 const DESIGN_POSITIONS = 18;
 const MARGIN_TOLERANCE = 2;
@@ -130,6 +134,49 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
                 heart.x - half >= box.right ||
                 heart.x + half <= box.left;
             expect(apart).toBe(true);
+        });
+    });
+
+    /*
+     * T-049：拎住嘅碟嘅歌單欄（Technical Spec「補充：第 18 版」淨空規則 ①②④）。字母盤同旋鈕貼底、欄頂貼頂：
+     * 高身手機欄底跟住貼底組向下移（heldColumnBottom 加 extraUnits），兩者距離不變，所以只驗設計高度
+     */
+    describe('held track column', () => {
+        const { heldTracks: column, knob, dial, scale } = layout;
+
+        it('should end the column above the letter dial while the dial is open', () => {
+            expect(heldColumnBottom(layout, true)).toBeLessThanOrEqual(knob.y - dial.outer);
+        });
+
+        it('should end the longer column above the knob scale and the ♥ square', () => {
+            const bottom = heldColumnBottom(layout, false);
+            expect(bottom).toBeLessThanOrEqual(knob.y - scale.long);
+            expect(bottom).toBeLessThanOrEqual(heartHitPoint(layout).y - hitSizeUnits(layout) / 2);
+            expect(bottom).toBeGreaterThan(heldColumnBottom(layout, true));
+        });
+
+        it('should start the column below the year line of the album title', () => {
+            expect(column.top).toBeGreaterThan(layout.info.year.y);
+        });
+
+        /*
+         * 設計稿嘅行感應範圍（到 right + 20 = 620）同細唱片機嘅感應範圍（由 510 起）喺頭兩行重疊；
+         * 欄畫喺細唱片機上面（設計稿 scene() 次序），重疊嗰條屬歌單行。細唱片機餘下嘅部分仍然 ≥ 44pt
+         */
+        it('should leave the mini turntable a 44pt touch target right of the rows', () => {
+            const box = miniHitBox(layout);
+            expect(box.right - heldRowHitRight(layout)).toBeGreaterThanOrEqual(
+                hitSizeUnits(layout),
+            );
+        });
+
+        /* D57：唯一低過 44pt 嘅感應範圍係歌單欄嘅行（用戶揀咗密行距）；行闊仍然要 ≥ 44pt */
+        it('should allow only the held track rows below 44pt, and keep them wide', () => {
+            const below = Object.entries({ heldTrackRow: column.pitch }).filter(
+                ([, size]) => size < hitSizeUnits(layout),
+            );
+            expect(below.map(([name]) => name)).toEqual([...BELOW_44PT_EXCEPTIONS]);
+            expect(heldRowHitRight(layout)).toBeGreaterThanOrEqual(hitSizeUnits(layout));
         });
     });
 
