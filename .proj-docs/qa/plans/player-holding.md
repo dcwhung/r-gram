@@ -3,13 +3,14 @@
 - Chain: 播放端「拎住另一隻碟」（`apps/player`）：有歌載入時轉去另一隻碟 = 拎住嗰隻碟；右上角細唱片機（照播、㩒返去載入嘅碟）；拎住嘅碟嘅歌單欄（捲動、灰色行、空碟）、半透明層；㩒一行 = 放入唱片機播嗰首（`playHeldTrack` / `startHeld`）。任務 T-048、T-049；review W-042 – W-045、S-175、S-177、S-179、S-180
 - AC（L1 來源：FS = Functional Spec v1.9 §CR-005「補充：第 18 版確認」FR-043、FR-044、D52、D57、D58；TS = Technical Spec v1.7「補充：第 18 版」；設計稿 = `_mockups_/home-turntable/src/template.html` 第 18 版 `MINI`、`TRACKLIST`、`miniTurntable()`、`miniTitle()`、`trackPanel()`、`listScrim()`、`swapAlbum`，連 `4114ef3` 格「拎住另一隻碟：播緊嘅歌名好長」）:
     - AC-1 拎住（FS 表「旋鈕指住另一隻碟」、D52）：有歌載入、旋鈕指住另一隻碟 → 轉盤、唱臂、三粒細掣、左上歌名嗰部分淡出（`chromeFadeMs`），碟名年份跟旋鈕；細唱片機出現、照播（碟轉、「播放中」）；半透明層；唱片夾唔係掣；轉返載入嘅碟 = 細唱片機同歌單欄消失、大唱片機返嚟（chrome 仍然淡出）
-    - AC-2 細唱片機（FR-043、D58、`MINI`）：圓心 930 / 322、半徑 120；「播放中」／「已暫停」x 782、y 304、24 號；歌名 x 782、y 352、36 號，放唔落縮到 24 再「…」，唔入歌單行感應範圍（≤ 620 右邊之後，W-045）；感應範圍 510 – 1050 × 202 – 442（≥ 44pt）；無障礙名 = 「返回播放中的唱片：{完整歌名}」／「返回已暫停的唱片：…」（S-175）；暫停 = 碟停
+    - AC-2 細唱片機（FR-043、D58、`MINI`；W-045 改擺法 = B-083 ④、設計稿 `bcfc0fc`）：圓心 930 / 322、半徑 120；「播放中」／「已暫停」x 782、y 260（322 − 62）、24 號、字距 4；歌名 x 782（靠右）、y 308（322 − 14）、36 號，放唔落每次縮 2 到 24 再「…」，左邊 ≥ 330；兩行都喺歌單欄第一行（感應範圍由 y 330）上面；感應範圍 510 – 1050 × 202 – 442（≥ 44pt）；無障礙名 = 「返回播放中的唱片：{完整歌名}」／「返回已暫停的唱片：…」（S-175）；暫停 = 碟停
     - AC-3 返去（FS「㩒細唱片機」、TS `returnToLoaded`）：返載入嘅碟、chrome 淡入、碟再轉、唱臂唔行開場、聲冇停；focus 交畀唱片夾
     - AC-4 歌單欄（FR-044、`TRACKLIST`）：x 74（歌號 0.72 × 28、專輯色）、歌名 x 130、右邊 ≤ 600、頂 330、行距 66；旋鈕開住欄底 1470、行停用；鬆手欄底 1650、行㩒得（高身手機兩者加 `--stage-extra`）；行感應範圍 x 0 – 620（D57）；灰色行（`audio: null`）灰、唔係掣、唔入 Tab；空碟「尚未有歌曲」、♥「尚未收藏歌曲」；長歌名「…」
     - AC-5 捲動（TS「捲動」、W-042、W-043、S-177、S-179）：滾輪（`preventDefault`、頁面唔郁）、拖動（拖過唔當㩒）、focus 喺欄：方向 / Page / Home / End 捲；focus 喺行：同樣嘅鍵移 focus 去另一行（跳灰色行），focus 嘅行永遠喺欄入面；欄 focus 有虛線框；短歌單欄唔入 Tab；位置條喺左邊（x 44、闊 5、專輯色）；頂底淡出
     - AC-6 半透明層（FR-044 ④、`listScrim()`）：舞台底色，stop 0 / 0 = 0.62、1 = 0，`x2` = 1080；螺絲喺層上面；唔收 pointer
     - AC-7 㩒一行（FS「㩒歌單欄其中一行」、TS `playHeldTrack`、S-180）：拎住嘅碟落轉盤、嗰首係而家首歌、細唱片機消失、chrome 淡入、唱臂由泊位行完整開場；Enter／空白鍵一樣；同一個 tick 或者連續兩下只計第一下
     - AC-8 減少動態（FS「減少動態效果」）：全部即時，唱臂冇開場動畫
+- 2026-11-26：捲動 helper（`useDragScroll`、`useWheel`、`rowStep`）搬咗去 `components/scroll/`，屬 `player-list`（1-hop）；歌單欄嘅捲動照喺呢度驗
 - Scope files:
     - `apps/player/src/components/mini-turntable/**`、`apps/player/src/components/held-tracks/**`（連 test、css）
     - `apps/player/src/app/`：`holding.ts`、`holding.test.ts`、`miniView.ts`、`heldTracksView.ts`、`heldTracksView.test.ts`、`useSpindleFocus.ts`、`useSpindleFocus.test.tsx`、`TopGroup.tsx`

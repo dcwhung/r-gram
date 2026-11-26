@@ -8,6 +8,7 @@
     - AC-4 碟疊（FS CR-002「其他碟」；設計稿 `ORBIT`、`discPose()`）：而家隻碟留喺轉盤；其他碟沿弧線（半徑 1000、每隻 30°、0.72 倍、白紗 0.42）滑入，見到 −1 至 2；轉一格時離開 / 返去轉盤嗰隻碟有過場、唔會俾 DOM 拎走再插返（W-037）
     - AC-5 揀碟時（FS D52、D13、§CR-005「補充：第 18 版確認」嘅「拎另一隻碟睇」表頭兩行同「喺載入嘅碟鬆手」；設計稿 `SWAP_FADE_MS`、格「播緊時揀碟」）：唱臂、三粒細掣、左上歌名嗰部分淡出（`chromeFadeMs` 320），只留碟名年份、跟指針；碟停轉；轉返載入嘅碟仍然淡出；喺載入嘅碟鬆手淡入、唱臂唔行開場、碟再轉；淡出咗唔收 pointer、細掣離開 Tab
     - AC-6 ♥ 同鍵盤（FS US-012、FR-037、D58 ④；TS 實現注意事項 14；S-154）：㩒 ♥ 去 Favourites 碟、再㩒返之前嗰隻；方向鍵 / Home / End（= ♥）、第一下開；Enter / blur = 留低；Esc = 取消返開始嗰隻（拖緊都係）；focus 圈；收埋之後 focus 留喺旋鈕；歌單開住時旋鈕同 ♥ 離開 Tab、`aria-hidden`
+    - AC-8 㩒住先開（S-152，用戶決定 B-083 ①）：pointer 㩒住 `dialHoldMs`（180 ms）或者郁過 `turnThresholdPx`（6 px）先開字母盤；輕點（< 180 ms、冇郁）乜都唔做、碟唔變；未開就放手 / 取消 / 離開 = 放棄；鍵盤照舊（第一下方向鍵即開）
     - AC-7 無障礙同減少動態（FS FR-010、FR-038；TS 14）：`role="slider"` + `aria-valuemin/max/now/text`（碟名）；旋鈕感應 ≥ 44pt（390pt 基準）、♥ 方格 ≥ 44pt；`prefers-reduced-motion: reduce` 全部即時
 - Scope files:
     - `apps/player/src/components/knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（連 test、css）
@@ -20,4 +21,4 @@
     - W-037：MutationObserver + 逐 frame 取樣離開轉盤嗰隻碟嘅 computed transform（向後、向前各一格）；打開時碟位置對 `discPose()`
     - 載入歌（唱片夾 → 歌單 → 播）之後逐 frame 取樣三組淡出淡入、封面轉動、唱臂 transform；鍵盤全套；♥；歌單開住嘅 Tab；`reducedMotion: 'reduce'`；儲存
 - PWA gate: no（冇改 build 設定、manifest、Service Worker）。Security / Data gate: no（冇新輸入面）。Performance gate: no（真機 fps 係 review S-153，backlog）
-- Out of scope（已知、已接受）：細唱片機、拎住嘅碟嘅歌單欄（T-048、T-049，見 `plans/player-holding.md`；`MachineChrome` 拎住時轉盤淡出、細掣唔入 Tab 喺嗰度驗）；S-155 已由 T-048 取代；S-151（spec 字眼）、S-152（單㩒開即收，等用戶）、S-153（真機性能）；Favourites 碟面同左上「我的收藏」（T-070）；跳多格時新碟直接出現（review 接受）
+- Out of scope（已知、已接受）：細唱片機、拎住嘅碟嘅歌單欄（T-048、T-049，見 `plans/player-holding.md`；`MachineChrome` 拎住時轉盤淡出、細掣唔入 Tab 喺嗰度驗）；S-155 已由 T-048 取代；S-151（spec 字眼）、S-153（真機性能）；Favourites 碟面同左上「我的收藏」（T-070）；跳多格時新碟直接出現（review 接受）

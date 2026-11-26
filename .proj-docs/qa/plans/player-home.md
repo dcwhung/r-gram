@@ -10,10 +10,11 @@
     - AC-5 版面（FR-039）：高身手機左上資訊、頂部螺絲、版本號貼頂，唱片機成組貼底；闊屏置中；碟以專輯 id 做 key；頁面冇重覆 id、冇指空嘅 `url(#…)`；console 冇錯；介面文字全部經語言檔、書面語
     - AC-8 轉碟接駁（T-036；FS D52、§CR-005「補充：第 18 版確認」；TS「補充：第 18 版」衍生值）：`homeView` 嘅 `dial`、`loadedAlbumId`、`holding`（歌單開住唔算）、`chromeHidden`、`songHidden`、`spinning`；`useHome` 嘅轉碟 handler（開、轉、留低、Esc 取消、♥）；`InfoBlock` 歌名嗰部分淡出、碟名年份跟指針；`useArmLeadIn` 淡出期間唔行開場；`HomeScene` / `Turntable` 層次（字母盤 → 旋鈕 → ♥；唱片夾緊接而家隻碟）。瀏覽器驗喺 `player-dial`
     - AC-9 拎住另一隻碟嘅接駁（T-048、T-049；review W-044、S-180；FS FR-043、FR-044、D52、D58；TS「補充：第 18 版」）：`homeView` 嘅 `holding`、`mini`、`heldTracks`、`chromeHidden`；`useHome` 嘅 `onReturnToLoaded`、`onPlayHeldTrack`（只限拎住嘅碟、播得、鬆手之後）；`playbackState` 嘅 `startHeld`（載入嘅碟變咗就唔理，S-180）；`InfoBlock` 碟名拎住時收窄到細唱片機左邊；`HomeScene` / `Turntable` 層次（半透明層喺碟上、字母盤下；細唱片機喺歌單欄下）；`textMeasure` 冇重複讀 style。瀏覽器驗喺 `player-holding`
+    - AC-10 弧線歌單嘅接駁（T-037；W-051、W-052 維持；FS US-004、D25）：`homeView` 嘅 `canOpenList`（主頁、冇 MV、唔係拎住、有碟）、`listOpen`、`list`、`listTrack`；`useHome` 嘅 `onOpenList` / `onCloseList` / `onFocusListTrack` / `onPlayListTrack`（只播播得嘅歌）；`HomeScene` / `Turntable` 嘅 `DiscFace`（唱片夾窿、有歌載入先入 Tab）；`InfoBlock` 歌單開住用 `ListSongLines`（白字、框入面嗰首）；`VersionText` 歌單開住轉暗；`ListVeil` 已刪。瀏覽器驗喺 `player-list`
     - AC-7 開 app 之後（T-034）：`useHome.finishPreload()` 喺 Preload 載入完先開第一隻碟（catalog 遲過 Preload 開始先到都得）；歌名兩行嘅 `aria-label` = 成個歌名（B-072 ①）；`breakAt` 註解同設計稿規則一致（B-070）
 - Scope files:
-    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`ListVeil.tsx`、`Turntable.tsx`、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
-    - `apps/player/src/components/info-block/**`（連 `songFit.ts`）、`apps/player/src/components/small-buttons/**`
+    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`Turntable.tsx`（`ListVeil.tsx` 已刪）、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
+    - `apps/player/src/components/info-block/**`（連 `songFit.ts`；`ListSongLines.tsx`、`SongPart.tsx` 屬 `player-list`）、`apps/player/src/components/small-buttons/**`
     - `apps/player/src/components/tonearm/armPose.ts`、`armPose.test.ts`、`useArmLeadIn.ts`、`useArmLeadIn.test.ts`
     - `apps/player/src/stage/useStageBackdrop.ts`、`useStageBackdrop.test.ts`
     - `apps/player/src/utils/fitText.ts`、`fitText.test.ts`、`fitLines.ts`、`fitLines.test.ts`、`breakAt.ts`、`breakAt.test.ts`、`formatTime.ts`、`formatTime.test.ts`、`textMeasure.ts`、`textMeasure.test.ts`

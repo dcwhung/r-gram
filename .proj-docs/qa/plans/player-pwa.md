@@ -1,0 +1,21 @@
+# Test Plan — player-pwa
+
+- Chain: 播放端 PWA（`apps/player`）：manifest 同 icon、`robots.txt`、`noindex`、版本注入、Service Worker 註冊同更新規則（`updateManager`、`registerUpdates`、`updateChecks`、`reloadGuard`、`useUpdates`）、更新提示、「請打直」（手機打橫）。任務 T-039；review W-049、W-053 ①；用戶決定 S-197（B-084 ④）；正式 app icon（`beb3324`）
+- AC（L1 來源：FS = Functional Spec v1.9 US-011、US-015、FR-009、FR-011、FR-018、C11、D14（字眼等 PM，跟 B-084 ④）；TS = Technical Spec v1.7 實現注意事項 12；backlog B-083、B-084；icon = `_mockups_/app-icon/export/d-black-disc/`）:
+    - AC-1 manifest：`id` / `start_url` / `scope` = `/`、`lang` zh-Hant、`standalone`、`portrait`、底色 `#0a0a0a`、名同描述由語言檔；icon 192 / 512 / maskable 512 + apple-touch 180：回應 200 `image/png`、實際尺寸 = 宣告、內容 = 設計稿 export（黑碟唱片機）
+    - AC-2 `robots.txt` 係真檔（SW 控制下導航都係）、唔 precache；`<meta name="robots" content="noindex, nofollow">`；版本號 = `package.json`（`data-version`、畫面 `v0.1.0`）
+    - AC-3 SW 註冊、接管；離線重開照用（只有 catalog.json 失敗、改用本機副本）、離線唔查新版
+    - AC-4 更新規則（S-197）：開 app（Preload 期間）搵到新版 = 自動換、冇提示；用緊（閒置、播緊、暫停、返前景）永遠唔自己 reload，只出「已有新版本／立即更新」；㩒「立即更新」= 新版；另一個分頁換咗版，用緊嘅分頁唔 reload
+    - AC-5 防 loop（W-049）：30 秒內 reload 過 → 唔自動換、Preload 之後出提示；㩒「立即更新」照換；被擋之後唔會喺用緊時自己 reload
+    - AC-6 更新提示：右上、唔蓋任何控件嘅 44pt 感應範圍（主頁、歌單開住、拎住另一隻碟；量 393 / 390 / 360 闊）；`role="status"`、掣名「立即更新並重新載入」、≥ 44 px、對比 ≥ 4.5；歌單開住 Tab 去得到（S-199）
+    - AC-7 「請打直」：手機（coarse pointer）打橫 = 蓋住、舞台 `inert` + `aria-hidden`、文字由語言檔、`role="alert"`；電腦打橫 / 852 × 393 fine pointer 唔出；減少動態冇動畫；轉返直即刻恢復
+- Scope files:
+    - `apps/player/src/pwa/`：`manifest.ts`、`manifest.node.test.ts`、`registerUpdates.ts`、`registerUpdates.test.ts`、`reloadGuard.ts`、`reloadGuard.test.ts`、`updateChecks.ts`、`updateChecks.test.ts`、`updateManager.ts`、`updateManager.test.ts`、`useUpdates.ts`（`catalogCaching*` 屬 `player-catalog`）
+    - `apps/player/src/components/update-prompt/**`、`apps/player/src/components/rotate-notice/**`
+    - `apps/player/src/stage/deviceClass.ts`、`deviceClass.test.ts`、`usePhoneLandscape.ts`、`usePhoneLandscape.test.ts`；`apps/player/src/app/AppPwa.test.tsx`；`apps/player/src/config/appVersion.ts`、`appVersion.test.ts`
+    - `apps/player/public/robots.txt`、`apps/player/public/icons/**`、`apps/player/vite.config.ts`、`apps/player/index.html`、`apps/player/src/main.tsx`
+    - 1-hop（屬其他鏈）：`App.tsx`（`player-core`）、`Stage.tsx`、`zh-Hant.ts`、`motion.ts`（`player-foundation`）、`storageKeys.ts`、`catalogCaching.ts`（`player-catalog`）、`useListFocus.ts`（`player-list`）
+- Commands: `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
+- Browser check：兩個 production build（A = 0.1.0、B = 0.1.1，HEAD 嘅 `git archive` 副本，B 只改 `package.json` version）由 `127.0.0.1` 靜態 server 切換；本機 https 假 Worker；Chromium（`--ignore-certificate-errors` 只為本機自簽證書，SW 嘅 fetch 唔跟 context 設定）；`serviceWorkers: 'allow'`，route 擋晒非本機並記數；AC-1 – AC-7；normal 全套，`reduce` 跑用緊時更新、「請打直」、版面
+- PWA gate: yes（manifest、icon、更新邏輯、build 設定）。Security / Data gate: no（冇新輸入面；SW 只向自己 origin）。Performance gate: no（precache 12 項 1125 KiB，見 QA 報告 S-207）
+- Out of scope（已知、已接受）：提示同「請打直」冇設計稿（用戶睇截圖）；S-205（版本號規則，T-041）；D14 / US-011 字眼（PM）；Chromium `in-incognito` 嘅 installability（測試環境）；真機 iOS / Android 安裝
