@@ -10,7 +10,7 @@ const RADIUS_PX = 50;
 
 const handlers = () => ({ onStart: vi.fn(), onTurn: vi.fn(), onEnd: vi.fn() });
 
-const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
+const renderKnob = (props: { current?: number; open?: boolean; covered?: boolean } = {}) => {
     const spies = handlers();
     const view = render(
         <svg>
@@ -22,6 +22,7 @@ const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
                 accent="#c8442b"
                 glow="#ffd0c0"
                 valueText="KOMOREBI"
+                covered={props.covered}
                 {...spies}
             />
         </svg>,
@@ -34,7 +35,7 @@ const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
             width: RADIUS_PX * 2,
             height: RADIUS_PX * 2,
         }) as DOMRect;
-    return { ...view, spies, knob: screen.getByRole('slider') };
+    return { ...view, spies, knob: screen.getByRole('slider', { hidden: true }) };
 };
 
 /** 螢幕上離旋鈕中心 distance px、角度 deg 嘅一點 */
@@ -60,6 +61,13 @@ describe('Knob', () => {
         expect(knob).toHaveAttribute('tabindex', '0');
     });
 
+    // S-074：歌單嘅暗層蓋住時 Tab 唔到、讀屏唔讀
+    it('should leave the Tab order and screen readers while covered', () => {
+        const { knob } = renderKnob({ covered: true });
+        expect(knob).toHaveAttribute('tabindex', '-1');
+        expect(knob).toHaveAttribute('aria-hidden', 'true');
+    });
+
     it('should turn the pointer to the angle of the current position', () => {
         const { container } = renderKnob({ current: 0 });
         const pointer = container.querySelector('[data-part="knob-pointer"]') as SVGElement;
@@ -80,6 +88,15 @@ describe('Knob', () => {
             fireEvent.pointerDown(knob, at(0));
             expect(spies.onStart).toHaveBeenCalledTimes(1);
             expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
+        // 手指離開旋鈕都照轉：㩒落嗰陣攞 pointer capture
+        it('should capture the pointer that grabs the knob', () => {
+            const { knob } = renderKnob();
+            const capture = vi.fn();
+            knob.setPointerCapture = capture;
+            fireEvent.pointerDown(knob, at(0));
+            expect(capture).toHaveBeenCalledWith(1);
         });
 
         it('should report each new position while the pointer turns round the knob', () => {

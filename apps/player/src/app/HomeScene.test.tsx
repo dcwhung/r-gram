@@ -110,6 +110,15 @@ describe('HomeScene choosing a disc', () => {
         expect(part(container, 'chrome-arm')).toHaveAttribute('data-hidden', 'false');
     });
 
+    // 淡出期間唱臂姿勢變就即時到位（淡入返嗰陣已經喺新位）
+    it('should move the tonearm without a transition only while it is faded out', () => {
+        const choosing = render(scene(viewOf('room', null, { scene: 'discChange' })));
+        expect(part(choosing.container, 'arm')).toHaveAttribute('data-instant', 'true');
+        choosing.unmount();
+        const { container } = render(scene(viewOf('room')));
+        expect(part(container, 'arm')).not.toHaveAttribute('data-instant');
+    });
+
     it('should fade out the song part while choosing with a song loaded', () => {
         const view = viewOf('apollo-18', null, { scene: 'discChange' }, PLAYING);
         const { container } = render(scene(view));
