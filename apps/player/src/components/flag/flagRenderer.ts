@@ -14,6 +14,7 @@ import {
     shadeAt,
     type Triangle,
 } from './flagMesh';
+import { FLAG_BLACK, type LogoImage, paintCloth } from './flagCloth';
 import type { FlagScene } from './flagScene';
 
 /** `document.createElement('canvas')` 用到嘅部分（測試用假嘅） */
@@ -23,12 +24,6 @@ export interface FlagCanvas {
     getContext(type: '2d'): CanvasRenderingContext2D | null;
 }
 
-export type LogoImage = CanvasImageSource & { width: number; height: number };
-
-/** 旗嘅黑（同 tokens.css --color-flag-bg）；canvas 讀唔到 CSS 變數 */
-const FLAG_BLACK = '#0a0a0a';
-/** 布料底色（v16 composeFlag：純黑，等光暗圖有對比） */
-const CLOTH_BLACK = '#000';
 const MS_PER_SECOND = 1000;
 const RGBA = 4;
 const OPAQUE = 255;
@@ -88,15 +83,14 @@ const shadeLight = (scene: FlagScene, surfaces: Surfaces, phase: number, gust: n
 /** ② 布料圖：黑布、logo（載入咗先有）、光暗圖 */
 const composeTexture = (scene: FlagScene, surfaces: Surfaces, logo: LogoImage | null) => {
     const { cloth } = scene;
-    const { texture } = surfaces;
-    texture.fillStyle = CLOTH_BLACK;
-    texture.fillRect(0, 0, cloth.width, cloth.height);
-    if (logo) {
-        const { x, y, width } = scene.logo;
-        const height = (width * logo.height) / logo.width;
-        texture.drawImage(logo, x - width / HALF, y - height / HALF, width, height);
-    }
-    texture.drawImage(surfaces.lightCanvas as CanvasImageSource, 0, 0, cloth.width, cloth.height);
+    paintCloth(surfaces.texture, scene, logo);
+    surfaces.texture.drawImage(
+        surfaces.lightCanvas as CanvasImageSource,
+        0,
+        0,
+        cloth.width,
+        cloth.height,
+    );
 };
 
 /** 三角形頂點由重心向外推 TRI_BLEED */

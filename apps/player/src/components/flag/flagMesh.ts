@@ -19,17 +19,20 @@ export interface WaveSample {
 /** 三角形三個角：x0, y0, x1, y1, x2, y2 */
 export type Triangle = readonly [number, number, number, number, number, number];
 
-const TAU = Math.PI * 2;
+export const TAU = Math.PI * 2;
 
-/** 沿布料行嘅三道波：沿旗（ku）、向下（kv）嘅周期數、速度、強度、起始相位（v16 WAVE） */
-const WAVES = [
+/**
+ * 沿布料行嘅三道波：沿旗（ku）、向下（kv）嘅周期數、速度、強度、起始相位（v16 WAVE）。
+ * WebGL 嘅 fragment shader 用同一組數（flagShader.ts 由呢度生成 GLSL 常數）
+ */
+export const WAVES = [
     { ku: 1.6, kv: 0.45, speed: 3.6, gain: 1, offset: 0 },
     { ku: 2.7, kv: -0.7, speed: 5.4, gain: 0.45, offset: 1.7 },
     { ku: 0.6, kv: 1.2, speed: 2.3, gain: 0.32, offset: 0.4 },
 ] as const;
 
 /** 旗杆嗰邊釘住：波幅 = base + gain × u^power（u 太細時用 minU 計斜率，避免除零） */
-const HOIST = { base: 0.14, gain: 0.86, power: 0.85, minU: 0.002 } as const;
+export const HOIST = { base: 0.14, gain: 0.86, power: 0.85, minU: 0.002 } as const;
 /** 上下漂移：第三道波嘅相位再加 phase，強度 × gain */
 const LIFT = { gain: 0.38, phase: 0.9 } as const;
 /** 開場嘅風由幾多成力開始（v16：0.7 → 1） */
@@ -122,11 +125,11 @@ const normalize = ([x, y, z]: readonly [number, number, number]) => {
     return [x / length, y / length, z / length] as const;
 };
 
-/** 光由左上前方嚟（v16 LIGHT）；HALF = 光同視線（0, 0, 1）中間嘅方向，計反光 */
-const LIGHT = normalize([-0.55, -0.38, 0.74]);
-const HALF = normalize([LIGHT[0], LIGHT[1], LIGHT[2] + 1]);
+/** 光由左上前方嚟（v16 LIGHT）；LIGHT_HALF = 光同視線（0, 0, 1）中間嘅方向，計反光 */
+export const LIGHT = normalize([-0.55, -0.38, 0.74]);
+export const LIGHT_HALF = normalize([LIGHT[0], LIGHT[1], LIGHT[2] + 1]);
 /** v16 shadeFlag 嘅光暗：散射、反光（銳度、強度）、整體偏暗少少；光最多 42 % 白，暗最多 72 % 黑 */
-const SHADE = {
+export const SHADE = {
     diffuse: 0.75,
     shine: 60,
     specular: 0.1,
@@ -143,7 +146,9 @@ export const shadeAt = (sample: WaveSample): { light: boolean; alpha: number } =
     const ny = -sample.zy * inverse;
     const facing = nx * LIGHT[0] + ny * LIGHT[1] + inverse * LIGHT[2];
     const diffuse = facing - LIGHT[2];
-    const shine = Math.max(0, nx * HALF[0] + ny * HALF[1] + inverse * HALF[2]) ** SHADE.shine;
+    const shine =
+        Math.max(0, nx * LIGHT_HALF[0] + ny * LIGHT_HALF[1] + inverse * LIGHT_HALF[2]) **
+        SHADE.shine;
     const lit = diffuse * SHADE.diffuse + shine * SHADE.specular - SHADE.bias;
     return lit > 0
         ? { light: true, alpha: Math.min(SHADE.maxLight, lit) }
