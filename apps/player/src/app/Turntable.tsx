@@ -73,7 +73,7 @@ const Hub = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) =>
  * 主頁碟面（T-037）喺唱片夾後面：㩒碟面開弧線歌單；歌單本身（暗層、框、歌名）喺貼頂組（TopGroup）。
  */
 export const Turntable = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) => {
-    const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
+    const instant = useSwapInstant(view.album?.id ?? null) || view.armHidden;
     const leadIn = useArmLeadIn(view.armPose, instant);
     const lowerScrews = layout.screws.points.filter(isLowerHalf);
     return (

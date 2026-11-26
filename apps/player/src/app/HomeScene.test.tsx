@@ -210,8 +210,9 @@ describe('HomeScene holding another disc', () => {
             'aria-disabled',
             'true',
         );
-        expect(screen.getByRole('button', { name: '播放模式：順序播放' })).not.toHaveAttribute(
+        expect(screen.getByRole('button', { name: '播放模式：順序播放' })).toHaveAttribute(
             'aria-disabled',
+            'false',
         );
         expect(part(container, 'mini-turntable')).toHaveAttribute('data-hidden', 'false');
         expect(part(container, 'mini-label')).toHaveTextContent('播放中');

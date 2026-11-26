@@ -76,8 +76,10 @@ export interface HomeView {
     loadedAlbumId: string | null;
     /** 拎住另一隻碟：有歌載入，但旋鈕指住（或者鬆手停喺）另一隻碟（CR-005 第 18 版；畫面係 T-048） */
     holding: boolean;
-    /** 唱臂同三粒細掣淡出（揀碟期間、拎住另一隻碟時；Functional Spec D52） */
-    chromeHidden: boolean;
+    /** 唱臂淡出：有細唱片機（拎住另一隻碟）或者字母盤開住（B-086 ⑤ (ii)） */
+    armHidden: boolean;
+    /** 三粒細掣淡出：字母盤開住先淡出，鬆手就出返，拎住另一隻碟都一樣（B-086 ⑤ (i)） */
+    buttonsHidden: boolean;
     /** 左上歌名嗰部分（音量條、歌名、心形、「第 nn 首」同時間）淡出，只留碟名同年份 */
     songHidden: boolean;
     /** 畫面上嘅碟轉緊：播緊呢隻碟，而且唔係揀緊碟、唔係拎住另一隻碟 */
@@ -108,19 +110,22 @@ const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: 
 };
 
 /**
- * 揀碟相關嘅衍生值（Technical Spec「補充：第 18 版」）：`holding` = 載入嘅碟 ≠ 顯示嘅碟（主頁或者揀緊碟）；
- * 揀碟期間或者拎住另一隻碟時，唱臂、細掣同歌名嗰部分淡出，碟停轉
+ * 揀碟相關嘅衍生值（Technical Spec「補充：第 18 版」；設計稿第 19 版 scene() 嘅 armFade、buttonsFade）：
+ * `holding` = 載入嘅碟 ≠ 顯示嘅碟（主頁或者揀緊碟）。字母盤開住：唱臂、細掣淡出；拎住另一隻碟：唱臂淡出
+ *（細唱片機有自己支唱臂），細掣照出。兩種情況歌名嗰部分都淡出，碟停轉
  */
 const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose) => {
     const loadedAlbumId = loadedAlbumOf(playback);
     const holding = isHolding(stage, loadedAlbumId);
-    const chromeHidden = stage.scene === 'discChange' || holding;
+    const dialOpen = stage.scene === 'discChange';
+    const armHidden = dialOpen || holding;
     return {
         loadedAlbumId,
         holding,
-        chromeHidden,
-        songHidden: chromeHidden,
-        spinning: pose === 'playing' && !chromeHidden,
+        armHidden,
+        buttonsHidden: dialOpen,
+        songHidden: armHidden,
+        spinning: pose === 'playing' && !armHidden,
     };
 };
 
