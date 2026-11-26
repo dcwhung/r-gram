@@ -195,7 +195,8 @@ tr:last-child td { border-bottom: 0; }
         <li>㩒歌單其中一行：隻碟放入唱片機，落針播嗰首，細唱片機消失。</li>
         <li>或者㩒右上角細唱片機：放低隻碟，返去播緊嗰隻碟。</li>
     </ol>
-    <p class="lede"><b>新（等你確認）：歌單欄飄落。</b>播緊歌時轉去另一隻碟（上面第 3 步），碟名下面嘅歌單唔再一下子出現：歌名由右上一行一行飄落自己嘅位置。每轉去一隻碟都播一次。</p>
+    <p class="lede"><b>新（等你確認）：揀碟就出歌單。</b>只要字母盤開住（揀緊碟），有冇歌播緊都會喺碟名下面出嗰隻碟嘅歌單；一開字母盤就出而家隻碟嘅，轉去另一隻就換。冇歌播緊時鬆手，歌單收返，返主頁（㩒碟面開弧線歌單揀歌）。</p>
+    <p class="lede"><b>新（等你確認）：歌單欄飄落。</b>歌單欄每次出現或者換碟（上面第 2、3 步），唔再一下子出現：歌名由右上一行一行飄落自己嘅位置。每轉去一隻碟都播一次。</p>
     <p class="lede"><b>另一個效果（暫時留低，等你睇埋先定）：轉碟途中㩒碟面 = 開嗰隻碟嘅弧線歌單，歌名由左上飄落弧線。</b>試法：做完上面第 3 步（字母盤開住、擰咗去另一隻碟），唔好鬆手，直接㩒隻碟嘅碟面：字母盤收起，暗層淡入，歌名由碟名下面逐行飄落去弧線，白色框線由唱片夾伸出。第 4 步（鬆咗手、手上拎住隻碟）㩒碟面都一樣。冇歌播緊時轉碟再㩒碟面：歌名由左上淡入飄落。㩒暗位收返；㩒唱片夾播框入面嗰首。</p>
     <div class="hero">
         <article class="card"><svg class="stage live" id="live" viewBox="0 0 1080 1920" role="group" aria-label="可以㩒嘅主頁"></svg></article>
@@ -905,7 +906,8 @@ tr:last-child td { border-bottom: 0; }
     };
     let panelSeq = 0;
     const trackPanel = (st) => {
-        if (!st.away || st.list || st.mv) return '';
+        // 揀緊碟（字母盤開住）就出嗰隻碟嘅歌單，有冇歌播緊都一樣（用戶 2026-11-26：轉碟 = 揀碟，揀碟自然要出歌單）；鬆手之後只有拎住另一隻碟先留低
+        if (!(st.away || st.wheel > 0) || st.list || st.mv) return '';
         const { rows, top, room, hidden } = panelMetrics(st);
         const { accent } = ALBUMS[st.album];
         const pitch = trackPitch();
@@ -1731,7 +1733,7 @@ tr:last-child td { border-bottom: 0; }
             screws(),
             `<g data-anim="platter" style="opacity: ${away ? 0 : 1}">${platter()}</g>`,
             discs(st, fid),
-            `<g data-anim="scrim" style="opacity: ${away && !st.list ? 1 : 0}" pointer-events="none">${listScrim(fid)}${screws()}</g>`, // 螺絲喺淡出層上面再畫一次，唔好俾佢遮淡
+            `<g data-anim="scrim" style="opacity: ${(away || st.wheel > 0) && !st.list ? 1 : 0}" pointer-events="none">${listScrim(fid)}${screws()}</g>`, // 螺絲喺淡出層上面再畫一次，唔好俾佢遮淡
             dialRing(st),
             knob(st),
             favHeart(st),
@@ -1907,7 +1909,15 @@ tr:last-child td { border-bottom: 0; }
         heart: () => { ui.fav = !ui.fav; },
         mode: () => { ui.mode = MODES[(MODES.indexOf(ui.mode) + 1) % MODES.length]; },
         // 以下只影響互動格
-        wheel: () => { if (live.list || live.mv) return; live.wheel = live.wheel > 0.5 ? 0 : 1; live.booklet = false; },
+        wheel: () => {
+            if (live.list || live.mv) return;
+            live.wheel = live.wheel > 0.5 ? 0 : 1;
+            live.booklet = false;
+            if (live.wheel === 1 && !liveView().away) { // 一打開字母盤就出而家隻碟嘅歌單（飄落）
+                Object.assign(live, { listScroll: 0, panelFresh: !reducedMotion() });
+                requestAnimationFrame(() => { live.panelFresh = false; });
+            }
+        },
         favourites: () => {
             if (live.list || live.mv || live.swapping) return;
             const album = live.album === 'favourites' ? (live.backTo ?? 'komorebi') : 'favourites';
