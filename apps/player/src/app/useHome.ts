@@ -48,6 +48,18 @@ const openList = ({ catalog, stage, view, dispatch }: HomeContext) => {
     if (focus) dispatch({ type: 'focusTrack', trackId: focus });
 };
 
+/**
+ * 㩒拎住嘅碟嘅歌單欄一行（T-049）：只喺鬆手之後、嗰首屬拎住嘅碟而且播得。揀中嗰首，再叫播放狀態 `start`
+ *（舊歌停、換隊列）。載入嘅碟變咗 → holding 解除 → 唱臂由泊位行完整開場。真正出聲係 T-038
+ */
+const playHeldTrack = ({ view, dispatch, play }: HomeContext, trackId: string) => {
+    const held = view.heldTracks;
+    const row = held?.rows.find((candidate) => candidate.id === trackId);
+    if (!held?.pressable || !row?.playable) return;
+    dispatch({ type: 'playHeldTrack', trackId, loadedAlbumId: view.loadedAlbumId });
+    play({ type: 'start', albumId: held.albumId, trackId });
+};
+
 const pressSpindle = (context: HomeContext) => {
     const { view, play } = context;
     // 電視開住時唱片夾喺電視後面（T-060）；拎住另一隻碟時冇轉盤（T-048）：都唔反應
@@ -99,6 +111,7 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
     onCloseList: () => context.dispatch({ type: 'closeList' }),
     onReturnToLoaded: () =>
         context.dispatch({ type: 'returnToLoaded', loadedAlbumId: context.view.loadedAlbumId }),
+    onPlayHeldTrack: (trackId: string) => playHeldTrack(context, trackId),
 });
 
 export interface Home {

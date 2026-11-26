@@ -1,0 +1,56 @@
+/*
+ * 拎住嘅碟嘅歌單欄（設計稿第 18 版 trackPanel()）：淺色舞台上面直接寫黑字，冇黑色層。
+ * 位置、字級喺幾何表 heldTracks；歌號嘅專輯色由元件畀（fill）。
+ */
+
+/* 欄自己處理拖動：瀏覽器唔好當係捲頁或者縮放 */
+.held-list {
+    touch-action: none;
+    outline: none;
+}
+
+.held-number {
+    font-family: var(--font-slab);
+}
+
+.held-title {
+    fill: var(--color-ink);
+    font-family: var(--font-mixed);
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+/* 未有音檔（D11、D70）：歌號同歌名變灰 */
+.held-row--off .held-number {
+    fill: var(--color-track-off);
+}
+
+.held-row--off .held-title {
+    opacity: 0.32;
+}
+
+.held-empty {
+    fill: var(--color-info-faint);
+    font-family: var(--font-mixed);
+    font-weight: 500;
+}
+
+.held-bar-track {
+    fill: var(--color-held-bar-track);
+}
+
+/* 鍵盤 focus：喺成行嘅感應範圍畫虛線框（SVG 元素嘅 outline 喺 Safari 唔可靠；同 metal-button 一樣） */
+.held-button {
+    outline: none;
+}
+
+.held-button:focus-visible [data-part='held-hit'] {
+    stroke: var(--color-ink);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}
+
+/* 欄本身（長歌單先 focus 得）：focus 時位置條底條加深，表示可以用方向鍵捲 */
+.held-tracks:has(.held-list:focus-visible) .held-bar-track {
+    fill: var(--color-info-faint);
+}

@@ -159,4 +159,41 @@ describe('useHome holding another disc', () => {
         expect(result.current.view?.holding).toBe(false);
         expect(result.current.playback).toBe(playback);
     });
+
+    /* T-049：㩒歌單欄一行 = 將拎住嘅碟放入唱片機播嗰首（舊歌停、隻碟落轉盤、唱臂由泊位行完整開場） */
+    it('should put the held disc on the turntable and play the pressed row', () => {
+        const result = holdRoom();
+        act(() => result.current.handlers?.onPlayHeldTrack('room-01'));
+        expect(result.current.playback).toMatchObject({
+            status: 'playing',
+            albumId: 'room',
+            trackId: 'room-01',
+        });
+        expect(result.current.stage).toMatchObject({
+            viewAlbumId: 'room',
+            selectedTrackId: 'room-01',
+        });
+        expect(result.current.view).toMatchObject({ holding: false, armPose: 'playing' });
+    });
+
+    it('should not play a row without audio, a row of another disc or while the dial is open', () => {
+        const result = holdRoom();
+        const before = result.current.playback;
+        act(() => result.current.handlers?.onPlayHeldTrack('apollo-18-03'));
+        act(() => result.current.handlers?.onPlayHeldTrack('missing'));
+        act(() => result.current.handlers?.onTurnStart());
+        act(() => result.current.handlers?.onPlayHeldTrack('room-01'));
+        expect(result.current.playback).toBe(before);
+    });
+
+    it('should list the held disc under its title with the rows pressable only after release', () => {
+        const result = holdRoom();
+        expect(result.current.view?.heldTracks).toMatchObject({
+            albumId: 'room',
+            pressable: true,
+            dialOpen: false,
+        });
+        act(() => result.current.handlers?.onTurnStart());
+        expect(result.current.view?.heldTracks).toMatchObject({ pressable: false, dialOpen: true });
+    });
 });

@@ -31,6 +31,17 @@ export const zhHant = {
     list: {
         open: '開啟歌單',
         close: '關閉歌單',
+        /** 冇歌嘅碟（設計稿 T.emptyAlbum；Functional Spec D39） */
+        empty: '尚未有歌曲',
+    },
+    /** 拎住嘅碟嘅歌單欄（T-049；Functional Spec FR-044） */
+    heldTracks: {
+        /** 成欄（role="list"）嘅名 */
+        label: '{album} 的歌曲',
+        /** 播得嘅一行（掣）：歌號同歌名 */
+        play: '播放第 {no} 首：{title}',
+        /** 未有音檔嘅一行（灰色，唔係掣；D11、D70） */
+        unavailable: '第 {no} 首：{title}（未有音檔）',
     },
     playback: {
         play: '播放',

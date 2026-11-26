@@ -16,6 +16,7 @@ import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
 import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
+import { type HeldTracksView, heldTracksView } from './heldTracksView';
 import { isHolding, loadedAlbumOf } from './holding';
 import { loadedArmPose, type MiniView, miniView } from './miniView';
 import type { PlaybackState } from './playbackState';
@@ -79,6 +80,8 @@ export interface HomeView {
     spinning: boolean;
     /** 右上角嘅細唱片機（載入嘅碟，T-048）；冇歌載入 = null */
     mini: MiniView | null;
+    /** 碟名下面拎住嘅碟嘅歌單欄（T-049）；冇拎住另一隻碟 = null */
+    heldTracks: HeldTracksView | null;
 }
 
 const loadedTrack = (album: CatalogAlbum | null, stage: StageState, playback: PlaybackState) =>
@@ -117,6 +120,18 @@ const timing = ({ positionSec, durationSec }: PlaybackState) => ({
     timeText: formatTime(positionSec),
 });
 
+/** 拎住另一隻碟時嘅兩樣嘢：右上角細唱片機（T-048）、碟名下面嘅歌單欄（T-049） */
+const heldParts = (
+    document: CatalogDocument,
+    stage: StageState,
+    playback: PlaybackState,
+    dial: DialView,
+    holding: boolean,
+) => ({
+    mini: miniView(document, playback, dial.entries, holding),
+    heldTracks: heldTracksView(document, stage, holding),
+});
+
 export const homeView = (
     document: CatalogDocument,
     stage: StageState,
@@ -144,6 +159,6 @@ export const homeView = (
         mvOpen: stage.overlay === 'mv',
         dial,
         ...choosing,
-        mini: miniView(document, playback, dial.entries, choosing.holding),
+        ...heldParts(document, stage, playback, dial, choosing.holding),
     };
 };

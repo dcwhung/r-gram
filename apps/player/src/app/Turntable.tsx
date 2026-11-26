@@ -1,6 +1,7 @@
 import type { RefObject } from 'react';
 import { ChromeFade } from '../components/chrome-fade/ChromeFade';
 import { DiscStack } from '../components/disc-stack/DiscStack';
+import { HeldScrim } from '../components/held-tracks/HeldScrim';
 import { Screws } from '../components/metal/Screws';
 import { Platter } from '../components/platter/Platter';
 import { Spindle } from '../components/spindle/Spindle';
@@ -23,6 +24,8 @@ export interface HomeHandlers extends DialHandlers {
     onCloseList: () => void;
     /** 㩒右上角細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048） */
     onReturnToLoaded: () => void;
+    /** 㩒拎住嘅碟嘅歌單欄一行：將隻碟放入唱片機播嗰首（T-049） */
+    onPlayHeldTrack: (trackId: string) => void;
 }
 
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */
@@ -38,13 +41,14 @@ interface TurntableProps {
 
 /**
  * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
- * 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 半透明層（拎住另一隻碟，T-049）→ 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
  * 拎住另一隻碟時（T-048）轉盤都淡出、唱片夾唔係掣；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
  * 歌單嘅暗層（暫時嘅佔位，T-037）蓋住全部，只有唱片夾喺佢上面。
  */
 export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps) => {
     const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
     const leadIn = useArmLeadIn(view.armPose, instant);
+    const lowerScrews = layout.screws.points.filter(isLowerHalf);
     const spindle = (
         <Spindle
             ref={spindleRef}
@@ -61,7 +65,7 @@ export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps
     return (
         <>
             <g data-part="screws">
-                <Screws points={layout.screws.points.filter(isLowerHalf)} />
+                <Screws points={lowerScrews} />
             </g>
             <ChromeFade part="platter-fade" hidden={view.holding}>
                 <Platter disc={layout.disc} platter={layout.platter} />
@@ -76,6 +80,7 @@ export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps
             >
                 {!view.listOpen && spindle}
             </DiscStack>
+            <HeldScrim layout={layout} shown={view.holding} screws={lowerScrews} />
             <MachineChrome
                 layout={layout}
                 view={view}
