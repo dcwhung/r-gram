@@ -117,7 +117,10 @@ describe('App and the update manager', () => {
         set('waiting');
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
         const button = screen.getByTestId('stage').querySelector('[data-part="update-button"]');
-        expect(button).toHaveAttribute('tabindex', '-1');
+        expect(button).not.toHaveAttribute('tabindex');
+        // W-058：版本號照畀讀屏讀（D95 🅰️ ①）
+        expect(button).toHaveTextContent(/^v\d+\.\d+\.\d+$/);
+        expect(button?.closest('[aria-hidden="true"]')).toBeNull();
     });
 
     it('should run without an update manager (tests, browsers without service workers)', async () => {
