@@ -98,7 +98,7 @@ export default defineConfig(({ mode }) => {
             injectAppText(),
             remoteFont(fontUrl),
             VitePWA({
-                // prompt：新 Service Worker 裝好後喺 waiting 等，由 pwa/updateManager 揀冇播歌嘅時候先換（T-039）
+                // prompt：新 Service Worker 裝好後喺 waiting 等；開 app（Preload）先自動換，用緊 app 唔自己換，㩒版本掣先換（T-039、T-109）
                 registerType: 'prompt',
                 // public/icons 嘅 png 已經由 globPatterns precache：唔使 plugin 再加一次（唔係就重複兩份）
                 includeManifestIcons: false,

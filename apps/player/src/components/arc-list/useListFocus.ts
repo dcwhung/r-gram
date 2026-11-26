@@ -3,7 +3,7 @@
  * - 打開：focus 入歌單（listbox；冇歌就入暗層 =「關閉歌單」）
  * - Tab／Shift+Tab 只喺舞台入面仲 Tab 得到嘅嘢之間轉（歌單、唱片夾 = 播放、暗層 = 關閉）；下面嘅掣已經
  *   `tabindex="-1"`，所以呢度唔使逐個數
- * - 舞台外面嘅浮層掣（`data-trap-stop`，例如更新提示「立即更新」）都喺兜圈入面，排喺舞台之後（S-199）
+ * - 舞台外面冇掣要兜（T-109：更新提示變咗舞台入面嘅版本掣，喺暗層下面，Tab 唔到；D95）
  * - Esc：收返（同㩒暗位一樣，D25）
  * 收返之後 focus 交返打開歌單嗰粒掣，係外面（HomeScene）嘅事。
  */
@@ -12,20 +12,16 @@ import { type RefObject, useEffect } from 'react';
 /** 開歌單時 focus 落去嘅嘢：歌單；冇歌（冇 listbox）就暗層 */
 const FIRST_STOPS = ['[role="listbox"]', '[data-part="arc-veil"]'];
 const TAB_STOPS = '[tabindex="0"]';
-/** 舞台外面、歌單開住都要去得到嘅掣 */
-const OUTSIDE_STOPS = '[data-trap-stop]';
 
 /** 讀屏睇得到（唔喺 aria-hidden / inert 入面） */
 const isReachable = (element: Element): boolean =>
     element.closest('[aria-hidden="true"], [inert]') === null;
 
-/** Tab 喺舞台（同浮層掣）入面兜圈：最後一個之後返第一個，反之亦然 */
+/** Tab 喺舞台入面兜圈：最後一個之後返第一個，反之亦然 */
 const trapTab = (root: SVGGElement | null, event: KeyboardEvent) => {
     const stage = root?.ownerSVGElement;
     if (!stage) return;
-    const inside = [...stage.querySelectorAll<SVGElement>(TAB_STOPS)];
-    const outside = [...document.querySelectorAll<HTMLElement>(OUTSIDE_STOPS)];
-    const stops = [...inside, ...outside].filter(isReachable);
+    const stops = [...stage.querySelectorAll<SVGElement>(TAB_STOPS)].filter(isReachable);
     if (stops.length === 0) return;
     const at = stops.findIndex((stop) => stop === document.activeElement);
     const step = event.shiftKey ? -1 : 1;
