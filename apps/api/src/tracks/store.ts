@@ -10,7 +10,7 @@ import { CREDIT_FIELDS, type SongText } from '@r-gram/catalog';
 import { TRACK_RETURNING, type TrackRow } from './rows';
 import type { StoredLyrics } from './songText';
 
-/** API-040 / 041 要用嘅欄：歌號、歌名、音檔同歌曲文字檔連結、專輯資料夾、而家嘅歌詞（T-106） */
+/** API-040 / 041 要用嘅欄：歌號、歌名、音檔同歌曲文字檔連結、專輯資料夾同 info_used、而家嘅歌詞（T-106） */
 export interface TrackTextRow {
     id: string;
     album_id: string;
@@ -19,6 +19,8 @@ export interface TrackTextRow {
     audio_key: string | null;
     text_key: string | null;
     folder: string;
+    /** 專輯嘅 info_used：1 = 曲目表由 `info.txt` 嚟（S-183 判斷歌號仲喺唔喺曲目表） */
+    info_used: number;
     json_name: string | null;
     line_count: number | null;
 }
@@ -27,7 +29,7 @@ export const findTrackText = (db: D1Database, id: string) =>
     db
         .prepare(
             `SELECT t.id, t.album_id, t."no", t.title, t.audio_key, t.text_key, a.folder,
-                 l.json_name, l.line_count
+                 a.info_used, l.json_name, l.line_count
              FROM tracks t JOIN albums a ON a.id = t.album_id
              LEFT JOIN lyrics l ON l.track_id = t.id
              WHERE t.id = ?`,

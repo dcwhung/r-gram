@@ -91,6 +91,9 @@ export const zhHant = {
             noAudio: '這首歌沒有音檔，不能儲存歌曲文字。',
             /** 409 TEXT_CONFLICT：同一個歌號有幾個歌曲文字檔，唔知寫邊個 */
             textConflict: '這首歌有多於一個歌曲文字檔，請先在媒體庫只保留一個。',
+            /** 409 TRACK_NOT_LISTED（review S-183）：歌號已經唔喺 `info.txt`，等緊確認移除 */
+            trackNotListed:
+                '這首歌已不在 info.txt 的曲目表內，正等待確認移除，因此不能儲存歌曲文字。',
         },
         /** details[].message：key = details[].reason */
         reasons: {

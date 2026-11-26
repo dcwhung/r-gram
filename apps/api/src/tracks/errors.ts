@@ -30,6 +30,7 @@ const SITUATIONS: Record<TrackSituation, ErrorKind> = {
     fileTooLarge: { status: HTTP_STATUS.conflict, code: ERROR_CODE.fileTooLarge },
     noAudio: { status: HTTP_STATUS.conflict, code: ERROR_CODE.noAudio },
     textConflict: { status: HTTP_STATUS.conflict, code: ERROR_CODE.textConflict },
+    trackNotListed: { status: HTTP_STATUS.conflict, code: ERROR_CODE.trackNotListed },
 };
 
 const ERROR_PARAMS: Partial<Record<TrackSituation, MessageParams>> = {

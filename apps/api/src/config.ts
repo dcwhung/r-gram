@@ -81,6 +81,8 @@ export const ERROR_CODE = {
      * 要喺電腦改細再上載
      */
     fileTooLarge: 'FILE_TOO_LARGE',
+    /** 歌曲文字：歌號已經唔喺曲目表（`info.txt` 冇咗呢首，待確認移除），唔寫（T-106 API-041，review S-183） */
+    trackNotListed: 'TRACK_NOT_LISTED',
     /** 寫返媒體 bucket：D1 記住嘅資料夾嘅 id 唔係呢張碟（人手改過 D1；T-106 API-019、041，review S-184） */
     folderMismatch: 'FOLDER_MISMATCH',
     /** 歌曲文字：呢首歌冇音檔（Functional Spec D54；T-106 API-041 用） */
