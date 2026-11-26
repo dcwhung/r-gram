@@ -1,10 +1,5 @@
 import { HOIST, LIGHT, LIGHT_HALF, SHADE, TAU, WAVES } from './flagMesh';
-import {
-    FLAG_FRAGMENT_SOURCE,
-    FLAG_VERTEX_SOURCE,
-    glslFloat,
-    waveShifts,
-} from './flagShader';
+import { FLAG_FRAGMENT_SOURCE, FLAG_VERTEX_SOURCE, glslFloat, waveShifts } from './flagShader';
 
 /** `const float NAME = 1.0;` / `const vec3 NAME = vec3(1.0, 2.0, 3.0);` → { NAME: number[] } */
 const declaredConstants = (source: string) => {
