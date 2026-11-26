@@ -34,8 +34,9 @@ interface HomeContext {
     play: Dispatch<PlaybackAction>;
 }
 
-/** 歌單入面㩒 play：播揀中嗰首（要播得） */
-const playSelected = ({ catalog, stage, dispatch, play }: HomeContext) => {
+/** 歌單入面㩒 play：播揀中嗰首（要播得）；冇歌嘅碟（D39）= 收返歌單（設計稿 ACTIONS.playpause） */
+const playSelected = ({ catalog, stage, view, dispatch, play }: HomeContext) => {
+    if (view.list?.rows.length === 0) dispatch({ type: 'closeList' });
     const found = stage.selectedTrackId ? findTrack(catalog, stage.selectedTrackId) : null;
     if (!found || !isPlayable(found.track)) return;
     dispatch({ type: 'playSelected' });
