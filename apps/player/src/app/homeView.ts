@@ -16,16 +16,12 @@ import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
 import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
-import { type HeldTracksView, heldTracksView } from './heldTracksView';
-import { isHolding, loadedAlbumOf } from './holding';
+import { type TrackColumnView, trackColumnView } from './heldTracksView';
+import { isHolding, isLoadedHere, loadedAlbumOf } from './holding';
 import { type ArcListView, listView } from './listView';
 import { loadedArmPose, type MiniView, miniView } from './miniView';
 import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
 import type { StageState } from './stageReducer';
-
-/** 播放狀態入面有歌，而且係畫面上呢隻碟嘅（暫停期間轉去睇另一隻碟就唔係：D36 ④） */
-const isLoadedHere = (stage: StageState, playback: PlaybackState): boolean =>
-    playback.status !== 'idle' && playback.albumId === stage.viewAlbumId;
 
 /**
  * 唱臂姿勢（FR-040、D36）：其餘情況（未揀歌、MV、熄 MV 之後、重開 app、拎住另一隻碟）一律泊位。
@@ -89,8 +85,8 @@ export interface HomeView {
     spinning: boolean;
     /** 右上角嘅細唱片機（載入嘅碟，T-048）；冇歌載入 = null */
     mini: MiniView | null;
-    /** 碟名下面拎住嘅碟嘅歌單欄（T-049）；冇拎住另一隻碟 = null */
-    heldTracks: HeldTracksView | null;
+    /** 碟名下面嘅歌單欄（純睇；字母盤開住或者未揀歌先有，B-086）；冇 = null */
+    trackColumn: TrackColumnView | null;
     /** 主頁㩒碟面開弧線歌單（T-037）：冇歌載入時揀中嘅碟、或者載入嘅碟；拎住另一隻碟、電視開住都唔得 */
     canOpenList: boolean;
     /** 弧線歌單（T-037）；冇開 = null */
@@ -135,7 +131,7 @@ const timing = ({ positionSec, durationSec }: PlaybackState) => ({
     timeText: formatTime(positionSec),
 });
 
-/** 拎住另一隻碟時嘅兩樣嘢：右上角細唱片機（T-048）、碟名下面嘅歌單欄（T-049） */
+/** 右上角細唱片機（拎住另一隻碟，T-048）、碟名下面嘅歌單欄（B-086） */
 const heldParts = (
     document: CatalogDocument,
     stage: StageState,
@@ -144,7 +140,7 @@ const heldParts = (
     holding: boolean,
 ) => ({
     mini: miniView(document, playback, dial.entries, holding),
-    heldTracks: heldTracksView(document, stage, holding),
+    trackColumn: trackColumnView(document, stage, playback),
 });
 
 /** 歌單、歌書、電視開住未 */

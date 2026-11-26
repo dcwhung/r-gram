@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import type { HeldTracksView } from '../../app/heldTracksView';
+import type { TrackColumnView } from '../../app/heldTracksView';
 import { t } from '../../i18n/t';
 import { heldRowHitRight } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
@@ -16,7 +16,7 @@ import { useShownTitles } from './useShownTitles';
 
 interface HeldTrackListProps {
     layout: StageLayout;
-    held: HeldTracksView;
+    held: TrackColumnView;
     /** 顯示緊嘅碟嘅碟名（成欄嘅無障礙名） */
     albumTitle: string;
     measure: TextMeasure;

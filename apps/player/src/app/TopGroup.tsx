@@ -63,11 +63,11 @@ export const TopGroup = ({
                 onPress={onReturnToLoaded}
             />
         )}
-        {view.heldTracks && (
+        {view.trackColumn && (
             <HeldTrackList
-                key={view.heldTracks.albumId}
+                key={view.trackColumn.albumId}
                 layout={layout}
-                held={view.heldTracks}
+                held={view.trackColumn}
                 albumTitle={view.dial.entries[view.dial.current]?.title ?? ''}
                 measure={measure}
             />

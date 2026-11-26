@@ -176,7 +176,10 @@ describe('useHome holding another disc', () => {
 
     it('should list the held disc under its title, longer while the dial is open', () => {
         const result = holdRoom();
-        expect(result.current.view?.trackColumn).toMatchObject({ albumId: 'room', dialOpen: false });
+        expect(result.current.view?.trackColumn).toMatchObject({
+            albumId: 'room',
+            dialOpen: false,
+        });
         expect(result.current.handlers).not.toHaveProperty('onPlayHeldTrack');
         act(() => result.current.handlers?.onTurnStart());
         expect(result.current.view?.trackColumn).toMatchObject({ dialOpen: true });

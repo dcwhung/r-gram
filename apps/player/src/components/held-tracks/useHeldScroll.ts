@@ -1,4 +1,4 @@
-import type { HeldTracksView } from '../../app/heldTracksView';
+import type { TrackColumnView } from '../../app/heldTracksView';
 import { heldColumnBottom } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
 import { useStageFitContext } from '../../stage/StageContext';
@@ -10,7 +10,7 @@ import { type ColumnScroll, useColumnScroll } from './useColumnScroll';
  */
 export const useHeldScroll = (
     layout: StageLayout,
-    held: HeldTracksView,
+    held: TrackColumnView,
 ): ColumnScroll & { room: number } => {
     const column = layout.heldTracks;
     const { unit, extraUnits } = useStageFitContext();

@@ -31,10 +31,13 @@ describe('trackColumnView', () => {
         ['the arc list is open', stageOn('apollo-18', 'list'), IDLE_PLAYBACK, false],
         ['still on Preload', stageOn('apollo-18', 'preload'), IDLE_PLAYBACK, false],
         ['the MV is open', { ...stageOn('room'), overlay: 'mv' }, ROOM_PLAYING, false],
-    ] as const)('should decide whether the column shows when %s', (_case, stage, playback, shown) => {
-        const view = trackColumnView(sampleDocument(), stage, playback);
-        expect(view !== null).toBe(shown);
-    });
+    ] as const)(
+        'should decide whether the column shows when %s',
+        (_case, stage, playback, shown) => {
+            const view = trackColumnView(sampleDocument(), stage, playback);
+            expect(view !== null).toBe(shown);
+        },
+    );
 
     it('should list every track of the disc on screen, grey when it has no audio', () => {
         const view = trackColumnView(sampleDocument(), stageOn('apollo-18'), IDLE_PLAYBACK);
@@ -73,8 +76,9 @@ describe('trackColumnView', () => {
             rows: [],
             emptyText: '尚未有歌曲',
         });
-        expect(trackColumnView(empty, stageOn(FAVOURITES_ALBUM_ID), IDLE_PLAYBACK)).toMatchObject(
-            { rows: [], emptyText: '尚未收藏歌曲' },
-        );
+        expect(trackColumnView(empty, stageOn(FAVOURITES_ALBUM_ID), IDLE_PLAYBACK)).toMatchObject({
+            rows: [],
+            emptyText: '尚未收藏歌曲',
+        });
     });
 });

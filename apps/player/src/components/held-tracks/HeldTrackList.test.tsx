@@ -1,5 +1,5 @@
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
-import type { HeldTrackRow, HeldTracksView } from '../../app/heldTracksView';
+import type { HeldTrackRow, TrackColumnView } from '../../app/heldTracksView';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { estimateTextWidth, type TextMeasure } from '../../utils/textMeasure';
 import { HeldTrackList } from './HeldTrackList';
@@ -17,7 +17,7 @@ const row = (no: number, playable = true, title = `歌 ${no}`): HeldTrackRow => 
     playable,
 });
 
-const held = (rows: readonly HeldTrackRow[], overrides: Partial<HeldTracksView> = {}) => ({
+const held = (rows: readonly HeldTrackRow[], overrides: Partial<TrackColumnView> = {}) => ({
     albumId: 'room',
     accent: ACCENT,
     rows,
@@ -29,7 +29,7 @@ const held = (rows: readonly HeldTrackRow[], overrides: Partial<HeldTracksView> 
 const LONG = Array.from({ length: 30 }, (_, index) => row(index + 1));
 const name = (no: number) => `第 ${no} 首：歌 ${no}`;
 
-const renderList = (view: HeldTracksView, measure: TextMeasure = estimateTextWidth) => {
+const renderList = (view: TrackColumnView, measure: TextMeasure = estimateTextWidth) => {
     const result = render(
         <svg>
             <HeldTrackList layout={PHONE_LAYOUT} held={view} albumTitle="ROOM" measure={measure} />
@@ -46,7 +46,9 @@ const renderList = (view: HeldTracksView, measure: TextMeasure = estimateTextWid
         return Number(title?.getAttribute('y')) + Number(dy);
     };
     const room = () =>
-        Number(result.container.querySelector('[data-part="held-clip"] rect')?.getAttribute('height'));
+        Number(
+            result.container.querySelector('[data-part="held-clip"] rect')?.getAttribute('height'),
+        );
     return { ...result, list, rowY, room };
 };
 

@@ -10,6 +10,20 @@ import type { StageState } from './stageReducer';
 export const loadedAlbumOf = (playback: PlaybackState): string | null =>
     playback.status === 'idle' ? null : playback.albumId;
 
+/** 播放狀態入面有歌，而且係畫面上呢隻碟嘅（暫停期間轉去睇另一隻碟就唔係：D36 ④）= 顯示緊嘅碟揀咗歌 */
+export const isLoadedHere = (stage: StageState, playback: PlaybackState): boolean =>
+    playback.status !== 'idle' && playback.albumId === stage.viewAlbumId;
+
+/**
+ * 歌單欄幾時出（設計稿第 19 版 showsColumn()；backlog B-086，一條規則）：字母盤開住，或者主頁顯示緊嘅碟未揀歌
+ *（冇歌載入、拎住另一隻碟）。揀咗歌而字母盤冇開 = 左上係歌名，冇歌單欄；弧線歌單、MV 開住時都冇
+ */
+export const showsColumn = (stage: StageState, playback: PlaybackState): boolean => {
+    if (stage.overlay === 'mv') return false;
+    if (stage.scene === 'discChange') return true;
+    return stage.scene === 'home' && !isLoadedHere(stage, playback);
+};
+
 export const isHolding = (stage: StageState, loadedAlbumId: string | null): boolean =>
     loadedAlbumId !== null &&
     (stage.scene === 'home' || stage.scene === 'discChange') &&

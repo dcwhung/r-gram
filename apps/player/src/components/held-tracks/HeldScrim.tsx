@@ -12,7 +12,7 @@ const MASK_COLOUR = '#fff';
 
 interface HeldScrimProps {
     layout: StageLayout;
-    /** 拎住另一隻碟先顯示（chromeFade 過場；減少動態效果即時） */
+    /** 有歌單欄先顯示（設計稿第 19 版 showsColumn()；chromeFade 過場；減少動態效果即時） */
     shown: boolean;
     /** 同層嘅螺絲（貼底組：左下）：喺層上面再畫一次，唔好俾佢遮淡 */
     screws: readonly Point[];
