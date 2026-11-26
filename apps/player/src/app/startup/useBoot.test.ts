@@ -5,6 +5,7 @@ import { makeAlbum, makeDocument, withSecondCover } from '../../catalog/testing/
 import { MOTION } from '../../config/motion';
 import type { StartupDeps } from './startupDeps';
 import { useBoot } from './useBoot';
+import { testPlayback } from '../../playback/testing/testPlayback';
 
 const IMG = 'https://api.example/catalog/v1/img/';
 const twoCovers = (): CatalogDocument =>
@@ -63,7 +64,7 @@ describe('useBoot', () => {
 
     it('should show real progress and open the first disc once all three items are done', async () => {
         const { deps, catalog, fonts, image } = controlledDeps();
-        const { result } = renderHook(() => useBoot(deps));
+        const { result } = renderHook(() => useBoot(deps, testPlayback()));
         expect(result.current.preload.progress).toBe(0);
         await act(async () => fonts.resolve());
         expect(result.current.preload.progress).toBeCloseTo(1 / 3);
@@ -84,7 +85,7 @@ describe('useBoot', () => {
     it('should leave Preload when the catalog arrives after everything else', async () => {
         const { deps, catalog, fonts } = controlledDeps();
         const document = makeDocument([makeAlbum('room', [])]);
-        const { result } = renderHook(() => useBoot(deps));
+        const { result } = renderHook(() => useBoot(deps, testPlayback()));
         await act(async () => fonts.resolve());
         await settle();
         expect(result.current.home.stage.scene).toBe('preload');
@@ -101,7 +102,7 @@ describe('useBoot', () => {
             .fn<StartupDeps['loadCatalog']>()
             .mockResolvedValueOnce({ status: 'unavailable', failure: 'network' })
             .mockResolvedValueOnce(ready(makeDocument([makeAlbum('room', [])])));
-        const { result } = renderHook(() => useBoot({ ...deps, loadCatalog }));
+        const { result } = renderHook(() => useBoot({ ...deps, loadCatalog }, testPlayback()));
         await act(async () => fonts.resolve());
         await settle();
         expect(result.current.preload.phase).toBe('failed');
@@ -126,7 +127,7 @@ describe('useBoot leaving Preload with motion', () => {
             loadFonts: () => Promise.resolve(),
             loadImage: () => Promise.resolve(true),
         };
-        const { result } = renderHook(() => useBoot(deps));
+        const { result } = renderHook(() => useBoot(deps, testPlayback()));
         const { preloadStepMs, preloadHoldMs, flagFadeMs } = MOTION.scene;
         // 三項即刻完成（計時器由嗰一刻開始計）：淨係行 promise，唔郁時間
         for (let round = 0; round < FLUSH_ROUNDS; round += 1) await act(async () => {});

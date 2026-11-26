@@ -14,13 +14,15 @@ import { coverVariantOf, type CoverVariants, NO_COVER_PICKS } from '../catalog/c
 import { albumArt, albumTracks, findAlbum, isPlayable } from '../catalog/selectors';
 import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
+import { t } from '../i18n/t';
+import { DEFAULT_PLAY_MODE, type PlayMode } from '../playback/playModes';
 import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
 import { type TrackColumnView, trackColumnView } from './heldTracksView';
 import { isHolding, isLoadedHere, loadedAlbumOf } from './holding';
 import { type ArcListView, listView } from './listView';
 import { loadedArmPose, type MiniView, miniView } from './miniView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import type { StageState } from './stageReducer';
 
 /**
@@ -63,7 +65,12 @@ export interface HomeView {
     armPose: ArmPose;
     /** 播放進度 0–1 */
     progress: number;
+    /** 「第 nn 首 · 」後面：播放位置 `m:ss`；載入失敗 = 一行錯誤提示（US-004） */
     timeText: string;
+    /** 呢隻碟嘅歌載入失敗（唱臂泊位、唱片夾 play；再㩒 = 由泊位重新開始同一首） */
+    failed: boolean;
+    /** 而家嘅播放模式（模式掣嘅 icon 同名） */
+    mode: PlayMode;
     hasSong: boolean;
     hasMv: boolean;
     playing: boolean;
@@ -82,7 +89,7 @@ export interface HomeView {
     buttonsHidden: boolean;
     /** 左上歌名嗰部分（音量條、歌名、心形、「第 nn 首」同時間）淡出，只留碟名同年份 */
     songHidden: boolean;
-    /** 畫面上嘅碟轉緊：播緊呢隻碟，而且唔係揀緊碟、唔係拎住另一隻碟 */
+    /** 畫面上嘅碟轉緊：播緊呢隻碟、真係出緊聲，而且唔係揀緊碟、唔係拎住另一隻碟 */
     spinning: boolean;
     /** 右上角嘅細唱片機（載入嘅碟，T-048）；冇歌載入 = null */
     mini: MiniView | null;
@@ -114,7 +121,12 @@ const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: 
  * `holding` = 載入嘅碟 ≠ 顯示嘅碟（主頁或者揀緊碟）。字母盤開住：唱臂、細掣淡出；拎住另一隻碟：唱臂淡出
  *（細唱片機有自己支唱臂），細掣照出。兩種情況歌名嗰部分都淡出，碟停轉
  */
-const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose) => {
+const choosingView = (
+    stage: StageState,
+    playback: PlaybackState,
+    pose: ArmPose,
+    audible: boolean,
+) => {
     const loadedAlbumId = loadedAlbumOf(playback);
     const holding = isHolding(stage, loadedAlbumId);
     const dialOpen = stage.scene === 'discChange';
@@ -126,14 +138,15 @@ const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose)
         buttonsHidden: dialOpen,
         // 弧線歌單開住：左上係框入面嗰首（設計稿 songFade = list ? 1）
         songHidden: armHidden && stage.scene !== 'list',
-        spinning: pose === 'playing' && !armHidden,
+        spinning: pose === 'playing' && !armHidden && audible,
     };
 };
 
-/** 播放進度（0–1）同左上嘅時間 */
-const timing = ({ positionSec, durationSec }: PlaybackState) => ({
+/** 播放進度（0–1）同左上嘅時間；載入失敗時間嗰度變錯誤提示 */
+const timing = ({ positionSec, durationSec }: PlaybackState, failed: boolean) => ({
     progress: durationSec ? Math.min(1, positionSec / durationSec) : 0,
-    timeText: formatTime(positionSec),
+    timeText: failed ? t('track.failed') : formatTime(positionSec),
+    failed,
 });
 
 /** 右上角細唱片機（拎住另一隻碟，T-048）、碟名下面嘅歌單欄（B-086） */
@@ -146,6 +159,13 @@ const heldParts = (
 ) => ({
     mini: miniView(document, playback, dial.entries, holding),
     trackColumn: trackColumnView(document, stage, playback),
+});
+
+/** 有歌（歌書有內容）、有 MV；播放模式（模式掣） */
+const songFlags = (track: CatalogTrack | null, mode: PlayMode) => ({
+    hasSong: track !== null,
+    hasMv: Boolean(track?.mv),
+    mode,
 });
 
 /** 歌單、歌書、電視開住未 */
@@ -175,22 +195,23 @@ export const homeView = (
     stage: StageState,
     playback: PlaybackState,
     covers: CoverVariants = NO_COVER_PICKS,
+    mode: PlayMode = DEFAULT_PLAY_MODE,
+    audible = true,
 ): HomeView => {
     const album = stage.viewAlbumId ? findAlbum(document, stage.viewAlbumId) : null;
     const track = loadedTrack(album, stage, playback);
     const spindle = spindleMode(stage, playback);
     const pose = armPose(stage, playback);
     const dial = dialView(document, stage, covers);
-    const choosing = choosingView(stage, playback, pose);
+    const choosing = choosingView(stage, playback, pose, audible);
     return {
         album,
         track,
         ...colours(document, album, covers),
         spindle,
         armPose: pose,
-        ...timing(playback),
-        hasSong: track !== null,
-        hasMv: Boolean(track?.mv),
+        ...timing(playback, track !== null && playback.status === 'error'),
+        ...songFlags(track, mode),
         playing: spindle === 'playing',
         ...openFlags(stage),
         dial,

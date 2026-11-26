@@ -3,7 +3,7 @@ import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { estimateTextWidth } from '../utils/textMeasure';
 import { HomeScene } from './HomeScene';
 import { homeView } from './homeView';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
 /* T-109：有新版本時右上版本號變成掣（設計稿第 20 版 updateButton()），永遠喺暗層下面 */

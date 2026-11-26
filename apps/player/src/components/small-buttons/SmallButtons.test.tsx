@@ -117,4 +117,30 @@ describe('SmallButtons', () => {
         (buttons[2] as SVGGElement).dispatchEvent(new MouseEvent('click', { bubbles: true }));
         expect(onMode).not.toHaveBeenCalled();
     });
+
+    // T-038：播放模式掣嘅名跟而家嘅模式（Functional Spec「播放模式」介面文字）
+    it.each([
+        ['all', '播放模式：全部重複'],
+        ['one', '播放模式：單曲重複'],
+        ['shuffle', '播放模式：隨機播放'],
+    ] as const)('should name the mode button after the %s mode', (mode, name) => {
+        render(
+            <svg>
+                <SmallButtons
+                    layout={PHONE_LAYOUT}
+                    glow="#24f96f"
+                    hasSong
+                    hasMv={false}
+                    bookletOpen={false}
+                    mvOpen={false}
+                    playing
+                    mode={mode}
+                    onBooklet={vi.fn()}
+                    onMv={vi.fn()}
+                    onMode={vi.fn()}
+                />
+            </svg>,
+        );
+        expect(screen.getByRole('button', { name })).toBeInTheDocument();
+    });
 });

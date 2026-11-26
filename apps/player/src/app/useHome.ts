@@ -1,16 +1,16 @@
 import type { CatalogDocument } from '@r-gram/catalog';
-import { type Dispatch, useCallback, useReducer } from 'react';
+import { type Dispatch, useCallback, useReducer, useState, useSyncExternalStore } from 'react';
 import type { CoverVariants } from '../catalog/coverVariants';
-import { albumTracks, dialAlbums, findTrack, isPlayable } from '../catalog/selectors';
+import { dialAlbums, findTrack, isPlayable } from '../catalog/selectors';
 import { useCoverVariants } from '../catalog/useCoverVariants';
 import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
+import { createAudioEngine } from '../playback/audioEngine';
+import { createPlaybackController, type PlaybackController } from '../playback/playbackController';
+import { playbackSource } from '../playback/playbackSource';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
+import { isHolding, loadedAlbumOf } from './holding';
+import { endedWaitRuns, useEndedRelease } from './useEndedRelease';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
-import {
-    IDLE_PLAYBACK,
-    type PlaybackAction,
-    playbackReducer,
-    type PlaybackState,
-} from './playbackState';
 import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from './stageReducer';
 import type { HomeHandlers } from './Turntable';
 
@@ -30,24 +30,33 @@ interface HomeContext {
     stage: StageState;
     playback: PlaybackState;
     view: HomeView;
+    covers: CoverVariants;
     dispatch: Dispatch<StageAction>;
-    play: Dispatch<PlaybackAction>;
+    player: PlaybackController;
 }
 
 /**
- * 開始播一首（弧線歌單、唱片夾共用嘅路）：播放狀態 start（載入嘅碟換咗 = 舊歌停、唱臂由泊位開場）。
- * 真正出聲、隊列係 T-038
+ * 開始播一首（弧線歌單、唱片夾共用嘅路）：舊歌停、成隻碟交畀 controller 做隊列、唱臂由泊位開場，
+ * 唱針放低先出聲。一定要喺手勢 handler 入面同步行到呢度（`cue` 解鎖 iOS 播放；T-011 §2.5）
  */
-const startTrack = (play: Dispatch<PlaybackAction>, albumId: string, trackId: string) =>
-    play({ type: 'start', albumId, trackId });
+const startTrack = (
+    { catalog, covers, player }: HomeContext,
+    albumId: string,
+    trackId: string | null,
+) => {
+    const source = playbackSource(catalog, albumId, covers);
+    const id = trackId ?? source?.tracks[0]?.id;
+    if (source && id) player.start(source, id);
+};
 
 /** 歌單入面㩒 play：播揀中嗰首（要播得）；冇歌嘅碟（D39）= 收返歌單（設計稿 ACTIONS.playpause） */
-const playSelected = ({ catalog, stage, view, dispatch, play }: HomeContext) => {
+const playSelected = (context: HomeContext) => {
+    const { catalog, stage, view, dispatch } = context;
     if (view.list?.rows.length === 0) dispatch({ type: 'closeList' });
     const found = stage.selectedTrackId ? findTrack(catalog, stage.selectedTrackId) : null;
     if (!found || !isPlayable(found.track)) return;
     dispatch({ type: 'playSelected' });
-    startTrack(play, found.album.id, found.track.id);
+    startTrack(context, found.album.id, found.track.id);
 };
 
 /** 打開歌單，預先揀中載入嘅歌或者第一首（US-004） */
@@ -58,49 +67,52 @@ const openList = ({ catalog, stage, playback, dispatch }: HomeContext) => {
 };
 
 /**
- * 歌單入面 Enter／Space（行唔㩒得，W-051）：揀框入面嗰首，再同㩒唱片夾一樣播（返主頁、播放狀態 start；
- * 真正出聲係 T-038）。要係歌單開住、嗰首喺呢隻碟而且播得
+ * 歌單入面 Enter／Space（行唔㩒得，W-051）：揀框入面嗰首，再同㩒唱片夾一樣播（返主頁、開始播）。
+ * 要係歌單開住、嗰首喺呢隻碟而且播得
  */
 const playListTrack = (context: HomeContext, trackId: string) => {
-    const { view, dispatch, play } = context;
+    const { view, dispatch } = context;
     const row = view.list?.rows.find((candidate) => candidate.id === trackId);
     if (!view.list || !row?.playable) return;
     dispatch({ type: 'focusTrack', trackId });
     dispatch({ type: 'playSelected' });
-    startTrack(play, view.list.albumId, trackId);
+    startTrack(context, view.list.albumId, trackId);
 };
 
 /**
- * 未揀歌㩒 play（設計稿第 19 版 ACTIONS.playpause；B-086 ③）：播顯示緊嘅碟第一首有音檔嘅歌，
- * 拎住另一隻碟 = 隻碟入機（舊歌停、唱臂由泊位開場）。冇歌播得就乜都唔做。真正出聲係 T-038
+ * 未揀歌㩒 play（設計稿第 19 版 ACTIONS.playpause；D85）：播顯示緊嘅碟第一首有音檔嘅歌，
+ * 拎住另一隻碟 = 隻碟入機（舊歌停、唱臂由泊位開場）。冇歌播得就乜都唔做
  */
-const playFirst = ({ catalog, stage, play }: HomeContext) => {
-    const albumId = stage.viewAlbumId;
-    const first = albumId ? albumTracks(catalog, albumId).find(isPlayable) : undefined;
-    if (albumId && first) startTrack(play, albumId, first.id);
+const playFirst = (context: HomeContext) => {
+    const albumId = context.stage.viewAlbumId;
+    if (albumId) startTrack(context, albumId, null);
 };
 
+/**
+ * 唱片夾：歌單 = 播框入面嗰首；未揀歌 = 第一首；載入嘅碟 = 暫停／繼續
+ *（播完、載入失敗 = 由泊位重新開始：controller 喺同一個手勢入面 cue）
+ */
 const pressSpindle = (context: HomeContext) => {
-    const { view, play } = context;
+    const { view, player } = context;
     // 電視開住時唱片夾喺電視後面（T-060）；字母盤開住時唔㩒得（B-086 ④）
     if (view.mvOpen || view.dial.open) return;
     if (view.spindle === 'list') playSelected(context);
     else if (view.spindle === 'idle') playFirst(context);
-    else play({ type: 'toggle' });
+    else player.toggle();
 };
 
 /**
  * MV：開電視時停播（唱臂返泊位）。電視（連 ■ 掣）係 T-060：未有之前，電視開住時再㩒 MV 掣就收返，
  * 收返之後唔自動續播（C8）。
  */
-const pressMv = ({ stage, view, dispatch, play }: HomeContext) => {
+const pressMv = ({ stage, view, dispatch, player }: HomeContext) => {
     if (view.mvOpen) {
         dispatch({ type: 'closeMv' });
         return;
     }
     if (stage.scene !== 'home' || !view.hasMv) return;
     dispatch({ type: 'openMv', hasMv: true });
-    play({ type: 'pauseFor', reason: 'mv' });
+    player.pauseFor('mv');
 };
 
 /** 旋鈕指住第 position 格：轉去嗰格嘅碟（♥ 格 = Favourites 碟）；格外嘅數唔理 */
@@ -114,7 +126,7 @@ const turnTo = ({ view, dispatch }: HomeContext, position: number) => {
  * ♥ 一㩒去 Favourites 碟
  */
 const dialHandlers = (context: HomeContext) => ({
-    onTurnStart: () => context.dispatch({ type: 'openDiscChange' }),
+    onTurnStart: () => releaseIfEnded(context).dispatch({ type: 'openDiscChange' }),
     onTurn: (position: number) => turnTo(context, position),
     onTurnEnd: () => context.dispatch({ type: 'closeDiscChange' }),
     onTurnCancel: () => context.dispatch({ type: 'cancelDiscChange' }),
@@ -124,23 +136,52 @@ const dialHandlers = (context: HomeContext) => ({
 /** 弧線歌單（T-037、B-086 ②）：㩒碟面打開（拎住另一隻碟都得）、捲到框入面嗰首、Enter 播 */
 const listHandlers = (context: HomeContext) => ({
     onOpenList: () => {
-        if (context.view.canOpenList) openList(context);
+        if (context.view.canOpenList) openList(releaseIfEnded(context));
     },
     onFocusListTrack: (trackId: string) => context.dispatch({ type: 'focusTrack', trackId }),
     onPlayListTrack: (trackId: string) => playListTrack(context, trackId),
 });
 
+/** 播完而冇拎住另一隻碟（3 秒等緊，D99） */
+const isEndedHere = ({ playback, view }: HomeContext) =>
+    playback.status === 'ended' && !view.holding;
+
+/**
+ * D99 ①：3 秒內擰旋鈕、㩒碟面、開歌書／MV = 即刻當 3 秒到咗（放低隻碟），再做嗰個操作。
+ * 回傳放低之後嘅 context（播放 = 冇歌載入），等操作用新狀態
+ */
+const releaseIfEnded = (context: HomeContext): HomeContext => {
+    if (!isEndedHere(context)) return context;
+    context.player.release();
+    return { ...context, playback: IDLE_PLAYBACK };
+};
+
+/** 歌書、MV：播完 3 秒內㩒（開）= 放低隻碟；收埋照收（之後由頭計 3 秒）；放低之後未揀歌，兩粒掣冇嘢開（D24、C5），所以唔再開 */
+const pressOverlay = (context: HomeContext, open: (context: HomeContext) => void) => {
+    const closing = context.view.mvOpen || context.view.bookletOpen;
+    if (isEndedHere(context) && !closing) context.player.release();
+    else open(context);
+};
+
+/** 㩒細唱片機返去：載入嘅碟拎住期間播完咗 = 未揀歌嘅主頁（D99 ⑤，唔使再等 3 秒） */
+const returnToLoaded = ({ playback, player, dispatch, view }: HomeContext) => {
+    if (playback.status === 'ended') player.release();
+    dispatch({ type: 'returnToLoaded', loadedAlbumId: view.loadedAlbumId });
+};
+
 const handlersFor = (context: HomeContext): HomeHandlers => ({
     ...dialHandlers(context),
     onSpindle: () => pressSpindle(context),
-    onBooklet: () => context.dispatch({ type: 'toggleBooklet', hasSong: context.view.hasSong }),
-    onMv: () => pressMv(context),
-    // 四個播放模式係 T-071
-    onMode: () => {},
+    onBooklet: () =>
+        pressOverlay(context, ({ dispatch, view }) =>
+            dispatch({ type: 'toggleBooklet', hasSong: view.hasSong }),
+        ),
+    onMv: () => pressOverlay(context, pressMv),
+    // 順序 → 重覆全部 → 重覆一首 → 隨機（設計稿第 20 版 MODES），存喺本機
+    onMode: () => context.player.cycleMode(),
     onCloseList: () => context.dispatch({ type: 'closeList' }),
     ...listHandlers(context),
-    onReturnToLoaded: () =>
-        context.dispatch({ type: 'returnToLoaded', loadedAlbumId: context.view.loadedAlbumId }),
+    onReturnToLoaded: () => returnToLoaded(context),
 });
 
 export interface Home {
@@ -159,12 +200,32 @@ export interface Home {
 }
 
 /**
- * 主頁嘅狀態同動作：場景狀態機 + 播放狀態（暫時，T-038 取代）+ catalog → 畫面要嘅值。
+ * 播放 controller 成個 app 一個：第一次 render 嗰個一直用（唔會因為 re-render 換）。
+ * 冇畀（只有 spike 頁嘅靜止主頁）就自己建一個（唔接 Media Session，唔搶 spike 頁嘅鎖屏測試）；app 一律由 main.tsx 畀
+ */
+const usePlayer = (controller: PlaybackController | undefined) => {
+    const [player] = useState(
+        () =>
+            controller ?? createPlaybackController({ engine: createAudioEngine(), session: null }),
+    );
+    const { playback, mode, audible } = useSyncExternalStore(player.subscribe, player.getSnapshot);
+    return { player, playback, mode, audible };
+};
+
+/**
+ * 主頁嘅狀態同動作：場景狀態機 + 播放 controller（外部 store，T-038）+ catalog → 畫面要嘅值。
+ * 播完最後一首 3 秒後放低隻碟（D99，`useEndedRelease`）。
  * 封面：開 app 時每張專輯揀一張（CR-005 D56；`random` 測試用固定值），畫面上嘅碟另一張封面有空先攞入 cache。
  */
-export const useHome = (catalog: CatalogDocument | null, random?: () => number): Home => {
+export const useHome = (
+    catalog: CatalogDocument | null,
+    controller?: PlaybackController,
+    random?: () => number,
+): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
-    const [playback, play] = useReducer(playbackReducer, IDLE_PLAYBACK);
+    const { player, playback, mode, audible } = usePlayer(controller);
+    const holding = isHolding(stage, loadedAlbumOf(playback));
+    useEndedRelease(endedWaitRuns(playback, stage, holding), player.release);
     const covers = useCoverVariants(catalog, random);
     usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
     const finishPreload = useCallback(() => {
@@ -172,13 +233,13 @@ export const useHome = (catalog: CatalogDocument | null, random?: () => number):
         if (first) dispatch({ type: 'preloadDone', albumId: first.id });
     }, [catalog]);
     if (!catalog) return { stage, playback, covers, view: null, handlers: null, finishPreload };
-    const view = homeView(catalog, stage, playback, covers);
+    const view = homeView(catalog, stage, playback, covers, mode, audible);
     return {
         stage,
         playback,
         covers,
         view,
-        handlers: handlersFor({ catalog, stage, playback, view, dispatch, play }),
+        handlers: handlersFor({ catalog, stage, playback, view, covers, dispatch, player }),
         finishPreload,
     };
 };

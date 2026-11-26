@@ -7,7 +7,7 @@ import { albumTracks, findAlbum } from '../catalog/selectors';
 import { t } from '../i18n/t';
 import { trackRow, type TrackRow } from './heldTracksView';
 import { isLoadedHere } from './holding';
-import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
+import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import type { StageState } from './stageReducer';
 
 export interface ArcListView {

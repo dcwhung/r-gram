@@ -1,4 +1,5 @@
 import { t } from '../../i18n/t';
+import type { PlayMode } from '../../playback/playModes';
 import { hitSizeUnits } from '../../stage/geometry';
 import type { ButtonId, StageLayout } from '../../stage/layouts';
 import { MetalButton } from '../metal-button/MetalButton';
@@ -14,6 +15,8 @@ interface SmallButtonsProps {
     mvOpen: boolean;
     /** 播緊：播放模式掣著燈 */
     playing: boolean;
+    /** 而家嘅播放模式：icon 同名跟佢（冇 = 順序播放） */
+    mode?: PlayMode;
     /** 歌單嘅暗層蓋住（S-074）：三粒掣 Tab 唔到、讀屏唔讀 */
     covered?: boolean;
     onBooklet: () => void;
@@ -25,7 +28,7 @@ interface SmallButtonsProps {
  * 左邊三粒細掣（設計稿 buttonState()）：
  * - 歌書：有歌先㩒得（D24）；係開關掣，打開咗就著燈兼 `aria-pressed`
  * - MV：有 MV 先㩒得；電視開咗就著燈
- * - 播放模式：光圈 = 播緊（唔係「已按下」，S-034）；模式而家固定順序播放（四個模式係 T-071）
+ * - 播放模式：光圈 = 播緊（唔係「已按下」，S-034）；模式靠 icon 同名分（設計稿第 20 版 MODES）
  */
 export const SmallButtons = (props: SmallButtonsProps) => {
     const { layout, glow } = props;
@@ -33,7 +36,7 @@ export const SmallButtons = (props: SmallButtonsProps) => {
         const item = layout.buttons.items.find((button) => button.id === id);
         return { x: item?.x ?? 0, y: item?.y ?? 0 };
     };
-    const { covered = false } = props;
+    const { covered = false, mode = 'order' } = props;
     const common = { glow, covered, metrics: layout.buttons, hitRadius: hitSizeUnits(layout) / 2 };
     return (
         <g data-part="small-buttons" aria-hidden={covered || undefined}>
@@ -59,8 +62,8 @@ export const SmallButtons = (props: SmallButtonsProps) => {
             <MetalButton
                 {...common}
                 {...position('mode')}
-                icon="order"
-                label={t('mode.label', { mode: t('mode.order') })}
+                icon={mode}
+                label={t('mode.label', { mode: t(`mode.${mode}`) })}
                 lit={props.playing}
                 onPress={props.onMode}
             />

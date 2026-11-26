@@ -3,7 +3,7 @@
  * 載入嘅碟 = 播放狀態嘅 albumId（播緊或者暫停緊）；顯示嘅碟 = 場景狀態嘅 viewAlbumId。
  * 兩個唔同，而且喺主頁（或者旋鈕開住、或者開咗嗰隻碟嘅弧線歌單，設計稿第 19 版）= 手上拎住另一隻碟。衍生值，唔另外存（D58 ③：重開 app 唔記低）。
  */
-import type { PlaybackState } from './playbackState';
+import type { PlaybackState } from '../playback/playbackState';
 import type { StageState } from './stageReducer';
 
 /** 唱片機入面嘅碟：播放狀態唔係 idle 先有 */

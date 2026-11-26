@@ -6,7 +6,16 @@
  * 由泊位開始播有兩段開場（lead-in）：swing = 升高住轉到碟上面；drop = 放低唱針。小燈同碟等放低之後先郁。
  * 暫停之後繼續冇 lead-in：只係放低唱針（CSS 過場）。
  */
+import { MOTION } from '../../config/motion';
+
 export type ArmPose = 'parked' | 'playing' | 'lifted';
+
+/**
+ * 由泊位開始播，幾耐之後唱針放低（= 出聲嗰刻；T-011 報告 §2.4）：轉入 + 放低，同 useArmLeadIn 讀同一組 token。
+ * 減少動態效果冇開場（FR-040）= 0，載到就出聲
+ */
+export const leadInMs = (reduceMotion: boolean): number =>
+    reduceMotion ? 0 : MOTION.scene.tonearmMs + MOTION.scene.needleDropMs;
 
 /** 開場進行緊邊段；null = 冇開場（停喺姿勢本身） */
 export type ArmLeadIn = 'swing' | 'drop' | null;
