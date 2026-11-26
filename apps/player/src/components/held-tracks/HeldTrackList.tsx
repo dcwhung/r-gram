@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { HeldTracksView } from '../../app/heldTracksView';
 import { t } from '../../i18n/t';
 import type { StageLayout } from '../../stage/layouts';
@@ -10,6 +11,7 @@ import { HeldTrackRow } from './HeldTrackRow';
 import './heldTracks.css';
 import { ScrollBar } from './ScrollBar';
 import { useHeldScroll } from './useHeldScroll';
+import { useShownTitles } from './useShownTitles';
 
 interface HeldTrackListProps {
     layout: StageLayout;
@@ -43,13 +45,16 @@ const EmptyText = ({ layout, text }: { layout: StageLayout; text: string }) => {
  * 冇黑色層。旋鈕開住時欄較短、行未㩒得；歌多就喺欄入面捲（拖動、滾輪、鍵盤），頂底淡出、左邊位置條。
  * 以碟做 key render（換碟捲動歸零）。欄底跟貼底組：高身手機向下伸。
  */
-type RowsProps = Omit<HeldTrackListProps, 'albumTitle'> & {
-    scroll: number;
-    showRow: (index: number) => void;
+type RowsProps = Pick<HeldTrackListProps, 'layout' | 'held' | 'onPlay'> & {
+    shown: readonly string[];
+    onFocusRow: (index: number) => void;
 };
 
-/** 全部行（欄外嘅都 render：Tab 到嗰陣捲入欄）；位置由捲動計 */
-const Rows = ({ layout, held, measure, onPlay, scroll, showRow }: RowsProps) => {
+/**
+ * 全部行（欄外嘅都 render：Tab 到嗰陣捲入欄），以未捲嘅位置畫；捲動係外面一層 transform。
+ * memo：捲動唔使 render 任何一行，亦唔使重新截短歌名（review W-043）
+ */
+const Rows = memo(function Rows({ layout, held, shown, onPlay, onFocusRow }: RowsProps) {
     const { top, pitch } = layout.heldTracks;
     return held.rows.map((row, index) => (
         <HeldTrackRow
@@ -57,20 +62,21 @@ const Rows = ({ layout, held, measure, onPlay, scroll, showRow }: RowsProps) => 
             layout={layout}
             row={row}
             index={index}
-            y={top + rowCentre(index, pitch, scroll)}
+            y={top + rowCentre(index, pitch, 0)}
             accent={held.accent}
-            measure={measure}
+            shown={shown[index] ?? row.title}
             canPress={held.pressable}
             onPlay={onPlay}
-            onFocus={() => showRow(index)}
+            onFocusRow={onFocusRow}
         />
     ));
-};
+});
 
 export const HeldTrackList = (props: HeldTrackListProps) => {
-    const { layout, held, albumTitle } = props;
+    const { layout, held, albumTitle, measure, onPlay } = props;
     const { top, fade } = layout.heldTracks;
     const { room, metrics, listRef, handlers, showRow } = useHeldScroll(layout, held);
+    const shown = useShownTitles(held.rows, layout, measure);
     const id = useSvgId('held-tracks');
     if (held.rows.length === 0) return <EmptyText layout={layout} text={held.emptyText} />;
     return (
@@ -88,7 +94,15 @@ export const HeldTrackList = (props: HeldTrackListProps) => {
                 {...handlers}
             >
                 <g mask={fadeRef(id)}>
-                    <Rows {...props} scroll={metrics.scroll} showRow={showRow} />
+                    <g data-part="held-scroll" transform={`translate(0 ${px(-metrics.scroll)})`}>
+                        <Rows
+                            layout={layout}
+                            held={held}
+                            shown={shown}
+                            onPlay={onPlay}
+                            onFocusRow={showRow}
+                        />
+                    </g>
                 </g>
             </g>
             {metrics.bar && (

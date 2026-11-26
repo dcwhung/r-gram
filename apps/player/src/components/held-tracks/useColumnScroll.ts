@@ -154,8 +154,12 @@ export const useColumnScroll = (spec: ScrollSpec): ColumnScroll => {
                 : moveRowFocus(listRef.current, event.key, row, spec);
         if (handled) event.preventDefault();
     };
-    const showRow = (index: number) =>
-        scrollTo((scroll) => scrollToShow(index, spec.pitch, spec.room, scroll));
+    // 穩定嘅 callback：行係 memo（W-043），捲動唔好令佢哋 re-render
+    const { pitch, room } = spec;
+    const showRow = useCallback(
+        (index: number) => scrollTo((scroll) => scrollToShow(index, pitch, room, scroll)),
+        [pitch, room, scrollTo],
+    );
     const handlers = { ...useDragScroll(spec, scrollTo), onKeyDown };
     return { metrics, listRef, handlers, showRow };
 };

@@ -46,13 +46,15 @@ const renderList = (
         </svg>,
     );
     const list = () => screen.getByRole('list', { name: 'ROOM 的歌曲' });
-    const rowY = (name: string) =>
-        Number(
-            screen
-                .getByRole('button', { name })
-                .querySelector('[data-part="held-title"]')
-                ?.getAttribute('y'),
-        );
+    /** 行喺畫面上嘅中線：行嘅 y（未捲）+ 成欄捲動嘅 translate */
+    const rowY = (name: string) => {
+        const title = screen
+            .getByRole('button', { name })
+            .querySelector('[data-part="held-title"]');
+        const shift = title?.closest('[data-part="held-scroll"]')?.getAttribute('transform') ?? '';
+        const [, dy = '0'] = /translate\(0 (-?[\d.]+)\)/.exec(shift) ?? [];
+        return Number(title?.getAttribute('y')) + Number(dy);
+    };
     return { ...result, onPlay, list, rowY };
 };
 
