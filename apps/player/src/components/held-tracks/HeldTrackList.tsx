@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { HeldTracksView } from '../../app/heldTracksView';
 import { t } from '../../i18n/t';
+import { heldRowHitRight } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
 import type { TextMeasure } from '../../utils/textMeasure';
 import { useSvgId } from '../svgId';
@@ -41,6 +42,23 @@ const EmptyText = ({ layout, text }: { layout: StageLayout; text: string }) => {
 };
 
 /**
+ * 欄本身攞到鍵盤 focus 時嘅虛線框（review S-179；CSS 同行嘅框共用一條規則）：同行嘅感應範圍一樣闊、同欄一樣高。
+ * 喺欄（role="list"）後面嘅兄弟元素，唔受欄嘅 clipPath 剪；淨係畫面
+ */
+const ColumnFrame = ({ layout, room }: { layout: StageLayout; room: number }) => (
+    <rect
+        data-part="held-frame"
+        aria-hidden="true"
+        pointerEvents="none"
+        x={0}
+        y={layout.heldTracks.top}
+        width={heldRowHitRight(layout)}
+        height={px(room)}
+        fill="none"
+    />
+);
+
+/**
  * 拎住嘅碟嘅歌單欄（設計稿第 18 版 TRACKLIST、trackPanel()；Functional Spec FR-044、D57）：碟名下面一欄黑字，
  * 冇黑色層。旋鈕開住時欄較短、行未㩒得；歌多就喺欄入面捲（拖動、滾輪、鍵盤），頂底淡出、左邊位置條。
  * 以碟做 key render（換碟捲動歸零）。欄底跟貼底組：高身手機向下伸。
@@ -77,6 +95,8 @@ export const HeldTrackList = (props: HeldTrackListProps) => {
     const { top, fade } = layout.heldTracks;
     const { room, metrics, listRef, handlers, showRow } = useHeldScroll(layout, held);
     const shown = useShownTitles(held.rows, layout, measure);
+    // 歌多過欄高先有嘢捲：欄先入 Tab 次序（S-177）、先有 focus 外框（S-179）
+    const focusable = metrics.maxScroll > 0;
     const id = useSvgId('held-tracks');
     if (held.rows.length === 0) return <EmptyText layout={layout} text={held.emptyText} />;
     return (
@@ -87,7 +107,7 @@ export const HeldTrackList = (props: HeldTrackListProps) => {
                 role="list"
                 className="held-list"
                 aria-label={t('heldTracks.label', { album: albumTitle })}
-                tabIndex={metrics.maxScroll > 0 ? 0 : undefined}
+                tabIndex={focusable ? 0 : undefined}
                 data-fade-top={metrics.fadeTop}
                 data-fade-bottom={metrics.fadeBottom}
                 clipPath={clipRef(id)}
@@ -105,6 +125,7 @@ export const HeldTrackList = (props: HeldTrackListProps) => {
                     </g>
                 </g>
             </g>
+            {focusable && <ColumnFrame layout={layout} room={room} />}
             {metrics.bar && (
                 <ScrollBar
                     layout={layout}
