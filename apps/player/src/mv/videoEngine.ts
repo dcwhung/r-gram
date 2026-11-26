@@ -156,6 +156,11 @@ class Engine implements VideoEngine {
         const trackId = this.track?.id;
         const blocked = error instanceof Error && error.name === 'NotAllowedError';
         if (generation !== this.generation || !trackId || !blocked) return;
+        // W-068：預備（cue）嘅 play() 被拒：當預備完（停喺 0、gain 0），下一下 ▶ 嘅手勢行 primed → live
+        if (this.phase === 'priming') {
+            this.phase = 'primed';
+            this.revealPending = false;
+        }
         this.emit({ type: 'error', trackId, reason: 'blocked' });
     }
 

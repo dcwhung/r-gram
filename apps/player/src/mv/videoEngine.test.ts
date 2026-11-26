@@ -101,6 +101,22 @@ describe('videoEngine (T-060)', () => {
         expect(events).toContainEqual({ type: 'error', trackId: MV.id, reason: 'blocked' });
     });
 
+    // W-068：有 Web Audio，cue 嘅 play() 被拒：停喺 0（gain 0），之後 ▶（手勢）開機照播得
+    it('should play from the start on reveal after the tap-time play was refused', async () => {
+        const { element, engine, events, gain } = setup();
+        element.playMode = 'blocked';
+        engine.cue(MV);
+        await Promise.resolve();
+        expect(events).toEqual([{ type: 'error', trackId: MV.id, reason: 'blocked' }]);
+        expect(gain()).toBe(0);
+        element.playMode = 'auto';
+        engine.reveal();
+        expect(element.plays).toHaveLength(2);
+        expect(element.paused).toBe(false);
+        expect(gain()).toBe(DEFAULT_MV_VOLUME);
+        expect(events.at(-1)).toEqual({ type: 'playing', trackId: MV.id });
+    });
+
     it('should pause and play again on request', () => {
         const { element, engine, events } = setup();
         engine.cue(MV);

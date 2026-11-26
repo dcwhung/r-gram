@@ -161,6 +161,23 @@ describe('mvController', () => {
         expect(snapshot()).toMatchObject({ positionSec: 12.5, durationSec: 240 });
     });
 
+    // S-260：timeupdate 約 4 Hz；時間同進度線一秒一格，唔使每次都通知（主頁成個 re-render）
+    it('should tell its listeners about the time once per displayed second', () => {
+        const { element, mv } = setup();
+        mv.open(TRACK);
+        vi.advanceTimersByTime(REVEAL_MS);
+        element.loadMetadata(240);
+        element.advance(3);
+        const listener = vi.fn();
+        mv.subscribe(listener);
+        element.advance(0.25);
+        element.advance(0.25);
+        expect(listener).not.toHaveBeenCalled();
+        element.advance(0.6);
+        expect(listener).toHaveBeenCalledTimes(1);
+        expect(mv.getSnapshot().positionSec).toBeCloseTo(4.1);
+    });
+
     it('should show a load failure and try again from the start on play', () => {
         const { element, mv, snapshot } = setup();
         mv.open(TRACK);
@@ -189,6 +206,20 @@ describe('mvController', () => {
         element.playMode = 'auto';
         mv.play();
         expect(mv.getSnapshot().status).toBe('playing');
+    });
+
+    // W-068：有 Web Audio 都一樣：手勢入面嘅 play() 被拒 → ▶ 或者鎖屏 play 照播得
+    it('should play on play after the tap-time play was refused with Web Audio', async () => {
+        const { element, mv, session } = setup();
+        element.playMode = 'blocked';
+        mv.open(TRACK);
+        await vi.advanceTimersByTimeAsync(REVEAL_MS);
+        expect(mv.getSnapshot()).toMatchObject({ status: 'paused', failed: false });
+        element.playMode = 'auto';
+        session.trigger('play');
+        expect(element.paused).toBe(false);
+        expect(mv.getSnapshot().status).toBe('playing');
+        expect(FakeAudioContext.lastGain()?.value).toBe(1);
     });
 
     it('should hand the lock screen to the MV and back to the record', () => {

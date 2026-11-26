@@ -3,16 +3,19 @@
  *（真瀏覽器第二次 `createMediaElementSource` 同一個 element 會 throw）同 gain 嘅值。
  */
 
-/** 假 AudioParam：`setTargetAtTime` 當即刻到（測試唔使等 ramp） */
+/** 假 AudioParam：`setTargetAtTime` 當即刻到（測試唔使等 ramp）；`calls` 記低用咗邊個方法（S-259：靜音唔可以 ramp） */
 export class FakeParam {
     value = 1;
     readonly targets: number[] = [];
+    readonly calls: ['setValueAtTime' | 'setTargetAtTime', number][] = [];
 
     setValueAtTime(value: number): void {
+        this.calls.push(['setValueAtTime', value]);
         this.value = value;
     }
 
     setTargetAtTime(value: number): void {
+        this.calls.push(['setTargetAtTime', value]);
         this.targets.push(value);
         this.value = value;
     }
