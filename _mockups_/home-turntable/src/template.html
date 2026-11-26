@@ -90,6 +90,11 @@ svg.live [data-anim="mini"][pointer-events="none"] .mini-spin { animation-play-s
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
 table { border-collapse: collapse; width: 100%; min-width: 560px; }
 .hero table { min-width: 0; }
+/* 「歌單欄飄落」示範格：自動重播，唔理系統有冇開「減少動態效果」（只係設計稿示範；正式 app 開咗就即時出現） */
+svg.demo .panel-row-in { animation: panelRowIn .42s cubic-bezier(.22, .75, .25, 1) var(--d) both; }
+.demo-card { max-width: 420px; }
+.demo-bar { display: flex; gap: 12px; align-items: center; margin: 0 0 12px; }
+.demo-bar button { font: inherit; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line, #444); background: transparent; color: inherit; cursor: pointer; }
 th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--muted); font-weight: 500; white-space: nowrap; }
 tr:last-child td { border-bottom: 0; }
@@ -174,7 +179,12 @@ tr:last-child td { border-bottom: 0; }
         <label class="chk"><input type="checkbox" id="showGap"> 淨空（CD 16、轉盤 40、螺絲 120）</label>
     </div>
 
-    <h2 style="margin-top:0">可以㩒嘅主頁</h2>
+    <h2 style="margin-top:0">歌單欄飄落（等你確認）</h2>
+    <p class="lede">播緊歌時轉去另一隻碟，碟名下面嘅歌單由左上一行一行飄落。呢格自動重播（每次換一隻碟），唔使撳任何嘢；想即刻再睇就撳「重播」。</p>
+    <div class="demo-bar"><button type="button" id="panelReplay">重播</button><span class="lede" id="panelDemoNote" style="margin:0"></span></div>
+    <article class="card demo-card"><svg class="stage demo" id="panelDemo" viewBox="0 0 1080 1920" role="img" aria-label="歌單欄飄落示範"></svg></article>
+
+    <h2>可以㩒嘅主頁</h2>
     <p class="lede"><b>第 18 版第 ③ 點（播緊時揀碟）試法：</b></p>
 <ol class="lede" style="margin: 0 0 16px; padding-left: 1.4em; color: var(--muted)">
         <li>㩒碟面打開歌單，再㩒中間嘅唱片夾：唱針落碟，開始播。</li>
@@ -2003,8 +2013,24 @@ tr:last-child td { border-bottom: 0; }
         renderPlainLab();
     });
     document.getElementById('plainScroll').addEventListener('input', (event) => { ui.plainScroll = Number(event.target.value) / 100; renderPlainLab(); });
+    /* 「歌單欄飄落」示範格：入到畫面就自動播，之後每 3.2 秒換一隻碟再播 */
+    const panelDemo = document.getElementById('panelDemo');
+    const PANEL_DEMO = { albums: ['juntos', 'we-are-rubberband', 'komorebi'], every: 3200 };
+    let panelDemoTurn = 0;
+    const playPanelDemo = () => {
+        const album = PANEL_DEMO.albums[panelDemoTurn % PANEL_DEMO.albums.length];
+        panelDemoTurn += 1;
+        const loaded = album === 'komorebi' ? 'juntos' : 'komorebi';
+        panelDemo.innerHTML = scene({ album, song: false, wheel: 1, away: true, loaded, loadedTitle: TRACKS[loaded].rows[0][0], panelFresh: true }, 'demo');
+    };
+    let panelDemoTimer = 0;
+    const startPanelDemo = () => { clearInterval(panelDemoTimer); playPanelDemo(); panelDemoTimer = setInterval(playPanelDemo, PANEL_DEMO.every); };
+    new IntersectionObserver(([entry]) => { if (entry.isIntersecting) startPanelDemo(); else clearInterval(panelDemoTimer); }, { threshold: 0.3 }).observe(panelDemo);
+    document.getElementById('panelReplay').addEventListener('click', startPanelDemo);
+    if (reducedMotion()) document.getElementById('panelDemoNote').textContent = '你部機開咗「減少動態效果」：下面「可以㩒嘅主頁」同正式 app 會即時出現，冇呢個過場；呢格照播畀你睇。';
     buildLathe();
     render();
+    playPanelDemo();
 })();
 </script>
 </body>
