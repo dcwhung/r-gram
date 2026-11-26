@@ -159,6 +159,18 @@ describe('useHome un-favouriting the song playing from the Favourites disc', () 
         expect(listRows(home)).toEqual(['room-01', 'apollo-18-03']);
     });
 
+    // S-255：暫停緊取消收藏，一樣留喺原位（暫停仍然係載入嘅歌）
+    it('should keep the song in its place when un-favourited while paused', () => {
+        const home = mount(['apollo-18-01', 'room-01', 'apollo-18-03']);
+        toFavourites(home);
+        act(() => home.handlers()?.onSpindle());
+        act(() => home.handlers()?.onSpindle());
+        expect(home.result.current.playback.status).toBe('paused');
+        act(() => home.handlers()?.onFavourite());
+        expect(home.view()?.track?.id).toBe('apollo-18-01');
+        expect(listRows(home)).toEqual(['apollo-18-01', 'room-01', 'apollo-18-03']);
+    });
+
     it('should put the song back in its place when favourited again while it plays', () => {
         const home = playingFavourites();
         act(() => home.handlers()?.onFavourite());
