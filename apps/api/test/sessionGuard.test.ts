@@ -46,13 +46,14 @@ describe('session guard', () => {
     });
 
     // W-016：歌曲 route 嘅守門靠註冊次序（B-019 ①）；逐條用佢自己嘅 method 試，GET 試唔到淨係收 POST／PUT 嘅 route
-    it('should answer 401 UNAUTHORIZED on every track and scan route without a session', async () => {
+    it('should answer 401 UNAUTHORIZED on every track and sync route without a session', async () => {
         const routes: [string, string][] = [
             ['GET', '/api/tracks/x/text'],
             ['PUT', '/api/tracks/x/text'],
-            // T-025 掃描（API-030、API-031；T-105 換做同步）
-            ['GET', '/api/albums/apollo-18/scan'],
-            ['POST', '/api/albums/apollo-18/scan/apply'],
+            // T-105 同步（API-033、API-034、API-035；取代 API-030、API-031）
+            ['GET', '/api/sync'],
+            ['POST', '/api/sync/folders/album-01-apollo-18'],
+            ['POST', '/api/sync/removals'],
         ];
         for (const [method, path] of routes) {
             const response = await call(path, { method, headers: { origin: ORIGIN } });
@@ -148,13 +149,16 @@ describe('CSRF Origin check', () => {
         expect(await response.json()).toMatchObject({ error: { code: 'NOT_FOUND' } });
     });
 
-    it('should reject applying scan results from another origin', async () => {
-        const response = await call('/api/albums/apollo-18/scan/apply', {
-            method: 'POST',
-            headers: { cookie: await loginCookie(), origin: 'https://evil.example' },
-        });
-        expect(response.status).toBe(403);
-    });
+    it.each(['/api/sync/folders/album-01-apollo-18', '/api/sync/removals'])(
+        'should reject a sync write to %s from another origin',
+        async (path) => {
+            const response = await call(path, {
+                method: 'POST',
+                headers: { cookie: await loginCookie(), origin: 'https://evil.example' },
+            });
+            expect(response.status).toBe(403);
+        },
+    );
 
     it('should not ask read-only requests for an Origin', async () => {
         expect((await send('GET', {})).status).toBe(200);
