@@ -38,6 +38,8 @@ export interface PlaybackSource {
 export interface PlayerSnapshot {
     readonly playback: PlaybackState;
     readonly mode: PlayMode;
+    /** 真係出緊聲（引擎 `playing` 之後，直到停、卡住、換碟）：碟只喺呢個時候轉 */
+    readonly audible: boolean;
 }
 
 export interface PlaybackControllerDeps {
@@ -102,7 +104,7 @@ class Controller implements PlaybackController {
         this.isHidden = deps.isHidden ?? browserHidden;
         this.storage = deps.storage === undefined ? browserStorage() : deps.storage;
         const mode = readPlayMode(this.storage);
-        this.snapshot = { playback: IDLE_PLAYBACK, mode };
+        this.snapshot = { playback: IDLE_PLAYBACK, mode, audible: false };
         this.queue = createQueue([], mode, null, this.random);
         this.engine.setNext((currentId) => this.resolveNext(currentId));
         this.engine.subscribe((event) => this.onEngine(event));
@@ -126,6 +128,7 @@ class Controller implements PlaybackController {
         const ids = source.tracks.map((candidate) => candidate.id);
         this.queue = createQueue(ids, this.snapshot.mode, trackId, this.random);
         this.clearLanding();
+        this.silence();
         this.dispatch({ type: 'start', albumId: source.albumId, trackId });
         if (this.isHidden()) {
             this.engine.playNow(track);
@@ -138,6 +141,7 @@ class Controller implements PlaybackController {
     pause(): void {
         this.clearLanding();
         if (this.playback.status !== 'playing') return;
+        this.silence();
         this.dispatch({ type: 'pauseFor', reason: 'user' });
         this.engine.pause();
     }
@@ -164,6 +168,7 @@ class Controller implements PlaybackController {
         const { status } = this.playback;
         if (status !== 'playing' && status !== 'paused') return;
         this.clearLanding();
+        this.silence();
         this.dispatch({ type: 'pauseFor', reason });
         this.engine.pause();
     }
@@ -172,6 +177,7 @@ class Controller implements PlaybackController {
     release = (): void => {
         this.clearLanding();
         this.engine.stop();
+        this.silence();
         this.dispatch({ type: 'release' });
     };
 
@@ -238,14 +244,30 @@ class Controller implements PlaybackController {
         }, delay);
     }
 
+    /** 我哋自己停聲：同下一個 dispatch 一齊通知（唔使通知兩次） */
+    private silence(): void {
+        if (this.snapshot.audible) this.snapshot = { ...this.snapshot, audible: false };
+    }
+
     private clearLanding(): void {
         if (this.landing) clearTimeout(this.landing);
         this.landing = null;
     }
 
+    /** 出聲與否：`playing` = 有；停、卡住、播完、錯誤 = 冇（自動下一首之間嘅半秒照當有，碟唔使停一停） */
+    private hear(event: EngineEvent): void {
+        const audible =
+            event.type === 'playing' ||
+            (this.snapshot.audible && (event.type === 'time' || event.type === 'advanced'));
+        if (audible === this.snapshot.audible) return;
+        this.snapshot = { ...this.snapshot, audible };
+        this.notify();
+    }
+
     private onEngine(event: EngineEvent): void {
         const { status } = this.playback;
         if (status === 'idle') return;
+        this.hear(event);
         if (event.type === 'playing' && status === 'paused') this.dispatch({ type: 'resumed' });
         else if (event.type === 'paused' && !event.requested && status === 'playing') {
             // 系統暫停（電話、Siri、拔耳機）：當用戶暫停，升針；㩒唱片夾即刻續播

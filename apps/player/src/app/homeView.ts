@@ -89,7 +89,7 @@ export interface HomeView {
     buttonsHidden: boolean;
     /** 左上歌名嗰部分（音量條、歌名、心形、「第 nn 首」同時間）淡出，只留碟名同年份 */
     songHidden: boolean;
-    /** 畫面上嘅碟轉緊：播緊呢隻碟，而且唔係揀緊碟、唔係拎住另一隻碟 */
+    /** 畫面上嘅碟轉緊：播緊呢隻碟、真係出緊聲，而且唔係揀緊碟、唔係拎住另一隻碟 */
     spinning: boolean;
     /** 右上角嘅細唱片機（載入嘅碟，T-048）；冇歌載入 = null */
     mini: MiniView | null;
@@ -121,7 +121,12 @@ const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: 
  * `holding` = 載入嘅碟 ≠ 顯示嘅碟（主頁或者揀緊碟）。字母盤開住：唱臂、細掣淡出；拎住另一隻碟：唱臂淡出
  *（細唱片機有自己支唱臂），細掣照出。兩種情況歌名嗰部分都淡出，碟停轉
  */
-const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose) => {
+const choosingView = (
+    stage: StageState,
+    playback: PlaybackState,
+    pose: ArmPose,
+    audible: boolean,
+) => {
     const loadedAlbumId = loadedAlbumOf(playback);
     const holding = isHolding(stage, loadedAlbumId);
     const dialOpen = stage.scene === 'discChange';
@@ -133,7 +138,7 @@ const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose)
         buttonsHidden: dialOpen,
         // 弧線歌單開住：左上係框入面嗰首（設計稿 songFade = list ? 1）
         songHidden: armHidden && stage.scene !== 'list',
-        spinning: pose === 'playing' && !armHidden,
+        spinning: pose === 'playing' && !armHidden && audible,
     };
 };
 
@@ -156,10 +161,11 @@ const heldParts = (
     trackColumn: trackColumnView(document, stage, playback),
 });
 
-/** 有歌（歌書有內容）、有 MV */
-const songFlags = (track: CatalogTrack | null) => ({
+/** 有歌（歌書有內容）、有 MV；播放模式（模式掣） */
+const songFlags = (track: CatalogTrack | null, mode: PlayMode) => ({
     hasSong: track !== null,
     hasMv: Boolean(track?.mv),
+    mode,
 });
 
 /** 歌單、歌書、電視開住未 */
@@ -190,13 +196,14 @@ export const homeView = (
     playback: PlaybackState,
     covers: CoverVariants = NO_COVER_PICKS,
     mode: PlayMode = DEFAULT_PLAY_MODE,
+    audible = true,
 ): HomeView => {
     const album = stage.viewAlbumId ? findAlbum(document, stage.viewAlbumId) : null;
     const track = loadedTrack(album, stage, playback);
     const spindle = spindleMode(stage, playback);
     const pose = armPose(stage, playback);
     const dial = dialView(document, stage, covers);
-    const choosing = choosingView(stage, playback, pose);
+    const choosing = choosingView(stage, playback, pose, audible);
     return {
         album,
         track,
@@ -204,8 +211,7 @@ export const homeView = (
         spindle,
         armPose: pose,
         ...timing(playback, track !== null && playback.status === 'error'),
-        mode,
-        ...songFlags(track),
+        ...songFlags(track, mode),
         playing: spindle === 'playing',
         ...openFlags(stage),
         dial,

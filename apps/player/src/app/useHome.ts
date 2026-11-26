@@ -207,8 +207,8 @@ const usePlayer = (controller: PlaybackController | undefined) => {
     const [player] = useState(
         () => controller ?? createPlaybackController({ engine: createAudioEngine() }),
     );
-    const { playback, mode } = useSyncExternalStore(player.subscribe, player.getSnapshot);
-    return { player, playback, mode };
+    const { playback, mode, audible } = useSyncExternalStore(player.subscribe, player.getSnapshot);
+    return { player, playback, mode, audible };
 };
 
 /**
@@ -222,7 +222,7 @@ export const useHome = (
     random?: () => number,
 ): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
-    const { player, playback, mode } = usePlayer(controller);
+    const { player, playback, mode, audible } = usePlayer(controller);
     const holding = isHolding(stage, loadedAlbumOf(playback));
     useEndedRelease(endedWaitRuns(playback, stage, holding), player.release);
     const covers = useCoverVariants(catalog, random);
@@ -232,7 +232,7 @@ export const useHome = (
         if (first) dispatch({ type: 'preloadDone', albumId: first.id });
     }, [catalog]);
     if (!catalog) return { stage, playback, covers, view: null, handlers: null, finishPreload };
-    const view = homeView(catalog, stage, playback, covers, mode);
+    const view = homeView(catalog, stage, playback, covers, mode, audible);
     return {
         stage,
         playback,

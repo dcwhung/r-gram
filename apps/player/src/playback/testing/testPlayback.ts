@@ -11,7 +11,10 @@ export interface TestPlayback {
     controller: PlaybackController;
 }
 
-export const createTestPlayback = ({ reduceMotion = false } = {}): TestPlayback => {
+/** `reduceMotion` 冇畀 = 跟瀏覽器設定（測試 stub 嘅 matchMedia），同畫面一致 */
+export const createTestPlayback = ({
+    reduceMotion,
+}: { reduceMotion?: boolean } = {}): TestPlayback => {
     const element = new FakeAudioElement();
     const engine = createAudioEngine(asAudio(element), {
         isHidden: () => false,
@@ -20,7 +23,7 @@ export const createTestPlayback = ({ reduceMotion = false } = {}): TestPlayback 
     const controller = createPlaybackController({
         engine,
         random: () => 0,
-        reduceMotion: () => reduceMotion,
+        ...(reduceMotion === undefined ? {} : { reduceMotion: () => reduceMotion }),
         isHidden: () => false,
         storage: null,
     });
