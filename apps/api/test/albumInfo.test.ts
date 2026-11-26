@@ -10,6 +10,7 @@ import {
     ALBUM_ID,
     KOMOREBI_INFO,
     deleteMedia,
+    endlessList,
     mediaKey,
     putKomorebi,
     putMedia,
@@ -217,6 +218,22 @@ describe('PUT /api/albums/:id/info: checks before writing', () => {
         expect((await putInfo({ text: 'x', etag: null }, ALBUM_ID, bindings)).status).toBe(404);
         expect(puts).toEqual([]);
         expect(await env.MEDIA.head('_fonts/info.txt')).toBeNull();
+    });
+
+    // W-048（mutant N15）：list 唔齊又搵唔到 info.txt = 唔知會唔會開多一個（例如已有 Info.txt）
+    it('should answer 409 STALE and write nothing when the listing is cut short without info.txt', async () => {
+        await deleteMedia('info.txt');
+        const puts: string[] = [];
+        const { bindings } = endlessList(puts);
+        const { status, body } = await putInfo(
+            { text: '唱片名稱：K', etag: null },
+            ALBUM_ID,
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('STALE');
+        expect(puts).toEqual([]);
+        expect(await env.MEDIA.head(INFO_KEY)).toBeNull();
     });
 
     it('should never delete anything in the media bucket', async () => {

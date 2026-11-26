@@ -6,7 +6,8 @@
  */
 import { NEUTRAL_ACCENT } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
-import { albumRow, api, json } from './albumFixtures';
+import { imageKeyOf } from '../src/assets/imageName';
+import { albumRow, api, dbWithHook, insertAsset, json } from './albumFixtures';
 import { liveDocument } from './catalogFixtures';
 import { ORIGIN, call, loginCookie } from './helpers';
 import { webpVp8l } from './imageFixtures';
@@ -39,6 +40,13 @@ const upload = async (side: number, seed: number) => {
 const putCover = async (body: unknown, id = ALBUM_ID, bindings = env) => {
     const response = await api('PUT', `/api/albums/${id}/cover`, body, {}, bindings);
     return { status: response.status, body: await json<Loose>(response) };
+};
+
+/** 唔經 API-050 放一張圖落 r-gram-catalog（`registered` = 連 assets 都登記） */
+const placeImage = async (name: string, bytes: Uint8Array, registered = true) => {
+    await env.CATALOG.put(imageKeyOf(name), bytes);
+    if (registered) await insertAsset(name);
+    return name;
 };
 
 const etagOf = async (key = COVER_KEY) => (await env.MEDIA.head(key))?.httpEtag ?? '';
@@ -121,6 +129,29 @@ describe('PUT /api/albums/:id/cover: second cover', () => {
         });
     });
 
+    // W-048（mutant N21）：讀專輯之後、寫之前，另一個請求清咗第一張 → 409，唔撞 D1 CHECK
+    it('should answer 409 NO_FIRST_COVER when the first cover is cleared at the same time', async () => {
+        await putCover(await firstCover());
+        const etag = await putMedia('cover2.png', 'png');
+        await syncFolder();
+        const body = {
+            slot: 'cover2',
+            cover: await upload(BIG, 3),
+            thumb: await upload(SMALL, 4),
+            sourceKey: mediaKey('cover2.png'),
+            sourceEtag: etag,
+        };
+        const clearFirst = () =>
+            env.DB.prepare('UPDATE albums SET cover = NULL, thumb = NULL WHERE id = ?')
+                .bind(ALBUM_ID)
+                .run();
+        const db = dbWithHook('SELECT name FROM assets', clearFirst);
+        const { status, body: answer } = await putCover(body, ALBUM_ID, { ...env, DB: db });
+        expect(status).toBe(409);
+        expect(answer.error.code).toBe('NO_FIRST_COVER');
+        expect((await albumRow(ALBUM_ID))?.cover2).toBeNull();
+    });
+
     it('should answer 409 NO_FIRST_COVER while the album has no first cover', async () => {
         const etag = await putMedia('cover2.png', 'png');
         const body = {
@@ -148,6 +179,27 @@ describe('PUT /api/albums/:id/cover: checks', () => {
             ['thumb', 'WRONG_SIZE'],
         ]);
         expect((await albumRow(ALBUM_ID))?.cover).toBeNull();
+    });
+
+    // W-048（mutant N19）：1200 × 800 唔可以當 1200² 收
+    it('should refuse an image that is not square', async () => {
+        const cover = await placeImage('00000000000000aa.webp', webpVp8l(BIG, 800, 5));
+        const { status, body } = await putCover(await firstCover({ cover }));
+        expect(status).toBe(400);
+        expect(body.error.details).toContainEqual(
+            expect.objectContaining({ path: 'cover', reason: 'WRONG_SIZE' }),
+        );
+        expect((await albumRow(ALBUM_ID))?.cover).toBeNull();
+    });
+
+    // W-048（mutant N30）：R2 有圖但 assets 冇登記 = 未經 API-050 上載
+    it('should refuse an image that is in the bucket but not registered', async () => {
+        const cover = await placeImage('00000000000000bb.webp', webpVp8l(BIG, BIG, 6), false);
+        const { status, body } = await putCover(await firstCover({ cover }));
+        expect(status).toBe(400);
+        expect(body.error.details).toContainEqual(
+            expect.objectContaining({ path: 'cover', reason: 'IMAGE_NOT_FOUND' }),
+        );
     });
 
     it('should answer 409 STALE when the source changed or is gone', async () => {
@@ -191,6 +243,8 @@ describe('PUT /api/albums/:id/cover: checks', () => {
         [{ cover: '../x.webp' }, 'cover', 'INVALID_VALUE'],
         [{ sourceEtag: '*' }, 'sourceEtag', 'INVALID_VALUE'],
         [{ accent: 'red' }, 'accent', 'INVALID_VALUE'],
+        // W-048（mutant N31）：三位色碼過唔到 catalog validator
+        [{ accent: '#abc' }, 'accent', 'INVALID_VALUE'],
         [{ slot: 'cover2', accent: ACCENT }, 'accent', 'NOT_EDITABLE'],
         [{ notSquare: 'yes' }, 'notSquare', 'INVALID_VALUE'],
         [{ title: 'x' }, 'title', 'NOT_EDITABLE'],

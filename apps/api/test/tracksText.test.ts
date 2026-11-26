@@ -12,6 +12,7 @@ import { liveDocument } from './catalogFixtures';
 import {
     ALBUM_ID,
     TEXT_05,
+    endlessList,
     mediaKey,
     putKomorebi,
     putMedia,
@@ -147,6 +148,26 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         expect(body.checks).toEqual([
             expect.objectContaining({ code: 'TITLE_MISMATCH', no: 5, key: TEXT_05_KEY }),
         ]);
+    });
+
+    // W-048（mutant N32）：回應嘅 checks 只有呢首歌嘅；成個資料夾嘅喺 sync.checks
+    it('should answer with the checks of this track only', async () => {
+        await putMedia('03 搲撈HK.txt', '搲撈HK\n曲：甲\n\n[00:01.00]一\n第二句');
+        await syncFolder();
+        const { body } = await save05(TEXT_05.replace('太平門', '太平門（現場）'));
+        expect(body.checks.map(({ code, no }: Loose) => [code, no])).toEqual([
+            ['TITLE_MISMATCH', 5],
+        ]);
+        expect(body.sync.checks.map(({ no }: Loose) => no)).toEqual(expect.arrayContaining([3, 5]));
+    });
+
+    // W-048（mutant N33）：同步由呢首歌嘅歌號起，前面嘅歌唔郁（要再掃描，S-182）
+    it('should sync from the number of the track', async () => {
+        await putMedia('01 下一位參賽者.txt', SONG);
+        const { status, body } = await save05(TEXT_05.replace('第二句', '改過的第二句'));
+        expect(status).toBe(200);
+        expect(body.sync.updated.map(({ no }: Loose) => no)).toEqual([5]);
+        expect((await tracksOf())[0]).toMatchObject({ text_key: null, composer: null });
     });
 
     it('should store UTF-8 without BOM and with LF only', async () => {
@@ -335,6 +356,21 @@ describe('PUT /api/tracks/:id/text: only the song text file of the track is writ
         );
         expect(status).toBe(409);
         expect(body.error.code).toBe('TEXT_CONFLICT');
+        expect(puts).toEqual([]);
+    });
+
+    // W-048（mutant N13）：list 唔齊又搵唔到 `.txt` = 唔知會唔會開多一個
+    it('should answer 409 STALE and write nothing when the listing is cut short without a file', async () => {
+        const puts: string[] = [];
+        const { bindings } = endlessList(puts);
+        const { status, body } = await putText(
+            'komorebi-01',
+            { text: SONG, etag: null },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('STALE');
         expect(puts).toEqual([]);
     });
 
