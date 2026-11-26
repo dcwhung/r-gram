@@ -1,5 +1,7 @@
 # Test Plan — api-seed
 
+> ⛔ **已作廢（2026-11-26，CR-007 D79）**：初始資料 seed 取消（T-104 刪走 `src/seed/*`、`scripts/seed*.mjs`、`seed/albums.sql`），ledger 行已刪。下面係歷史記錄。
+
 - Chain: 初始資料只入專輯（`apps/api/src/seed`、`apps/api/scripts/{seed,seed-sql}.mjs`、`apps/api/seed/albums.sql`）：本機 seed CLI + production 用嘅 SQL 檔。任務 T-027（review 修正 W-034）
 - AC（L1 來源：FS = Functional Spec v1.8 US-109「CR-006 驗收標準」、D59、D63、D64；TS = Technical Spec v1.6「初始資料只入專輯（T-027）」；review W-034 定案）:
     - AC-1 本機匯入（FS US-109；TS 「寫入」）：21 張專輯（id、碟名、字母、類別、序號、年份、唱片公司、次序）、專輯色中性灰、`folder` 同封面欄 NULL；0 首歌、0 行歌詞

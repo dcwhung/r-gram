@@ -1,0 +1,24 @@
+# Test Plan — api-sync
+
+- Chain: 全 bucket 同步（CR-007）：Worker `apps/api/src/sync/**`（API-033 `GET /api/sync`、API-034 `POST /api/sync/folders/:folder?from=`、API-035 `POST /api/sync/removals`）+ 同步用嘅媒體讀取（`media/{listing,songTextFile,applyGuard,errors}`）+ 純邏輯 `packages/catalog/src/{sync,album-info,text,scan}`。任務 T-103、T-105（取代 `api-media`，CR-007 之後作廢）
+- AC（L1 來源：FS = Functional Spec v1.9 §CR-007 D67、D68、D70、D72、D73、D76、D77、FR-127、FR-130、FR-131；TS = Technical Spec v1.7「同步嘅設計」「資料模型」「每個請求嘅操作上限」「安全設計（CR-007 補充）」；backlog B-078 / B-079 / B-081 嘅主 session 決定（S-157、S-161、S-164、S-166）照現狀驗）:
+    - AC-1 資料夾名（FS D67；TS `parseAlbumFolder()`）：`<類別>-<NN>-<id>` 讀出 id、類別、序號；名唔啱格式 → API-033 `invalid` + `INVALID_FOLDER_NAME`；`_` 開頭唔列；API-034 唔啱 → 400 `INVALID_FOLDER`；同 id 兩個資料夾 → 409 / `DUPLICATE_ALBUM_ID`；同類別同序號 → `DUPLICATE_ORDINAL` 提示
+    - AC-2 `info.txt`（FS D68；TS `parseAlbumInfo()`／`formatAlbumInfo()`）：寬鬆格式（全形半形冒號、`1.`／`01.`／`1、`／`1）`／空格分隔、別名標籤、年份取頭四位）；16 KiB／1000 行上限；唔係 UTF-8、太大、讀唔到 = 檢查結果；round-trip
+    - AC-3 曲目（FS D70）：`info.txt` 列出嘅歌號 = 曲目；冇音檔 = 灰色（`audio_key` NULL，歌曲文字、MV 唔匯入，`NO_AUDIO` 提示）；有音檔而唔喺 `info.txt` = 唔加（`AUDIO_NOT_LISTED`）；歌名以 `info.txt` 為準，唔吻合 = `TITLE_MISMATCH`（唔擋）；冇 `info.txt` = 音檔歌號、碟名 = id、`NO_INFO`
+    - AC-4 自動新增更新同冪等（FS D73；TS API-034）：新資料夾 → 新專輯；新歌 id `<albumId>-<NN>`；第二次同步 `added`／`updated` 空、唔生成 catalog；ETag 冇變唔讀
+    - AC-5 分批（TS API-034）：有嘢做嘅歌每次最多 `SYNC_TRACKS_MAX`（100），`more`／`nextFrom`；`from` 唔係 1–999 → 400；`info_etag` 只喺成個曲目表套用咗先記
+    - AC-6 移除只列出（FS D73、D76；TS API-033 `missingAlbums`、API-034 `pendingRemovals`）：資料夾、歌、音檔、MV、文字、封面冇咗 → 列出，D1 唔改；API-035 逐項再對：`STILL_PRESENT`／`STALE`／`NOT_FOUND`，確認先刪；永遠唔刪 bucket 嘅檔；最多 50 項
+    - AC-7 唔會因為壞 `info.txt` 失資料（S-164、W-046，主 session 決定）：之前用過 `info.txt`（`albums.info_used`）而而家用唔到 → 保留碟名、年份、曲目，唔列移除，API-035 移除歌 → `STALE`；包括第一次同步未完成（`info_etag` NULL）
+    - AC-8 封面工作同檢查結果（FS D74、D77；TS 步驟 6、7）：`cover`／`cover2` 來源 ETag 唔同 → `coverJobs`；`cover2` 冇第一張 = `NO_FIRST_COVER`；`albums.checks` 記最近一次（≤ 100 條），訊息經 `zh-Hant.ts` 書面語
+    - AC-9 Catalog（TS API-034 / 035）：寫咗 D1 就生成；`catalog.json` 過 `parseCatalogDocument()`、同 D1 一致、次序 `albumOrder()`
+    - AC-10 守門同上限（TS「安全設計」、操作上限表）：三條 route 冇 session 401、寫入跨站 403；100 首嘅碟 API-034 操作數 < 1000
+- Scope files:
+    - `apps/api/src/sync/**`、`apps/api/src/media/{applyGuard,errors,listing,songTextFile}.ts`
+    - `packages/catalog/src/{sync,album-info,text,scan}/**`（連 `*.test.ts`）
+    - `apps/api/test/{syncFolder,syncLimits,syncMessages,syncOverview,syncRemovals,songTextFile,lyricsCleanupBatch}.test.ts`、`test/syncFixtures.ts`
+    - 1-hop（唔喺呢條鏈 freeze）：`tracks/{insertNumbered,store,songText,lyricsCleanup}.ts`（`api-tracks`）；`albums/{store,rows}.ts`（`api-albums`）；`api/routes.ts`、`config.ts`、`i18n/zh-Hant.ts`、`migrations/0001_init.sql`（`api-auth`）；`song-text`（`catalog-song-text`）；`schema/{ids,releaseCategory}.ts`（`catalog-core`）
+- Commands:
+    - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（repo 外 clone，唔入 repo）：workerd vitest，經 `src/index.ts` 打真 session cookie；本機 D1 / R2 由空開始，自己砌假 bucket（2–3 個資料夾、冇 `info.txt`、冇音檔嘅歌、歌名唔吻合、`cover.jpg`／`cover2.png`、同步／純文字歌詞、`_fonts/`、名唔啱嘅資料夾）；故障用 binding proxy（R2 `get` reject、`list` truncated）；D1 / R2 計數 proxy 量操作數。Sanity mutant：每個 review 修正至少一個
+- PWA gate: no。Performance gate: yes（操作數，AC-10）。Security / Data gate: yes（AC-6、AC-7、AC-10）
+- Out of scope: 寫返 bucket（`api-writeback`）；API-017 封面結果（`api-albums`）；管理端畫面同瀏覽器封面處理（T-055）；`COVER_FAILED` 儲存（S-185 未建）；真 R2 行為（B-060 ②、T-028）

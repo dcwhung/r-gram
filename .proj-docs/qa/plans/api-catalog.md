@@ -6,6 +6,7 @@
     - AC-1b 類別（CR-004，T-098；TS API-070 / 072「專輯加 `category`、`categoryNo`」、「內容檔 schema」）：`catalog.json` 每張專輯都有 `category`、`categoryNo`；`folder`、`coverSourceEtag`、`expectedFolder` 唔入
     - AC-1c 第二張封面（CR-005，T-100；TS API-070、「CR-005 → 第二張封面」）：`catalog.json` 每張專輯都有 `cover2`、`thumb2`（冇 = `null`）；`cover2SourceEtag` 唔入；新增、修改、清走之後即刻反映
     - AC-1d 歌號同年份（CR-006，T-101、T-102；TS「只有年份」Catalog 生成行、「歌號同歌 id」次序行）：`catalog.json` 嘅歌號係真歌號（可以跳號，刪歌之後唔重編），按 `no` 排；專輯 `year` = D1 `year`（`null` 照出）；冇 `releaseDate`、`type`；改歌號 / 刪歌 / 改年份之後即刻反映
+    - AC-1e CR-007（T-104；TS v1.7「內容檔」）：專輯冇 `label`、歌冇 `subtitle`；`wheelKey` = `wheelKeyFor(title)`（生成時計）；`albums[]` 次序 = `albumOrder()`（類別 → 序號 → id）；冇音檔嘅歌照列（`audio: null`），佢嘅 `mv`、`lyrics`、`credits` 一定 `null`；`folder`、`info_etag`、`info_used`、`checks`、`text_key` 唔入；同步（API-034 / 035）、API-017、API-019 / 041 寫完即刻反映
     - AC-2 冇變唔寫（TS API-061「hash 一樣就唔寫」）：ETag、`generatedAt`、R2 object 不變；`unchanged: true`
     - AC-3 未生成（TS API-070 Error Cases）：404 `NOT_READY`，`no-store`
     - AC-4 重試 endpoint（TS API-061）：session 401、Origin 403；唔再行寫入後置步驟（一次生成）；200 / 422 `INVALID_DOCUMENT` / 502 `CATALOG_WRITE_FAILED`
@@ -17,7 +18,7 @@
 - Scope files:
     - `apps/api/src/catalog/**`（`buildDocument`、`conditional`、`errors`、`issues`、`rebuild`、`rebuildRoute`、`routes`、`serve`、`snapshot`、`state`）
     - `apps/api/test/{catalogRebuild,catalogRebuildRoute,catalogPublic,lyricsAfterCatalog}.test.ts`、`test/catalogFixtures.ts`
-    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/api/afterWrite.ts`、`src/api/errors.ts`（屬 `api-albums`）；`src/tracks/{lyricsCleanup,songText}.ts`（屬 `api-tracks`）；`src/assets/{errors,imageName}.ts`、`test/catalogImage.test.ts`（屬 `api-assets`）；`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/lib/{securityHeaders,env,crypto}.ts`、`src/i18n/zh-Hant.ts`（屬 `api-auth`）；`@r-gram/catalog`（屬 `catalog-core`）；`apps/player/src/catalog/loader.ts`（屬 `player-catalog`，只做 consumer 檢查）
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/api/afterWrite.ts`、`src/api/errors.ts`（屬 `api-albums`）；`src/tracks/{lyricsCleanup,songText}.ts`（屬 `api-tracks`）；`src/sync/**`（屬 `api-sync`，CR-007 之後主要寫入）；`src/assets/{errors,imageName}.ts`、`test/catalogImage.test.ts`（屬 `api-assets`）；`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/lib/{securityHeaders,env,crypto}.ts`、`src/i18n/zh-Hant.ts`（屬 `api-auth`）；`@r-gram/catalog`（屬 `catalog-core`）；`apps/player/src/catalog/loader.ts`（屬 `player-catalog`，只做 consumer 檢查）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
@@ -25,4 +26,4 @@
 - Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie；本機 D1 / R2。失敗：直接改 D1 嘅值、R2 / D1 proxy（put reject / 回 null、delete reject、prepare throw）。並發：`Promise.all` 多個寫入；put proxy 喺寫入之前插入另一個請求（A→B→A）或者先改 etag（撞上限）。`loadCatalog()` 嘅 fetch 直接叫 Worker handler。預期由 spec 寫，唔抄 developer 嘅 test
 - HTTP smoke：唔使（冇改 middleware 次序；route 經 workerd 打 `src/index.ts`）。唔好 request `wrangler.toml` 嘅真 `MEDIA_BASE`
 - PWA gate: no。Performance gate: no（每個寫入讀兩句 D1 + head / put 一個 R2 object；291 首歌估計 < 170 KB）。Security / Data gate: yes（AC-4、AC-5、AC-8）
-- Out of scope: 管理端提示同重試掣（T-051 起）；seed 之後生成（T-027、API-070 `NOT_READY` 建議）；Worker 中途被中止嘅窄位（`rebuild.ts` 註解已記）；共用歌詞檔同時寫入嘅窄位（`lyricsCleanup.ts` 註解已記）
+- Out of scope: 管理端提示同重試掣（T-051 起）；~~seed 之後生成~~（CR-007 取消 seed）；Worker 中途被中止嘅窄位（`rebuild.ts` 註解已記）；共用歌詞檔同時寫入嘅窄位（`lyricsCleanup.ts` 註解已記）

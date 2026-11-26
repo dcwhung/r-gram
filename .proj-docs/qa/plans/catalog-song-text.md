@@ -9,9 +9,10 @@
     - AC-5 長度上限（TS「安全設計」；backlog B-006；`limits.ts`）：成段 64 KiB（UTF-8）、1000 行、歌名／副題 200 字、credit 200 字、歌詞每行 500 字（code point）
     - AC-6 回填同 round trip（FS D31「回填」；TS「`formatSongText()`」）：次序歌名、副題、曲、詞、編、監（全形冒號，冇值唔出）、空行、`lyrics.source` 原樣；`parseSongText(formatSongText(x))` = `x`；seed 歌全部成立（CR-004 之後 291 首）
     - AC-7 歌詞 JSON（TS API-072、CR-003）：`toLyricsJson()` 帶 `synced`；純文字行冇 `t`（`toLyricsJson` 檔屬 `catalog-core`，喺呢度用佢做輸出驗收）
+    - AC-8 冇副題（CR-007，T-103；FS D71、D72；TS「`packages/catalog` → song-text」）：`副題` 標籤照認，唔入結果，出 hint `SUBTITLE_IGNORED`（行號，唔擋）；重覆照 `DUPLICATE_LABEL`；`formatSongText()` 唔出 `副題：` 行；`SongText` 冇 `subtitle`；隱藏字元檢查用 `src/text/hiddenCharacters.ts`（屬 `api-sync`，1-hop）
 - Scope files:
     - `packages/catalog/src/song-text/**`（`parseSongText.ts`、`formatSongText.ts`、`labels.ts`、`lyrics.ts`、`limits.ts`、`types.ts` 同 `*.test.ts`）
-    - 1-hop 依賴（屬 `catalog-core`，唔喺呢條鏈 freeze）：`src/lrc/parseLrc.ts`（`parseLrc`、`startsWithTimestamp`）、`src/schema/types.ts`、`src/index.ts`
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/text/hiddenCharacters.ts`（屬 `api-sync`）；屬 `catalog-core`：`src/lrc/parseLrc.ts`（`parseLrc`、`startsWithTimestamp`）、`src/schema/types.ts`、`src/index.ts`
 - Commands:
     - `npm run lint`
     - `npm run typecheck`

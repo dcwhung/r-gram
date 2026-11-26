@@ -1,0 +1,21 @@
+# Test Plan — api-writeback
+
+- Chain: 寫返媒體 bucket（CR-007）：`info.txt` 文字框（API-018 `GET`、API-019 `PUT /api/albums/:id/info`）、歌曲文字框（API-040 `GET`、API-041 `PUT /api/tracks/:id/text`）；唯一寫入口 `putMediaText()`。任務 T-106（review 修正 S-181 – S-184）
+- AC（L1 來源：FS = Functional Spec v1.9 D72、D75、FR-128、FR-129；TS = Technical Spec v1.7「寫返媒體 bucket」「安全設計（CR-007 補充）」「技術風險（CR-007）」；backlog B-081 ①②（S-181、S-183，主 session 決定）照現狀驗）:
+    - AC-1 只寫兩種 key、永遠唔刪（TS「寫返媒體 bucket → 邊啲 key」「唔做」；FS D75）：行勻全部寫入 route 之後，bucket 只有 `<folder>/info.txt` 同嗰首歌嘅 `<folder>/NN ….txt` 變咗或者新增；音檔、MV、封面、`_fonts/` 位元組不變，冇檔被刪；key 由 server 砌，唔收 client 傳入
+    - AC-2 版本前提（TS「寫入方法」）：舊 ETag → 409 `STALE`，乜都唔寫；新檔 `If-None-Match: *`：同時兩個新檔請求 = 一個 200、一個 `STALE`；個檔已經冇咗而帶 ETag → `STALE`、唔會開新檔；`*`、weak ETag → 400
+    - AC-3 讀（TS API-018、API-040）：有檔 = `{ key, etag, text, problem }`；冇 = 範本（`formatAlbumInfo(D1)`／`formatSongText({ title })`，`etag: null`）；太大 = `text: null`、`TOO_LARGE`；唔係 UTF-8 = 照解碼、`BAD_ENCODING`
+    - AC-4 擋住嘅寫入（TS API-019、API-041；S-181、S-183、S-184）：太大／行數超過 → 413；已有嘅檔太大 → 409 `FILE_TOO_LARGE`；冇音檔 → 409 `NO_AUDIO`；歌號唔喺曲目表 → 409 `TRACK_NOT_LISTED`；清走歌詞而冇 `?force=1` → 409 `LYRICS_REMOVED`；逐行錯 → 400；D1 資料夾唔屬呢張碟 → 409 `FOLDER_MISMATCH`；list 唔齊又搵唔到檔 → 409 `STALE`；以上全部唔寫 bucket
+    - AC-5 寫入格式（TS「內容」）：UTF-8、冇 BOM、換行 LF；新歌曲文字檔名 = 兩位歌號 + `info.txt` 歌名
+    - AC-6 寫完同步（TS「之後」；S-182）：API-019 同步成張碟；API-041 由呢首歌起同步，前面有歌未同步 → `sync.skippedBefore: true`；回應 `checks` 只有呢首歌；`catalog.json` 跟 D1
+    - AC-7 路徑穿越同守門：`..`、`%2F`、`_fonts` 嘅 id → 4xx、乜都唔寫；四條 route 冇 session 401、寫入跨站 403
+    - AC-8 操作上限（TS「每個請求嘅操作上限」假設 1000；S-188）：100 首嘅碟 API-019、API-041 一般同最差（100 個 `.txt` 全部改過）都 < 1000
+- Scope files:
+    - `apps/api/src/media/{readText,textBody,writeText}.ts`、`apps/api/src/albums/info.ts`、`apps/api/src/tracks/text.ts`
+    - `apps/api/test/{mediaWrite,mediaWritesLocked,albumInfo,tracksText}.test.ts`
+    - 1-hop（唔喺呢條鏈 freeze）：`sync/{syncFolder,folderTarget,infoFile,removalContext,errors}.ts`、`media/{listing,songTextFile}.ts`、`sync/songTextTarget.ts`（`api-sync`）；`albums/{errors,store,routes}.ts`（`api-albums`）；`tracks/{errors,rows,store,songText,routes}.ts`（`api-tracks`）
+- Commands:
+    - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（repo 外 clone，唔入 repo）：workerd vitest；寫入前後成個媒體 bucket 逐個 key 做 SHA-256 snapshot 比較；`Promise.all` 做新檔 race；人手改 D1 `folder` 做 S-184；D1 / R2 計數 proxy；Sanity mutant（W-048 嘅 N13、N15、N32、N33）
+- PWA gate: no。Performance gate: yes（AC-8）。Security / Data gate: yes（AC-1、AC-2、AC-4、AC-7）
+- Out of scope: 真 R2 嘅 `If-None-Match: *` 同覆蓋 metadata（S-191、B-060 ②、T-028）；管理端文字框 UI（T-053、T-055）；同步本身（`api-sync`）

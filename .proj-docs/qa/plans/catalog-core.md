@@ -1,20 +1,21 @@
 # Test Plan — catalog-core
 
-- Chain: `@r-gram/catalog` 共用純邏輯（catalog 文件型別同驗證、`mediaUrl`、LRC parser、字母盤標記、顏色、seed credit 配對 + fixture catalog、初始專輯揀選）。任務 T-002；T-025 將掃描配對搬去 `api-media`；T-027 加 `planAlbumSeed`
+- Chain: `@r-gram/catalog` 共用純邏輯（catalog 文件型別同驗證、`mediaUrl`、LRC parser、字母盤標記、顏色、seed credit 配對 + fixture catalog、初始專輯揀選）。任務 T-002；T-025 將掃描配對搬去 `api-media`（CR-007 之後 `api-sync`）；T-027 加 `planAlbumSeed`（T-104 刪走）
 - AC（L1 來源：TS = Technical Spec、FS = Functional Spec、Plan = Implementation Plan；編號沿用第一次驗收，AC-1 同 AC-9 已搬去 `repo-scaffold`）:
     - AC-2 Catalog 文件（TS API-070；`albums` / `tracks` 表嘅 id 規則）：規格例子原樣通過；`audio` / `mv` / `lyrics` / `cover` 同 `credits`（成個或者逐欄）可以係 `null`；專輯 id `^[a-z0-9]+(-[a-z0-9]+)*$` 而且唔可以係 `favourites`；歌 id `^[a-z0-9-]+$`；`wheelKey` 1–2 個字；`accent` `#rrggbb`；~~`releaseDate` `YYYY-MM-DD`~~ CR-006 見 AC-12；同一張專輯歌號唔重覆
     - AC-3 `mediaUrl`（TS API-070）：每段路徑各自 `encodeURIComponent`
     - AC-4 LRC（FS US-106；TS 實現注意事項 7；TS API-072 歌詞 JSON）：`[mm:ss]`、`.x`、`.xx`、`.xxx`；一行多個時間戳拆開；輸出按 `t` 排序；套用 `[offset:]`；其他 metadata tag 忽略；最少一行有時間戳；純文字唔收；錯誤逐行指出（行號 + 原因）
-    - ~~AC-5 掃描配對~~（T-025：`matchMediaFiles` 刪走，`packages/catalog/src/scan/**` 由 `api-media` AC-2 – AC-7 驗）：~~檔名（唔計資料夾）開頭 1–3 位數字 = 歌號；`m4a` / `mp3` → audio、`mp4` / `m4v` → mv、其他 → `UNKNOWN_EXTENSION`；同一歌號同一類多過一個檔 → `conflicts`；唔分大細楷；結果有 `matched` / `unmatchedFiles` / `tracksWithoutAudio` / `conflicts`；重複掃描結果一致~~
+    - ~~AC-5 掃描配對~~（T-025：`matchMediaFiles` 刪走，`packages/catalog/src/scan/**` 由 `api-media` AC-2 – AC-7 驗；CR-007 之後 `api-sync` AC-1 – AC-3）：~~檔名（唔計資料夾）開頭 1–3 位數字 = 歌號；`m4a` / `mp3` → audio、`mp4` / `m4v` → mv、其他 → `UNKNOWN_EXTENSION`；同一歌號同一類多過一個檔 → `conflicts`；唔分大細楷；結果有 `matched` / `unmatchedFiles` / `tracksWithoutAudio` / `conflicts`；重複掃描結果一致~~
     - AC-6 `wheelKeyFor`（TS 組件圖 `wheel/`）：英文名第一個字母（忽略 `¿` 等符號）、中文名第一個字
     - AC-7 顏色（TS 組件圖 `color/`）：`dominantColor` / `glowColor` 同設計稿（`_mockups_/r-gram/src/anim.js`、`src/tools/template.html`）輸出一致
     - AC-8 Seed（FS US-109、CR-004「內容資料」、D46、D47；TS「Seed credit 配對」、「內容資料重新生成（T-097）」）：~~17 張 262 首、187 / 22 / 53~~ CR-004：21 個發行、291 首歌、credit 252 行；配對 246 直接 / 0 同名 / 45 冇（當中 39 首屬《逆流大叔》原聲大碟；數字由 T-097 報告，S-122 等 PM 回寫 spec）；每個發行有 `category`、`categoryNo`，每個類別由 1 連續；初始次序先類別後序號；21 個預期資料夾名（`album-01-apollo-18` … `single-02-joeng-sai-gaai-dou-dung`）；之前 262 首歌入面 261 個 id（同歌名）不變，`singles` 冇咗（`seed/testing/previousTrackIds.json` 鎖住）；「—」當冇；seed 歌 id = `<albumId>-<兩位歌號>`；fixture catalog 通過 `parseCatalogDocument()`
     - AC-10 類別（CR-004，T-098；TS「資料夾名同發行類別」、API-070）：`RELEASE_CATEGORIES` 六個短名（串法 D43 待用戶確認）；`expectedFolder()` 序號補零到兩位、100 以上照出；catalog 文件 `category`、`categoryNo` 必填（W-028 方案 A），缺一個、錯值都唔收
     - AC-11 第二張封面（CR-005，T-100；TS「CR-005 → 第二張封面」`packages/catalog`）：`cover2`、`thumb2` 可選；冇呢兩個欄、或者兩個都 `null` 嘅 document 照收；有就要成對（`UNPAIRED_COVER2` 報喺冇嗰個）、要有 `cover`（`COVER2_WITHOUT_COVER`）；唔係字串 / 空字串唔收；`version` 仍然係 1
-    - AC-13 初始專輯揀選（CR-006，T-027；TS「初始資料只入專輯」；FS US-109、D59）：`planAlbumSeed()` 純函數：id 已有 → `existing`（唔郁）；同類別序號有其他專輯用 → `ordinalTaken`（連 `takenBy`）；其餘按 `albums` 次序 → `insert`；兩張初始專輯撞號第一張先。`index.ts` 匯出掃描型別（屬 `api-media`）唔改呢條鏈嘅 AC
+    - ~~AC-13 初始專輯揀選~~（CR-007，T-104：`planAlbumSeed()` 同 seed 匯入刪走，D79）
+    - AC-14 資料夾名、次序同內容檔（CR-007，T-103、T-104；TS v1.7「`packages/catalog`：新增同改」；FS D67、D69）：`parseAlbumFolder()` = `expectedFolder()` 反方向（`^(album|ep|best|live|ost|single)-(\d{2,3})-<id>$`，序號 ≥ 1，id 過 `isAlbumId()`，其他 → `undefined`）；`albumOrder()` 類別 → 序號 → id；`CatalogAlbum` 冇 `label`、`CatalogTrack` 冇 `subtitle`（舊 document 有都照收）；`wheelKeyFor()` 第一個 `\p{L}\p{N}`，冇 = `?`，21 張碟同 seed 一樣
     - AC-12 年份同歌號（CR-006，T-101、T-102；TS「只有年份」`packages/catalog` 行、「歌號同歌 id」；FS D60、D61、D63）：`CatalogAlbum` / `SeedAlbum` 冇 `releaseDate`、`type`；validator `year` = `null` 或者 1900–2100（`isAlbumYear`），舊 document 仲有 `releaseDate` / `type` 照收（唔睇）；`trackIdFor()` 喺 `schema/ids.ts`（`<albumId>-<NN>`，100 以上三位），`isTrackNo()` 1–999；seed：21 張都有年份（終於好天氣 = 2016），291 首歌 id 同歌名不變
 - Scope files:
-    - `packages/catalog/`：`src/**`（`src/song-text/**` 除外，屬 `catalog-song-text`；`src/scan/**` 除外，屬 `api-media`）、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
+    - `packages/catalog/`：`src/**`（`src/song-text/**` 除外，屬 `catalog-song-text`；`src/{sync,album-info,text,scan}/**` 除外，屬 `api-sync`，CR-007）、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
     - `apps/api/seed/discography.json`、`apps/api/seed/credits.json`（`seed.node.test.ts` 讀真資料；由 `seed-tools` 鏈嘅 script 生成）
     - 1-hop：`_design_/tools/*.py`（屬 `seed-tools`）
 - Commands:
@@ -23,4 +24,4 @@
     - `npx vitest run --project @r-gram/catalog --coverage --coverage.include='src/**/*.ts'`（淨揀一個 project 時，`include` 相對嗰個 project 嘅資料夾）
 - PWA gate: no。Performance gate: no
 - Security / Data gate: yes（validator 同 LRC parser 處理外來輸入；由上面嘅 unit test 覆蓋）
-- Out of scope: 根設定同 CI（`repo-scaffold`）；`apps/*`；API body 嘅長度上限（backlog B-006）；seed 匯入 script 同 `seed/albums.sql`（`api-seed`）；掃描（`api-media`）
+- Out of scope: 根設定同 CI（`repo-scaffold`）；`apps/*`；API body 嘅長度上限（backlog B-006）；~~seed 匯入 script 同 `seed/albums.sql`~~（CR-007 刪走）；同步、`info.txt`、掃描分類（`api-sync`）

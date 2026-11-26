@@ -1,5 +1,7 @@
 # Test Plan — api-media
 
+> ⛔ **已作廢（2026-11-26，CR-007）**：媒體 bucket 係唯一來源，逐張碟預覽同套用（API-030 – 032）取消；由 `api-sync`（同步）同 `api-writeback`（寫返 bucket）取代，ledger 行已刪。下面係歷史記錄。
+
 - Chain: 掃描同媒體 API（`apps/api/src/media` + 純邏輯 `packages/catalog/src/scan`）：預覽（API-030）、套用（API-031）、列資料夾（API-032）。任務 T-025（review 修正 W-033、W-035、S-135、S-136、S-137、S-139）
 - AC（L1 來源：FS = Functional Spec v1.8（CR-004 D40、D41；CR-005 D54、D55；CR-006 D59–D62、D65；FR-123、FR-125、FR-126）；TS = Technical Spec v1.6 API-030–032、「掃描嘅設計」「掃描以音檔做錨」「掃描建立歌曲」「安全設計」R2 key）:
     - AC-1 預覽唔寫嘢（TS API-030）：D1、`CATALOG`（catalog.json、歌詞檔）同媒體 bucket 前後一樣

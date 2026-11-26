@@ -7,14 +7,14 @@
     - AC-3 類型（TS API-050 415、「安全設計 → 上載」）：Content-Type 唔係三種之一、冇 type、檔頭唔係三種之一、宣告同檔頭唔一致 → 415 `UNSUPPORTED_TYPE`，乜都唔寫
     - AC-4 尺寸 / 結構（TS「albums」cover 1200、thumb 320；review 決定 4，spec 回寫見 backlog B-052 ②）：其他尺寸、非正方形 → 400 `$:INVALID_DIMENSIONS`；截短、壞 chunk / segment → 400 `$:INVALID_IMAGE`（只驗檔頭級，backlog B-050）
     - AC-5 上限（TS「安全設計 → 上載」`IMAGE_MAX_BYTES` 2 MB）：> 2 MB 有 / 冇 `Content-Length` → 413 `TOO_LARGE`（先於 magic 檢查）；啱啱 2 MB 收
-    - AC-6 設定封面（TS API-013「`cover` 唔喺 `assets`」400；FS US-103 第 2 點）：兩個尺寸上載後 `PATCH` `cover`、`thumb`、`accent` → 專輯讀到；未知名 400；`accent` 照改得；`null` 清走
+    - AC-6 設定封面（CR-007：`PATCH` 取消，改由 API-017，驗收屬 `api-albums` AC-4）：`ImageFormat.size` 只由檔頭讀闊高（S-186：WebP / PNG 頭幾十 bytes；JPEG 行到 SOF，唔夠就 throw，API-017 再讀成個檔）；`parse` 照驗成個檔
     - AC-7 公開圖（TS API-071、「安全設計」公開路由、「性能 → 圖片」）：唔使 session、唔設 cookie；`GET` / `HEAD` → content type 跟副檔名、`public, max-age=31536000, immutable`、`nosniff`、ETag；唔合規 / 唔存在 / 大楷 / 其他副檔名 / traversal（連編碼）→ 404；CORS 只回 `PLAYER_ORIGINS`（`Vary: Origin`），外來 / 冇 Origin 冇 ACAO；preflight 只開 GET / HEAD
     - AC-8 後置步驟（backlog B-043 ③；TS API-061）：上載唔行 hook、唔加 `catalog`；其他寫入照行一次
     - AC-9 訊息（CLAUDE.md 介面文字）：全部 `message` / `details[].message` 係中文書面語，冇未填 `{…}`
 - Scope files:
     - `apps/api/src/assets/**`（`src/catalog/**` 由 T-026 起屬 `api-catalog`）
     - `apps/api/test/{webp,png,jpeg,assetsUpload,catalogImage}.test.ts`、`test/imageFixtures.ts`
-    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/catalog/{routes,serve}.ts`（公開圖 route，屬 `api-catalog`）；`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/i18n/zh-Hant.ts`、`src/lib/{env,http}.ts`（屬 `api-auth`）；`src/api/{afterWrite,errors}.ts`、`src/lib/fields.ts`、`src/i18n/fillMessage.ts`、`src/albums/validate.ts`（屬 `api-albums`）；`test/messageParams.test.ts`（屬 `api-tracks`）
+    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/catalog/{routes,serve}.ts`（公開圖 route，屬 `api-catalog`）；`src/config.ts`、`src/app.ts`、`src/index.ts`、`src/api/routes.ts`、`src/i18n/zh-Hant.ts`、`src/lib/{env,http}.ts`（屬 `api-auth`）；`src/api/{afterWrite,errors}.ts`、`src/lib/fields.ts`、`src/i18n/fillMessage.ts`、`src/albums/cover.ts`（屬 `api-albums`；`validate.ts` CR-007 刪走）；`test/messageParams.test.ts`（屬 `api-tracks`）
 - Commands:
     - `npm run lint`
     - `npm run typecheck`

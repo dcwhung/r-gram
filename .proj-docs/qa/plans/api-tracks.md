@@ -1,25 +1,19 @@
 # Test Plan — api-tracks
 
-- Chain: 歌曲 API（`apps/api`）：新增歌（歌號 + 歌曲文字）、讀 / 存歌曲文字（If-Match，歌詞 JSON 寫 R2）、改歌號、參考欄同手動音檔 / MV、刪歌（ID 守衛，唔重編）、清歌詞確認。任務 T-023、T-102（CR-006）；T-025 將「指定歌號新增」抽做 `insertNumbered.ts`（掃描建立歌曲共用），`store.insertTrack` 加可選檔案欄
-- AC（L1 來源：TS = Technical Spec v1.6（CR-006「歌號同歌 id」）、FS = Functional Spec v1.8（D60、D61））:
-    - AC-1 守門（TS「API 設計」通則、「安全設計」授權 / CSRF）：5 條 route（API-020 – 022、040、041）冇 session 一律 401；寫入 Origin ≠ `WORKER_ORIGIN` 一律 403，資料同 R2 不變；讀唔使 Origin
-    - AC-2 新增（TS API-020、CR-006「歌號同歌 id」；FS FR-104、FR-120、D60、D61）：body `{ no?, text }`（`text` 同 API-041）；`no` 1–999 整數（其他 → 400 `INVALID_NUMBER`）；冇畀 = 最大歌號 + 1（冇歌 = 1），過 999 → 400 `NUMBER_EXHAUSTED`；撞號 → 409 `CONFLICT` + `[{ path: 'no', reason: 'NUMBER_TAKEN' }]`；次序 400 → 404（冇呢張碟）→ 409；id = `trackIdFor(albumId, no)`（`<albumId>-<NN>`，100 以上三位），已經有人用先用 `<albumId>-<6 位隨機>`；寫唔到嘅歌詞檔即刻收返；回應 = 正規化文字 + 歌曲物件
-    - AC-3 讀 / 存歌曲文字（TS API-040、API-041、「`parseSongText()` 嘅規則」；FS D31、D32、D37）：讀回 = `formatSongText()`；存：有錯回 400 乜都唔寫；有歌詞先寫 R2 `catalog/v1/lyrics/<hash>.json`（API-072 內容，帶 `synced`）再寫 D1；舊檔冇人用就刪；If-Match 冇 400、過時 409 `STALE`
-    - AC-4 清歌詞確認（FS D30「儲存會清走成段現有歌詞時再確認一次」）：冇 `?force=1` → 409 `LYRICS_REMOVED`，乜都唔改；`force=1` → `lyrics` 行同 R2 檔都冇咗
-    - AC-5 逐行錯誤同上限（TS API-041 Error Cases、「安全設計」歌曲文字）：`TITLE_REQUIRED`、`DUPLICATE_LABEL`、`MIXED_TIMESTAMPS`、`BAD_TIMESTAMP`、`BAD_OFFSET`、`*_TOO_LONG`、`TOO_MANY_LINES` 帶行號；超過 `SONG_TEXT_MAX_BYTES` → 413 `TOO_LARGE`（大 body 未 parse 就擋）；淨係 CR 當換行（B-042）；空行之後嘅標籤樣行照存，回 `hints`（B-038）
-    - AC-6 改欄位（TS API-021、「安全設計」R2 key 驗證；FS D37、D60）：只收 `no`（同 AC-2 範圍；撞號 409 `NUMBER_TAKEN`；唔改 id）、`lyricsSourceUrl`（https，冇 userinfo：S-067）、`note`、`audio`、`mv`；key 冇 `..`、唔以 `/` 開頭、冇隱藏字元、`MEDIA.head` 存在；其他欄 `NOT_EDITABLE`（最多列 20 個，B-046）；次序 400（欄位 / 冇 If-Match）→ 404 → 409 `STALE` → `NUMBER_TAKEN`
-    - AC-7 刪歌同取消排序（TS API-022、~~API-023~~、CR-006「歌號同歌 id」、「ID 守衛」；FS D30、D60）：冇 `?force=1` → 409 `ID_REMOVED`；刪咗之後其他歌嘅歌號同 id 不變（唔重編），歌詞行同 R2 檔照清；之後自動歌號 = 剩低最大 + 1；舊排序 route `PUT /api/albums/:id/tracks/order` → 404，乜都唔改
-    - AC-8 並發（TS「API 設計」並發、CR-006「歌號同歌 id」）：同一個 If-Match 兩個寫入只有一個成功，輸咗嗰個寫嘅 R2 檔清走；同時兩個新增 / 兩個 PATCH 搶同一個歌號 → 一個成功一個 409 `NUMBER_TAKEN`，唔會 500；同時自動歌號唔會撞號，冇孤兒歌詞檔
-    - AC-9 訊息（CLAUDE.md 介面文字；backlog B-044、B-045）：全部 `message`、`details[].message`、`hints[].message` 係中文書面語，冇未填 `{…}`；`code` 同 spec 一致
+- Chain: 歌曲共用 code（`apps/api/src/tracks`）：歌曲文字解析同歌詞 JSON（`songText.ts`：`putLyrics`、`parseText`）、`saveSongText`／`findTrackText`（`store.ts`）、指定歌號新增（`insertNumbered.ts`、`ids.ts`）、冇人用嘅歌詞檔清理（`lyricsCleanup.ts`）、歌 row 形狀（`rows.ts`）、錯誤（`errors.ts`）、route 表（`routes.ts`）。任務 T-023、T-102；CR-007（T-104、T-106）之後歌由同步建立，API-020 – 022 取消，API-040 / 041 搬去 `api-writeback`
+- AC（L1 來源：TS = Technical Spec v1.7「資料模型 → tracks」「已完成嘅 code：保留、改寫、拎走」；FS = Functional Spec v1.9 D61、D71、D72；之前嘅 AC-2、AC-6、AC-7 CR-007 作廢）:
+    - AC-1 守門：`/api/tracks/*` 冇 session 一律 401；寫入跨站 403
+    - AC-2 歌 id（FS D61；TS「tracks」）：建立時 `<albumId>-<NN>`（100 以上三位），撞咗用 `<albumId>-<6 位隨機>`；之後不變；同步並發唔會撞號、冇孤兒歌詞檔
+    - AC-3 歌曲文字欄（FS D72；TS「tracks」）：`saveSongText` 寫 credit、歌詞行、`text_source_etag`、`text_key`；冇 `subtitle`、手動指定、參考欄；歌詞 JSON 先寫 R2 再寫 D1，舊檔冇人用先刪（catalog 生成成功之後）
+    - AC-4 逐行錯誤同上限（TS API-041）：`parseText` 逐行錯誤帶行號；超過 `SONG_TEXT_MAX_BYTES` → `tooLarge`；`hints` 唔擋
+    - AC-5 取消嘅 route（TS「API 一覽嘅變化」）：`POST /api/albums/:id/tracks`、`PATCH`／`DELETE /api/tracks/:id` → 404（`test/removedRoutes.test.ts` 屬 `api-auth`）
+    - AC-6 訊息（CLAUDE.md 介面文字）：`message`、`details[].message`、`hints[].message` 係中文書面語，冇未填 `{…}`；`code` 同 spec 一致
 - Scope files:
-    - `apps/api/src/tracks/**`
-    - `apps/api/test/tracks*.test.ts`（T-102：`tracksDelete.test.ts` 取代 `tracksDeleteOrder.test.ts`）、`test/trackFixtures.ts`、`test/messageParams.test.ts`
-    - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/api/errors.ts`、`src/lib/fields.ts`、`src/albums/{store,order}.ts`、`src/lib/updatedAt.ts`、`src/i18n/fillMessage.ts`（屬 `api-albums`）；`src/api/routes.ts`、`src/config.ts`、`src/lib/{http,crypto}.ts`、`src/i18n/zh-Hant.ts`、`migrations/0001_init.sql`（屬 `api-auth`）；`@r-gram/catalog` song-text（屬 `catalog-song-text`）、`schema/ids.ts`（`trackIdFor`、`TRACK_NO_MAX`，屬 `catalog-core`）
+    - `apps/api/src/tracks/{errors,ids,insertNumbered,lyricsCleanup,routes,rows,songText,store}.ts`
+    - `apps/api/test/messageParams.test.ts`、`test/trackFixtures.ts`
+    - 1-hop（唔喺呢條鏈 freeze）：`src/tracks/text.ts`、`test/tracksText.test.ts`（`api-writeback`）；`src/sync/{trackWrite,syncTracks}.ts`、`test/{syncFolder,lyricsCleanupBatch}.test.ts`（`api-sync`，經佢哋行呢條鏈嘅 code）；`src/api/errors.ts`、`src/lib/{fields,updatedAt}.ts`（`api-albums`）；`src/config.ts`、`migrations/0001_init.sql`（`api-auth`）；`song-text`（`catalog-song-text`）
 - Commands:
-    - `npm run lint`
-    - `npm run typecheck`
-    - `npm run coverage`（全部 workspace 一次；門檻 80%）
-- Probe（scratchpad，唔入 repo）：同 `api-albums`：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`；經 `src/index.ts` 打真 session cookie；本機 R2（`CATALOG`、`MEDIA`）。預期由 spec 寫，唔抄 developer 嘅 test。插隊：D1 proxy 喺指定 SQL 之後做另一個寫入（檢查同寫入之間被加 / 刪歌、刪碟）
-- HTTP smoke：唔使（route 經 workerd 打 `src/index.ts`；`wrangler dev` 只喺改到 `wrangler.toml` 或者 middleware 次序先做）
-- PWA gate: no。Performance gate: no（每個請求幾句 D1 + 一個 R2 put）。Security / Data gate: yes（AC-1、AC-5、AC-6、AC-8）
-- Out of scope: `rebuildCatalog()` 同 `catalog.ok`（T-026）；`/catalog/v1/lyrics/*` 公開讀取（T-026）；同名歌帶入 API-024、批量匯入 API-043；掃描 API-030 – 032（`api-media`，佢經 `insertNumbered` 同 `saveSongText` 用呢條鏈）；管理端 UI；刪專輯留低嘅歌詞檔（backlog B-048）
+    - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）
+- Probe（scratchpad，唔入 repo）：經 `api-sync`／`api-writeback` 嘅 workerd probe 行呢條鏈（同步建立歌、寫歌詞 JSON、確認移除清歌詞檔）
+- PWA gate: no。Performance gate: no。Security / Data gate: yes（AC-3、AC-4）
+- Out of scope: `ids.ts` 隨機後備 id 而家冇 test 行到（同步唔會撞 `<albumId>-<NN>`；backlog S-195）；`/catalog/v1/lyrics/*` 公開讀取（`api-catalog`）；管理端 UI
