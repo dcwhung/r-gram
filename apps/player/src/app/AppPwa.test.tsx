@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import type { UpdateStatus } from '../pwa/updateManager';
@@ -66,7 +66,8 @@ describe('App and the update manager', () => {
         render(<App startup={startup} updates={port} />);
         expect(port.endLaunch).not.toHaveBeenCalled();
         await screen.findByRole('button', { name: '開啟歌單' });
-        expect(port.endLaunch).toHaveBeenCalled();
+        // W-059：主頁一出 DOM 就會返，useLaunchEnd 嘅 effect 未必已經跑：等佢
+        await waitFor(() => expect(port.endLaunch).toHaveBeenCalled());
     });
 
     // D95：Preload 期間（連旗淡出中）永遠唔出版本掣，亦唔通知
