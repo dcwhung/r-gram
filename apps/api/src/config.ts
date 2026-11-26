@@ -56,7 +56,7 @@ export const ERROR_CODE = {
     forbiddenOrigin: 'FORBIDDEN_ORIGIN',
     notFound: 'NOT_FOUND',
     validation: 'VALIDATION_ERROR',
-    /** If-Match 同現有 updatedAt 唔同 */
+    /** 版本前提唔成立：媒體 bucket 嘅檔喺讀入之後改過（T-106）、同步確認時資料改咗 */
     stale: 'STALE',
     /** 儲存會清走一首歌現有嘅歌詞：要帶 ?force=1 再叫（Functional Spec D30） */
     lyricsRemoved: 'LYRICS_REMOVED',
@@ -78,6 +78,8 @@ export const ERROR_CODE = {
     duplicateAlbumId: 'DUPLICATE_ALBUM_ID',
     /** 歌曲文字：呢首歌冇音檔（Functional Spec D54；T-106 API-041 用） */
     noAudio: 'NO_AUDIO',
+    /** 歌曲文字：同一個歌號有幾個 `.txt`，而 D1 連住嗰個唔喺度（T-106 API-040、041） */
+    textConflict: 'TEXT_CONFLICT',
     internal: 'INTERNAL',
 } as const;
 

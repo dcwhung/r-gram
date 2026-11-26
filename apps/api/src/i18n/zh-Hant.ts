@@ -70,10 +70,15 @@ export const zhHant = {
         errors: {
             invalid: '資料有誤，請修正後再儲存。',
             notFound: '找不到指定的歌曲。',
-            stale: '歌曲資料已被其他操作更新，請重新載入後再修改。',
+            /** 409 STALE（T-106）：讀入之後檔案喺 bucket 改過（Functional Spec D75 嘅句子） */
+            stale: '檔案已在其他地方更改，請重新載入。',
             lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
             /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
             tooLarge: '歌曲文字超出 {max} KB 的上限。',
+            /** 409 NO_AUDIO（D54：冇音檔嘅歌唔匯入歌曲文字） */
+            noAudio: '這首歌沒有音檔，不能儲存歌曲文字。',
+            /** 409 TEXT_CONFLICT：同一個歌號有幾個歌曲文字檔，唔知寫邊個 */
+            textConflict: '這首歌有多於一個歌曲文字檔，請先在媒體庫只保留一個。',
         },
         /** details[].message：key = details[].reason */
         reasons: {
@@ -83,6 +88,7 @@ export const zhHant = {
             /** `{max}` = UNKNOWN_FIELDS_MAX */
             TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
             NOT_TEXT: '必須為文字。',
+            INVALID_VALUE: '格式不正確。',
             /** 以下係歌曲文字（path = text）逐行嘅錯誤；`{max}` 由 tracks/errors.ts 按 packages/catalog 嘅上限填入 */
             TOO_LARGE: '歌曲文字超出大小上限。',
             TOO_MANY_LINES: '歌曲文字最多 {max} 行。',
