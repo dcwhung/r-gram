@@ -25,7 +25,7 @@ const TITLE_MIN_SIZE = 48;
 /*
  * 細唱片機（T-048）照設計稿第 18 版 MINI 同 miniTurntable()：「播放中」y − 18、歌名 y + 30。
  * 拎住另一隻碟時碟名停喺細唱片機左邊 MINI_TITLE_GAP 之外（設計稿 info()：MINI.x − MINI.r − 20）。
- * 歌名最細縮到同「播放中」一樣大（設計稿冇畫長歌名，T-048 定）
+ * 歌名最細縮到同「播放中」一樣大（設計稿 titleMin），每次縮 titleStep（S-193）
  */
 const MINI = {
     x: 930,
@@ -34,7 +34,7 @@ const MINI = {
     labelGap: 28,
     hitPad: 300,
     label: { size: 24, rise: 18, spacing: 4 },
-    title: { size: 36, drop: 30, minSize: 24 },
+    title: { size: 36, drop: 30, minSize: 24, step: 2 },
 } as const;
 const MINI_TITLE_GAP = 20;
 
