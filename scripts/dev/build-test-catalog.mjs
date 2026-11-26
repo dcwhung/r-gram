@@ -7,7 +7,7 @@
  *
  * - 砌法：packages/catalog 嘅 seedToCatalog()（同播放端開發 fixture 一樣），寫入前用 parseCatalogDocument() 驗證
  * - --audio=all（預設）：每首歌都當有音檔，key 跟資料夾規則 `<類別>-<NN>-<id>/<NN> <歌名>.m4a`；
- *   大部分檔暫時未存在（播放端而家㩒播放只係改畫面狀態，真播放係 T-038）。--audio=none：全部灰色行
+ *   大部分檔暫時未存在（真播放 T-038 已做：檔唔存在嘅歌會顯示「未能播放」）。--audio=none：全部灰色行
  * - 封面、歌詞：冇（null），播放端畫佔位碟；專輯色係中性灰（正式由封面計）
  * - 輸出固定（generatedAt 寫死、次序跟 seed）：seed 或者 script 改咗先會變
  */
