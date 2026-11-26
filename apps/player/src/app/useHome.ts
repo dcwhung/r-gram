@@ -49,15 +49,17 @@ const openList = ({ catalog, stage, view, dispatch }: HomeContext) => {
 };
 
 /**
- * 㩒拎住嘅碟嘅歌單欄一行（T-049）：只喺鬆手之後、嗰首屬拎住嘅碟而且播得。揀中嗰首，再叫播放狀態 `start`
- *（舊歌停、換隊列）。載入嘅碟變咗 → holding 解除 → 唱臂由泊位行完整開場。真正出聲係 T-038
+ * 㩒拎住嘅碟嘅歌單欄一行（T-049）：只喺鬆手之後、嗰首屬拎住嘅碟而且播得。揀中嗰首，再叫播放狀態 `startHeld`
+ *（舊歌停、換隊列）。兩邊都帶住㩒嗰陣嘅載入嘅碟：同一個 tick 連㩒兩行，第二下兩邊都唔理（S-180）。
+ * 載入嘅碟變咗 → holding 解除 → 唱臂由泊位行完整開場。真正出聲係 T-038
  */
 const playHeldTrack = ({ view, dispatch, play }: HomeContext, trackId: string) => {
     const held = view.heldTracks;
     const row = held?.rows.find((candidate) => candidate.id === trackId);
     if (!held?.pressable || !row?.playable) return;
-    dispatch({ type: 'playHeldTrack', trackId, loadedAlbumId: view.loadedAlbumId });
-    play({ type: 'start', albumId: held.albumId, trackId });
+    const { loadedAlbumId } = view;
+    dispatch({ type: 'playHeldTrack', trackId, loadedAlbumId });
+    play({ type: 'startHeld', albumId: held.albumId, trackId, loadedAlbumId });
 };
 
 const pressSpindle = (context: HomeContext) => {
