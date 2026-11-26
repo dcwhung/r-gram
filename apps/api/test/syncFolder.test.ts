@@ -499,6 +499,27 @@ describe('POST /api/sync/folders/:folder: limits and failures', () => {
         expect(retry.body.added.map(({ no }: Loose) => no)).toEqual([1]);
     });
 
+    it('should still rebuild the catalog when storing the checks fails after the tracks', async () => {
+        await putKomorebi();
+        const db = new Proxy(env.DB, {
+            get(target, key: string) {
+                const value = Reflect.get(target, key) as unknown;
+                if (key !== 'prepare')
+                    return typeof value === 'function' ? value.bind(target) : value;
+                return (sql: string) => {
+                    if (sql.includes('SET checks')) throw new Error('D1 unavailable');
+                    return target.prepare(sql);
+                };
+            },
+        });
+        const { status, body } = await syncFolder(FOLDER, '', { ...env, DB: db });
+        expect(status).toBe(200);
+        expect(body.added).toHaveLength(5);
+        expect(body.catalog).toMatchObject({ ok: true });
+        expect((await liveDocument())?.albums[0]?.tracks).toHaveLength(5);
+        expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
+    });
+
     it('should end with the same result when two scans of one folder run at once', async () => {
         await putKomorebi();
         const results = await Promise.all([syncFolder(), syncFolder()]);
