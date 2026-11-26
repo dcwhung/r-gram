@@ -7,7 +7,7 @@
     - AC-3 自動下一首（D103、US-014、播放模式表）：同一個 element、畫面隱藏都得；冇音檔嘅歌跳過；順序停、全部重複兜返、單曲重複、隨機每輪唔重複而且唔停；模式掣循環、存 `rgram.playMode.v1`
     - AC-4 播完最後一首（D99、E1–E5、D88）：停、唱臂泊位、唱片夾 play；3 秒後未揀歌、歌單欄飄返、鎖屏清空；3 秒內／後㩒 = 第一首；擰旋鈕、開歌單、㩒歌書／MV = 即刻放低（MV／歌書唔開）；歌書開住 = 收埋先計；拎住 = 「已播完」、冇 timer，返去 = 未揀歌
     - AC-5 錯誤（US-004、P3）：「第 nn 首 · 未能播放」、`aria-live` 講歌名、唱臂泊位、再㩒重試；拎住時細唱片機「未能播放」（S-242）
-    - AC-6 D109／D110／W-062：隱藏時自動下一首失敗跳一次、再失敗停、前景停；鎖屏上一首 > 3 秒由頭、≤ 3 秒上一首；歌中途網絡錯（隱藏）唔即刻重載，返前景先試
+    - AC-6 D109／D110／W-062：隱藏時自動下一首失敗跳一次、再失敗停、前景停；鎖屏上一首 > 3 秒由頭、≤ 3 秒上一首；歌中途網絡錯（隱藏）唔即刻重載，返前景先試；暫停緊時網絡錯（前景、隱藏）= 唔播、唔報錯、位置不變，下次 play 喺同一位置重載一次（W-064）
     - AC-7 Media Session（P4）：metadata（歌名、RubberBand、碟名、縮圖 + 大封面）、handler 各註冊一次、`playbackState` 跟 element、位置夾喺長度內、放低 = `none`
     - AC-8 畫面跟實際：時間同進度圈跟 `currentTime`；碟只喺出聲時轉（卡住停）
 - Scope files:
@@ -17,5 +17,6 @@
 - Commands:
     - `npx vitest run --project @r-gram/player src/playback src/app/useHomeEnded.test.ts src/app/useHomePlayback.test.ts`（lint／typecheck／coverage 引用同一個 SHA 嘅 gate）
     - Browser（未有 e2e；T-040 之後改跑 e2e）：`/tmp/…/scratchpad/qa-t038-t116/t038.cjs` + `t038-server.mjs`（HEAD production build，`VITE_CATALOG_URL` = 本機假 Worker；假媒體 bucket 有 Range；7 張測試碟：3 秒 tone、20 秒 tone、404、冇音檔、D109 組合、5 首隨機）；393 × 852、1280 × 800 × normal／`reduce`；斷言喺真 `<audio>`（`paused`、`muted`、`currentTime`、`src`、`play()` 次數同時間、element 數）；Media Session handler 由測試直接叫；`visibilitychange` 模擬隱藏；非本機請求一律 abort
+    - W-064：`/tmp/…/scratchpad/qa-t038-t116/w064.cjs`（同一個 build 同 server；前景、隱藏各一次；四個 run）
 - PWA gate: no（呢條鏈冇改 build 設定、manifest、SW）。Security / Data gate: no（URL 全部經 `mediaUrl()`）。Performance gate: no（冇 backend）
 - Out of scope（真機，U-24 ①②③⑤，P8）：iOS 落針有冇延遲、鎖機播完成隻碟、鎖屏暫停 → 等 → 播放、耳機掣、系統中斷（電話、Siri）、真網絡斷線；S-237、S-238（已接受）；MV 音訊（T-060、T-061）；續播位置（T-062）
