@@ -7,7 +7,8 @@
 <title>R Gram App Icon</title>
 <!--
     R Gram — app icon 設計稿（手機主畫面 icon 同瀏覽器 favicon）
-    第 1 版（2026-11-26，等用戶揀方案）：五個方案（A 至 D 用 RubberBand 標誌，E 唔用），每個連細尺寸簡化版、
+    第 2 版（2026-11-26，等用戶喺 C 同 D 之間揀）：方案 C 同 D 嘅碟放正中、同一大細，唱臂同底座縮細；頁頂加並排比較。
+    第 1 版（2026-11-26）：五個方案（A 至 D 用 RubberBand 標誌，E 唔用），每個連細尺寸簡化版、
     iOS 遮罩、Android maskable 安全範圍、淺色同深色桌布。
     靜態設計稿，唔係 app code。接入 app（manifest、index.html）係 T-039，唔喺呢度做。
     所有畫法由播放端設計稿第 18 版（_mockups_/home-turntable/src/template.html）抄過嚟：
@@ -53,6 +54,12 @@ b { color: var(--ink); font-weight: 500; }
 .toc a { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 12px 4px 4px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); text-decoration: none; }
 .toc svg { width: 36px; height: 36px; }
 .trade { max-width: 74ch; color: var(--ink); }
+.compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; max-width: 860px; }
+.compare figure { margin: 0; min-width: 0; }
+.compare figure > svg.icon { width: 100%; }
+.compare .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-top: 12px; }
+.compare .row .slot { overflow: hidden; }
+.compare .row .slot svg { width: 100%; }
 svg.icon { display: block; height: auto; max-width: 100%; flex: none; }
 .sizes { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 22px 26px; }
 .sizes figure, .previews figure, .zoom figure { margin: 0; min-width: 0; max-width: 100%; }
@@ -100,7 +107,7 @@ ul.plain li { margin-bottom: 4px; }
 <body>
 <div class="wrap">
     <h1>R Gram App Icon</h1>
-    <p class="lede"><b>第 1 版（等你揀方案）。</b>手機主畫面 icon 同瀏覽器 favicon。全部照你嘅概念圖：由正上方睇落去嘅唱片機——圓角正方形嘅拉絲鋁面板、四角螺絲、中間一隻碟、右上角唱臂底座、唱臂中段屈一屈、唱針落喺碟嘅右下。</p>
+    <p class="lede"><b>第 2 版（等你喺 C 同 D 之間揀）。</b>你話 C 同 D 都得，所以今版將兩個嘅碟放喺面板正中、用同一大細（面板闊度約 59%），唱臂同底座縮細；兩個只差面板同碟嘅顏色。A、B、E 冇改，留喺下面做參考。手機主畫面 icon 同瀏覽器 favicon。全部照你嘅概念圖：由正上方睇落去嘅唱片機——圓角正方形嘅拉絲鋁面板、四角螺絲、中間一隻碟、右上角唱臂底座、唱臂中段屈一屈、唱針落喺碟嘅右下。</p>
     <p class="lede">五個方案只喺取捨上唔同。畫法（車床拉絲面、螺絲、碟、銀邊、唱片夾、唱臂、陰影）全部係播放端設計稿第 18 版已有嘅嘢，冇加新風格。Icon 入面冇文字（除咗標誌本身個 R）。</p>
 
     <div class="notice" role="note">
@@ -108,6 +115,10 @@ ul.plain li { margin-bottom: 4px; }
         <p>方案 A 至 D 用咗 RubberBand 嘅標誌（圓圈 R；冇用「RubberBand」字樣）。R Gram 係歌迷自製、非官方；個 logo 檔而家已經喺公開 repo 同 app 入面，但你未正式答可唔可以咁用（review 項目 S-146）。</p>
         <p>想避開嘅話揀<b>方案 E</b>：碟面只得一個 slab 字體（Rokkitt）嘅「R」，冇官方標誌。其餘方案揀定之後，都可以出一個 E 嘅碟面做後備。</p>
     </div>
+
+    <h2 id="compare-title">C 同 D 並排比較</h2>
+    <p class="lede">碟嘅位置、大細同唱臂完全一樣，只差顏色。</p>
+    <div class="compare" id="compare"></div>
 
     <ul class="toc" id="toc" aria-label="方案"></ul>
 
@@ -147,7 +158,7 @@ ul.plain li { margin-bottom: 4px; }
     const PANEL_RADIUS = 184; // 圓角版嘅圓角
     const SCREW_INSET = { rounded: 96, bleed: 116 }; // 螺絲中心離邊；鋪滿版向內移，iOS 切圓角之後仲見到
     const SCREW_SLOTS = [35, 118, 76, 160]; // 每粒螺絲坑紋嘅角度
-    const MASKABLE_SCALE = 0.78; // 碟同唱臂縮入中間 80% 安全圓
+    const MASKABLE_SCALE = 0.74; // 碟同唱臂縮入中間 80% 安全圓
     const SAFE_RATIO = 0.8;
     const HUB = { clear: 0.16, clamp: 0.118, rim: 0.972 }; // 同播放端一樣：透明膠圈外徑、唱片夾、銀邊內徑
     const HUB_ICON_SCALE = 1.45; // icon 入面碟芯同唱片夾放大，先睇得到
@@ -165,6 +176,9 @@ ul.plain li { margin-bottom: 4px; }
     /* ---------- 方案（位置以 1024 為基準） ----------
        disc.tip：唱針落喺碟上面邊度（角度由碟心向右計，順時針；at = 離碟心幾多個半徑）
        arm.knee：唱臂由底座直落到幾多（佔底座到唱針嘅垂直距離）先屈 */
+    // 第 2 版：方案 C 同 D 嘅碟放喺面板正中、同一大細；唱臂同底座縮細，留喺碟同右上螺絲之間
+    const CENTRED_DISC = { x: CENTRE, y: CENTRE, r: 300, hub: false, platter: false, mark: 'emblem', markScale: 0.7, markY: 0, tip: { deg: 33, at: 0.8 } };
+    const SLIM_ARM = { x: 840, y: 184, base: 62, tube: 24, knee: 0.5, head: { l: 84, w: 54 } };
     const VARIANTS = {
         A: {
             title: '忠於草圖',
@@ -182,17 +196,17 @@ ul.plain li { margin-bottom: 4px; }
         },
         C: {
             title: '銀色 CD',
-            trade: '深色面板配銀色車床面 CD，標誌用深色，唱臂加粗。取捨：對比最強、最似一部 CD 唱片機；但面板唔係概念圖嘅淺色鋁面，同 app 嘅淺色畫面色調相反。',
+            trade: '深色面板配銀色車床面 CD，標誌用深色。碟喺面板正中，同方案 D 一樣大細。取捨：對比最強、最似一部 CD 唱片機；但面板唔係概念圖嘅淺色鋁面，同 app 嘅淺色畫面色調相反。',
             panel: 'dark',
-            disc: { x: 478, y: 552, r: 270, face: 'silver', hub: false, platter: false, mark: 'emblem', markScale: 0.7, markY: 0, tip: { deg: 36, at: 0.76 } },
-            arm: { x: 808, y: 218, base: 88, tube: 34, knee: 0.5, head: { l: 108, w: 68 } },
+            disc: { ...CENTRED_DISC, face: 'silver' },
+            arm: SLIM_ARM,
         },
         D: {
-            title: '大碟',
-            trade: '黑碟放大到面板六成半闊，唱臂短而粗，螺絲照舊。取捨：縮細之後最易認、標誌最大；但留白少，唱臂冇概念圖咁舒展。',
+            title: '黑碟',
+            trade: '淺色鋁面板配黑碟，標誌用白色。碟喺面板正中，同方案 C 一樣大細。取捨：最貼近概念圖同 app 嘅淺色畫面；喺淺色桌布上面，面板同背景嘅分別冇 C 咁大。',
             panel: 'light',
-            disc: { x: 452, y: 570, r: 332, face: 'black', hub: false, platter: false, mark: 'emblem', markScale: 0.7, markY: 0, tip: { deg: 22, at: 0.8 } },
-            arm: { x: 836, y: 200, base: 80, tube: 34, knee: 0.52, head: { l: 108, w: 70 } },
+            disc: { ...CENTRED_DISC, face: 'black' },
+            arm: SLIM_ARM,
         },
         E: {
             title: '唔用官方標誌',
@@ -555,6 +569,15 @@ ul.plain li { margin-bottom: 4px; }
         image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(standalone(key, detail, shape))}`;
     };
 
+    const COMPARE = ['C', 'D'];
+    const COMPARE_HOME_PX = 60; // 主畫面 icon 嘅實際大細
+    /** 並排比較嘅一格：大圖、主畫面大細（iOS 圓角、Android 圓形）、favicon 三個大細 */
+    const compareFigure = (key) => {
+        const slot = (shape, radius) => `<div class="slot" style="width:${COMPARE_HOME_PX}px;height:${COMPARE_HOME_PX}px;border-radius:${radius}">${icon(key, 'full', shape)}</div>`;
+        const small = PLAN.filter((plan) => ZOOM[plan.px]).map((plan) => icon(key, plan.detail, plan.shape, { px: plan.px })).join('');
+        return `<figure>${icon(key, 'full', 'rounded', { label: `方案 ${key}` })}<div class="row">${slot('square', '22.37%')}${slot('maskable', '50%')}${small}</div><figcaption><b>${key}・${VARIANTS[key].title}</b><br>下排：iOS、Android 圓形、48、32、16</figcaption></figure>`;
+    };
+
     const planRow = (plan) =>
         `<tr><td><b>${plan.px}</b></td><td>${plan.use}</td><td>${DETAILS[plan.detail].label}・${shapeNote[plan.shape]}</td><td>${DETAIL_NOTE[plan.detail]}</td></tr>`;
 
@@ -562,6 +585,7 @@ ul.plain li { margin-bottom: 4px; }
         document.getElementById('defs').innerHTML = DEFS;
         const keys = Object.keys(VARIANTS);
         document.getElementById('toc').innerHTML = keys.map((key) => `<li><a href="#variant-${key}">${icon(key, 'mid', 'rounded')}<span>${key}・${VARIANTS[key].title}</span></a></li>`).join('');
+        document.getElementById('compare').innerHTML = COMPARE.map(compareFigure).join('');
         document.getElementById('variants').innerHTML = keys.map(variantSection).join('');
         document.getElementById('plan').innerHTML =
             PLAN.map(planRow).join('') +
