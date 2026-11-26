@@ -137,6 +137,38 @@ describe('POST /api/sync/removals: track files', () => {
         expect(await lyricsRow('komorebi-05')).toBeNull();
     });
 
+    it('should list and clear audio whose linked file is gone among two others (S-165)', async () => {
+        await deleteMedia('05 太平門.m4a');
+        await putMedia('05 太平門 (a).m4a');
+        await putMedia('05 太平門 (b).mp3');
+        const { body: synced } = await syncFolder();
+        expect(synced.pendingRemovals).toEqual([
+            expect.objectContaining({ kind: 'audio', trackId: 'komorebi-05', key: AUDIO_05 }),
+        ]);
+        expect((await tracksOf())[4]).toMatchObject({
+            audio_key: AUDIO_05,
+            mv_key: mediaKey('05 太平門.mp4'),
+        });
+        const { body } = await confirmRemovals(synced.pendingRemovals);
+        expect(body.results[0]).toMatchObject({ ok: true });
+        expect((await tracksOf())[4]).toMatchObject({ audio_key: null, mv_key: null });
+        expect((await syncFolder()).body.pendingRemovals).toEqual([]);
+    });
+
+    it('should keep a link whose file is back, or whose number has one file again', async () => {
+        await putMedia('05 太平門 (b).mp3');
+        const item = { kind: 'audio', albumId: ALBUM_ID, trackId: 'komorebi-05', key: AUDIO_05 };
+        expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
+            code: 'STILL_PRESENT',
+        });
+        await deleteMedia('05 太平門.m4a');
+        await deleteMedia('05 太平門 (b).mp3');
+        await putMedia('05 太平門 (c).m4a');
+        expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
+            code: 'STILL_PRESENT',
+        });
+    });
+
     it('should answer NOT_FOUND for a track that is not there', async () => {
         const item = { kind: 'mv', albumId: ALBUM_ID, trackId: 'komorebi-99', key: 'x' };
         expect((await confirmRemovals([item])).body.results[0]).toMatchObject({

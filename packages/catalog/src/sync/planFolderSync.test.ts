@@ -210,7 +210,11 @@ describe('planFolderSync', () => {
         ];
 
         it('should keep the stored title, year and track list and list no track for removal', () => {
-            const files = [file('info.txt', '"bad"'), file('01 下一位參賽者.m4a'), file('03 c.m4a')];
+            const files = [
+                file('info.txt', '"bad"'),
+                file('01 下一位參賽者.m4a'),
+                file('03 c.m4a'),
+            ];
             const stored = album({ title: 'K', year: 1999, checks: [] });
             const result = plan({ files, info: badEncoding, tracks, album: stored });
             expect(result.album).toEqual({ title: 'K', year: 1999 });
@@ -327,6 +331,39 @@ describe('planFolderSync', () => {
             const tracks = [track(1, { title: '下一位參賽者', audioKey: key('01 b.mp3') })];
             const [first] = plan({ files, tracks, album: album() }).tracks;
             expect(first).toMatchObject({ audioKey: key('01 b.mp3') });
+        });
+
+        it('should treat a conflict whose linked file is gone like a gone file (S-165)', () => {
+            const files = [file('01 b.m4a'), file('01 c.mp3'), file('01 a.mp4'), file('01 a.txt')];
+            const tracks = [
+                track(1, {
+                    title: '下一位參賽者',
+                    audioKey: key('01 a.m4a'),
+                    mvKey: key('01 a.mp4'),
+                    textKey: key('01 a.txt'),
+                }),
+            ];
+            const result = plan({ files, tracks, album: album() });
+            expect(result.tracks[0]).toMatchObject({
+                audioKey: key('01 a.m4a'),
+                mvKey: key('01 a.mp4'),
+                textKey: key('01 a.txt'),
+                read: null,
+                changed: false,
+            });
+            expect(result.pendingRemovals.map(({ kind, key: k }) => [kind, k])).toEqual([
+                ['audio', key('01 a.m4a')],
+            ]);
+        });
+
+        it('should not link MV or song text to a new track whose audio is a conflict', () => {
+            const files = [file('01 a.m4a'), file('01 b.mp3'), file('01 a.mp4'), file('01 a.txt')];
+            expect(plan({ files }).tracks[0]).toMatchObject({
+                audioKey: null,
+                mvKey: null,
+                textKey: null,
+                read: null,
+            });
         });
 
         it('should report two info.txt files', () => {
