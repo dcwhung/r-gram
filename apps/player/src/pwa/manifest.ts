@@ -10,9 +10,9 @@ export const APP_BASE = '/';
 export const APP_LANG = 'zh-Hant';
 
 /**
- * 全部 icon 檔（`public/` 入面嘅路徑）。⚠️ 而家係臨時版：Preload 嘅 logo 置中喺啟動底色上面；
- * 正式 app icon 另一個 session 設計緊（Implementation Plan U-21），確認之後換檔同改呢度就得。
- * maskable 版嘅 logo 細啲，留喺 Android 圓形遮罩嘅安全區入面。
+ * 全部 icon 檔（`public/` 入面嘅路徑）。正式 app icon（方案 D：黑碟）：由
+ * `_mockups_/app-icon/export/d-black-disc/` 抄入嚟（`icon-180.png` → `apple-touch-icon.png`），唔好人手改；
+ * 要換就重新 export 再抄。maskable 版嘅碟同唱臂縮入 Android 圓形遮罩嘅安全區入面。
  */
 export const APP_ICONS = {
     any192: { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
