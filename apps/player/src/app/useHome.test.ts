@@ -208,6 +208,22 @@ describe('useHome holding another disc', () => {
         expect(result.current.stage).toBe(before.stage);
     });
 
+    // S-180：同一個 tick 連㩒兩行（兩下用同一個 render 嘅 handlers）：只播第一下
+    it('should play only the first of two rows pressed in the same tick', () => {
+        const document = makeDocument([
+            makeAlbum('apollo-18', ['apollo-18/01.m4a']),
+            makeAlbum('room', ['room/01.m4a', 'room/02.m4a']),
+        ]);
+        const result = holdRoom(document);
+        const handlers = result.current.handlers;
+        act(() => {
+            handlers?.onPlayHeldTrack('room-01');
+            handlers?.onPlayHeldTrack('room-02');
+        });
+        expect(result.current.playback).toMatchObject({ albumId: 'room', trackId: 'room-01' });
+        expect(result.current.stage.selectedTrackId).toBe('room-01');
+    });
+
     it('should list the held disc under its title with the rows pressable only after release', () => {
         const result = holdRoom();
         expect(result.current.view?.heldTracks).toMatchObject({

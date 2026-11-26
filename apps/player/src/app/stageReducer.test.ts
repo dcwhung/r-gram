@@ -356,6 +356,24 @@ describe('stageReducer', () => {
             });
         });
 
+        /*
+         * S-180：同一個 tick 連㩒兩行：兩下帶住同一個（已經過時嘅）載入嘅碟。第一下揀中咗拎住嘅碟嘅歌
+         *（隻碟已經放入唱片機），第二下唔再算
+         */
+        it('should ignore a second playHeldTrack that still carries the old loaded disc', () => {
+            const first = stageReducer(holding(), {
+                type: 'playHeldTrack',
+                trackId: 'hours-01',
+                loadedAlbumId: LOADED,
+            });
+            const second = stageReducer(first, {
+                type: 'playHeldTrack',
+                trackId: 'hours-02',
+                loadedAlbumId: LOADED,
+            });
+            expect(second).toBe(first);
+        });
+
         // 旋鈕開住時行未㩒得（鬆手先㩒得）；冇拎住碟就冇歌單欄
         it.each([
             ['the dial is still open', turnedTo('hours'), LOADED],
