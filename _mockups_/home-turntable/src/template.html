@@ -504,10 +504,6 @@ tr:last-child td { border-bottom: 0; }
         ['長歌單（30 首）', '第 18 版：一版見到約 20 首；放唔晒就上下捲，頂同底淡出表示仲有，左邊有位置條；歌名太長用「…」', { album: 'we-are-rubberband', song: false, wheel: 0, away: true, loaded: 'komorebi', listScroll: 0.5 }],
         ['拎住另一隻碟：播緊嘅歌名好長', '「播放中」同歌名推上咗，喺歌單第一行上面，歌名可以向左伸長：放唔落先縮字，再放唔落先用「…」收尾，唔會疊住歌單', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', loadedTitle: '(Just Like) Starting Over' }],
         ['拎住另一隻碟：播緊嘅歌名超長', '最細字都放唔落先用「…」', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', loadedTitle: '一首非常非常長的歌名放不下這一欄的時候' }],
-        ['歌號顏色 A：專輯色（而家）', '等你揀：歌單歌號嘅顏色', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi' }],
-        ['歌號顏色 B：黑色', '等你揀', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', numberFill: '#111' }],
-        ['歌號顏色 C：深灰', '等你揀（#555）', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', numberFill: '#555' }],
-        ['歌號顏色 D：中灰', '等你揀（#777，同「播放中」一樣）', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', numberFill: '#777' }],
         ['Favourites 碟', '黑色碟，全個 logo 喺碟芯下面；指針指住 ♥，♥ 轉紅', { album: 'favourites', song: false, booklet: false, wheel: 0 }],
         ['Favourites 歌單', '歌號 = 收藏次序；左上角歌名下面係原本嗰隻碟；灰色嗰行 = 未有音檔（示意）', { album: 'favourites', song: false, list: true, wheel: 0 }],
         ['歌單（專輯未有歌）', '冇歌嘅專輯照樣出現喺轉碟旋鈕；歌單框線入面「尚未有歌曲」', { album: 'komorebi', song: false, list: true, empty: true, wheel: 0 }],
@@ -902,7 +898,7 @@ tr:last-child td { border-bottom: 0; }
             const shown = textWidth(title, size) > titleRoom ? `${breakAt(title, size, titleRoom - size)[0]}…` : title;
             const row =
                 `<rect x="0" y="${n(y - pitch / 2)}" width="${TRACKLIST.right + TRACKLIST.rowPad}" height="${n(pitch)}" fill="#fff" fill-opacity="0"/>` +
-                `<text x="${TRACKLIST.x}" y="${n(y)}" dominant-baseline="central" font-family="${SLAB}" font-size="${n(size * TRACKLIST.number)}" fill="${off ? '#b0b0ac' : (st.numberFill ?? accent)}">${String(i + 1).padStart(2, '0')}</text>` +
+                `<text x="${TRACKLIST.x}" y="${n(y)}" dominant-baseline="central" font-family="${SLAB}" font-size="${n(size * TRACKLIST.number)}" fill="${off ? '#b0b0ac' : accent}">${String(i + 1).padStart(2, '0')}</text>` +
                 `<text x="${textX}" y="${n(y)}" dominant-baseline="central" font-family="${MIXED}" font-weight="500" font-size="${size}" fill="${INK}" opacity="${off ? 0.32 : 0.9}">${esc(shown)}</text>`;
             list += off ? `<g>${row}</g>` : `<g data-act="playrow" data-i="${i}" role="button" aria-label="${T.play}：${esc(title)}">${row}</g>`;
         });
