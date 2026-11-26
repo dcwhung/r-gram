@@ -118,6 +118,6 @@ describe('Tonearm moving out of sight', () => {
 
     it('should move with a transition otherwise', () => {
         const part = renderArm('playing');
-        expect(part('arm')).toHaveAttribute('data-instant', 'false');
+        expect(part('arm')).not.toHaveAttribute('data-instant');
     });
 });

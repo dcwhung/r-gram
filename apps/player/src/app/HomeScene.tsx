@@ -36,6 +36,7 @@ export const HomeScene = ({ view, handlers, measure, layout = PHONE_LAYOUT }: Ho
                     timeText={view.timeText}
                     accent={view.accent}
                     measure={measure}
+                    songHidden={view.songHidden}
                 />
                 <VersionText version={layout.info.version} />
             </>

@@ -16,6 +16,8 @@ interface TonearmProps {
     pose: ArmPose;
     /** 由泊位開始播嘅開場進行緊邊段（`useArmLeadIn`）；唔傳 = 冇開場 */
     leadIn?: ArmLeadIn;
+    /** 淡出咗（揀碟期間）：姿勢變就即時到位，冇轉動過場（tonearm.css） */
+    instant?: boolean;
     glow: string;
 }
 
@@ -78,7 +80,7 @@ const BaseScrews = ({ arm }: Pick<TonearmProps, 'arm'>) => {
  * 唱臂（設計稿 tonearm()）：底座固定；臂以軸心轉動（泊位 ↔ 碟上面）；升針 = 成支臂以軸心放大少少、落影移遠。
  * 角度同升降寫喺 inline style 嘅 transform，過場由 tonearm.css 做（減少動態效果時冇過場）。
  */
-export const Tonearm = ({ arm, pose, leadIn = null, glow }: TonearmProps) => {
+export const Tonearm = ({ arm, pose, leadIn = null, instant = false, glow }: TonearmProps) => {
     const { x, y, base } = arm;
     const { pivot, lift } = ARM_SHAPE;
     const look = armLook(pose, leadIn);
@@ -89,6 +91,7 @@ export const Tonearm = ({ arm, pose, leadIn = null, glow }: TonearmProps) => {
             <BaseScrews arm={arm} />
             <g
                 data-part="arm"
+                data-instant={instant || undefined}
                 className="tonearm-arm"
                 style={{ transform: `translate(${x}px, ${y}px) rotate(${deg}deg)` }}
             >

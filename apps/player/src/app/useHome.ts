@@ -71,7 +71,22 @@ const pressMv = ({ stage, view, dispatch, play }: HomeContext) => {
     play({ type: 'pauseFor', reason: 'mv' });
 };
 
+/** 旋鈕指住第 position 格：轉去嗰格嘅碟（♥ 格 = Favourites 碟）；格外嘅數唔理 */
+const turnTo = ({ view, dispatch }: HomeContext, position: number) => {
+    const entry = view.dial.entries[position];
+    if (entry) dispatch({ type: 'selectAlbum', albumId: entry.albumId });
+};
+
+/** 擰旋鈕（T-036）：㩒住打開字母盤 → 指針跟住轉 → 放手留喺嗰隻碟（D27）；♥ 一㩒去 Favourites 碟 */
+const dialHandlers = (context: HomeContext) => ({
+    onTurnStart: () => context.dispatch({ type: 'openDiscChange' }),
+    onTurn: (position: number) => turnTo(context, position),
+    onTurnEnd: () => context.dispatch({ type: 'closeDiscChange' }),
+    onFavourites: () => context.dispatch({ type: 'toggleFavourites' }),
+});
+
 const handlersFor = (context: HomeContext): HomeHandlers => ({
+    ...dialHandlers(context),
     onSpindle: () => pressSpindle(context),
     onBooklet: () => context.dispatch({ type: 'toggleBooklet', hasSong: context.view.hasSong }),
     onMv: () => pressMv(context),

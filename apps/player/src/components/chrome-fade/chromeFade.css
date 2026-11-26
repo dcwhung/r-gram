@@ -1,0 +1,10 @@
+/* 揀碟時淡出嘅一組嘢（設計稿第 18 版 armfade、buttons、songfade：opacity .32s）。減少動態效果時即時 */
+.chrome-fade[data-hidden='true'] {
+    opacity: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .chrome-fade {
+        transition: opacity var(--motion-scene-chrome-fade) ease;
+    }
+}

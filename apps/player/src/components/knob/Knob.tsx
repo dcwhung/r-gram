@@ -14,6 +14,8 @@ interface KnobProps extends KnobTurnOptions {
     glow: string;
     /** 讀屏讀嘅而家指住嗰隻碟（碟名） */
     valueText: string;
+    /** 俾歌單嘅暗層蓋住（S-074）：Tab 唔到、讀屏唔讀 */
+    covered?: boolean;
 }
 
 const { outline, knurl, face, pointer, glow: glowRing } = KNOB_SHAPE;
@@ -99,7 +101,7 @@ const KnobGlow = ({
  * 拖住打圈揀碟、鍵盤方向鍵揀碟（useKnobTurn）；`role="slider"`（Technical Spec 實現注意事項 14）。
  */
 export const Knob = (props: KnobProps) => {
-    const { layout, positions, current, open, accent, glow, valueText } = props;
+    const { layout, positions, current, open, accent, glow, valueText, covered = false } = props;
     const { hitRef, handlers } = useKnobTurn(props);
     const { knob } = layout;
     return (
@@ -109,7 +111,8 @@ export const Knob = (props: KnobProps) => {
             <g
                 className="knob"
                 role="slider"
-                tabIndex={0}
+                tabIndex={covered ? -1 : 0}
+                aria-hidden={covered || undefined}
                 aria-label={t('disc.change')}
                 aria-valuemin={0}
                 aria-valuemax={positions - 1}

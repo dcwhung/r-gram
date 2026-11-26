@@ -3,6 +3,7 @@ import type { InfoLayout } from '../../stage/layouts';
 import { fitText } from '../../utils/fitText';
 import { isLatin } from '../../utils/isLatin';
 import type { TextFont, TextMeasure } from '../../utils/textMeasure';
+import { ChromeFade } from '../chrome-fade/ChromeFade';
 import { px } from '../svgNumber';
 import './infoBlock.css';
 import { SongLines } from './SongLines';
@@ -19,6 +20,8 @@ interface InfoBlockProps {
     timeText: string;
     accent: string;
     measure: TextMeasure;
+    /** 歌名嗰部分淡出（揀碟期間） */
+    songHidden?: boolean;
 }
 
 type AlbumProps = Pick<InfoBlockProps, 'info' | 'accent' | 'measure'> & { album: CatalogAlbum };
@@ -93,22 +96,26 @@ const YearRule = ({ info, album, accent, measure }: AlbumProps) => {
 /**
  * 左上資訊（設計稿 info()；Functional Spec US-002）：碟名 → 年份 + 專輯色橫線 → 歌名 → 「第 nn 首 · m:ss」。
  * 屬於貼頂組（FR-039）。歌書 / 歌單嘅白字版本喺各自嘅任務加。
+ * 揀碟時（`songHidden`）歌名嗰部分淡出，只留碟名同年份（Functional Spec D52、第 18 版確認）。
  */
-export const InfoBlock = ({ info, album, track, timeText, accent, measure }: InfoBlockProps) => {
+export const InfoBlock = (props: InfoBlockProps) => {
+    const { info, album, track, timeText, accent, measure, songHidden = false } = props;
     if (!album) return null;
     return (
         <g data-part="info">
             <AlbumTitle info={info} album={album} measure={measure} />
             <YearRule info={info} album={album} accent={accent} measure={measure} />
-            {track && (
-                <SongLines
-                    info={info}
-                    track={track}
-                    timeText={timeText}
-                    accent={accent}
-                    measure={measure}
-                />
-            )}
+            <ChromeFade part="song-fade" hidden={songHidden}>
+                {track && (
+                    <SongLines
+                        info={info}
+                        track={track}
+                        timeText={timeText}
+                        accent={accent}
+                        measure={measure}
+                    />
+                )}
+            </ChromeFade>
         </g>
     );
 };
