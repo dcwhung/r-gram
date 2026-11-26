@@ -17,6 +17,7 @@ import {
 } from '@r-gram/catalog';
 import type { Context } from 'hono';
 import type { AppEnv } from '../app';
+import { guardItem } from '../media/applyGuard';
 import { listFolder } from '../media/listing';
 import { ensureAlbum, finishAlbum, storedFinish } from './albumWrite';
 import { withCheckMessages } from './checkMessages';
@@ -122,7 +123,9 @@ const syncTarget = async (c: Context<AppEnv>, target: FolderTarget, from: number
     const checks = checksOf(target, plan, state, outcome);
     const stored = storedFinish(state.album);
     const infoEtag = infoEtagOf(info, isComplete(plan, outcome, from), stored.infoEtag);
-    await finishAlbum(db, target.id, stored, { checks: JSON.stringify(checks), infoEtag });
+    // S-170：歌已經寫咗，檢查結果寫唔到都照回成功、照生成 catalog；info_etag 冇記 = 下次再讀
+    const next = { checks: JSON.stringify(checks), infoEtag };
+    await guardItem(() => finishAlbum(db, target.id, stored, next), undefined);
     const wrote = albumWritten || outcome.added.length > 0 || outcome.updated.length > 0;
     if (!wrote) c.set('skipPostWrite', true);
     const synced = { target, plan, created: state.album === null, outcome, checks };
