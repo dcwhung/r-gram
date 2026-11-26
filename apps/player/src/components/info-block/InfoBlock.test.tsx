@@ -216,3 +216,20 @@ describe('VersionText', () => {
         expect(text).toHaveAttribute('x', '1008');
     });
 });
+
+/* T-036：揀碟時左上歌名嗰部分淡出，只留碟名同年份（Functional Spec D52、第 18 版確認） */
+describe('InfoBlock while choosing a disc', () => {
+    it('should fade out the song part but keep the album title and year', () => {
+        const part = renderInfo({ track: track(), songHidden: true });
+        expect(part('song-fade')).toHaveAttribute('data-hidden', 'true');
+        expect(part('song-fade')).toHaveAttribute('aria-hidden', 'true');
+        expect(part('album-title')).toHaveTextContent('KOMOREBI');
+        expect(part('song-fade')?.contains(part('album-title') ?? null)).toBe(false);
+    });
+
+    it('should show the song part normally', () => {
+        const part = renderInfo({ track: track() });
+        expect(part('song-fade')).toHaveAttribute('data-hidden', 'false');
+        expect(part('song-fade')).not.toHaveAttribute('aria-hidden');
+    });
+});

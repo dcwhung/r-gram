@@ -90,3 +90,18 @@ describe('useArmLeadIn', () => {
         expect(result.current).toBeNull();
     });
 });
+
+/* T-036：唱臂淡出咗（揀碟期間）時姿勢變咗：即時到位，唔行開場（設計稿 swapAlbum、data-arm-instant；FR-040） */
+describe('useArmLeadIn while the arm is out of sight', () => {
+    it('should not lead in when the pose changes while the arm is hidden', () => {
+        mockReducedMotion(false);
+        const { result, rerender } = renderHook(
+            ({ pose, instant }: { pose: ArmPose; instant: boolean }) => useArmLeadIn(pose, instant),
+            { initialProps: { pose: 'parked' as ArmPose, instant: true } },
+        );
+        rerender({ pose: 'playing', instant: true });
+        expect(result.current).toBeNull();
+        rerender({ pose: 'playing', instant: false });
+        expect(result.current).toBeNull();
+    });
+});

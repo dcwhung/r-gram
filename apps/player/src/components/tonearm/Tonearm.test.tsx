@@ -101,3 +101,23 @@ describe('Tonearm', () => {
         });
     });
 });
+
+/* T-036：揀碟期間唱臂淡出咗，姿勢變就即時到位（冇轉動過場） */
+describe('Tonearm moving out of sight', () => {
+    it('should flag the arm to move without a transition when instant', () => {
+        const { container } = render(
+            <svg>
+                <Tonearm arm={PHONE_LAYOUT.arm} pose="playing" instant glow="#24f96f" />
+            </svg>,
+        );
+        expect(container.querySelector('[data-part="arm"]')).toHaveAttribute(
+            'data-instant',
+            'true',
+        );
+    });
+
+    it('should move with a transition otherwise', () => {
+        const part = renderArm('playing');
+        expect(part('arm')).toHaveAttribute('data-instant', 'false');
+    });
+});
