@@ -57,6 +57,15 @@ describe('useHome heart', () => {
         expect(home.store.getSnapshot()).toEqual([]);
     });
 
+    // S-257：主頁自己開嘅 store，unmount 時唔再聽 window 嘅 storage 事件
+    it('should stop listening to other tabs when the home screen unmounts', () => {
+        const remove = vi.spyOn(window, 'removeEventListener');
+        const hook = renderHook(() => useHome(sampleDocument(), createTestPlayback().controller));
+        hook.unmount();
+        expect(remove).toHaveBeenCalledWith('storage', expect.any(Function));
+        remove.mockRestore();
+    });
+
     it('should follow a change made outside the screen (another tab)', () => {
         const home = mount();
         act(() => home.handlers()?.onSpindle());
