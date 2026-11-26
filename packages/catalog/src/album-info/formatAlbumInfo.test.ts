@@ -1,4 +1,5 @@
 import { formatAlbumInfo } from './formatAlbumInfo';
+import { INFO_TEXT_MAX_LINES } from './limits';
 import { parseAlbumInfo } from './parseAlbumInfo';
 import type { AlbumInfoFields } from './types';
 
@@ -11,6 +12,9 @@ const KOMOREBI: AlbumInfoFields = {
         { no: 11, title: 'G’night' },
     ],
 };
+
+/** 碟名、年份、`曲目：` */
+const HEAD_LINES = 3;
 
 /** 解析結果減去行號同 `usable`：同 `formatAlbumInfo()` 嘅輸入同一個形狀 */
 const fieldsOf = (text: string): AlbumInfoFields => {
@@ -72,6 +76,19 @@ describe('formatAlbumInfo', () => {
                 ...fields,
                 tracks: [...fields.tracks].sort((a, b) => a.no - b.no),
             });
+        });
+
+        // S-160：碟名、年份、`曲目：` 三行 + 歌 = 上限；檔尾嘅換行唔計多一行
+        it('should read back a file of exactly the line limit', () => {
+            const count = INFO_TEXT_MAX_LINES - HEAD_LINES;
+            const tracks = Array.from({ length: count }, (_, index) => ({
+                no: index + 1,
+                title: `歌${index + 1}`,
+            }));
+            const fields = { title: 'a', year: 2000, tracks };
+            const text = formatAlbumInfo(fields);
+            expect(text.split('\n')).toHaveLength(INFO_TEXT_MAX_LINES + 1);
+            expect(fieldsOf(text)).toEqual(fields);
         });
     });
 });

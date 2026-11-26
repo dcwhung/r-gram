@@ -288,16 +288,26 @@ describe('parseAlbumInfo', () => {
         });
 
         it('should be unusable when it has more lines than the limit', () => {
-            const info = parseAlbumInfo('1. 歌\n'.repeat(INFO_TEXT_MAX_LINES));
+            const info = parseAlbumInfo('1. 歌\n'.repeat(INFO_TEXT_MAX_LINES + 1));
             expect(info.usable).toBe(false);
             expect(info.tracks).toEqual([]);
-            expect(codes('\n'.repeat(INFO_TEXT_MAX_LINES))).toEqual(['INFO_TOO_LARGE']);
+            expect(codes(`${'\n'.repeat(INFO_TEXT_MAX_LINES)}x`)).toEqual(['INFO_TOO_LARGE']);
         });
 
         it('should accept exactly the line limit', () => {
             const text = `唱片名稱：A${'\n'.repeat(INFO_TEXT_MAX_LINES - 1)}`;
             expect(parseAlbumInfo(text).usable).toBe(true);
         });
+
+        // S-160：數有內容嘅行；檔尾嘅換行唔會多出一行（formatAlbumInfo 一定喺檔尾加換行）
+        it.each(['\n', '\r\n', '\r'])(
+            'should accept the line limit followed by a final %j',
+            (lineBreak) => {
+                const text = `x${lineBreak}`.repeat(INFO_TEXT_MAX_LINES);
+                expect(parseAlbumInfo(text).usable).toBe(true);
+                expect(parseAlbumInfo(`${text}x`).usable).toBe(false);
+            },
+        );
 
         it('should report an empty file as having no title', () => {
             expect(parseAlbumInfo('')).toEqual({
