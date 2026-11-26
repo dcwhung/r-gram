@@ -1,26 +1,19 @@
 /*
- * 歌曲 API，掛喺 /api/tracks（Technical Spec API-021、022、040、041；CR-003：冇上下架、冇草稿，儲存即生效）。
+ * 歌曲 API，掛喺 /api/tracks（Technical Spec API-040、041；CR-003：冇上下架、冇草稿，儲存即生效）。
  * 喺 api/routes.ts 嘅 session + same-origin 守門之後（backlog B-019 ①）；寫入成功之後生成 catalog
- * 係 api/afterWrite.ts 嘅後置步驟（T-026）
+ * 係 api/afterWrite.ts 嘅後置步驟（T-026）。CR-007：改歌號、參考欄、手動指定（API-021）同刪歌（API-022）取消；
+ * 歌曲文字改為讀寫媒體 bucket 係 T-106
  */
 import { formatSongText } from '@r-gram/catalog';
 import { Hono, type Context } from 'hono';
 import type { AppEnv } from '../app';
 import { FORCE_CONFIRMED } from '../config';
-import { readIfMatch, readJsonObject } from '../lib/http';
-import {
-    ifMatchRequired,
-    numberTaken,
-    trackError,
-    trackNotAnObject,
-    trackValidationError,
-} from './errors';
+import { readIfMatch } from '../lib/http';
+import { ifMatchRequired, trackError } from './errors';
 import { dropLyricsLater, dropUnusedLyrics } from './lyricsCleanup';
-import { toTrack } from './rows';
 import { savedResponse, songFieldsOf } from './saved';
 import { putLyrics, songFromRequest, type ReadSong } from './songText';
 import * as store from './store';
-import { missingMediaIssues, parseTrackFields } from './validate';
 
 export const trackRoutes = new Hono<AppEnv>();
 
@@ -66,39 +59,4 @@ trackRoutes.put('/:id/text', async (c) => {
         return trackError(c, 'lyricsRemoved', details);
     }
     return saveSong(c, current, read);
-});
-
-/** 改歌號撞咗同碟另一首歌（D1 UNIQUE）→ 'numberTaken'；其他錯誤照拋 */
-const updateFields = async (...args: Parameters<typeof store.updateTrackFields>) => {
-    try {
-        return await store.updateTrackFields(...args);
-    } catch (error) {
-        if (store.isNumberTaken(error)) return 'numberTaken' as const;
-        throw error;
-    }
-};
-
-trackRoutes.patch('/:id', async (c) => {
-    const id = c.req.param('id');
-    const expected = readIfMatch(c);
-    const body = await readJsonObject(c);
-    if (!body) return trackNotAnObject(c);
-    if (expected === undefined) return ifMatchRequired(c);
-    const { fields, issues } = parseTrackFields(body);
-    // 格式啱晒先問 R2：唔會為咗一個 `../x` 去 head
-    if (issues.length === 0) issues.push(...(await missingMediaIssues(c.env.MEDIA, fields)));
-    if (issues.length > 0) return trackValidationError(c, issues);
-    const row = await updateFields(c.env.DB, id, fields, expected);
-    if (row === 'numberTaken') return numberTaken(c);
-    return row ? c.json(toTrack(row)) : notWritten(c, id);
-});
-
-trackRoutes.delete('/:id', async (c) => {
-    const id = c.req.param('id');
-    const track = await store.findTrackText(c.env.DB, id);
-    if (!track) return trackError(c, 'notFound');
-    if (!isConfirmed(c)) return trackError(c, 'idRemoved', [{ type: 'track', id }]);
-    if (!(await store.deleteTrack(c.env.DB, id))) return trackError(c, 'notFound');
-    dropLyricsLater(c, [track.json_name]);
-    return c.json({ deleted: { trackId: id, albumId: track.album_id } });
 });

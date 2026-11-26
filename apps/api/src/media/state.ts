@@ -1,6 +1,8 @@
 /*
- * 掃描要嘅 D1 狀態：專輯（資料夾、封面來源 ETag）同佢啲歌（歌號、音檔 / MV、手動旗、text_source_etag、
- * 歌曲文字嘅欄位連歌詞原文：預覽同已儲存內容比較用）。一句讀晒；另一句讀 `<albumId>-` 開頭嘅歌 id（新歌 id 撞唔撞）
+ * 掃描要嘅 D1 狀態：專輯（資料夾、封面來源 ETag）同佢啲歌（歌號、音檔 / MV、text_source_etag、
+ * 歌曲文字嘅欄位連歌詞原文：預覽同已儲存內容比較用）。一句讀晒；另一句讀 `<albumId>-` 開頭嘅歌 id（新歌 id 撞唔撞）。
+ * CR-007（D71）：冇手動指定，`audioManual` / `mvManual` 一律 false（T-105 由同步取代成個掃描時拎走）；
+ * 資料夾 = albums.folder（一定有）
  */
 import {
     expectedFolder,
@@ -15,9 +17,7 @@ interface StateRow extends SongTextColumns {
     id: string;
     no: number;
     audio_key: string | null;
-    audio_manual: number;
     mv_key: string | null;
-    mv_manual: number;
     text_source_etag: string | null;
     updated_at: string;
 }
@@ -36,8 +36,8 @@ export interface ScanState {
 }
 
 const STATE_SQL = `
-    SELECT t.id, t."no", t.title, t.subtitle, t.composer, t.lyricist, t.arranger, t.producer,
-        t.audio_key, t.audio_manual, t.mv_key, t.mv_manual, t.text_source_etag, t.updated_at,
+    SELECT t.id, t."no", t.title, t.composer, t.lyricist, t.arranger, t.producer,
+        t.audio_key, t.mv_key, t.text_source_etag, t.updated_at,
         l.source
     FROM tracks t LEFT JOIN lyrics l ON l.track_id = t.id
     WHERE t.album_id = ?
@@ -54,9 +54,9 @@ const toScanTrack = (row: StateRow): ScanTrack => ({
     no: row.no,
     title: row.title,
     audioKey: row.audio_key,
-    audioManual: row.audio_manual === 1,
+    audioManual: false,
     mvKey: row.mv_key,
-    mvManual: row.mv_manual === 1,
+    mvManual: false,
     textSourceEtag: row.text_source_etag,
     stored: songFieldsOf(row),
     updatedAt: row.updated_at,
@@ -74,10 +74,9 @@ export const readScanState = async (db: D1Database, album: AlbumRow): Promise<Sc
         db.prepare(STATE_SQL).bind(album.id),
         db.prepare(TAKEN_IDS_SQL).bind(`${album.id}${TRACK_ID_SEPARATOR}`),
     ]);
-    const expected = expectedFolder(album.category, album.category_no, album.id);
     return {
-        folder: album.folder ?? expected,
-        expectedFolder: expected,
+        folder: album.folder,
+        expectedFolder: expectedFolder(album.category, album.category_no, album.id),
         album: albumStateOf(album),
         tracks: ((tracks?.results ?? []) as StateRow[]).map(toScanTrack),
         takenIds: new Set(((taken?.results ?? []) as { id: string }[]).map(({ id }) => id)),

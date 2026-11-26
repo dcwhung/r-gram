@@ -1,7 +1,9 @@
 /*
  * 內容檔（`/catalog/v1/catalog.json`）嘅型別。Technical Spec API-070。
- * 包全部專輯同歌（冇上下架），次序 = 管理端次序；每次儲存之後由 D1 重新生成。
- * 「冇值」一律用 null：除咗 `type` 同 `label`，空字串唔合法（生成時要將 D1 入面嘅 '' 轉做 null）。
+ * 包全部專輯同歌（冇上下架）；每次儲存之後由 D1 重新生成。「冇值」一律用 null：空字串唔合法（生成時要將 D1 入面嘅 '' 轉做 null）。
+ * CR-007（Technical Spec「內容檔」）：專輯冇 `label`、歌冇 `subtitle`；次序固定（`albumOrder()`）；
+ * `wheelKey` 生成時由碟名計（`wheelKeyFor()`）；冇音檔嘅歌照列（`audio: null`），佢嘅 `mv`、`lyrics`、`credits` 係 null。
+ * 之前存喺播放端本機、仲有 `label`／`subtitle` 嘅 document 照樣有效（validator 唔睇呢兩個欄）
  */
 import type { ReleaseCategory } from './releaseCategory';
 
@@ -23,7 +25,6 @@ export interface CatalogTrack {
     id: string;
     no: number;
     title: string;
-    subtitle: string | null;
     /** 四個欄都冇就成個係 null */
     credits: TrackCredits | null;
     /** 媒體 bucket（`rb-discography`）入面嘅 key；null = 未有音檔（播放端顯示灰色） */
@@ -36,7 +37,7 @@ export interface CatalogTrack {
 export interface CatalogAlbum {
     id: string;
     title: string;
-    /** 字母盤標記，1–2 個字 */
+    /** 字母盤標記，1–2 個字（CR-007：生成時由碟名計） */
     wheelKey: string;
     /**
      * CR-006（Functional Spec D63、D44）：只有年份（可選，`YEAR_MIN` 至 `YEAR_MAX`）；冇發行日期。
@@ -49,7 +50,6 @@ export interface CatalogAlbum {
      */
     category: ReleaseCategory;
     categoryNo: number;
-    label: string;
     /** 專輯色 `#rrggbb` */
     accent: string;
     /** 封面檔名（相對 `imageBase`） */

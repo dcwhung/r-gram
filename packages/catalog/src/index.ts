@@ -1,7 +1,11 @@
 /*
- * @r-gram/catalog public API：內容資料嘅純邏輯（catalog 型別同驗證、LRC、歌曲文字、掃描配對、字母盤標記、顏色、初始資料）。
+ * @r-gram/catalog public API：內容資料嘅純邏輯（catalog 型別同驗證、LRC、歌曲文字、`info.txt`、資料夾名、檢查結果、掃描配對、字母盤標記、顏色、參考資料轉 catalog）。
  * 唔掂 DOM、唔用 Vite / Worker API；播放端、管理端、Backend 共用，保證「管理端驗得過 = 播放端讀得到」。
  */
+export { formatAlbumInfo } from './album-info/formatAlbumInfo';
+export { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from './album-info/limits';
+export { parseAlbumInfo } from './album-info/parseAlbumInfo';
+export type { AlbumInfo, AlbumInfoFields, AlbumInfoTrack } from './album-info/types';
 export { dominantColor, glowColor, NEUTRAL_ACCENT, NEUTRAL_GLOW } from './color/color';
 export {
     parseLrc,
@@ -54,9 +58,12 @@ export {
 export type { CatalogError, CatalogErrorCode } from './schema/issues';
 export { mediaUrl } from './schema/mediaUrl';
 export {
+    albumOrder,
     expectedFolder,
     isReleaseCategory,
+    parseAlbumFolder,
     RELEASE_CATEGORIES,
+    type AlbumFolder,
     type ReleaseCategory,
 } from './schema/releaseCategory';
 export { parseCatalogDocument, type CatalogParseResult } from './schema/parseCatalogDocument';
@@ -71,12 +78,6 @@ export {
     type TrackCredits,
 } from './schema/types';
 export { matchCredits, type CreditMatchResult, type MatchedCredits } from './seed/matchCredits';
-export {
-    planAlbumSeed,
-    type AlbumSeedPlan,
-    type ExistingAlbum,
-    type OrdinalTaken,
-} from './seed/planAlbumSeed';
 export { seedToCatalog, type SeedCatalogOptions } from './seed/seedToCatalog';
 export type {
     SeedAlbum,
@@ -95,13 +96,17 @@ export {
     SONG_TEXT_MAX_LINES,
     TITLE_MAX_CHARS,
 } from './song-text/limits';
-export { parseSongText } from './song-text/parseSongText';
+export { parseSongText, songOf } from './song-text/parseSongText';
 export type {
     SongLyrics,
     SongText,
     SongTextError,
     SongTextErrorCode,
     SongTextFields,
+    SongTextHint,
+    SongTextHintCode,
     SongTextResult,
 } from './song-text/types';
+export { CHECK_LEVELS, checkOf, type Check, type CheckCode, type CheckLevel } from './sync/checks';
+export { titleKey } from './sync/titleKey';
 export { WHEEL_KEY_FALLBACK, wheelKeyFor } from './wheel/wheelKeyFor';

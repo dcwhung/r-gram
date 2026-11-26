@@ -277,4 +277,9 @@ describe('planScan: other files', () => {
             { key: key('intro.m4a'), reason: 'NO_TRACK_NUMBER' },
         ]);
     });
+
+    // CR-007：info.txt 係專輯資料檔，唔係用唔到嘅檔（佢嘅內容由同步讀，T-105）
+    it('should not list info.txt as a file it cannot use', () => {
+        expect(plan(['info.txt', 'Info.TXT']).unmatchedFiles).toEqual([]);
+    });
 });

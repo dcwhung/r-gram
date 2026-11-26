@@ -1,4 +1,4 @@
-/* migrations/0001_init.sql 對 Technical Spec「數據庫設計」（CR-003、CR-004 之後）：6 張表、欄位、約束、索引 */
+/* migrations/0001_init.sql 對 Technical Spec「數據庫設計」（CR-003、CR-004、CR-007 之後）：6 張表、欄位、約束、索引 */
 import { env } from 'cloudflare:test';
 
 const NOW = '2026-11-25T00:00:00.000Z';
@@ -40,11 +40,10 @@ const insertAlbum = (id: string, extra: Record<string, unknown> = {}) => {
     const row = {
         id,
         title: 'Apollo 18',
-        wheel_key: 'A',
         category: 'album',
         category_no: 1,
         accent: '#c8442b',
-        sort_order: 0,
+        folder: `album-01-${id}`,
         created_at: NOW,
         updated_at: NOW,
         ...extra,
@@ -124,11 +123,9 @@ describe('D1 schema (0001_init)', () => {
         expect(await columnsOf('albums')).toEqual([
             'id TEXT NOT NULL PK',
             'title TEXT NOT NULL',
-            'wheel_key TEXT NOT NULL',
             'year INTEGER',
             'category TEXT NOT NULL',
             'category_no INTEGER NOT NULL',
-            "label TEXT NOT NULL DEFAULT ''",
             'accent TEXT NOT NULL',
             'cover TEXT',
             'cover_source_etag TEXT',
@@ -136,8 +133,9 @@ describe('D1 schema (0001_init)', () => {
             'cover2 TEXT',
             'thumb2 TEXT',
             'cover2_source_etag TEXT',
-            'folder TEXT',
-            'sort_order INTEGER NOT NULL',
+            'folder TEXT NOT NULL',
+            'info_etag TEXT',
+            "checks TEXT NOT NULL DEFAULT '[]'",
             'created_at TEXT NOT NULL',
             'updated_at TEXT NOT NULL',
         ]);
@@ -149,20 +147,14 @@ describe('D1 schema (0001_init)', () => {
             'album_id TEXT NOT NULL',
             'no INTEGER NOT NULL',
             'title TEXT NOT NULL',
-            'subtitle TEXT',
             'audio_key TEXT',
-            'audio_manual INTEGER NOT NULL DEFAULT 0',
             'mv_key TEXT',
-            'mv_manual INTEGER NOT NULL DEFAULT 0',
             'composer TEXT',
             'lyricist TEXT',
             'arranger TEXT',
             'producer TEXT',
-            'lyrics_source_url TEXT',
-            'note TEXT',
             'text_source_etag TEXT',
-            'youtube_id TEXT',
-            'video_kind TEXT',
+            'text_key TEXT',
             'created_at TEXT NOT NULL',
             'updated_at TEXT NOT NULL',
         ]);
@@ -208,15 +200,52 @@ describe('D1 schema (0001_init)', () => {
         ).all<{ name: string; tbl_name: string; sql: string }>();
         const indexes = rows.results.map((row) => row.sql.replace(/\s+/g, ' '));
         expect(indexes).toEqual([
-            'CREATE INDEX albums_sort_order ON albums (sort_order)',
             'CREATE INDEX sessions_expires_at ON sessions (expires_at)',
             'CREATE UNIQUE INDEX tracks_album_no ON tracks (album_id, "no")',
-            'CREATE INDEX tracks_title ON tracks (title)',
         ]);
     });
 });
 
 describe('D1 constraints (0001_init)', () => {
+    // CR-007（Technical Spec「資料模型」）：資料夾名 = 專輯身份，一定有、唔可以兩張碟共用
+    it('should require a folder and keep it unique', async () => {
+        await expect(insertAlbum('apollo-18', { folder: null })).rejects.toThrow(/NOT NULL/);
+        await insertAlbum('apollo-18');
+        await expect(insertAlbum('beaming', { folder: 'album-01-apollo-18' })).rejects.toThrow(
+            /UNIQUE/,
+        );
+        expect(await count('albums')).toBe(1);
+    });
+
+    it('should keep the checks as a JSON array, empty by default, and no info etag', async () => {
+        await insertAlbum('apollo-18');
+        expect(await env.DB.prepare('SELECT checks, info_etag FROM albums').first()).toEqual({
+            checks: '[]',
+            info_etag: null,
+        });
+        await expect(insertAlbum('beaming', { checks: 'not json' })).rejects.toThrow(/CHECK/);
+        await insertAlbum('beaming', { checks: '[{"code":"NO_INFO"}]', info_etag: '"e1"' });
+        expect(await count('albums')).toBe(2);
+    });
+
+    // CR-007（D69、D71）：冇唱片公司、字母盤標記、次序；歌冇副題、手動指定同參考欄
+    it('should have none of the columns CR-007 removed', async () => {
+        for (const column of ['label', 'wheel_key', 'sort_order']) {
+            await expect(
+                insertAlbum(`a-${column.length}`, { [column]: 'x' }),
+                column,
+            ).rejects.toThrow(/no column/);
+        }
+        await insertAlbum('apollo-18');
+        const removed = ['subtitle', 'audio_manual', 'mv_manual', 'lyrics_source_url', 'note'];
+        for (const column of [...removed, 'youtube_id', 'video_kind']) {
+            await expect(
+                insertTrack('apollo-18-01', 'apollo-18', 1, { [column]: 'x' }),
+                column,
+            ).rejects.toThrow(/no column/);
+        }
+    });
+
     it('should accept album ids of lowercase words joined by single hyphens', async () => {
         for (const id of ['apollo-18', 'easy', '2008', 'a-b-c']) await insertAlbum(id);
         expect(await count('albums')).toBe(4);
@@ -294,10 +323,13 @@ describe('D1 constraints (0001_init)', () => {
         expect(await count('albums')).toBe(1);
     });
 
-    // CR-004（FR-124）：發行類別係六個短名之一；序號由 1 起。同類別序號唔重覆由 API 驗（DB 唔加 UNIQUE）
+    // CR-004（FR-124）：發行類別係六個短名之一；序號由 1 起。CR-007（D67）：同類別同序號照收，只出檢查結果
     it('should require a release category of the six short names', async () => {
         for (const category of ['album', 'ep', 'best', 'live', 'ost', 'single']) {
-            await insertAlbum(`a-${category}`, { category });
+            await insertAlbum(`a-${category}`, {
+                category,
+                folder: `${category}-01-a-${category}`,
+            });
         }
         for (const category of ['', 'Album', 'compilation', null]) {
             await expect(insertAlbum('bad', { category }), String(category)).rejects.toThrow();
@@ -353,15 +385,6 @@ describe('D1 constraints (0001_init)', () => {
         expect(await count('tracks')).toBe(3);
     });
 
-    it('should only accept 0 or 1 for the manual flags', async () => {
-        await insertAlbum('apollo-18');
-        for (const flag of ['audio_manual', 'mv_manual']) {
-            await expect(
-                insertTrack('apollo-18-01', 'apollo-18', 1, { [flag]: 2 }),
-            ).rejects.toThrow();
-        }
-    });
-
     it('should store whether lyrics are synced as 0 or 1, and require it', async () => {
         await insertAlbum('apollo-18');
         for (const no of [1, 2, 3, 4]) await insertTrack(`apollo-18-0${no}`, 'apollo-18', no);
@@ -370,15 +393,6 @@ describe('D1 constraints (0001_init)', () => {
         await expect(insertLyrics('apollo-18-03', 2)).rejects.toThrow();
         await expect(insertLyrics('apollo-18-04', null)).rejects.toThrow();
         expect(await count('lyrics')).toBe(2);
-    });
-
-    it('should only accept https lyrics source links', async () => {
-        await insertAlbum('apollo-18');
-        const url = (value: string) => ({ lyrics_source_url: value });
-        await insertTrack('apollo-18-01', 'apollo-18', 1, url('https://example.com/lyrics'));
-        for (const value of ['http://example.com', 'HTTPS://example.com', 'javascript:alert(1)']) {
-            await expect(insertTrack('apollo-18-02', 'apollo-18', 2, url(value))).rejects.toThrow();
-        }
     });
 
     it('should keep a single catalog_state row with id 1', async () => {

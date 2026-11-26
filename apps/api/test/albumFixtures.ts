@@ -1,4 +1,5 @@
 /* 專輯 API test 共用：直接寫 D1 嘅 fixture、帶 session + Origin 嘅請求 */
+import { expectedFolder, type ReleaseCategory } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
 import { ORIGIN, call, loginCookie } from './helpers';
 
@@ -13,20 +14,24 @@ const insert = (table: string, row: Record<string, unknown>) => {
         .run();
 };
 
-/** 預設係錄音室專輯，序號 = sortOrder + 1（同類別唔重覆；要撞號嘅 test 自己傳 category_no） */
-export const insertAlbum = (id: string, sortOrder: number, extra: Record<string, unknown> = {}) =>
-    insert('albums', {
+/**
+ * 預設係錄音室專輯，序號 = index + 1（同類別唔重覆；要撞號嘅 test 自己傳 category_no）。
+ * CR-007（D67）：資料夾名一定有、唔重複；冇畀就由類別、序號、id 砌（同 bucket 嘅資料夾名一樣）
+ */
+export const insertAlbum = (id: string, index: number, extra: Record<string, unknown> = {}) => {
+    const row: Record<string, unknown> = {
         id,
         title: `Album ${id}`,
-        wheel_key: 'A',
         category: 'album',
-        category_no: sortOrder + 1,
+        category_no: index + 1,
         accent: '#c8442b',
-        sort_order: sortOrder,
         created_at: NOW,
         updated_at: NOW,
         ...extra,
-    });
+    };
+    const folder = expectedFolder(row.category as ReleaseCategory, row.category_no as number, id);
+    return insert('albums', { folder, ...row });
+};
 
 export const insertTrack = (
     id: string,

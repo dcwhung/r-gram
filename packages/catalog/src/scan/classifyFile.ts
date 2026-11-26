@@ -13,6 +13,7 @@ export type UnmatchedReason = 'UNKNOWN_EXTENSION' | 'NO_TRACK_NUMBER';
 export type FileClass =
     | { kind: NumberedKind; no: number }
     | { kind: CoverKind }
+    | { kind: 'info' }
     | { kind: 'unmatched'; reason: UnmatchedReason };
 
 /** 用 Map：plain object 會查到 `Object.prototype` 嘅 property（`.constructor`、`.__proto__`） */
@@ -30,6 +31,9 @@ const COVER_BY_NAME: ReadonlyMap<string, CoverKind> = new Map([
     ['cover2.jpg', 'cover2'],
     ['cover2.png', 'cover2'],
 ]);
+
+/** CR-007（D68）：專輯資料檔，資料夾第一層，唔分大細楷 */
+const INFO_FILE_NAME = 'info.txt';
 
 const LEADING_TRACK_NUMBER = /^(\d{1,3})(?!\d)/;
 
@@ -49,6 +53,7 @@ export const trackNoOf = (name: string): number | undefined => {
 
 export const classifyFile = (key: string): FileClass => {
     const name = fileNameOf(key);
+    if (name.toLowerCase() === INFO_FILE_NAME) return { kind: 'info' };
     const cover = COVER_BY_NAME.get(name.toLowerCase());
     if (cover) return { kind: cover };
     const kind = KIND_BY_EXTENSION.get(extensionOf(name));

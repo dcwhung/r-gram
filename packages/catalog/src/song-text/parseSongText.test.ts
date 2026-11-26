@@ -26,7 +26,6 @@ describe('parseSongText', () => {
         ].join('\n');
         expect(parseSongText(text)).toEqual({
             title: '一早地下鐵',
-            subtitle: 'Live',
             credits: {
                 composer: '阿正',
                 lyricist: 'Tim Lui / 6號',
@@ -42,6 +41,7 @@ describe('parseSongText', () => {
                 ],
             },
             errors: [],
+            hints: [{ line: 2, code: 'SUBTITLE_IGNORED' }],
         });
     });
 
@@ -66,26 +66,25 @@ describe('parseSongText', () => {
     it('should accept the labels in any order and spaces around the colon', () => {
         const text = '睇真啲\n監 ：雷頌德\n副題: RubberBand + 吳雨霏\n編： 阿正\n曲 : 6號';
         expect(parseSongText(text)).toMatchObject({
-            subtitle: 'RubberBand + 吳雨霏',
             credits: { composer: '6號', lyricist: null, arranger: '阿正', producer: '雷頌德' },
             lyrics: null,
             errors: [],
+            hints: [{ line: 3, code: 'SUBTITLE_IGNORED' }],
         });
     });
 
     it('should give null credits and no lyrics for a title on its own', () => {
         expect(parseSongText('Apollo 18')).toEqual({
             title: 'Apollo 18',
-            subtitle: null,
             credits: null,
             lyrics: null,
             errors: [],
+            hints: [],
         });
     });
 
     it('should treat an empty label value as no value', () => {
         expect(parseSongText('歌名\n曲：\n詞：  \n副題：')).toMatchObject({
-            subtitle: null,
             credits: null,
             errors: [],
         });
@@ -157,9 +156,25 @@ describe('parseSongText', () => {
         });
 
         it('should count a repeated label even when one of them is empty', () => {
-            expect(codes('歌名\n副題：\n副題：Live')).toEqual([
-                { line: 3, code: 'DUPLICATE_LABEL' },
+            expect(codes('歌名\n曲：\n曲：阿正')).toEqual([{ line: 3, code: 'DUPLICATE_LABEL' }]);
+        });
+
+        // CR-007（Functional Spec D72）：舊檔嘅「副題：」行照認做標籤（唔會變歌詞），但係唔用，逐行出提示、唔擋
+        it('should skip every subtitle line with a hint and no error', () => {
+            const text = `歌名\n副題：Live\n曲：阿正\n副題：${'副'.repeat(TITLE_MAX_CHARS + 1)}\n\n歌詞`;
+            const result = parseSongText(text);
+            expect(result.errors).toEqual([]);
+            expect(result.hints).toEqual([
+                { line: 2, code: 'SUBTITLE_IGNORED' },
+                { line: 4, code: 'SUBTITLE_IGNORED' },
             ]);
+            expect(result.credits).toEqual({ ...NO_CREDITS, composer: '阿正' });
+            expect(result.lyrics?.source).toBe('歌詞');
+            expect(result).not.toHaveProperty('subtitle');
+        });
+
+        it('should still need a title when the first line is a subtitle line', () => {
+            expect(codes('副題：Live\n歌詞')).toEqual([{ line: 1, code: 'TITLE_REQUIRED' }]);
         });
 
         // 決定：唔認得嘅「標籤」（作曲：、主唱：）唔係標籤行，照 D31 結束標籤段、當歌詞第一行
@@ -312,13 +327,10 @@ describe('parseSongText', () => {
             expect(codes(`${ok}\na`)).toEqual([{ line: 0, code: 'TOO_MANY_LINES' }]);
         });
 
-        it('should limit the title and the subtitle', () => {
+        it('should limit the title', () => {
             expect(codes('名'.repeat(TITLE_MAX_CHARS))).toEqual([]);
             expect(codes('名'.repeat(TITLE_MAX_CHARS + 1))).toEqual([
                 { line: 1, code: 'TITLE_TOO_LONG' },
-            ]);
-            expect(codes(`歌名\n副題：${'副'.repeat(TITLE_MAX_CHARS + 1)}`)).toEqual([
-                { line: 2, code: 'TITLE_TOO_LONG' },
             ]);
         });
 

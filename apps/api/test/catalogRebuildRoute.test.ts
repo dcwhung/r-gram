@@ -11,6 +11,11 @@ import { api, insertAlbum, insertTrack, json } from './albumFixtures';
 import { SHA256_HEX, bucketWith, liveDocument, stateRow } from './catalogFixtures';
 
 const REBUILD = '/api/catalog/rebuild';
+const NOW = '2026-11-25T00:00:00.000Z';
+
+/** 歌曲文字（API-041）：CR-007 之後主要嘅寫入 */
+const saveText = (trackId: string, text: string, bindings = env) =>
+    api('PUT', `/api/tracks/${trackId}/text`, { text }, { 'if-match': `"${NOW}"` }, bindings);
 
 /** D1 嘅 wrapper：SQL 有 `fragment` 嗰句一 prepare 就 throw（模擬 D1 出事），其他照行 */
 const dbFailingOn = (fragment: string): D1Database =>
@@ -141,40 +146,37 @@ describe('POST /api/catalog/rebuild', () => {
 });
 
 describe('save takes effect (afterWrite → rebuildCatalog)', () => {
-    it('should put a new album in catalog.json at once, even with no songs (D39)', async () => {
-        const album = { id: 'apollo-18', title: 'Apollo 18', category: 'album' };
-        const response = await api('POST', '/api/albums', album);
-        expect(response.status).toBe(201);
+    // CR-007：剩低嘅寫入係歌曲文字（API-041）、封面上載同掃描套用；用歌曲文字做代表
+    it('should put a saved song text in catalog.json at once', async () => {
+        await insertAlbum('apollo-18', 1);
+        await insertTrack('apollo-18-01', 'apollo-18', 1, { audio_key: 'apollo-18/01.m4a' });
+        const response = await saveText('apollo-18-01', '新歌名\n曲：阿正');
+        expect(response.status).toBe(200);
         const body = await json<{ catalog: Record<string, unknown> }>(response);
-        expect(body.catalog).toMatchObject({ ok: true, albumCount: 1, trackCount: 0, error: null });
-        expect((await liveDocument())?.albums.map((album) => album.id)).toEqual(['apollo-18']);
+        expect(body.catalog).toMatchObject({ ok: true, albumCount: 1, trackCount: 1, error: null });
+        const [track] = (await liveDocument())?.albums[0]?.tracks ?? [];
+        expect(track).toMatchObject({ title: '新歌名', credits: { composer: '阿正' } });
     });
 
     it('should answer every write with the same catalog shape as GET /api/albums', async () => {
         await insertAlbum('a', 1);
-        await insertAlbum('b', 2);
-        const write = await json<{ catalog: Record<string, unknown> }>(
-            await api('PUT', '/api/albums/order', { ids: ['b', 'a'] }),
-        );
+        await insertTrack('a-01', 'a', 1);
+        const write = await json<{ catalog: Record<string, unknown> }>(await saveText('a-01', 'x'));
         expect(Object.keys(write.catalog).sort()).toEqual(CATALOG_STATUS_KEYS);
         const listed = await json<{ catalog: unknown }>(await api('GET', '/api/albums'));
         expect(listed.catalog).toEqual(write.catalog);
-        expect((await liveDocument())?.albums.map((album) => album.id)).toEqual(['b', 'a']);
     });
 
     it('should keep a saved write successful when generation fails (D30)', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
-        await insertAlbum('bad', 1, { wheel_key: '' });
-        await insertAlbum('a', 2, { updated_at: '2026-11-25T00:00:00.000Z' });
-        const response = await api(
-            'PATCH',
-            '/api/albums/a',
-            { title: 'Apollo' },
-            { 'if-match': '2026-11-25T00:00:00.000Z' },
-        );
+        await insertAlbum('bad', 1, { accent: 'bad' });
+        await insertTrack('bad-01', 'bad', 1);
+        const response = await saveText('bad-01', 'Apollo');
         expect(response.status).toBe(200);
-        const body = await json<{ title: string; catalog: Record<string, unknown> }>(response);
-        expect(body.title).toBe('Apollo');
+        const body = await json<{ track: { title: string }; catalog: Record<string, unknown> }>(
+            response,
+        );
+        expect(body.track.title).toBe('Apollo');
         expect(body.catalog).toMatchObject({ ok: false, error: 'INVALID_DOCUMENT' });
         expect(await liveDocument()).toBeNull();
     });
@@ -182,24 +184,19 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
     it('should locate the problem in the write response catalog too (S-092)', async () => {
         const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
         await seedBroken();
-        const response = await api('PUT', '/api/albums/order', { ids: ['bad', 'good'] });
+        await insertTrack('good-01', 'good', 1);
+        const response = await saveText('good-01', '好歌');
         expect(response.status).toBe(200);
         const raw = await response.text();
         const { catalog } = JSON.parse(raw) as { catalog: Record<string, unknown> };
         expect(catalog).toMatchObject({ ok: false, error: 'INVALID_DOCUMENT' });
-        // 錯誤喺 albums[0]（bad 而家排第一），details 照用 id
         expect(catalog.details).toEqual(BROKEN_DETAILS);
         for (const text of CONTENT) expect(raw).not.toContain(text);
         for (const text of CONTENT) expect(JSON.stringify(log.mock.calls)).not.toContain(text);
     });
 
     it('should not generate after a failed write', async () => {
-        const response = await api(
-            'PATCH',
-            '/api/albums/nope',
-            { title: 'x' },
-            { 'if-match': 'x' },
-        );
+        const response = await saveText('nope-01', 'x');
         expect(response.status).toBe(404);
         expect(await stateRow()).toBeNull();
     });
@@ -207,17 +204,9 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
     it('should keep the shape when the generation step throws unexpectedly', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
         await insertAlbum('a', 1);
+        await insertTrack('a-01', 'a', 1);
         const { bucket } = bucketWith({ head: () => Promise.reject(new Error('down')) });
-        const response = await api(
-            'PUT',
-            '/api/albums/order',
-            { ids: ['a'] },
-            {},
-            {
-                ...env,
-                CATALOG: bucket,
-            },
-        );
+        const response = await saveText('a-01', 'x', { ...env, CATALOG: bucket });
         expect(response.status).toBe(200);
         const body = await json<{ catalog: Record<string, unknown> }>(response);
         expect(Object.keys(body.catalog).sort()).toEqual(CATALOG_STATUS_KEYS);
@@ -230,17 +219,12 @@ describe('save takes effect (afterWrite → rebuildCatalog)', () => {
         await insertAlbum('a', 1);
         const good = await json<Record<string, unknown>>(await api('POST', REBUILD));
         await insertAlbum('b', 2);
+        await insertTrack('b-01', 'b', 1);
         // 記低成功嗰句（catalog_state）出錯：生成步驟 throw
-        const response = await api(
-            'PUT',
-            '/api/albums/order',
-            { ids: ['b', 'a'] },
-            {},
-            {
-                ...env,
-                DB: dbFailingOn("VALUES (1, 'ok'"),
-            },
-        );
+        const response = await saveText('b-01', 'x', {
+            ...env,
+            DB: dbFailingOn("VALUES (1, 'ok'"),
+        });
         expect(response.status).toBe(200);
         const { catalog } = await json<{ catalog: Record<string, unknown> }>(response);
         expect(catalog).toEqual({

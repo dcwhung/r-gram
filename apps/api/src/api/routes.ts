@@ -1,6 +1,7 @@
 /*
  * /api/*：管理 API。註冊次序 = 守門次序：health 公開 → session → same-origin → 寫入後置步驟。
- * 新 route 一定要加喺 use('*') 之後（backlog B-019 ①）
+ * 新 route 一定要加喺 use('*') 之後（backlog B-019 ①）。
+ * CR-007：專輯同歌嘅人手寫入（API-011、013–015、020–022）同 API-032 拎走，冇呢啲 route = 404
  */
 import { Hono } from 'hono';
 import pkg from '../../package.json';
@@ -9,9 +10,7 @@ import type { AppEnv } from '../app';
 import { assetRoutes } from '../assets/routes';
 import { requireSameOrigin, requireSession } from '../auth/middleware';
 import { catalogAdminRoutes, rebuildAfterWrite } from '../catalog/rebuildRoute';
-import { albumTrackRoutes } from '../tracks/albumTrackRoutes';
 import { trackRoutes } from '../tracks/routes';
-import { mediaRoutes } from '../media/mediaRoutes';
 import { scanRoutes } from '../media/routes';
 import { afterWrite } from './afterWrite';
 
@@ -24,10 +23,8 @@ apiRoutes.use('*', requireSession, requireSameOrigin);
 apiRoutes.use('*', afterWrite(rebuildAfterWrite));
 
 apiRoutes.get('/me', (c) => c.json({ email: c.get('email') }));
-apiRoutes.route('/albums/:albumId/tracks', albumTrackRoutes);
 apiRoutes.route('/albums/:albumId/scan', scanRoutes);
 apiRoutes.route('/albums', albumRoutes);
 apiRoutes.route('/tracks', trackRoutes);
 apiRoutes.route('/assets', assetRoutes);
-apiRoutes.route('/media', mediaRoutes);
 apiRoutes.route('/catalog', catalogAdminRoutes);

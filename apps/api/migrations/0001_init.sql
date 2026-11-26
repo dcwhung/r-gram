@@ -1,6 +1,6 @@
 -- R Gram 內容資料（Technical Spec「數據庫設計」，CR-003 之後：冇上下架、冇發佈記錄；
--- CR-004：發行類別、序號、封面同歌曲文字嘅來源 ETag）。
--- D1 未部署過，所以 CR-003 至 CR-006 直接改呢個檔，唔加新 migration。
+-- CR-004：發行類別、序號、封面同歌曲文字嘅來源 ETag；CR-007：媒體 bucket 係唯一來源，D1 係由 bucket 砌嘅索引）。
+-- D1 未部署過，所以 CR-003 至 CR-007 直接改呢個檔，唔加新 migration。
 -- 時間欄一律 ISO 8601 UTC 字串（sessions.expires_at 例外：epoch ms）。
 -- CHECK 只鎖結構上唔會變嘅規則（id 格式、0 / 1、狀態值）；長度上限等可調嘅規則由 packages/catalog validator 管。
 -- TEXT PRIMARY KEY 喺 SQLite 唔會自動 NOT NULL，所以逐個寫明。
@@ -14,18 +14,18 @@ CREATE TABLE assets (
     created_at TEXT NOT NULL
 );
 
--- albums：一隻碟一行
---   id：^[a-z0-9]+(-[a-z0-9]+)*$（同 packages/catalog isAlbumId），建立後不變；
+-- albums：一隻碟一行 = 媒體 bucket rb-discography 第一層一個 <category>-<NN>-<id> 資料夾（CR-007，Functional Spec D67）
+--   id：資料夾名入面嘅 id；^[a-z0-9]+(-[a-z0-9]+)*$（同 packages/catalog isAlbumId），建立後不變；
 --       'favourites' 係播放端虛擬專輯嘅保留字
---   year：年份（可選，NULL = 冇）；CR-006 之後直接輸入，冇發行日期、冇自由文字類型（範圍由 API 驗）
---   category：發行類別短名（packages/catalog RELEASE_CATEGORIES；串法待用戶確認，Functional Spec D43）
---   category_no：類別內序號，由 1 起；同類別唔可以重覆由 API 驗（唔加 UNIQUE：兩張碟對調序號要分兩步改）
---   cover_source_etag：上次由掃描套用嘅封面來源（cover.jpg｜png）嘅 R2 ETag；NULL = 未套用過
---   cover2 / thumb2：可選嘅第二張封面同縮圖（CR-005，Functional Spec D55）；冇第一張唔可以有第二張（CHECK）；
---     兩個欄一齊有或者一齊冇由 API 驗
---   cover2_source_etag：上次由掃描套用嘅第二張封面來源（cover2.jpg）嘅 R2 ETag；規則同 cover_source_etag
---   folder：媒體 bucket rb-discography 入面嘅資料夾名（NULL = 用預期資料夾名 <category>-<NN>-<id>，
---     由 packages/catalog expectedFolder() 計；字元規則由 API 驗）
+--   folder：實際嘅資料夾名（packages/catalog parseAlbumFolder() 讀得到 id、類別、序號）；一張碟一個，唔可以共用
+--   category、category_no：由資料夾名讀；同類別同序號照收（只出檢查結果，D67）
+--   title、year：由 info.txt 讀（冇 info.txt = 碟名用 id、冇年份；年份範圍由 packages/catalog 驗）
+--   accent：第一張封面抽出嘅色；冇封面 = 中性灰
+--   cover / thumb、cover2 / thumb2：同步嘅封面處理結果（API-017）；冇第一張唔可以有第二張（CHECK）
+--   cover_source_etag、cover2_source_etag：處理過嘅封面來源檔（cover.jpg｜png、cover2.jpg｜png）嘅 R2 ETag
+--   info_etag：上次讀到嘅 info.txt 嘅 R2 httpEtag；NULL = 資料夾冇 info.txt
+--   checks：最近一次同步呢個資料夾嘅檢查結果（JSON array，packages/catalog Check；最多 CHECKS_MAX 條）
+--   字母盤標記同轉盤次序唔儲存：生成時由 wheelKeyFor(title) 同 albumOrder() 計（D69）
 --   updated_at 兼做 If-Match
 CREATE TABLE albums (
     id TEXT PRIMARY KEY NOT NULL CHECK (
@@ -37,11 +37,9 @@ CREATE TABLE albums (
         AND id NOT GLOB '*--*'
     ),
     title TEXT NOT NULL,
-    wheel_key TEXT NOT NULL,
     year INTEGER,
     category TEXT NOT NULL CHECK (category IN ('album', 'ep', 'best', 'live', 'ost', 'single')),
     category_no INTEGER NOT NULL CHECK (category_no >= 1),
-    label TEXT NOT NULL DEFAULT '',
     accent TEXT NOT NULL,
     cover TEXT REFERENCES assets (name),
     cover_source_etag TEXT,
@@ -49,51 +47,39 @@ CREATE TABLE albums (
     cover2 TEXT REFERENCES assets (name) CHECK (cover2 IS NULL OR cover IS NOT NULL),
     thumb2 TEXT REFERENCES assets (name),
     cover2_source_etag TEXT,
-    folder TEXT,
-    sort_order INTEGER NOT NULL,
+    folder TEXT NOT NULL UNIQUE,
+    info_etag TEXT,
+    checks TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(checks) AND json_type(checks) = 'array'),
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
 
-CREATE INDEX albums_sort_order ON albums (sort_order);
-
--- tracks：一首歌一行
+-- tracks：一首歌一行 = info.txt 曲目表嘅一行（CR-007，D70；冇 info.txt 時由音檔歌號）
 --   id：^[a-z0-9-]+$（同 packages/catalog isTrackId），建立後不變（建立時 = trackIdFor(album_id, no)，撞咗用隨機）
---   no：歌號 = 檔名開頭嘅歌號，1 至 999（packages/catalog TRACK_NO_MIN / TRACK_NO_MAX），可以跳號；
---     CR-006 之後刪歌唔重編，唔再需要負數做中轉，所以可以鎖範圍
---   audio_manual / mv_manual：1 = 手動指定，掃描唔蓋
---   lyrics_source_url、note、youtube_id、video_kind：參考欄，唔入 catalog
---   text_source_etag：上次由掃描套用嘅歌曲文字檔（NN 名.txt）嘅 R2 ETag；NULL = 未套用過。人手儲存唔改佢
+--   no：歌號 = info.txt 嘅歌號，1 至 999（packages/catalog TRACK_NO_MIN / TRACK_NO_MAX），可以跳號
+--   audio_key / mv_key：資料夾入面同歌號嘅音檔 / MV；audio_key NULL = 冇音檔（播放端灰色行）
+--   composer、lyricist、arranger、producer：由歌曲文字檔（NN 名.txt）
+--   text_key：嗰首歌嘅歌曲文字檔 key（文字框讀寫用）；NULL = 冇
+--   text_source_etag：上次匯入嘅歌曲文字檔嘅 R2 ETag；NULL = 未匯入過
 CREATE TABLE tracks (
     id TEXT PRIMARY KEY NOT NULL CHECK (id <> '' AND id NOT GLOB '*[^a-z0-9-]*'),
     album_id TEXT NOT NULL REFERENCES albums (id) ON DELETE CASCADE,
     "no" INTEGER NOT NULL CHECK ("no" BETWEEN 1 AND 999),
     title TEXT NOT NULL,
-    subtitle TEXT,
     audio_key TEXT,
-    audio_manual INTEGER NOT NULL DEFAULT 0 CHECK (audio_manual IN (0, 1)),
     mv_key TEXT,
-    mv_manual INTEGER NOT NULL DEFAULT 0 CHECK (mv_manual IN (0, 1)),
     composer TEXT,
     lyricist TEXT,
     arranger TEXT,
     producer TEXT,
-    lyrics_source_url TEXT CHECK (
-        lyrics_source_url IS NULL OR lyrics_source_url GLOB 'https://*'
-    ),
-    note TEXT,
     text_source_etag TEXT,
-    youtube_id TEXT,
-    video_kind TEXT,
+    text_key TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
 
--- 專輯頁列歌；保證歌號唔重覆
+-- 專輯頁列歌；保證歌號唔重覆（同步按 (album_id, no) upsert）
 CREATE UNIQUE INDEX tracks_album_no ON tracks (album_id, "no");
-
--- 搵其他專輯同名歌（由同名歌帶入）
-CREATE INDEX tracks_title ON tracks (title);
 
 -- lyrics：獨立一張表，歌曲列表查詢唔使拎歌詞原文；冇歌詞 = 冇呢一行
 --   source：歌曲文字入面歌詞部分嘅原文（packages/catalog parseSongText 正規化後，回填文字框用）
@@ -114,7 +100,7 @@ CREATE TABLE lyrics (
 --   hash：而家 R2 嗰份 document JSON 嘅 sha256（= catalog.json 嘅 ETag）
 --   hash、generated_at、album_count、track_count：而家嗰份嘅資料；生成失敗時保留上一份，
 --     未成功過就係 NULL。status = 'ok' 時一定有
---   updated_at / updated_by：最近一次嘗試（admin email 或者 seed）；error：失敗原因
+--   updated_at / updated_by：最近一次嘗試（admin email）；error：失敗原因
 CREATE TABLE catalog_state (
     id INTEGER PRIMARY KEY NOT NULL CHECK (id = 1),
     status TEXT NOT NULL CHECK (status IN ('ok', 'failed')),

@@ -1,10 +1,11 @@
 /*
  * 冇人用嘅歌詞檔（backlog B-048）要等 catalog 生成成功先由 R2 刪走（review W-021；Functional Spec D30、核心原則 1）：
  * 生成失敗 = 播放端繼續用上一份 catalog.json，嗰份仲指住舊歌詞檔，所以唔可以刪。
+ * CR-007：刪專輯、刪歌嘅 route 拎走（移除喺同步確認，T-105），呢度用歌曲文字清歌詞做代表
  * 刪檔本身出錯唔可以令已儲存嘅寫入變錯誤回應
  */
 import { env } from 'cloudflare:test';
-import { api, insertAlbum, insertLyrics, insertTrack, json } from './albumFixtures';
+import { NOW, api, insertAlbum, insertLyrics, insertTrack, json } from './albumFixtures';
 import { bucketWith, liveDocument } from './catalogFixtures';
 import { LYRICS_PREFIX, lyricsFiles, putText, seedAlbum } from './trackFixtures';
 
@@ -15,8 +16,8 @@ interface Saved {
     updatedAt: string;
 }
 
-/** 一行 validator 唔收嘅資料（wheel_key 太長）：之後每次生成都 INVALID_DOCUMENT */
-const breakGeneration = () => insertAlbum('broken', 9, { wheel_key: 'ABC' });
+/** 一行 validator 唔收嘅資料（專輯色唔係 #rrggbb）：之後每次生成都 INVALID_DOCUMENT */
+const breakGeneration = () => insertAlbum('broken', 9, { accent: 'bad' });
 
 const catalogOf = async (response: Response) =>
     (await json<{ catalog: { ok: boolean; error: string | null } }>(response)).catalog;
@@ -28,30 +29,25 @@ const liveLyricsOf = async (trackId: string) =>
 
 const saveSong = async () => json<Saved>(await putText('apollo-18-01', SONG));
 
+/** CR-007（D54）：冇音檔嘅歌喺 catalog 冇歌詞，所以呢度嘅歌要有音檔 */
+const giveAudio = (trackId: string) =>
+    env.DB.prepare("UPDATE tracks SET audio_key = id || '.m4a' WHERE id = ?").bind(trackId).run();
+
 beforeEach(async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await seedAlbum();
+    await giveAudio('apollo-18-01');
 });
 
 afterEach(() => vi.restoreAllMocks());
 
 describe('lyrics files stay while catalog generation fails', () => {
-    it('should keep the files of a deleted album that the live catalog still lists', async () => {
+    it('should keep a file that the live catalog still lists', async () => {
         const saved = await saveSong();
         await breakGeneration();
-        const response = await api('DELETE', '/api/albums/apollo-18?force=1');
-        expect(response.status).toBe(200);
-        expect(await catalogOf(response)).toMatchObject({ ok: false, error: 'INVALID_DOCUMENT' });
+        const cleared = await putText('apollo-18-01', '一早地下鐵', saved.updatedAt, '?force=1');
+        expect((await catalogOf(cleared)).ok).toBe(false);
         expect(await liveLyricsOf('apollo-18-01')).toBe(saved.lyrics);
-        expect(await lyricsFiles()).toEqual([saved.lyrics]);
-    });
-
-    it('should keep the file of a deleted track', async () => {
-        const saved = await saveSong();
-        await breakGeneration();
-        const response = await api('DELETE', '/api/tracks/apollo-18-01?force=1');
-        expect((await catalogOf(response)).ok).toBe(false);
-        expect(await lyricsFiles()).toEqual([saved.lyrics]);
     });
 
     it('should keep the old file when the lyrics change', async () => {
@@ -81,7 +77,7 @@ describe('lyrics files go once catalog generation succeeds', () => {
     });
 
     it('should drop the file only after catalog.json no longer lists it', async () => {
-        await insertTrack('other-01', 'apollo-18', 4);
+        await insertTrack('other-01', 'apollo-18', 4, { audio_key: 'other-01.m4a' });
         await insertLyrics('other-01');
         const key = `${LYRICS_PREFIX}other-01.json`;
         await env.CATALOG.put(key, '{}');
@@ -95,13 +91,13 @@ describe('lyrics files go once catalog generation succeeds', () => {
             },
         });
         await api(
-            'DELETE',
-            '/api/tracks/other-01?force=1',
-            undefined,
-            {},
+            'PUT',
+            '/api/tracks/other-01/text?force=1',
+            { text: '其他' },
+            { 'if-match': `"${NOW}"` },
             { ...env, CATALOG: bucket },
         );
-        expect(listedWhenDropped).toBeUndefined();
+        expect(listedWhenDropped).toBeNull();
         expect(await env.CATALOG.head(key)).toBeNull();
     });
 });
@@ -109,31 +105,16 @@ describe('lyrics files go once catalog generation succeeds', () => {
 describe('a failing R2 delete does not fail the saved write', () => {
     const failingDelete = () => bucketWith({ delete: () => Promise.reject(new Error('R2 down')) });
 
-    it('should answer the album delete with 200 and catalog ok', async () => {
-        await saveSong();
-        const { bucket } = failingDelete();
-        const bindings = { ...env, CATALOG: bucket };
-        const response = await api(
-            'DELETE',
-            '/api/albums/apollo-18?force=1',
-            undefined,
-            {},
-            bindings,
-        );
-        expect(response.status).toBe(200);
-        expect((await catalogOf(response)).ok).toBe(true);
-    });
-
-    it('should answer the track delete with 200 and catalog ok, logging no file name', async () => {
+    it('should answer the save with 200 and catalog ok, logging no file name', async () => {
         const saved = await saveSong();
         const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
         const { bucket } = failingDelete();
         const bindings = { ...env, CATALOG: bucket };
         const response = await api(
-            'DELETE',
-            '/api/tracks/apollo-18-01?force=1',
-            undefined,
-            {},
+            'PUT',
+            '/api/tracks/apollo-18-01/text?force=1',
+            { text: '一早地下鐵' },
+            { 'if-match': `"${saved.updatedAt}"` },
             bindings,
         );
         expect(response.status).toBe(200);

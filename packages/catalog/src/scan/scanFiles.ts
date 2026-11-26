@@ -25,6 +25,8 @@ export interface FileGroups {
     /** key = `${kind}:${no}`；Map 保持第一次見到嘅次序 */
     numbered: Map<string, NumberedFile[]>;
     covers: Map<CoverKind, ScanFile[]>;
+    /** `info.txt`（CR-007；唔分大細楷，可能多過一個） */
+    info: ScanFile[];
     unmatched: { key: string; reason: UnmatchedReason }[];
     /** 全部 key（判斷記住嘅檔仲喺唔喺度） */
     keys: ReadonlySet<string>;
@@ -41,6 +43,7 @@ export const groupFiles = (files: readonly ScanFile[]): FileGroups => {
     const groups: FileGroups = {
         numbered: new Map(),
         covers: new Map(),
+        info: [],
         unmatched: [],
         keys: new Set(files.map(({ key }) => key)),
     };
@@ -48,6 +51,7 @@ export const groupFiles = (files: readonly ScanFile[]): FileGroups => {
         const found = classifyFile(file.key);
         if (found.kind === 'unmatched')
             groups.unmatched.push({ key: file.key, reason: found.reason });
+        else if (found.kind === 'info') groups.info.push(file);
         else if ('no' in found)
             push(groups.numbered, groupKey(found.kind, found.no), { ...file, ...found });
         else push(groups.covers, found.kind, file);

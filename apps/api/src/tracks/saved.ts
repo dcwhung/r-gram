@@ -1,4 +1,4 @@
-/* API-020 / API-041 嘅成功回應，同 D1 欄 → formatSongText() 嘅輸入 */
+/* API-041 嘅成功回應，同 D1 欄 → formatSongText() 嘅輸入 */
 import {
     CREDIT_FIELDS,
     formatSongText,
@@ -12,7 +12,7 @@ import type { TrackTextRow } from './store';
 /** formatSongText() 要嘅 D1 欄（tracks + lyrics.source）；掃描（media/state.ts）亦用 */
 export type SongTextColumns = Pick<
     TrackTextRow,
-    'title' | 'subtitle' | 'source' | (typeof CREDIT_FIELDS)[number]
+    'title' | 'source' | (typeof CREDIT_FIELDS)[number]
 >;
 
 /** 四項 credit 都冇 = null（同 parseSongText() 一樣） */
@@ -25,7 +25,6 @@ const creditsOf = (row: SongTextColumns): TrackCredits | null =>
 
 export const songFieldsOf = (row: SongTextColumns): SongTextFields => ({
     title: row.title,
-    subtitle: row.subtitle,
     credits: creditsOf(row),
     lyrics: row.source === null ? null : { source: row.source },
 });

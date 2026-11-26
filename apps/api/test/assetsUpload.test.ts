@@ -3,7 +3,7 @@
  * Worker 按檔頭 magic bytes 認格式（唔信 Content-Type 同檔名）、驗大細同尺寸、以內容 hash 命名寫 R2，再記 assets
  */
 import { env } from 'cloudflare:test';
-import { api, albumRow, countOf, insertAlbum, json } from './albumFixtures';
+import { api, countOf, json } from './albumFixtures';
 import { ORIGIN, call, loginCookie } from './helpers';
 import { jpegOf, pngOf, textBytes, webpVp8, webpVp8l, webpVp8x } from './imageFixtures';
 
@@ -204,26 +204,5 @@ describe('PUT /api/assets', () => {
     it('should only answer PUT on /api/assets', async () => {
         expect((await api('GET', '/api/assets')).status).toBe(404);
         expect((await api('POST', '/api/assets', 'x')).status).toBe(404);
-    });
-});
-
-describe('setting an album cover from uploads (API-050 then API-013)', () => {
-    it('should let PATCH point cover and thumb at the uploaded names, with an edited accent', async () => {
-        await insertAlbum('apollo-18', 1);
-        const cover = await json<{ name: string }>(await upload(webpVp8l(1200, 1200, 1)));
-        const thumb = await json<{ name: string }>(await upload(webpVp8l(320, 320, 2)));
-        const before = await albumRow('apollo-18');
-        const response = await api(
-            'PATCH',
-            '/api/albums/apollo-18',
-            { cover: cover.name, thumb: thumb.name, accent: '#1A2B3C' },
-            { 'if-match': `"${String(before?.updated_at)}"` },
-        );
-        expect(response.status).toBe(200);
-        expect(await albumRow('apollo-18')).toMatchObject({
-            cover: cover.name,
-            thumb: thumb.name,
-            accent: '#1a2b3c',
-        });
     });
 });

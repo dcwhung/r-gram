@@ -30,7 +30,7 @@ const rebuild = (bindings = env) => rebuildCatalog(bindings, ACTOR);
 
 afterEach(() => vi.restoreAllMocks());
 
-/** 兩張碟：b 排先、有歌；a 冇歌（D39） */
+/** 兩張碟：a（錄音室專輯）冇歌（D39）；b（迷你專輯）有歌，第 2 首冇音檔（灰色行） */
 const seedTwo = async () => {
     await insertAsset('0123456789abcdef.webp');
     await insertAsset('fedcba9876543210.webp');
@@ -39,7 +39,6 @@ const seedTwo = async () => {
         year: 2008,
         category: 'ep',
         category_no: 3,
-        label: '金牌娛樂',
         cover: '0123456789abcdef.webp',
         cover_source_etag: '"e1"',
         thumb: 'fedcba9876543210.webp',
@@ -49,7 +48,6 @@ const seedTwo = async () => {
     await insertTrack('b-02', 'b', 2, { title: '第二首', mv_key: 'b/02 二.mp4' });
     await insertTrack('b-01', 'b', 1, {
         title: '一早地下鐵',
-        subtitle: 'Live',
         composer: '阿正',
         lyricist: 'Tim Lui / 6號',
         audio_key: 'b/01 一早地下鐵.m4a',
@@ -58,15 +56,42 @@ const seedTwo = async () => {
 };
 
 describe('rebuildCatalog: document', () => {
-    it('should write every album in admin order with every track in number order', async () => {
+    it('should write every album in the fixed order with every track in number order', async () => {
         await seedTwo();
         await rebuild();
         const document = await liveDocument();
         expect(parseCatalogDocument(document).ok).toBe(true);
-        expect(document?.albums.map((album) => album.id)).toEqual(['b', 'a']);
-        expect(document?.albums[0]?.tracks.map((track) => track.id)).toEqual(['b-01', 'b-02']);
+        expect(document?.albums.map((album) => album.id)).toEqual(['a', 'b']);
+        expect(document?.albums[1]?.tracks.map((track) => track.id)).toEqual(['b-01', 'b-02']);
         // D39：冇歌嘅專輯照出
-        expect(document?.albums[1]?.tracks).toEqual([]);
+        expect(document?.albums[0]?.tracks).toEqual([]);
+    });
+
+    // CR-007（D69）：次序固定 = 類別（RELEASE_CATEGORIES 次序）→ 序號 → id；冇人手排序
+    it('should order albums by category, then number, then id', async () => {
+        await insertAlbum('z-single', 0, { category: 'single', category_no: 1 });
+        await insertAlbum('y-best', 0, { category: 'best', category_no: 2 });
+        await insertAlbum('x-best', 0, { category: 'best', category_no: 2, folder: 'best-02-x' });
+        await insertAlbum('w-album', 0, { category: 'album', category_no: 10 });
+        await insertAlbum('v-album', 0, { category: 'album', category_no: 2 });
+        await rebuild();
+        expect((await liveDocument())?.albums.map((album) => album.id)).toEqual([
+            'v-album',
+            'w-album',
+            'x-best',
+            'y-best',
+            'z-single',
+        ]);
+    });
+
+    // CR-007（D69）：字母盤標記一律由碟名計（第一個字母或者數字，之前嘅符號跳過）
+    it('should work out the wheel key from the title', async () => {
+        await insertAlbum('frank', 0, { title: '¿Frank?' });
+        await insertAlbum('ost', 1, { title: '電影《逆流大叔》原聲大碟' });
+        await insertAlbum('none', 2, { title: '……' });
+        await rebuild();
+        const keys = (await liveDocument())?.albums.map((album) => album.wheelKey);
+        expect(keys).toEqual(['F', '電', '?']);
     });
 
     it('should take the bases from MEDIA_BASE and WORKER_ORIGIN', async () => {
@@ -83,17 +108,17 @@ describe('rebuildCatalog: document', () => {
     it('should map album fields and keep stored keys as they are for the player to encode', async () => {
         await seedTwo();
         await rebuild();
-        const [beaming, apollo] = (await liveDocument())?.albums ?? [];
+        const [apollo, beaming] = (await liveDocument())?.albums ?? [];
         expect(beaming).toEqual({
             id: 'b',
             title: 'Beaming',
-            wheelKey: 'A',
+            wheelKey: 'B',
             year: 2008,
             // CR-006（D63、D44）：只有年份；冇發行日期、冇自由文字類型
             // CR-004：類別同序號入 catalog；folder、封面來源 ETag 係管理用，唔入
             category: 'ep',
             categoryNo: 3,
-            label: '金牌娛樂',
+            // CR-007（D69）：冇唱片公司
             accent: '#c8442b',
             cover: '0123456789abcdef.webp',
             thumb: 'fedcba9876543210.webp',
@@ -102,7 +127,8 @@ describe('rebuildCatalog: document', () => {
             thumb2: null,
             tracks: expect.any(Array),
         });
-        expect(apollo).toMatchObject({ year: null, cover: null, thumb: null, label: '' });
+        expect(apollo).toMatchObject({ wheelKey: 'A', year: null, cover: null, thumb: null });
+        expect(apollo).not.toHaveProperty('label');
         expect(apollo).not.toHaveProperty('releaseDate');
         expect(apollo).not.toHaveProperty('type');
     });
@@ -119,7 +145,7 @@ describe('rebuildCatalog: document', () => {
         await rebuild();
         const document = await liveDocument();
         expect(parseCatalogDocument(document).ok).toBe(true);
-        const beaming = document?.albums[0];
+        const beaming = document?.albums.find((album) => album.id === 'b');
         expect(beaming).toMatchObject({
             cover2: 'c2c2c2c2c2c2c2c2.webp',
             thumb2: 'c2c2c2c2c2c2c2c2.webp',
@@ -130,12 +156,11 @@ describe('rebuildCatalog: document', () => {
     it('should map track fields, null credits when all four are empty, and null audio (D11)', async () => {
         await seedTwo();
         await rebuild();
-        const [first, second] = (await liveDocument())?.albums[0]?.tracks ?? [];
+        const [first, second] = (await liveDocument())?.albums[1]?.tracks ?? [];
         expect(first).toEqual({
             id: 'b-01',
             no: 1,
             title: '一早地下鐵',
-            subtitle: 'Live',
             credits: {
                 composer: '阿正',
                 lyricist: 'Tim Lui / 6號',
@@ -146,14 +171,30 @@ describe('rebuildCatalog: document', () => {
             mv: null,
             lyrics: 'b-01.json',
         });
+        // CR-007（D70、D54）：冇音檔嘅歌照列（灰色行），佢嘅 MV、歌詞、credit 一定係 null
         expect(second).toEqual({
             id: 'b-02',
             no: 2,
             title: '第二首',
-            subtitle: null,
             credits: null,
             audio: null,
-            mv: 'b/02 二.mp4',
+            mv: null,
+            lyrics: null,
+        });
+    });
+
+    it('should leave out the MV, lyrics and credits of a track without audio', async () => {
+        await insertAlbum('a', 0);
+        await insertTrack('a-04', 'a', 4, { composer: '阿正', mv_key: 'a/04 x.mp4' });
+        await insertLyrics('a-04');
+        await rebuild();
+        expect((await liveDocument())?.albums[0]?.tracks[0]).toEqual({
+            id: 'a-04',
+            no: 4,
+            title: 'Track a-04',
+            credits: null,
+            audio: null,
+            mv: null,
             lyrics: null,
         });
     });
@@ -178,11 +219,10 @@ describe('rebuildCatalog: document', () => {
         ]);
     });
 
-    // backlog B-005：validator 唔收空字串（label 除外）
+    // backlog B-005：validator 唔收空字串
     it('should turn empty and blank strings into null', async () => {
-        await insertAlbum('a', 1, { label: '' });
+        await insertAlbum('a', 1);
         await insertTrack('a-01', 'a', 1, {
-            subtitle: '',
             composer: ' ',
             lyricist: '',
             audio_key: '',
@@ -191,9 +231,7 @@ describe('rebuildCatalog: document', () => {
         const result = await rebuild();
         expect(result.ok).toBe(true);
         const album = (await liveDocument())?.albums[0];
-        expect(album).toMatchObject({ label: '' });
         expect(album?.tracks[0]).toMatchObject({
-            subtitle: null,
             credits: null,
             audio: null,
             mv: null,
@@ -249,7 +287,7 @@ describe('rebuildCatalog: writing and state', () => {
         const second = await rebuild();
         expect(second).toMatchObject({ ok: true, unchanged: false });
         expect(second.hash).not.toBe(first.hash);
-        expect((await liveDocument())?.albums[0]?.title).toBe('Beaming 2');
+        expect((await liveDocument())?.albums[1]?.title).toBe('Beaming 2');
     });
 
     it('should drop a deleted album from the document', async () => {
@@ -342,7 +380,7 @@ describe('rebuildCatalog: failures', () => {
 
     it('should record a failed state with no previous values before any success', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
-        await insertAlbum('bad', 1, { wheel_key: '' });
+        await insertAlbum('bad', 1, { accent: 'bad' });
         const result = await rebuild();
         expect(result).toMatchObject({
             ok: false,
@@ -356,9 +394,9 @@ describe('rebuildCatalog: failures', () => {
 
     it('should clear the failure once a later generation succeeds', async () => {
         vi.spyOn(console, 'error').mockImplementation(() => undefined);
-        await insertAlbum('bad', 1, { wheel_key: '' });
+        await insertAlbum('bad', 1, { accent: 'bad' });
         await rebuild();
-        await env.DB.prepare("UPDATE albums SET wheel_key = 'B' WHERE id = 'bad'").run();
+        await env.DB.prepare("UPDATE albums SET accent = '#c8442b' WHERE id = 'bad'").run();
         expect((await rebuild()).ok).toBe(true);
         expect(await stateRow()).toMatchObject({ status: 'ok', error: null });
     });

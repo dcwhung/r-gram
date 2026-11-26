@@ -1,5 +1,6 @@
 /*
- * 內容 API 共用嘅 body 欄位驗證（專輯、歌）：每個欄位一條 rule（驗證 + 正規化），錯誤一次過列晒（path + reason）。
+ * API 共用嘅 body 欄位驗證：每個欄位一條 rule（驗證 + 正規化），錯誤一次過列晒（path + reason）。
+ * CR-007 之後專輯、歌冇可以改嘅欄位，剩低歌曲文字（只收 `text`）用佢擋未知欄位。
  * 未知欄位一律 NOT_EDITABLE；欄位名同數目都有上限，巨大嘅請求唔會變成巨大嘅錯誤回應（S-053、backlog B-046 ①）
  */
 import type { JsonObject } from './http';
@@ -22,39 +23,7 @@ export const UNKNOWN_FIELDS_MAX = 20;
 /** 講成個 body 嘅錯誤用嘅 path */
 export const BODY_PATH = '$';
 
-/**
- * 文字欄共用嘅字元規則：控制字元（Cc：換行、tab）、格式字元（Cf：零寬空格、RTL override、BOM）、
- * 行分隔（Zl，U+2028）、段分隔（Zp，U+2029）。畫面上睇唔到或者會亂排版，亦可以砌出假 log 行。
- * 普通空格同全形空格（Zs）照收
- */
-export const HIDDEN_CHARACTER = /[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/u;
-
 export const ok = (value: unknown): { ok: true; value: unknown } => ({ ok: true, value });
-export const fail = <R extends string>(reason: R): { ok: false; reason: R } => ({
-    ok: false,
-    reason,
-});
-
-/** 按字（code point）計，中文字同 emoji 都當一個字 */
-export const charCount = (value: string): number => [...value].length;
-
-export type TextReason = 'INVALID_TEXT' | 'REQUIRED' | 'TOO_LONG';
-
-/** 文字欄：trim 之後存；`required` = 唔可以係空 */
-export const text =
-    (required: boolean, maxChars: number): Rule<TextReason> =>
-    (value) => {
-        if (typeof value !== 'string' || HIDDEN_CHARACTER.test(value)) return fail('INVALID_TEXT');
-        const trimmed = value.trim();
-        if (required && trimmed === '') return fail('REQUIRED');
-        return charCount(trimmed) > maxChars ? fail('TOO_LONG') : ok(trimmed);
-    };
-
-/** `null` = 清走；其他值交畀 `rule` */
-export const nullable =
-    <R extends string>(rule: Rule<R>): Rule<R> =>
-    (value) =>
-        value === null ? ok(null) : rule(value);
 
 /** 按字（code point）截短，唔會切開 emoji / 罕見字嘅 surrogate pair */
 const boundedPath = (key: string): string => [...key].slice(0, UNKNOWN_KEY_MAX_CHARS).join('');

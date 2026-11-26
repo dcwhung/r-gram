@@ -2,12 +2,13 @@
  * 歌曲文字 parser（Functional Spec D31、D32、D37；Technical Spec「parseSongText() 嘅規則」）。
  * 管理端即時逐行檢查同 API 儲存驗證用同一份。格式：
  *   第一個非空白行 = 歌名（必填）
- *   之後嘅標籤行：副題 / 曲 / 詞 / 編 / 監 + `：` 或 `:`，次序隨意，各自最多一次；遇到空行或者第一行唔係標籤行就完
+ *   之後嘅標籤行：曲 / 詞 / 編 / 監 + `：` 或 `:`，次序隨意，各自最多一次；遇到空行或者第一行唔係標籤行就完。
+ *   `副題` 行（CR-007，D72）：照認做標籤，值唔用，每行一個 SUBTITLE_IGNORED 提示（唔擋、唔查長度同重複）
  *   之後全部 = 歌詞（可以冇）：全部行有時間標記 = 同步；全部冇 = 純文字；混埋 = 逐行報錯
  */
 import { startsWithTimestamp } from '../lrc/parseLrc';
-import { CREDIT_FIELDS, type TrackCredits } from '../schema/types';
-import { type LabelField, readLabel } from './labels';
+import { CREDIT_FIELDS, type CreditField, type TrackCredits } from '../schema/types';
+import { readLabel } from './labels';
 import {
     byteLength,
     charCount,
@@ -18,16 +19,16 @@ import {
 } from './limits';
 import { songLines } from './lines';
 import { readLyrics } from './lyrics';
-import type { SongTextError, SongTextResult } from './types';
+import type { SongText, SongTextError, SongTextHint, SongTextResult } from './types';
 
-type LabelValues = Partial<Record<LabelField, string | null>>;
+type LabelValues = Partial<Record<CreditField, string | null>>;
 
 const EMPTY_SONG: SongTextResult = {
     title: '',
-    subtitle: null,
     credits: null,
     lyrics: null,
     errors: [],
+    hints: [],
 };
 
 /** 成段文字太大或者太多行：唔再逐行讀，一個錯（行號 0） */
@@ -53,30 +54,44 @@ const readTitle = (lines: string[], errors: SongTextError[]): { title: string; n
     return { title: text, next: index + 1 };
 };
 
-const lengthError = (field: LabelField, value: string | null): SongTextError['code'] | null => {
-    const max = field === 'subtitle' ? TITLE_MAX_CHARS : CREDIT_MAX_CHARS;
-    if (value === null || charCount(value) <= max) return null;
-    return field === 'subtitle' ? 'TITLE_TOO_LONG' : 'CREDIT_TOO_LONG';
+const isTooLong = (value: string | null): boolean =>
+    value !== null && charCount(value) > CREDIT_MAX_CHARS;
+
+interface LabelOutput {
+    values: LabelValues;
+    errors: SongTextError[];
+    hints: SongTextHint[];
+}
+
+/** 一行標籤：副題 → 提示；credit → 值（重複留第一次、太長報錯） */
+const applyLabel = (
+    label: NonNullable<ReturnType<typeof readLabel>>,
+    line: number,
+    text: string,
+    out: LabelOutput,
+) => {
+    if (label.field === 'subtitle') {
+        out.hints.push({ line, code: 'SUBTITLE_IGNORED' });
+        return;
+    }
+    if (Object.hasOwn(out.values, label.field)) {
+        out.errors.push({ line, code: 'DUPLICATE_LABEL', text }); // 留第一次嘅值
+        return;
+    }
+    out.values[label.field] = label.value;
+    if (isTooLong(label.value)) out.errors.push({ line, code: 'CREDIT_TOO_LONG', text });
 };
 
 /** 由 `start` 起讀標籤行；回傳讀到嘅值同歌詞開始嘅 index */
-const readLabels = (lines: string[], start: number, errors: SongTextError[]) => {
-    const values: LabelValues = {};
+const readLabels = (lines: string[], start: number, out: LabelOutput): number => {
     let index = start;
     for (; index < lines.length; index += 1) {
         const text = (lines[index] ?? '').trim();
         const label = readLabel(text);
         if (!label) break;
-        const line = index + 1;
-        if (Object.hasOwn(values, label.field)) {
-            errors.push({ line, code: 'DUPLICATE_LABEL', text }); // 留第一次嘅值
-            continue;
-        }
-        values[label.field] = label.value;
-        const tooLong = lengthError(label.field, label.value);
-        if (tooLong) errors.push({ line, code: tooLong, text });
+        applyLabel(label, index + 1, text, out);
     }
-    return { values, lyricsStart: index };
+    return index;
 };
 
 const creditsOf = (values: LabelValues): TrackCredits | null => {
@@ -96,12 +111,20 @@ export const parseSongText = (text: string): SongTextResult => {
     const lines = songLines(text);
     const sizeError = checkSize(text, lines.length);
     if (sizeError) return { ...EMPTY_SONG, errors: [sizeError] };
-    const errors: SongTextError[] = [];
+    const out: LabelOutput = { values: {}, errors: [], hints: [] };
+    const { errors, hints } = out;
     const { title, next } = readTitle(lines, errors);
-    const { values, lyricsStart } = readLabels(lines, next, errors);
+    const lyricsStart = readLabels(lines, next, out);
     const lyrics = readLyrics(lines, lyricsStart, errors);
-    const credits = creditsOf(values);
+    const credits = creditsOf(out.values);
     // sort 係 stable：同一行嘅錯保持發現次序
     errors.sort((a, b) => a.line - b.line);
-    return { title, subtitle: values.subtitle ?? null, credits, lyrics, errors };
+    return { title, credits, lyrics, errors, hints };
 };
+
+/** 解析結果入面要儲存嘅部分（去走 `errors`、`hints`） */
+export const songOf = ({ title, credits, lyrics }: SongTextResult): SongText => ({
+    title,
+    credits,
+    lyrics,
+});

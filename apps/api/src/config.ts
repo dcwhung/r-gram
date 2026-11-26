@@ -58,9 +58,6 @@ export const ERROR_CODE = {
     validation: 'VALIDATION_ERROR',
     /** If-Match 同現有 updatedAt 唔同 */
     stale: 'STALE',
-    conflict: 'CONFLICT',
-    /** 刪除會令 id 由 catalog 消失：要帶 ?force=1 再叫（ID 守衛） */
-    idRemoved: 'ID_REMOVED',
     /** 儲存會清走一首歌現有嘅歌詞：要帶 ?force=1 再叫（Functional Spec D30） */
     lyricsRemoved: 'LYRICS_REMOVED',
     /** body / 歌曲文字超出上限 */

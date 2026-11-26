@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { afterWrite, noPostWrite, skipPostWrite, type PostWriteHook } from '../src/api/afterWrite';
 import type { AppEnv } from '../src/app';
 import type { CatalogStatus } from '../src/catalog/state';
-import { api, insertAlbum } from './albumFixtures';
+import { NOW, api, insertAlbum, insertTrack } from './albumFixtures';
 
 const STATUS: CatalogStatus = {
     ok: false,
@@ -101,9 +101,15 @@ describe('afterWrite', () => {
 
     it('should be wired into /api with rebuildCatalog()', async () => {
         await insertAlbum('a', 1);
-        const response = await api('PUT', '/api/albums/order', { ids: ['a'] });
-        expect(await response.json()).toEqual({
-            ids: ['a'],
+        await insertTrack('a-01', 'a', 1);
+        const response = await api(
+            'PUT',
+            '/api/tracks/a-01/text',
+            { text: '歌名' },
+            { 'if-match': `"${NOW}"` },
+        );
+        expect(await response.json()).toMatchObject({
+            trackId: 'a-01',
             catalog: expect.objectContaining({ ok: true, albumCount: 1, error: null }),
         });
     });

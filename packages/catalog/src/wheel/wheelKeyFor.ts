@@ -5,8 +5,8 @@ export const WHEEL_KEY_FALLBACK = '?';
 const FIRST_LETTER_OR_DIGIT = /[\p{L}\p{N}]/u;
 
 /**
- * 字母盤標記嘅預設值：英文名第一個字母（大楷）、中文名第一個字。
- * 管理端可以改（例如兩張碟同一個字母時）；呢度只係建立專輯時嘅預設。
+ * 字母盤標記：英文名第一個字母（大楷）、中文名第一個字。
+ * CR-007（Functional Spec D69）：永遠自動，唔可以改、唔儲存；生成 catalog 同管理端列表時由碟名計。
  */
 export const wheelKeyFor = (title: string): string => {
     const first = FIRST_LETTER_OR_DIGIT.exec(title)?.[0];

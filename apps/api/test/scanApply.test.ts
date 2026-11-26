@@ -148,7 +148,6 @@ describe('POST /api/albums/:id/scan/apply: create', () => {
             composer: 'RubberBand',
             lyricist: 'Tim Lui',
             audio_key: mediaKey('05 太平門.m4a'),
-            audio_manual: 0,
             mv_key: mediaKey('05 太平門.mp4'),
             text_source_etag: etag,
         });
@@ -324,28 +323,21 @@ describe('POST /api/albums/:id/scan/apply: song texts', () => {
 });
 
 describe('POST /api/albums/:id/scan/apply: media and missing audio', () => {
-    it('should link matched files and leave manual assignments alone', async () => {
+    // CR-007（D71）：冇手動指定；音檔做錨照舊
+    it('should link matched files', async () => {
         await insertScanTrack(1);
-        await insertScanTrack(2, { audio_key: 'other/x.m4a', audio_manual: 1 });
-        await putMediaFiles(['01 a.m4a', '01 a.mp4', '02 b.m4a', '03 c.mp4']);
+        await putMediaFiles(['01 a.m4a', '01 a.mp4', '03 c.mp4']);
         await insertScanTrack(3);
         const { body } = await apply({
             media: [
                 { trackId: 'komorebi-01', kind: 'audio', key: mediaKey('01 a.m4a') },
                 { trackId: 'komorebi-01', kind: 'mv', key: mediaKey('01 a.mp4') },
-                { trackId: 'komorebi-02', kind: 'audio', key: mediaKey('02 b.m4a') },
                 { trackId: 'komorebi-03', kind: 'mv', key: mediaKey('03 c.mp4') },
             ],
         });
         expect(body.media).toEqual({
             applied: 2,
             skipped: [
-                {
-                    trackId: 'komorebi-02',
-                    kind: 'audio',
-                    code: 'MANUAL_KEPT',
-                    message: expect.any(String),
-                },
                 {
                     trackId: 'komorebi-03',
                     kind: 'mv',
@@ -357,9 +349,7 @@ describe('POST /api/albums/:id/scan/apply: media and missing audio', () => {
         expect(await trackRow('komorebi-01')).toMatchObject({
             audio_key: mediaKey('01 a.m4a'),
             mv_key: mediaKey('01 a.mp4'),
-            audio_manual: 0,
         });
-        expect((await trackRow('komorebi-02'))?.audio_key).toBe('other/x.m4a');
     });
 
     it('should not link a file that is gone', async () => {
@@ -389,52 +379,6 @@ describe('POST /api/albums/:id/scan/apply: media and missing audio', () => {
         ]);
         expect(await trackRow('komorebi-09')).toMatchObject({ audio_key: null, mv_key: null });
         expect(await countOf('tracks')).toBe(3);
-    });
-
-    it('should count a manually assigned audio as the anchor for the text and the MV', async () => {
-        await insertScanTrack(2, { audio_key: 'other/x.m4a', audio_manual: 1 });
-        await putMediaFiles(['02 b.mp4']);
-        const etag = await putMedia('02 b.txt', TEXT_05);
-        const { body } = await apply({
-            media: [{ trackId: 'komorebi-02', kind: 'mv', key: mediaKey('02 b.mp4') }],
-            songTexts: [{ trackId: 'komorebi-02', key: mediaKey('02 b.txt'), etag }],
-        });
-        expect(body.media).toEqual({ applied: 1, skipped: [] });
-        expect(body.songTexts).toEqual([{ trackId: 'komorebi-02', ok: true }]);
-        expect(await trackRow('komorebi-02')).toMatchObject({
-            audio_key: 'other/x.m4a',
-            mv_key: mediaKey('02 b.mp4'),
-            title: '太平門',
-        });
-    });
-
-    it('should never clear a manually assigned audio', async () => {
-        await insertScanTrack(9, { audio_key: mediaKey('09 a.m4a'), audio_manual: 1 });
-        const { body } = await apply({
-            clearAudio: [{ trackId: 'komorebi-09', audioKey: mediaKey('09 a.m4a') }],
-        });
-        expect(body.clearAudio[0]).toMatchObject({ ok: false, code: 'STALE' });
-        expect(await trackRow('komorebi-09')).toMatchObject({
-            audio_key: mediaKey('09 a.m4a'),
-            audio_manual: 1,
-        });
-    });
-
-    it('should keep a manually assigned MV when clearing the audio', async () => {
-        await insertScanTrack(9, {
-            audio_key: mediaKey('09 a.m4a'),
-            mv_key: 'other/v.mp4',
-            mv_manual: 1,
-        });
-        const { body } = await apply({
-            clearAudio: [{ trackId: 'komorebi-09', audioKey: mediaKey('09 a.m4a') }],
-        });
-        expect(body.clearAudio[0]).toMatchObject({ ok: true });
-        expect(await trackRow('komorebi-09')).toMatchObject({
-            audio_key: null,
-            mv_key: 'other/v.mp4',
-            mv_manual: 1,
-        });
     });
 
     it('should clear the matched MV link too when the MV file is still in the folder', async () => {

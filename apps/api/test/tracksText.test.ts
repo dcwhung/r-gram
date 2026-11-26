@@ -24,7 +24,6 @@ import {
 
 const SONG = [
     '一早地下鐵',
-    '副題：Live',
     '曲：阿正',
     '詞：Tim Lui / 6號',
     '編：阿正',
@@ -48,7 +47,7 @@ interface Saved {
 beforeEach(seedAlbum);
 
 describe('PUT /api/tracks/:id/text: saving', () => {
-    it('should store title, subtitle, credits and timed lyrics in one go', async () => {
+    it('should store title, credits and timed lyrics in one go', async () => {
         const response = await putText('apollo-18-01', SONG);
         expect(response.status).toBe(200);
         const body = await json<Saved>(response);
@@ -65,7 +64,6 @@ describe('PUT /api/tracks/:id/text: saving', () => {
             id: 'apollo-18-01',
             no: 1,
             title: '一早地下鐵',
-            subtitle: 'Live',
             credits: {
                 composer: '阿正',
                 lyricist: 'Tim Lui / 6號',
@@ -77,7 +75,6 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         });
         expect(await trackRow('apollo-18-01')).toMatchObject({
             title: '一早地下鐵',
-            subtitle: 'Live',
             producer: 'RubberBand / 雷頌德',
             updated_at: body.updatedAt,
         });
@@ -121,7 +118,7 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         expect((await getText('apollo-18-01')).text).toBe(body.text);
     });
 
-    it('should save a title with no labels and no lyrics, clearing credits and subtitle', async () => {
+    it('should save a title with no labels and no lyrics, clearing the credits', async () => {
         await putText('apollo-18-01', SONG);
         const { updatedAt } = await getText('apollo-18-01');
         const response = await putText('apollo-18-01', '新歌名', updatedAt, '?force=1');
@@ -133,7 +130,6 @@ describe('PUT /api/tracks/:id/text: saving', () => {
             lyrics: null,
             track: {
                 title: '新歌名',
-                subtitle: null,
                 credits: { composer: null, lyricist: null, arranger: null, producer: null },
                 lyrics: null,
             },
@@ -335,6 +331,27 @@ describe('PUT /api/tracks/:id/text: B-038 hint for labels after a blank line', (
     });
 });
 
+// CR-007（Functional Spec D72）：舊檔嘅「副題：」行照收，唔儲存，逐行提示
+describe('PUT /api/tracks/:id/text: subtitle lines of old files', () => {
+    it('should save the text without the subtitle and give a hint for its line', async () => {
+        const response = await putText('apollo-18-01', '歌名\n副題：Live\n曲：阿正');
+        expect(response.status).toBe(200);
+        const body = await json<Saved>(response);
+        expect(body.text).toBe('歌名\n曲：阿正');
+        expect(body.track).toMatchObject({ title: '歌名' });
+        expect(body.track).not.toHaveProperty('subtitle');
+        expect(body.hints).toEqual([
+            {
+                path: 'text',
+                line: 2,
+                reason: 'SUBTITLE_IGNORED',
+                message: zhHant.tracks.hints.SUBTITLE_IGNORED,
+            },
+        ]);
+        expect(await trackRow('apollo-18-01')).not.toHaveProperty('subtitle');
+    });
+});
+
 describe('PUT /api/tracks/:id/text: concurrency and missing tracks', () => {
     it('should answer 409 STALE for an old If-Match and keep the stored text', async () => {
         await putText('apollo-18-01', SONG);
@@ -374,13 +391,12 @@ describe('GET /api/tracks/:id/text', () => {
     it('should rebuild the text from the stored fields in the fixed order', async () => {
         await insertTrack('apollo-18-09', 'apollo-18', 9, {
             title: '發現號',
-            subtitle: 'Live',
             lyricist: '林夕',
             composer: '阿正',
         });
         expect(await getText('apollo-18-09')).toEqual({
             trackId: 'apollo-18-09',
-            text: '發現號\n副題：Live\n曲：阿正\n詞：林夕',
+            text: '發現號\n曲：阿正\n詞：林夕',
             updatedAt: NOW,
         });
     });

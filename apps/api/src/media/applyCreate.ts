@@ -26,7 +26,6 @@ interface Prepared {
 
 const titleOnly = (title: string): SongText => ({
     title,
-    subtitle: null,
     credits: null,
     lyrics: null,
 });

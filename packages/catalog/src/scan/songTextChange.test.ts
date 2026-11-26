@@ -6,7 +6,6 @@ const parsed = (text: string) => parseSongText(text);
 
 const stored = (fields: Partial<SongTextFields> = {}): SongTextFields => ({
     title: '一早地下鐵',
-    subtitle: null,
     credits: null,
     lyrics: null,
     ...fields,

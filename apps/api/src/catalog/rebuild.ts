@@ -140,7 +140,7 @@ const settle = async (env: RebuildEnv): Promise<Settled> => {
     return { kind: 'failed', error: ERROR_CODE.catalogWriteFailed };
 };
 
-/** `actor`：admin email（或者 seed），寫入 catalog_state.updated_by */
+/** `actor`：admin email，寫入 catalog_state.updated_by */
 export const rebuildCatalog = async (env: RebuildEnv, actor: string): Promise<RebuildResult> => {
     const outcome = await settle(env);
     const stamp = { updatedAt: new Date().toISOString(), actor };

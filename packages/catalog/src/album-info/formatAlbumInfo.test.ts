@@ -1,0 +1,77 @@
+import { formatAlbumInfo } from './formatAlbumInfo';
+import { parseAlbumInfo } from './parseAlbumInfo';
+import type { AlbumInfoFields } from './types';
+
+const KOMOREBI: AlbumInfoFields = {
+    title: 'Komorebi',
+    year: 2026,
+    tracks: [
+        { no: 1, title: '下一位參賽者' },
+        { no: 3, title: '搲撈HK' },
+        { no: 11, title: 'G’night' },
+    ],
+};
+
+/** 解析結果減去行號同 `usable`：同 `formatAlbumInfo()` 嘅輸入同一個形狀 */
+const fieldsOf = (text: string): AlbumInfoFields => {
+    const { title, year, tracks, checks } = parseAlbumInfo(text);
+    expect(checks).toEqual([]);
+    return { title: title ?? '', year, tracks: tracks.map(({ no, title }) => ({ no, title })) };
+};
+
+describe('formatAlbumInfo', () => {
+    it('should write the same layout as the user file (full-width colons, "1. " numbers)', () => {
+        expect(formatAlbumInfo(KOMOREBI)).toBe(
+            [
+                '唱片名稱：Komorebi',
+                '發行年份：2026',
+                '曲目：',
+                '1. 下一位參賽者',
+                '3. 搲撈HK',
+                '11. G’night',
+                '',
+            ].join('\n'),
+        );
+    });
+
+    it('should leave out the year line when there is no year', () => {
+        expect(formatAlbumInfo({ title: 'a', year: null, tracks: [] })).toBe(
+            '唱片名稱：a\n曲目：\n',
+        );
+    });
+
+    it('should list the tracks by number', () => {
+        const text = formatAlbumInfo({
+            title: 'a',
+            year: null,
+            tracks: [
+                { no: 16, title: '十六' },
+                { no: 2, title: '二' },
+            ],
+        });
+        expect(text.endsWith('曲目：\n2. 二\n16. 十六\n')).toBe(true);
+    });
+
+    describe('round trip', () => {
+        it.each<[string, AlbumInfoFields]>([
+            ['the user album', KOMOREBI],
+            ['no year, no tracks', { title: 'komorebi', year: null, tracks: [] }],
+            [
+                'titles with colons and numbers',
+                {
+                    title: 'Re: 1. 開始',
+                    year: 1999,
+                    tracks: [
+                        { no: 1, title: '12:00 Midnight' },
+                        { no: 999, title: '1. 再來' },
+                    ],
+                },
+            ],
+        ])('should read back %s unchanged', (_, fields) => {
+            expect(fieldsOf(formatAlbumInfo(fields))).toEqual({
+                ...fields,
+                tracks: [...fields.tracks].sort((a, b) => a.no - b.no),
+            });
+        });
+    });
+});

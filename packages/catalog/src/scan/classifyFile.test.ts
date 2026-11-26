@@ -29,6 +29,21 @@ describe('classifyFile', () => {
         expect(classifyFile(`album-01-apollo-18/${name}`)).toEqual({ kind });
     });
 
+    // CR-007（Technical Spec「packages/catalog：新增同改」）：專輯資料檔，唔分大細楷
+    it.each(['info.txt', 'Info.txt', 'INFO.TXT'])(
+        'should read %s as the album info file',
+        (name) => {
+            expect(classifyFile(`album-11-komorebi/${name}`)).toEqual({ kind: 'info' });
+        },
+    );
+
+    it.each(['01 info.txt', 'info.txt.bak', 'info2.txt', 'album-info.txt'])(
+        'should not read %s as the album info file',
+        (name) => {
+            expect(classifyFile(`a/${name}`)).not.toEqual({ kind: 'info' });
+        },
+    );
+
     it.each([
         'cover.jpeg',
         'cover.webp',
