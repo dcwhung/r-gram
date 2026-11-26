@@ -46,9 +46,15 @@ describe('appManifest', () => {
         expect(manifest.theme_color).toBe(LAUNCH_COLOR);
     });
 
-    it('should list a 192 and a 512 icon for any purpose and a maskable 512 icon', () => {
+    it('should list 192 and 512 icons for any purpose and maskable 192 and 512 icons', () => {
         expect(manifest.icons).toEqual([
             { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+            {
+                src: 'icons/icon-maskable-192.png',
+                sizes: '192x192',
+                type: 'image/png',
+                purpose: 'maskable',
+            },
             { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
             {
                 src: 'icons/icon-maskable-512.png',
@@ -59,17 +65,27 @@ describe('appManifest', () => {
         ]);
     });
 
+    it.each(manifest.icons)('should point manifest icon $src at a PNG of $sizes', (icon) => {
+        expect(pngSize(icon.src)).toBe(icon.sizes);
+    });
+
     it.each(Object.values(APP_ICONS))('should ship $src as a PNG of $sizes', (icon) => {
         expect(pngSize(icon.src)).toBe(icon.sizes);
     });
 });
 
 describe('iconLinks', () => {
-    it('should link the favicon and the home-screen icon for iOS from the same icon files', () => {
+    it('should link the small favicons (16, 32, 48) and the home-screen icon for iOS', () => {
         expect(iconLinks()).toEqual([
-            { rel: 'icon', type: 'image/png', sizes: '192x192', href: '/icons/icon-192.png' },
+            { rel: 'icon', type: 'image/png', sizes: '16x16', href: '/icons/icon-16.png' },
+            { rel: 'icon', type: 'image/png', sizes: '32x32', href: '/icons/icon-32.png' },
+            { rel: 'icon', type: 'image/png', sizes: '48x48', href: '/icons/icon-48.png' },
             { rel: 'apple-touch-icon', sizes: '180x180', href: '/icons/apple-touch-icon.png' },
         ]);
+    });
+
+    it.each(iconLinks())('should point the $rel link $href at a PNG of $sizes', (link) => {
+        expect(pngSize(link.href.slice(APP_BASE.length))).toBe(link.sizes);
     });
 });
 
