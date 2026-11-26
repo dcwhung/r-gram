@@ -123,3 +123,40 @@ describe('useHome turning the knob', () => {
         expect(result.current.stage.viewAlbumId).toBe('apollo-18');
     });
 });
+
+/* T-048：播緊時拎住另一隻碟（Functional Spec FR-043、D52）：聲照播；㩒細唱片機返去載入嘅碟 */
+describe('useHome holding another disc', () => {
+    /** 開歌單、播第一首（apollo-18-01），再擰去 room 鬆手 */
+    const holdRoom = () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        press(result, 'onSpindle');
+        press(result, 'onSpindle');
+        act(() => result.current.handlers?.onTurnStart());
+        act(() => result.current.handlers?.onTurn(1));
+        act(() => result.current.handlers?.onTurnEnd());
+        return result;
+    };
+
+    it('should hold the other disc while the song keeps playing', () => {
+        const result = holdRoom();
+        expect(result.current.view).toMatchObject({ holding: true, loadedAlbumId: 'apollo-18' });
+        expect(result.current.playback).toMatchObject({ status: 'playing', albumId: 'apollo-18' });
+    });
+
+    it('should ignore the clamp of the held disc: no arc list, playback untouched', () => {
+        const result = holdRoom();
+        const before = { stage: result.current.stage, playback: result.current.playback };
+        press(result, 'onSpindle');
+        expect(result.current.stage).toBe(before.stage);
+        expect(result.current.playback).toBe(before.playback);
+    });
+
+    it('should put the held disc back and show the loaded one without touching playback', () => {
+        const result = holdRoom();
+        const playback = result.current.playback;
+        act(() => result.current.handlers?.onReturnToLoaded());
+        expect(result.current.stage).toMatchObject({ scene: 'home', viewAlbumId: 'apollo-18' });
+        expect(result.current.view?.holding).toBe(false);
+        expect(result.current.playback).toBe(playback);
+    });
+});

@@ -209,3 +209,82 @@ describe('homeView while choosing a disc', () => {
         expect(view.dial).toMatchObject({ open: true, current: 1 });
     });
 });
+
+/*
+ * T-048：拎住另一隻碟時右上角嘅細唱片機（Functional Spec FR-043、D58；Technical Spec「補充：第 18 版」）。
+ * 細唱片機跟載入嘅碟：封面、歌名、唱臂姿勢（同大唱片機同一套規則，D58 ①）、轉唔轉
+ */
+describe('homeView mini turntable', () => {
+    const document = makeDocument([
+        withSecondCover(makeAlbum('apollo-18', ['apollo-18/01.m4a'])),
+        makeAlbum('room', ['room/01.m4a']),
+    ]);
+    const holdingRoom = home({ viewAlbumId: 'room' });
+    const mini = (stage: StageState, state: PlaybackState) =>
+        homeView(document, stage, state, new Map([['apollo-18', COVER_VARIANT.SECOND]])).mini;
+
+    it('should have no mini turntable when no song is loaded', () => {
+        expect(mini(holdingRoom, IDLE_PLAYBACK)).toBeNull();
+    });
+
+    it('should show the loaded disc playing while another disc is held', () => {
+        expect(mini(holdingRoom, playback())).toMatchObject({
+            shown: true,
+            title: 'apollo-18 1',
+            paused: false,
+            armPose: 'playing',
+            spinning: true,
+            accent: '#c8442b',
+            glow: glowColor('#c8442b'),
+            coverUrl: 'https://api.example/catalog/v1/img/apollo-18-cover2.webp',
+            thumbUrl: 'https://api.example/catalog/v1/img/apollo-18-thumb2.webp',
+        });
+    });
+
+    it('should show the paused label, a lifted needle and a still disc when the user paused', () => {
+        expect(mini(holdingRoom, userPaused)).toMatchObject({
+            shown: true,
+            paused: true,
+            armPose: 'lifted',
+            spinning: false,
+        });
+    });
+
+    // D58 ①：唔係播緊一律「已暫停」；泊位情況（熄咗 MV、重開 app）唱臂喺泊位
+    it.each(['mv', 'restore'] as const)(
+        'should park the arm of the mini turntable when paused for %s',
+        (pauseReason) => {
+            const paused = playback({ status: 'paused', pauseReason });
+            expect(mini(holdingRoom, paused)).toMatchObject({ paused: true, armPose: 'parked' });
+        },
+    );
+
+    it('should hide the mini turntable, and stop its disc, while the loaded disc is on screen', () => {
+        expect(mini(home(), playback())).toMatchObject({ shown: false, spinning: false });
+        expect(mini(home({ scene: 'discChange' }), playback())?.shown).toBe(false);
+    });
+
+    it('should show it while the dial points at another disc', () => {
+        expect(mini(home({ scene: 'discChange', viewAlbumId: 'room' }), playback())?.shown).toBe(
+            true,
+        );
+    });
+
+    // 由 Favourites 碟播緊：碟面用 ♥ 格（T-070 之前係中性色）；歌名照搵得到
+    it('should show the favourites disc when the song was started from it', () => {
+        const fromFavourites = playback({ albumId: 'favourites', trackId: 'room-01' });
+        expect(mini(holdingRoom, fromFavourites)).toMatchObject({
+            title: 'room 1',
+            accent: NEUTRAL_ACCENT,
+            coverUrl: null,
+        });
+    });
+
+    it('should leave the title empty when the loaded track is not in the catalog', () => {
+        expect(mini(holdingRoom, playback({ trackId: 'gone-01' }))?.title).toBe('');
+    });
+
+    it('should keep the big tonearm parked behind the fade while another disc is held', () => {
+        expect(homeView(document, holdingRoom, playback()).armPose).toBe('parked');
+    });
+});
