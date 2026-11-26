@@ -40,6 +40,12 @@ export const zhHant = {
         change: '選擇唱片',
         changeDone: '完成選擇',
     },
+    /** 拎住另一隻碟時右上角嘅細唱片機（T-048；設計稿第 18 版 T.nowPlaying、loadedPaused、backToPlaying） */
+    miniTurntable: {
+        playing: '播放中',
+        paused: '已暫停',
+        back: '返回播放中的唱片',
+    },
     favourites: {
         title: '我的收藏',
         empty: '尚未收藏歌曲',

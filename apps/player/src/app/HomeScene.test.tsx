@@ -162,6 +162,9 @@ describe('HomeScene holding another disc', () => {
     };
     const PAUSED: PlaybackState = { ...PLAYING, status: 'paused', pauseReason: 'user' };
     const holding = (playback: PlaybackState = PLAYING) => viewOf('room', null, {}, playback);
+    /** 大唱片機嘅唱臂入面（細唱片機都有自己支唱臂） */
+    const bigArm = (container: HTMLElement, name: string) =>
+        container.querySelector(`[data-part="chrome-arm"] [data-part="${name}"]`);
     const part = (container: HTMLElement, name: string) =>
         container.querySelector(`[data-part="${name}"]`);
 
@@ -226,7 +229,7 @@ describe('HomeScene holding another disc', () => {
         rerender(scene(viewOf('apollo-18', null, {}, PLAYING)));
         expect(part(container, 'chrome-arm')).toHaveAttribute('data-hidden', 'false');
         expect(part(container, 'arm')).toHaveAttribute('data-instant', 'true');
-        expect(part(container, 'led-glow')).not.toBeNull();
+        expect(bigArm(container, 'led-glow')).not.toBeNull();
     });
 
     // T-049 會行呢條路：拎住嘅碟放入唱片機（載入嘅碟變咗）= 由泊位行完整開場
@@ -235,6 +238,6 @@ describe('HomeScene holding another disc', () => {
         const started: PlaybackState = { ...PLAYING, albumId: 'room', trackId: 'room-01' };
         rerender(scene(viewOf('room', null, {}, started)));
         expect(part(container, 'arm')).not.toHaveAttribute('data-instant');
-        expect(part(container, 'led-glow')).toBeNull();
+        expect(bigArm(container, 'led-glow')).toBeNull();
     });
 });

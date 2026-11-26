@@ -22,12 +22,19 @@ interface InfoBlockProps {
     measure: TextMeasure;
     /** 歌名嗰部分淡出（揀碟期間） */
     songHidden?: boolean;
+    /** 拎住另一隻碟：右上角有細唱片機，碟名闊度收窄到佢左邊（T-048） */
+    held?: boolean;
 }
 
 type AlbumProps = Pick<InfoBlockProps, 'info' | 'accent' | 'measure'> & { album: CatalogAlbum };
 
-/** 碟名：放唔落就縮字（FR-036、D23） */
-const AlbumTitle = ({ info, album, measure }: Omit<AlbumProps, 'accent'>) => {
+/** 碟名：放唔落就縮字（FR-036、D23）；拎住另一隻碟時可用闊度收窄（同一個 fit，只換闊度） */
+const AlbumTitle = ({
+    info,
+    album,
+    measure,
+    held,
+}: Omit<AlbumProps, 'accent'> & { held: boolean }) => {
     // 設計稿 isLatin()：全部係英文數字就用 slab，否則用 Noto Sans HK
     const latin = isLatin(album.title);
     const face = latin ? info.title.latin : info.title.cjk;
@@ -40,7 +47,7 @@ const AlbumTitle = ({ info, album, measure }: Omit<AlbumProps, 'accent'>) => {
     const fitted = fitText(album.title, {
         size: face.size,
         minSize: info.title.minSize,
-        maxWidth: info.title.maxRight - info.title.x,
+        maxWidth: (held ? info.title.rightWhenHeld : info.title.maxRight) - info.title.x,
         measure: (text, size) => measure(text, font(size)),
     });
     return (
@@ -99,11 +106,20 @@ const YearRule = ({ info, album, accent, measure }: AlbumProps) => {
  * 揀碟時（`songHidden`）歌名嗰部分淡出，只留碟名同年份（Functional Spec D52、第 18 版確認）。
  */
 export const InfoBlock = (props: InfoBlockProps) => {
-    const { info, album, track, timeText, accent, measure, songHidden = false } = props;
+    const {
+        info,
+        album,
+        track,
+        timeText,
+        accent,
+        measure,
+        songHidden = false,
+        held = false,
+    } = props;
     if (!album) return null;
     return (
         <g data-part="info">
-            <AlbumTitle info={info} album={album} measure={measure} />
+            <AlbumTitle info={info} album={album} measure={measure} held={held} />
             <YearRule info={info} album={album} accent={accent} measure={measure} />
             <ChromeFade part="song-fade" hidden={songHidden}>
                 {track && (

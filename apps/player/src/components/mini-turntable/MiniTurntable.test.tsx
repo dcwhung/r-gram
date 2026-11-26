@@ -74,10 +74,10 @@ describe('MiniTurntable', () => {
     // 設計稿：轉盤、碟、唱片夾、唱臂成組按 MINI.r / PLATTER.r 縮細，碟心對準 MINI 嘅圓心
     it('should draw the whole turntable scaled down around the mini centre', () => {
         const { part } = renderMini();
-        const k = 120 / 716;
+        // k = 120 / 716：translate(930 − 940k, 322 − 1196k)，一位小數；scale 四位小數
         expect(part('mini-machine')).toHaveAttribute(
             'transform',
-            `translate(${(930 - 940 * k).toFixed(2)} ${(322 - 1196 * k).toFixed(2)}) scale(${k.toFixed(4)})`,
+            'translate(772.5 121.6) scale(0.1676)',
         );
         // 唱臂已經喺位，冇轉動過場
         expect(part('arm')).toHaveAttribute('data-instant', 'true');

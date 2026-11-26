@@ -1,10 +1,12 @@
 import { useRef } from 'react';
 import { flushSync } from 'react-dom';
+import { ChromeFade } from '../components/chrome-fade/ChromeFade';
 import { DiscStack } from '../components/disc-stack/DiscStack';
 import { Screws } from '../components/metal/Screws';
 import { Platter } from '../components/platter/Platter';
 import { Spindle } from '../components/spindle/Spindle';
 import { useArmLeadIn } from '../components/tonearm/useArmLeadIn';
+import { useSwapInstant } from '../components/tonearm/useSwapInstant';
 import { DESIGN_HEIGHT } from '../stage/fitStage';
 import type { Point, StageLayout } from '../stage/layouts';
 import { DialControls, type DialHandlers } from './DialControls';
@@ -49,10 +51,12 @@ interface TurntableProps {
 /**
  * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
  * 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 拎住另一隻碟時（T-048）轉盤都淡出、唱片夾唔係掣；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
  * 歌單嘅暗層（暫時嘅佔位，T-037）蓋住全部，只有唱片夾喺佢上面。
  */
 export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
-    const leadIn = useArmLeadIn(view.armPose, view.chromeHidden);
+    const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
+    const leadIn = useArmLeadIn(view.armPose, instant);
     const { spindleRef, closeList } = useCloseList(handlers.onCloseList);
     const spindle = (
         <Spindle
@@ -63,6 +67,7 @@ export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
             accent={view.accent}
             // 電視開住時唱片夾喺電視後面（T-060），useHome 唔理；停用令讀屏用戶知（S-073）
             disabled={view.mvOpen}
+            inert={view.holding}
             onPress={handlers.onSpindle}
         />
     );
@@ -71,7 +76,9 @@ export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
             <g data-part="screws">
                 <Screws points={layout.screws.points.filter(isLowerHalf)} />
             </g>
-            <Platter disc={layout.disc} platter={layout.platter} />
+            <ChromeFade part="platter-fade" hidden={view.holding}>
+                <Platter disc={layout.disc} platter={layout.platter} />
+            </ChromeFade>
             {/* 碟等唱針放低之後先轉（leadIn） */}
             <DiscStack
                 layout={layout}
@@ -82,7 +89,13 @@ export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
             >
                 {!view.listOpen && spindle}
             </DiscStack>
-            <MachineChrome layout={layout} view={view} handlers={handlers} leadIn={leadIn} />
+            <MachineChrome
+                layout={layout}
+                view={view}
+                handlers={handlers}
+                leadIn={leadIn}
+                instant={instant}
+            />
             <DialControls layout={layout} view={view} handlers={handlers} />
             {view.listOpen && <ListVeil onClose={closeList} />}
             {view.listOpen && spindle}

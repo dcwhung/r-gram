@@ -141,6 +141,22 @@ export const screwGap = (layout: StageLayout, positions: number): number => {
     );
 };
 
+/** 細唱片機成部唱片機嘅縮細比例（設計稿 MINI.r / PLATTER.r） */
+export const miniScale = ({ miniTurntable, platter }: StageLayout): number =>
+    miniTurntable.r / platter.r;
+
+/** 細唱片機兩行字（靠右對齊）嘅右邊 */
+export const miniLabelX = ({ miniTurntable: mini }: StageLayout): number =>
+    mini.x - mini.r - mini.labelGap;
+
+/** 細唱片機嘅感應範圍（設計稿 hitRect）：碟（2r × 2r）再向左伸 hitPad，連埋左邊兩行字 */
+export const miniHitBox = ({ miniTurntable: mini }: StageLayout) => ({
+    left: mini.x - mini.r - mini.hitPad,
+    top: mini.y - mini.r,
+    right: mini.x + mini.r,
+    bottom: mini.y + mini.r,
+});
+
 /** 感應範圍：`round` 係圓形（half = 半徑），`square` 係正方形（half = 半邊長） */
 export interface HitArea extends Point {
     shape: 'round' | 'square';
