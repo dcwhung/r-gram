@@ -25,18 +25,13 @@ interface HomeSceneProps {
  */
 export const HomeScene = ({ view, handlers, measure, layout = PHONE_LAYOUT }: HomeSceneProps) => {
     const { spindleRef, focusSpindleAfter } = useSpindleFocus();
-    const { faceRef, openFrom, closeList } = useListOpener(spindleRef);
-    // 收返歌單（S-074、T-037）：focus 交返打開佢嗰粒掣（唱片夾或者碟面）；揀咗歌播：交畀唱片夾（播放／暫停）
+    const { faceRef, closeList } = useListOpener(spindleRef);
+    // 收返歌單（S-074、T-037）：focus 交返碟面；揀咗歌播：交畀唱片夾（播放／暫停）
     const listHandlers = {
         onCloseList: closeList(handlers.onCloseList),
         onFocusListTrack: handlers.onFocusListTrack,
         onPlayListTrack: (trackId: string) =>
             focusSpindleAfter(() => handlers.onPlayListTrack(trackId))(),
-    };
-    const machineHandlers = {
-        ...handlers,
-        onSpindle: openFrom('spindle', handlers.onSpindle),
-        onOpenList: openFrom('disc', handlers.onOpenList),
     };
     return (
         <StageSvg
@@ -53,7 +48,7 @@ export const HomeScene = ({ view, handlers, measure, layout = PHONE_LAYOUT }: Ho
                 <Turntable
                     layout={layout}
                     view={view}
-                    handlers={machineHandlers}
+                    handlers={handlers}
                     spindleRef={spindleRef}
                     faceRef={faceRef}
                 />

@@ -8,11 +8,6 @@ import './discFace.css';
 
 interface DiscFaceProps {
     layout: StageLayout;
-    /**
-     * 入唔入 Tab 次序、讀屏讀唔讀：冇歌載入時唱片夾本身就係「開啟歌單」，碟面只畀手指㩒（唔重覆）；
-     * 有歌載入（唱片夾 = 播放／暫停）時碟面係開歌單嘅掣
-     */
-    focusable: boolean;
     onPress: () => void;
     /** 收返歌單之後 focus 返呢度（打開歌單嗰粒掣） */
     ref?: Ref<SVGPathElement>;
@@ -21,9 +16,10 @@ interface DiscFaceProps {
 /**
  * 主頁嘅碟面（設計稿「碟面：打開歌單（唱片機壓暗，歌名沿碟弧線排）」；Functional Spec FR-005、US-004；T-037）：
  * 透明嘅感應範圍蓋住成隻碟，中間留返唱片夾嘅感應範圍（唱片夾喺佢下面，照㩒得）；唱臂、細掣、旋鈕喺佢上面。
- * 只喺主頁、而且唔係拎住另一隻碟先有（homeView.canOpenList）
+ * 只喺主頁（字母盤收埋）先有，拎住另一隻碟都有（homeView.canOpenList；B-086 ②）。唱片夾一定係 play，
+ * 所以開弧線歌單一律經呢粒掣（入 Tab 次序）
  */
-export const DiscFace = ({ layout, focusable, onPress, ref }: DiscFaceProps) => (
+export const DiscFace = ({ layout, onPress, ref }: DiscFaceProps) => (
     <path
         ref={ref}
         data-part="disc-face"
@@ -33,7 +29,6 @@ export const DiscFace = ({ layout, focusable, onPress, ref }: DiscFaceProps) => 
         fillRule="evenodd"
         fill="transparent"
         aria-label={t('list.open')}
-        aria-hidden={!focusable || undefined}
-        {...pressable(onPress, false, focusable)}
+        {...pressable(onPress)}
     />
 );

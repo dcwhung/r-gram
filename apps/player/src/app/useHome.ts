@@ -1,7 +1,7 @@
 import type { CatalogDocument } from '@r-gram/catalog';
 import { type Dispatch, useCallback, useReducer } from 'react';
 import type { CoverVariants } from '../catalog/coverVariants';
-import { dialAlbums, findTrack, isPlayable } from '../catalog/selectors';
+import { albumTracks, dialAlbums, findTrack, isPlayable } from '../catalog/selectors';
 import { useCoverVariants } from '../catalog/useCoverVariants';
 import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
@@ -34,13 +34,20 @@ interface HomeContext {
     play: Dispatch<PlaybackAction>;
 }
 
+/**
+ * 開始播一首（弧線歌單、唱片夾共用嘅路）：播放狀態 start（載入嘅碟換咗 = 舊歌停、唱臂由泊位開場）。
+ * 真正出聲、隊列係 T-038
+ */
+const startTrack = (play: Dispatch<PlaybackAction>, albumId: string, trackId: string) =>
+    play({ type: 'start', albumId, trackId });
+
 /** 歌單入面㩒 play：播揀中嗰首（要播得）；冇歌嘅碟（D39）= 收返歌單（設計稿 ACTIONS.playpause） */
 const playSelected = ({ catalog, stage, view, dispatch, play }: HomeContext) => {
     if (view.list?.rows.length === 0) dispatch({ type: 'closeList' });
     const found = stage.selectedTrackId ? findTrack(catalog, stage.selectedTrackId) : null;
     if (!found || !isPlayable(found.track)) return;
     dispatch({ type: 'playSelected' });
-    play({ type: 'start', albumId: found.album.id, trackId: found.track.id });
+    startTrack(play, found.album.id, found.track.id);
 };
 
 /** 打開歌單，預先揀中載入嘅歌或者第一首（US-004） */
@@ -60,15 +67,25 @@ const playListTrack = (context: HomeContext, trackId: string) => {
     if (!view.list || !row?.playable) return;
     dispatch({ type: 'focusTrack', trackId });
     dispatch({ type: 'playSelected' });
-    play({ type: 'start', albumId: view.list.albumId, trackId });
+    startTrack(play, view.list.albumId, trackId);
+};
+
+/**
+ * 未揀歌㩒 play（設計稿第 19 版 ACTIONS.playpause；B-086 ③）：播顯示緊嘅碟第一首有音檔嘅歌，
+ * 拎住另一隻碟 = 隻碟入機（舊歌停、唱臂由泊位開場）。冇歌播得就乜都唔做。真正出聲係 T-038
+ */
+const playFirst = ({ catalog, stage, play }: HomeContext) => {
+    const albumId = stage.viewAlbumId;
+    const first = albumId ? albumTracks(catalog, albumId).find(isPlayable) : undefined;
+    if (albumId && first) startTrack(play, albumId, first.id);
 };
 
 const pressSpindle = (context: HomeContext) => {
     const { view, play } = context;
-    // 電視開住時唱片夾喺電視後面（T-060）；拎住另一隻碟時冇轉盤（T-048）：都唔反應
-    if (view.mvOpen || view.holding) return;
+    // 電視開住時唱片夾喺電視後面（T-060）；字母盤開住時唔㩒得（B-086 ④）
+    if (view.mvOpen || view.dial.open) return;
     if (view.spindle === 'list') playSelected(context);
-    else if (view.spindle === 'idle') openList(context);
+    else if (view.spindle === 'idle') playFirst(context);
     else play({ type: 'toggle' });
 };
 

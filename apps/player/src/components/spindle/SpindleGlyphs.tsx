@@ -34,6 +34,11 @@ export const PauseGlyph = ({ r }: { r: number }) => {
     );
 };
 
+/** icon 底下壓暗嗰個圓（設計稿 spindle()：未揀歌、播緊、暫停都有），先睇得清 play / pause */
+export const PlayBackdrop = ({ r }: { r: number }) => (
+    <circle r={px(r * SPINDLE_SHAPE.ring.backdrop)} fill="#0b0b0c" opacity=".78" />
+);
+
 /** 進度圈：底圈 + 專輯色弧（由 12 點鐘開始，順時針） */
 export const ProgressRing = ({
     r,
@@ -51,7 +56,7 @@ export const ProgressRing = ({
     const width = px(Math.max(ring.minWidth, r * ring.width));
     return (
         <>
-            <circle r={px(r * ring.backdrop)} fill="#0b0b0c" opacity=".78" />
+            <PlayBackdrop r={r} />
             <circle
                 r={px(ringRadius)}
                 fill="none"
