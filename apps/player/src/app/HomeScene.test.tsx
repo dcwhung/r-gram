@@ -196,11 +196,23 @@ describe('HomeScene holding another disc', () => {
     const part = (container: HTMLElement, name: string) =>
         container.querySelector(`[data-part="${name}"]`);
 
-    it('should hide the big platter, tonearm and small buttons and show the mini turntable', () => {
+    // B-086 ⑤：拎住另一隻碟（鬆咗手）有細掣（歌書、MV 灰色，播放模式照用）；有細唱片機所以冇唱臂
+    it('should hide the big platter and tonearm, keep the small buttons and show the mini turntable', () => {
         const { container } = render(scene(holding()));
         expect(part(container, 'platter-fade')).toHaveAttribute('data-hidden', 'true');
         expect(part(container, 'chrome-arm')).toHaveAttribute('data-hidden', 'true');
-        expect(part(container, 'chrome-buttons')).toHaveAttribute('data-hidden', 'true');
+        expect(part(container, 'chrome-buttons')).toHaveAttribute('data-hidden', 'false');
+        expect(screen.getByRole('button', { name: '歌書：歌詞及創作人員' })).toHaveAttribute(
+            'aria-disabled',
+            'true',
+        );
+        expect(screen.getByRole('button', { name: '觀看 MV' })).toHaveAttribute(
+            'aria-disabled',
+            'true',
+        );
+        expect(screen.getByRole('button', { name: '播放模式：順序播放' })).not.toHaveAttribute(
+            'aria-disabled',
+        );
         expect(part(container, 'mini-turntable')).toHaveAttribute('data-hidden', 'false');
         expect(part(container, 'mini-label')).toHaveTextContent('播放中');
         expect(part(container, 'mini-title')).toHaveTextContent('apollo-18 1');

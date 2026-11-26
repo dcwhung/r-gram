@@ -174,14 +174,41 @@ describe('homeView while choosing a disc', () => {
     const choosing = (overrides: Partial<StageState> = {}) =>
         home({ scene: 'discChange', ...overrides });
 
-    it('should fade out the tonearm and small buttons while the dial is open, even with no song', () => {
-        expect(homeView(document, choosing(), IDLE_PLAYBACK).chromeHidden).toBe(true);
-        expect(homeView(document, home(), IDLE_PLAYBACK).chromeHidden).toBe(false);
-    });
+    /*
+     * B-086 ⑤ 兩條顯示規則：(i) 字母盤開住 = 冇細掣，鬆手 = 有細掣（拎住另一隻碟都一樣）；
+     * (ii) 有細唱片機 = 冇唱臂；冇細唱片機而字母盤開住 = 冇唱臂；鬆手 = 有唱臂
+     */
+    it.each([
+        ['launch, nothing loaded', home(), IDLE_PLAYBACK, false, false],
+        ['nothing loaded, dial open', choosing(), IDLE_PLAYBACK, true, true],
+        [
+            'nothing loaded, released on another disc',
+            home({ viewAlbumId: 'room' }),
+            IDLE_PLAYBACK,
+            false,
+            false,
+        ],
+        ['playing the disc on screen', home(), playback(), false, false],
+        ['dial open on the loaded disc', choosing(), playback(), true, true],
+        ['dial open on another disc', choosing({ viewAlbumId: 'room' }), playback(), true, true],
+        [
+            'released on another disc (holding)',
+            home({ viewAlbumId: 'room' }),
+            playback(),
+            false,
+            true,
+        ],
+    ])(
+        'should show the buttons and the tonearm by the two rules when %s',
+        (_c, stage, state, buttons, arm) => {
+            const view = homeView(document, stage, state);
+            expect(view).toMatchObject({ buttonsHidden: buttons, armHidden: arm });
+        },
+    );
 
     it('should fade out the song part of the info while a song is loaded and the dial is open', () => {
         const view = homeView(document, choosing(), playback());
-        expect(view).toMatchObject({ chromeHidden: true, songHidden: true });
+        expect(view).toMatchObject({ buttonsHidden: true, songHidden: true });
         expect(homeView(document, home(), playback()).songHidden).toBe(false);
     });
 
@@ -214,7 +241,7 @@ describe('homeView while choosing a disc', () => {
 
     it('should keep the song part and the tonearm hidden while holding another disc', () => {
         const view = homeView(document, home({ viewAlbumId: 'room' }), playback());
-        expect(view).toMatchObject({ chromeHidden: true, songHidden: true, spinning: false });
+        expect(view).toMatchObject({ armHidden: true, songHidden: true, spinning: false });
     });
 
     it('should hand the dial to the scene', () => {
