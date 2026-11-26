@@ -28,6 +28,32 @@ const renderStack = (props: { current?: number; open?: boolean; spinning?: boole
         </svg>,
     ).container;
 
+const stackAt = (current: number) => (
+    <svg>
+        <DiscStack layout={LAYOUT} entries={ENTRIES} current={current} open spinning={false}>
+            <g data-part="slot" />
+        </DiscStack>
+    </svg>
+);
+
+/** 由 current = from 轉去 to：有邊隻碟嘅元素俾拎走再插返（React 搬佢喺 DOM 嘅位置，CSS 過場會冇咗） */
+const reinsertedDiscs = (from: number, to: number) => {
+    const { container, rerender } = render(stackAt(from));
+    const observer = new MutationObserver(() => {});
+    observer.observe(container, { childList: true, subtree: true });
+    rerender(stackAt(to));
+    const records = observer.takeRecords();
+    observer.disconnect();
+    const discsIn = (pick: (record: MutationRecord) => NodeList) =>
+        records
+            .flatMap((record) => [...pick(record)])
+            .filter((node): node is Element => node instanceof Element)
+            .filter((node) => node.getAttribute('data-part') === 'stack-disc')
+            .map((node) => node.getAttribute('data-album'));
+    const removed = discsIn((record) => record.removedNodes);
+    return discsIn((record) => record.addedNodes).filter((album) => removed.includes(album));
+};
+
 const discIds = (container: HTMLElement) =>
     [...container.querySelectorAll('[data-part="stack-disc"]')].map((disc) =>
         disc.getAttribute('data-album'),
@@ -48,6 +74,14 @@ describe('DiscStack', () => {
         const current = container.querySelector('[data-current="true"]');
         expect(current?.getAttribute('data-album')).toBe('f');
         expect(current?.nextElementSibling).toHaveAttribute('data-part', 'slot');
+    });
+
+    // W-037：碟喺範圍入面就一直係同一個元素（唔會俾 React 拎走再插返），由轉盤滑去弧線先有過場
+    it.each([
+        ['back', 5, 4],
+        ['forward', 5, 6],
+    ])('should keep every disc element in place when turning one step %s', (_, from, to) => {
+        expect(reinsertedDiscs(from, to)).toEqual([]);
     });
 
     it('should give the current disc its cover over its thumbnail, and the others thumbnails only', () => {

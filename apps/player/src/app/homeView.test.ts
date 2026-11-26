@@ -189,6 +189,12 @@ describe('homeView while choosing a disc', () => {
         ['released on another disc', home({ viewAlbumId: 'room' }), userPaused, true],
         ['back on the loaded disc', choosing(), playback(), false],
         ['no song is loaded', choosing({ viewAlbumId: 'room' }), IDLE_PLAYBACK, false],
+        [
+            'the list of another disc is open',
+            home({ scene: 'list', viewAlbumId: 'room' }),
+            playback(),
+            false,
+        ],
     ])('should tell whether another disc is held when %s', (_case, stage, state, holding) => {
         expect(homeView(document, stage, state).holding).toBe(holding);
     });

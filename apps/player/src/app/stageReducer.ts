@@ -1,7 +1,7 @@
 /*
  * 場景狀態機（純函數）。Functional Spec CR-002；Technical Spec「CR-002 對技術設計嘅影響」。
  *
- *   preload → home ⇄ discChange
+ *   preload → home ⇄ discChange    （close = 留喺揀咗嗰隻碟；cancel = 還原開始嗰陣嘅碟，S-154）
  *             home ⇄ list          （discChange 亦可以直接入 list：D27）
  *   overlay（只喺 home）：booklet ｜ mv，兩個唔會同時出現
  *
@@ -14,6 +14,13 @@ import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 export type Scene = 'preload' | 'home' | 'discChange' | 'list';
 export type Overlay = 'booklet' | 'mv' | null;
 
+/** 開始揀碟嗰陣嘅碟同揀中嘅歌：取消揀碟（Esc）時還原 */
+export interface DiscChangeOrigin {
+    viewAlbumId: string | null;
+    previousAlbumId: string | null;
+    selectedTrackId: string | null;
+}
+
 export interface StageState {
     scene: Scene;
     /** 只喺 `scene === 'home'` 先可以唔係 null */
@@ -24,6 +31,8 @@ export interface StageState {
     previousAlbumId: string | null;
     /** 歌單揀中 / 左上顯示嘅歌 */
     selectedTrackId: string | null;
+    /** 只喺 `scene === 'discChange'` 先唔係 null：開始揀碟嗰陣嘅狀態（S-154） */
+    discChangeFrom: DiscChangeOrigin | null;
 }
 
 export type StageAction =
@@ -31,6 +40,7 @@ export type StageAction =
     | { type: 'openDiscChange' }
     | { type: 'selectAlbum'; albumId: string }
     | { type: 'closeDiscChange' }
+    | { type: 'cancelDiscChange' }
     | { type: 'openList' }
     | { type: 'focusTrack'; trackId: string }
     | { type: 'playSelected' }
@@ -46,6 +56,7 @@ export const INITIAL_STAGE: StageState = {
     viewAlbumId: null,
     previousAlbumId: null,
     selectedTrackId: null,
+    discChangeFrom: null,
 };
 
 type Handler<T extends StageAction['type']> = (
@@ -89,21 +100,34 @@ const toggleBooklet: Handler<'toggleBooklet'> = (state, { hasSong }) => {
 
 const openList: Handler<'openList'> = (state) => {
     const canOpen = isOpenHome(state) || state.scene === 'discChange';
-    return canOpen ? { ...state, scene: 'list', overlay: null } : state;
+    return canOpen ? { ...state, scene: 'list', overlay: null, discChangeFrom: null } : state;
 };
+
+const openDiscChange: Handler<'openDiscChange'> = (state) => {
+    if (!isOpenHome(state)) return state;
+    const { viewAlbumId, previousAlbumId, selectedTrackId } = state;
+    const discChangeFrom = { viewAlbumId, previousAlbumId, selectedTrackId };
+    return { ...state, scene: 'discChange', overlay: null, discChangeFrom };
+};
+
+/** S-154：Esc = 取消：返主頁，還原開始揀碟嗰陣嘅碟、之前嗰隻碟同揀中嘅歌 */
+const cancelDiscChange: Handler<'cancelDiscChange'> = (state) =>
+    state.scene === 'discChange' && state.discChangeFrom
+        ? { ...state, ...state.discChangeFrom, scene: 'home', discChangeFrom: null }
+        : state;
 
 const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
     preloadDone: (state, { albumId, trackId }) =>
         state.scene === 'preload'
             ? { ...state, scene: 'home', viewAlbumId: albumId, selectedTrackId: trackId ?? null }
             : state,
-    openDiscChange: (state) =>
-        isOpenHome(state) ? { ...state, scene: 'discChange', overlay: null } : state,
+    openDiscChange,
     selectAlbum: (state, { albumId }) =>
         state.scene === 'discChange' ? viewAlbum(state, albumId) : state,
     // D27：留喺揀咗嗰隻碟返主頁
     closeDiscChange: (state) =>
-        state.scene === 'discChange' ? { ...state, scene: 'home' } : state,
+        state.scene === 'discChange' ? { ...state, scene: 'home', discChangeFrom: null } : state,
+    cancelDiscChange,
     openList,
     // 捲動歌單時同一首歌會重覆報：冇變就原樣回傳，唔使 re-render
     focusTrack: (state, { trackId }) =>

@@ -21,7 +21,10 @@ interface DiscStackProps {
 
 /** 揀中嗰隻碟前後各畫幾多隻：見到嘅範圍再加一隻，等入嚟同出去嘅碟都有過場 */
 const EDGE = 1;
-/** slot 嘅 key：專輯 id 唔會有 `#`，唔會撞 */
+/**
+ * slot 嘅 key 前綴：專輯 id 唔會有 `#`，唔會撞。key 跟住而家隻碟變（W-037）：轉一格時 React 重新 mount slot，
+ * 而唔係搬碟。固定 key 嘅話，向後轉時 React 會將啱啱離開轉盤嗰隻碟喺 DOM 拎走再插返，佢嘅 CSS 過場就冇咗（跳位）
+ */
 const SLOT_KEY = '#slot';
 
 interface StackDiscProps {
@@ -86,7 +89,7 @@ export const DiscStack = ({
     const { shown } = layout.orbit;
     const from = Math.max(0, current + shown.from - EDGE);
     const to = Math.min(entries.length - 1, current + shown.to + EDGE);
-    // 一列有 key 嘅兄弟：換碟時 React 只係搬 slot，碟同 slot 入面嘅嘢都唔會重新 mount
+    // 一列有 key 嘅兄弟：換碟時碟唔會重新 mount、唔會搬；slot（唱片夾）跟住而家隻碟重新 mount，佢喺轉盤中心，睇唔到
     return entries.slice(from, to + 1).flatMap((entry, index) => {
         const offset = from + index - current;
         const disc = (
@@ -99,6 +102,8 @@ export const DiscStack = ({
                 spinning={spinning}
             />
         );
-        return offset === 0 ? [disc, <Fragment key={SLOT_KEY}>{children}</Fragment>] : [disc];
+        return offset === 0
+            ? [disc, <Fragment key={`${SLOT_KEY}-${entry.albumId}`}>{children}</Fragment>]
+            : [disc];
     });
 };

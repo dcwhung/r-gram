@@ -8,9 +8,9 @@ const STEP_DEG = (376.25 - 185) / (POSITIONS - 1);
 const CENTRE = { x: 200, y: 600 };
 const RADIUS_PX = 50;
 
-const handlers = () => ({ onStart: vi.fn(), onTurn: vi.fn(), onEnd: vi.fn() });
+const handlers = () => ({ onStart: vi.fn(), onTurn: vi.fn(), onEnd: vi.fn(), onCancel: vi.fn() });
 
-const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
+const renderKnob = (props: { current?: number; open?: boolean; covered?: boolean } = {}) => {
     const spies = handlers();
     const view = render(
         <svg>
@@ -22,6 +22,7 @@ const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
                 accent="#c8442b"
                 glow="#ffd0c0"
                 valueText="KOMOREBI"
+                covered={props.covered}
                 {...spies}
             />
         </svg>,
@@ -34,15 +35,19 @@ const renderKnob = (props: { current?: number; open?: boolean } = {}) => {
             width: RADIUS_PX * 2,
             height: RADIUS_PX * 2,
         }) as DOMRect;
-    return { ...view, spies, knob: screen.getByRole('slider') };
+    return { ...view, spies, knob: screen.getByRole('slider', { hidden: true }) };
 };
 
 /** 螢幕上離旋鈕中心 distance px、角度 deg 嘅一點 */
-const at = (deg: number, distance = RADIUS_PX * 2) => ({
+const at = (deg: number, distance = RADIUS_PX * 2, pointerId = 1) => ({
     clientX: CENTRE.x + distance * Math.cos((deg * Math.PI) / 180),
     clientY: CENTRE.y + distance * Math.sin((deg * Math.PI) / 180),
-    pointerId: 1,
+    pointerId,
 });
+/** 第二隻手指（另一個 pointerId） */
+const SECOND = 2;
+/** 滑鼠右掣 */
+const SECONDARY_BUTTON = 2;
 
 describe('Knob', () => {
     // Technical Spec 實現注意事項 14：旋鈕 = role="slider" + aria-valuenow
@@ -54,6 +59,13 @@ describe('Knob', () => {
         expect(knob).toHaveAttribute('aria-valuenow', '10');
         expect(knob).toHaveAttribute('aria-valuetext', 'KOMOREBI');
         expect(knob).toHaveAttribute('tabindex', '0');
+    });
+
+    // S-074：歌單嘅暗層蓋住時 Tab 唔到、讀屏唔讀
+    it('should leave the Tab order and screen readers while covered', () => {
+        const { knob } = renderKnob({ covered: true });
+        expect(knob).toHaveAttribute('tabindex', '-1');
+        expect(knob).toHaveAttribute('aria-hidden', 'true');
     });
 
     it('should turn the pointer to the angle of the current position', () => {
@@ -76,6 +88,15 @@ describe('Knob', () => {
             fireEvent.pointerDown(knob, at(0));
             expect(spies.onStart).toHaveBeenCalledTimes(1);
             expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
+        // 手指離開旋鈕都照轉：㩒落嗰陣攞 pointer capture
+        it('should capture the pointer that grabs the knob', () => {
+            const { knob } = renderKnob();
+            const capture = vi.fn();
+            knob.setPointerCapture = capture;
+            fireEvent.pointerDown(knob, at(0));
+            expect(capture).toHaveBeenCalledWith(1);
         });
 
         it('should report each new position while the pointer turns round the knob', () => {
@@ -111,6 +132,40 @@ describe('Knob', () => {
             expect(spies.onEnd).toHaveBeenCalledTimes(2);
         });
 
+        // S-150：手勢跟住㩒落嗰個 pointer；第二隻手指唔可以搶、唔可以令指針跳
+        it('should ignore a second finger while the first one turns the knob', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.pointerMove(knob, at(STEP_DEG));
+            fireEvent.pointerDown(knob, at(150, RADIUS_PX, SECOND));
+            fireEvent.pointerMove(knob, at(150 + 4 * STEP_DEG, RADIUS_PX * 2, SECOND));
+            fireEvent.pointerUp(knob, at(150 + 4 * STEP_DEG, RADIUS_PX * 2, SECOND));
+            expect(spies.onStart).toHaveBeenCalledTimes(1);
+            expect(spies.onTurn.mock.calls).toEqual([[11]]);
+            expect(spies.onEnd).not.toHaveBeenCalled();
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            fireEvent.pointerUp(knob, at(STEP_DEG * 2));
+            expect(spies.onTurn.mock.calls).toEqual([[11], [12]]);
+            expect(spies.onEnd).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not start a turn with a button other than the primary one', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, { ...at(0), button: SECONDARY_BUTTON });
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            expect(spies.onStart).not.toHaveBeenCalled();
+            expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
+        it('should close the dial when the knob loses the pointer capture', () => {
+            const { knob, spies } = renderKnob();
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.lostPointerCapture(knob, { pointerId: 1 });
+            expect(spies.onEnd).toHaveBeenCalledTimes(1);
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            expect(spies.onTurn).not.toHaveBeenCalled();
+        });
+
         it('should not react to moves without a grab', () => {
             const { knob, spies } = renderKnob();
             fireEvent.pointerMove(knob, at(90));
@@ -136,10 +191,30 @@ describe('Knob', () => {
             expect(spies.onTurn).toHaveBeenCalledWith(POSITIONS - 1);
         });
 
-        it.each(['Enter', 'Escape'])('should finish choosing with %s', (key) => {
+        it('should keep the new disc with Enter', () => {
             const { knob, spies } = renderKnob({ open: true });
-            fireEvent.keyDown(knob, { key });
+            fireEvent.keyDown(knob, { key: 'Enter' });
             expect(spies.onEnd).toHaveBeenCalledTimes(1);
+            expect(spies.onCancel).not.toHaveBeenCalled();
+        });
+
+        // S-154：Esc = 取消（返去開始嗰隻碟），唔係完成
+        it('should cancel choosing with Escape', () => {
+            const { knob, spies } = renderKnob({ open: true });
+            fireEvent.keyDown(knob, { key: 'Escape' });
+            expect(spies.onCancel).toHaveBeenCalledTimes(1);
+            expect(spies.onEnd).not.toHaveBeenCalled();
+        });
+
+        it('should drop a drag cancelled with Escape', () => {
+            const { knob, spies } = renderKnob({ open: true });
+            fireEvent.pointerDown(knob, at(0));
+            fireEvent.keyDown(knob, { key: 'Escape' });
+            fireEvent.pointerMove(knob, at(STEP_DEG * 2));
+            fireEvent.pointerUp(knob, at(STEP_DEG * 2));
+            expect(spies.onCancel).toHaveBeenCalledTimes(1);
+            expect(spies.onTurn).not.toHaveBeenCalled();
+            expect(spies.onEnd).not.toHaveBeenCalled();
         });
 
         it('should finish choosing when the focus leaves the knob', () => {
@@ -148,11 +223,13 @@ describe('Knob', () => {
             expect(spies.onEnd).toHaveBeenCalledTimes(1);
         });
 
-        it('should ignore Enter and leaving when the dial is closed', () => {
+        it('should ignore Enter, Escape and leaving when the dial is closed', () => {
             const { knob, spies } = renderKnob();
             fireEvent.keyDown(knob, { key: 'Enter' });
+            fireEvent.keyDown(knob, { key: 'Escape' });
             fireEvent.blur(knob);
             expect(spies.onEnd).not.toHaveBeenCalled();
+            expect(spies.onCancel).not.toHaveBeenCalled();
             expect(spies.onStart).not.toHaveBeenCalled();
         });
     });
