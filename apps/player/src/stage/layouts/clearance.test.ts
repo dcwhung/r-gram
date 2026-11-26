@@ -12,6 +12,7 @@ import {
     hitSizeUnits,
     miniHitBox,
     miniLabelX,
+    miniTitleMaxWidth,
     knobMargins,
     knobPlatterGap,
     minHitGap,
@@ -26,6 +27,8 @@ const BELOW_44PT_EXCEPTIONS = ['heldTrackRow'] as const;
 /** 設計稿嘅格數：17 張專輯 + ♥ */
 const DESIGN_POSITIONS = 18;
 const MARGIN_TOLERANCE = 2;
+/** 細唱片機歌名最細字級最少放得落幾多個中文字（W-045） */
+const MIN_MINI_CHARS = 5;
 /** CR-003 決定 2：任何專輯數都要過，測試掃 1 至 30 張 */
 const MIN_ALBUMS = 1;
 const MAX_ALBUMS = 30;
@@ -171,6 +174,15 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
         });
 
         /* D57：唯一低過 44pt 嘅感應範圍係歌單欄嘅行（用戶揀咗密行距）；行闊仍然要 ≥ 44pt */
+        // W-045：細唱片機歌名淨係用歌單行右邊之後嘅位，最細字級最少放得落「…」前面幾個中文字
+        it('should leave the mini title room right of the rows, enough for a few characters', () => {
+            const { title } = layout.miniTurntable;
+            expect(miniLabelX(layout) - miniTitleMaxWidth(layout)).toBe(heldRowHitRight(layout));
+            expect(miniTitleMaxWidth(layout)).toBeGreaterThanOrEqual(
+                MIN_MINI_CHARS * title.minSize,
+            );
+        });
+
         it('should allow only the held track rows below 44pt, and keep them wide', () => {
             const below = Object.entries({ heldTrackRow: column.pitch }).filter(
                 ([, size]) => size < hitSizeUnits(layout),

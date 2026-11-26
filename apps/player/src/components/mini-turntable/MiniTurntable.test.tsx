@@ -44,13 +44,14 @@ describe('MiniTurntable', () => {
         expect(onPress).toHaveBeenCalledTimes(2);
     });
 
+    // W-045：4 個中文字喺 36 號（144）放得落 162 闊；設計稿嘅例子「我永遠記得」5 個字（180）會縮到 32
     it('should say it is playing and show the song title, right-aligned left of the disc', () => {
-        const { part } = renderMini();
+        const { part } = renderMini(mini({ title: '永遠記得' }));
         expect(part('mini-label')).toHaveTextContent('播放中');
         expect(part('mini-label')).toHaveAttribute('x', '782');
         expect(part('mini-label')).toHaveAttribute('y', '304');
         expect(part('mini-label')).toHaveAttribute('text-anchor', 'end');
-        expect(part('mini-title')).toHaveTextContent('我永遠記得');
+        expect(part('mini-title')).toHaveTextContent('永遠記得');
         expect(part('mini-title')).toHaveAttribute('y', '352');
         expect(part('mini-title')).toHaveAttribute('font-size', '36');
     });

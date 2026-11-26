@@ -1,6 +1,6 @@
 import type { MiniView } from '../../app/miniView';
 import { t } from '../../i18n/t';
-import { miniHitBox, miniLabelX, miniScale } from '../../stage/geometry';
+import { miniHitBox, miniLabelX, miniScale, miniTitleMaxWidth } from '../../stage/geometry';
 import type { StageLayout } from '../../stage/layouts';
 import { fitText } from '../../utils/fitText';
 import type { TextMeasure } from '../../utils/textMeasure';
@@ -58,14 +58,17 @@ const Machine = ({ layout, mini }: MachineProps) => {
 
 type CaptionProps = MachineProps & Pick<MiniTurntableProps, 'measure'>;
 
-/** 兩行字靠右對齊喺碟左邊：「播放中」／「已暫停」，下面係歌名（放唔落就縮字，再唔得先「…」） */
+/**
+ * 兩行字靠右對齊喺碟左邊：「播放中」／「已暫停」，下面係歌名。歌名只用歌單行右邊之後嘅位（W-045），
+ * 放唔落就縮字，再唔得先「…」；完整歌名喺掣嘅無障礙名
+ */
 const Caption = ({ layout, mini, measure }: CaptionProps) => {
-    const { miniTurntable: shape, info } = layout;
+    const { miniTurntable: shape } = layout;
     const x = miniLabelX(layout);
     const fitted = fitText(mini.title, {
         size: shape.title.size,
         minSize: shape.title.minSize,
-        maxWidth: x - info.title.x,
+        maxWidth: miniTitleMaxWidth(layout),
         measure: (text, size) =>
             measure(text, { family: 'cjk', size, weight: TITLE_WEIGHT, spacing: 0 }),
     });
