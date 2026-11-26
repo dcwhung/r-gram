@@ -18,6 +18,7 @@ const handlers = {
     onTurnCancel: vi.fn(),
     onFavourites: vi.fn(),
     onReturnToLoaded: vi.fn(),
+    onPlayHeldTrack: vi.fn(),
 };
 
 const viewOf = (
@@ -248,5 +249,42 @@ describe('HomeScene holding another disc', () => {
         rerender(scene(viewOf('room', null, {}, started)));
         expect(part(container, 'arm')).not.toHaveAttribute('data-instant');
         expect(bigArm(container, 'led-glow')).toBeNull();
+    });
+
+    /* T-049：碟名下面即刻列出拎住嘅碟嘅歌單；碟上面蓋一層半透明嘅舞台底色 */
+    it('should list the held disc under its title and lay the scrim over the discs', () => {
+        const { container } = render(scene(holding()));
+        expect(screen.getByRole('list', { name: 'ROOM 的歌曲' })).toBeInTheDocument();
+        expect(part(container, 'held-scrim')).toHaveAttribute('data-hidden', 'false');
+    });
+
+    it('should have no track column and a hidden scrim on the loaded disc', () => {
+        const { container } = render(scene(viewOf('apollo-18', null, {}, PLAYING)));
+        expect(screen.queryByRole('list')).toBeNull();
+        expect(part(container, 'held-scrim')).toHaveAttribute('data-hidden', 'true');
+    });
+
+    // 設計稿 scene()：碟 → 半透明層（連螺絲再畫一次）→ 字母盤 → 旋鈕；欄喺左上資訊下面、細唱片機上面
+    it('should draw the scrim above the discs and below the dial, with the screw above it', () => {
+        const { container } = render(scene(holding()));
+        const scrim = part(container, 'held-scrim');
+        const stack = [...container.querySelectorAll('[data-part="stack-disc"]')].at(-1);
+        const plate = part(container, 'dial-plate');
+        const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(stack && scrim && stack.compareDocumentPosition(scrim) & follows).toBeTruthy();
+        expect(scrim && plate && scrim.compareDocumentPosition(plate) & follows).toBeTruthy();
+        expect(scrim?.querySelector('[data-part="scrim-screws"]')).not.toBeNull();
+        const list = part(container, 'held-tracks');
+        const info = part(container, 'album-title');
+        expect(list && info && list.compareDocumentPosition(info) & follows).toBeTruthy();
+    });
+
+    it('should play the pressed row and hand the focus to the clamp', () => {
+        const { container } = render(scene(holding()));
+        const button = screen.getByRole('button', { name: '播放第 1 首：room 1' });
+        button.focus();
+        fireEvent.keyDown(button, { key: 'Enter' });
+        expect(handlers.onPlayHeldTrack).toHaveBeenCalledWith('room-01');
+        expect(document.activeElement).toBe(container.querySelector('.spindle'));
     });
 });
