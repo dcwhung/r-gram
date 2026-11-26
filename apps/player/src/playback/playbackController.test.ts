@@ -433,3 +433,51 @@ describe('playbackController hidden auto-next failure (D109)', () => {
         expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
     });
 });
+
+/* S-245（N03、N15、N16）：D109 嘅 flag 喺聽眾揀歌、換碟時清 */
+describe('playbackController D109 flags reset by the listener', () => {
+    const ALL = JSON.stringify({ shuffle: false, repeat: 'all' });
+    const OTHER: PlaybackSource = {
+        albumId: 'hall',
+        albumTitle: 'HALL',
+        tracks: [1, 2].map((no) => ({
+            id: `hall-0${no}`,
+            title: `Hall ${no}`,
+            url: `https://media.example/hall/0${no}.m4a`,
+        })),
+        artwork: [],
+    };
+
+    it('should not skip a track chosen with lock-screen next while an auto-next track was unplayed', () => {
+        const { element, controller, state } = setup({ hidden: true, stored: ALL });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        controller.next();
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', trackId: 'room-03' });
+    });
+
+    it('should not skip the first track of another disc started while an auto-next track was unplayed', () => {
+        const { element, controller, state } = setup({ hidden: true, stored: ALL });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        controller.start(OTHER, 'hall-01');
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', albumId: 'hall', trackId: 'hall-01' });
+    });
+
+    it('should allow a new skip after the listener starts a disc, even before it played', () => {
+        const { element, controller, state } = setup({ hidden: true, stored: ALL });
+        controller.start(SOURCE, 'room-01');
+        element.playMode = 'hold';
+        element.finish();
+        element.fail('unsupported');
+        expect(state().trackId).toBe('room-03');
+        controller.start(OTHER, 'hall-01');
+        element.finish();
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'hall-01' });
+    });
+});
