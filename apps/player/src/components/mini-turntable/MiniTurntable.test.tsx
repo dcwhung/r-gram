@@ -146,6 +146,15 @@ describe('MiniTurntable', () => {
             expect(Number(node?.getAttribute('font-size'))).toBeLessThan(shape.title.size);
             expect(leftEdge(node)).toBeGreaterThanOrEqual(shape.title.left);
         });
+
+        // W-053 ③（S-193）：每次縮 titleStep（2）：18 個字 452 ÷ 18 ≈ 25.1，縮 2 停喺 24，每次縮 1 會停喺 25
+        it('should shrink the title in steps of the layout table', () => {
+            const title = '長夜漫漫我的愛晚安好夢長夜漫漫我的愛';
+            const node = renderMini(mini({ title })).part('mini-title');
+            expect(node).toHaveAttribute('font-size', '24');
+            const size = Number(node?.getAttribute('font-size'));
+            expect((shape.title.size - size) % shape.title.step).toBe(0);
+        });
     });
 
     it('should fade out, leave the Tab order and ignore presses when not shown', () => {

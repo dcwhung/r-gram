@@ -106,6 +106,16 @@ describe('ArcTrackList', () => {
         expect(title?.textContent?.length).toBeLessThanOrEqual(PHONE_LAYOUT.list.titleChars + 1);
     });
 
+    // W-053 ②：截短闊度 = titleChars 個全形字（揀中字級）：啱啱 8 個字原樣，9 個字先「…」
+    it('should keep a title of exactly eight full-width characters and cut one of nine', () => {
+        const eight = '長夜漫漫我的愛晚';
+        const nine = `${eight}安`;
+        const { option, part } = renderList(view([row(1, true, eight), row(2, true, nine)]));
+        expect(part(option(`第 1 首：${eight}`), 'arc-title')).toHaveTextContent(eight);
+        const cut = part(option(`第 2 首：${nine}`), 'arc-title');
+        expect(cut?.textContent?.endsWith('…')).toBe(true);
+    });
+
     // D11：未有音檔 = 灰色、㩒唔到；鍵盤同吸附都唔停喺佢
     it('should grey out a row without audio, ignore presses on it and skip it', () => {
         const { option, onPlay, listbox, selected } = renderList(

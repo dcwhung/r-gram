@@ -215,6 +215,17 @@ describe('UpdateManager: reloading', () => {
         expect(deps.reload).toHaveBeenCalledTimes(1);
     });
 
+    // W-053 ①（903-player S-647）：第一次安裝嘅分頁知道有新版之後，另一個分頁先換：呢下 controllerchange 係換版
+    it('should treat a takeover after a known waiting version as an update on a first install', () => {
+        const { deps, manager } = setup({ controlledAtLoad: false });
+        manager.endLaunch();
+        manager.handleNeedRefresh();
+        manager.handleControllerChange();
+        manager.applyNow();
+        expect(deps.reload).toHaveBeenCalledTimes(1);
+        expect(deps.applyUpdate).not.toHaveBeenCalled();
+    });
+
     it('should treat the first takeover as an update after a hard reload', () => {
         const { deps, manager } = setup({ controlledAtLoad: false });
         manager.markControlled();
