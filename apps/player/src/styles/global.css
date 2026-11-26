@@ -9,6 +9,8 @@
 /* 畫面固定：唔捲動、唔回彈（團隊 PWA 規則：100dvh） */
 html,
 body {
+    /* 唔識 dvh 嘅舊瀏覽器用 100%（唔用 100vh：iOS 會計埋網址列，底部會被遮） */
+    height: 100%;
     height: 100dvh;
     margin: 0;
     overflow: hidden;

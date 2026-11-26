@@ -23,9 +23,9 @@ describe('isPhoneLandscape (Functional Spec US-015, FR-018)', () => {
     it('should be false for a tablet or an open iPhone Duo in landscape (no phone layout there)', () => {
         expect(isPhoneLandscape(touch(1180, 820))).toBe(false);
         expect(isPhoneLandscape(touch(876, 612))).toBe(false);
-        expect(isPhoneLandscape(touch(PHONE_MAX_SHORT_SIDE_PX * 2, PHONE_MAX_SHORT_SIDE_PX + 1))).toBe(
-            false,
-        );
+        expect(
+            isPhoneLandscape(touch(PHONE_MAX_SHORT_SIDE_PX * 2, PHONE_MAX_SHORT_SIDE_PX + 1)),
+        ).toBe(false);
     });
 
     it('should be false for a small desktop window with a mouse', () => {

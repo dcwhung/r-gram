@@ -1,4 +1,3 @@
-// @vitest-environment node
 import packageJson from '../../package.json';
 import { APP_VERSION } from './appVersion';
 

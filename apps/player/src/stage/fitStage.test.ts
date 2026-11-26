@@ -101,7 +101,9 @@ describe('fitStage on tall phones', () => {
             expect(stage.offsetX).toBe(0);
             expect(stage.unit * DESIGN_WIDTH).toBeCloseTo(width);
             expect(stage.offsetY).toBe(insets.top);
-            expect(stage.offsetY + stage.heightUnits * stage.unit).toBeCloseTo(height - insets.bottom);
+            expect(stage.offsetY + stage.heightUnits * stage.unit).toBeCloseTo(
+                height - insets.bottom,
+            );
         },
     );
 

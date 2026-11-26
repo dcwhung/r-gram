@@ -49,7 +49,10 @@ describe('startBrowserUpdates', () => {
     it('should check the registration for a new version once registered', async () => {
         await setup();
         const registration = { update: vi.fn(() => Promise.resolve()) };
-        pwa.options?.onRegisteredSW?.('/sw.js', registration as unknown as ServiceWorkerRegistration);
+        pwa.options?.onRegisteredSW?.(
+            '/sw.js',
+            registration as unknown as ServiceWorkerRegistration,
+        );
         expect(registration.update).toHaveBeenCalledTimes(1);
     });
 
@@ -79,7 +82,8 @@ describe('startBrowserUpdates', () => {
     });
 
     it('should still give the app a manager without service worker support', async () => {
-        const { manager } = await setup(undefined);
+        // null：同 `navigator.serviceWorker` 唔存在一樣（undefined 會用返預設參數）
+        const { manager } = await setup(null);
         expect(pwa.options).toBeUndefined();
         expect(manager.getSnapshot()).toBe('none');
     });

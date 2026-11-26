@@ -1,5 +1,5 @@
 import { UPDATE_RELOAD_STORAGE_KEY } from '../config/storageKeys';
-import { createReloadGuard, RELOAD_LOOP_WINDOW_MS } from './reloadGuard';
+import { createReloadGuard, readSessionStorage, RELOAD_LOOP_WINDOW_MS } from './reloadGuard';
 
 const memoryStorage = (initial: Record<string, string> = {}) => {
     const values = new Map(Object.entries(initial));
@@ -49,5 +49,20 @@ describe('createReloadGuard', () => {
         const guard = createReloadGuard(broken, () => NOW);
         expect(() => guard.mark()).not.toThrow();
         expect(guard.allow()).toBe(true);
+    });
+});
+
+describe('readSessionStorage', () => {
+    afterEach(() => vi.restoreAllMocks());
+
+    it('should return the tab storage', () => {
+        expect(readSessionStorage()).toBe(window.sessionStorage);
+    });
+
+    it('should return nothing when the browser refuses access', () => {
+        vi.spyOn(window, 'sessionStorage', 'get').mockImplementation(() => {
+            throw new DOMException('denied', 'SecurityError');
+        });
+        expect(readSessionStorage()).toBeUndefined();
     });
 });

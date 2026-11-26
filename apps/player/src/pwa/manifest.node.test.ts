@@ -87,7 +87,9 @@ describe('launch colour', () => {
 
 describe('search engines (Functional Spec FR-011)', () => {
     it('should ask robots not to index or follow the app in index.html', () => {
-        expect(readText('index.html')).toContain('<meta name="robots" content="noindex, nofollow" />');
+        expect(readText('index.html')).toContain(
+            '<meta name="robots" content="noindex, nofollow" />',
+        );
     });
 
     it('should serve a robots.txt that disallows everything', () => {
