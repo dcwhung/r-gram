@@ -8,7 +8,8 @@ vi.mock('./flagGl', () => ({ createFlagGl: vi.fn() }));
 
 const scene = flagSceneFor(PHONE_LAYOUT.preload, 0);
 const SCALE = 0.5;
-const FAKE_GL = { fake: 'webgl' };
+// getExtension：renderer 開唔到時要放低 context（S-256）
+const FAKE_GL = { fake: 'webgl', getExtension: () => null };
 
 /** 假嘅 2D context：只數 fillRect（每畫一格清一次畫面）同 setTransform */
 const fakeContext = () => {

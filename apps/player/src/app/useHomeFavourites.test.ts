@@ -57,6 +57,15 @@ describe('useHome heart', () => {
         expect(home.store.getSnapshot()).toEqual([]);
     });
 
+    // S-257：主頁自己開嘅 store，unmount 時唔再聽 window 嘅 storage 事件
+    it('should stop listening to other tabs when the home screen unmounts', () => {
+        const remove = vi.spyOn(window, 'removeEventListener');
+        const hook = renderHook(() => useHome(sampleDocument(), createTestPlayback().controller));
+        hook.unmount();
+        expect(remove).toHaveBeenCalledWith('storage', expect.any(Function));
+        remove.mockRestore();
+    });
+
     it('should follow a change made outside the screen (another tab)', () => {
         const home = mount();
         act(() => home.handlers()?.onSpindle());
@@ -159,8 +168,60 @@ describe('useHome un-favouriting the song playing from the Favourites disc', () 
         expect(listRows(home)).toEqual(['room-01', 'apollo-18-03']);
     });
 
+    // S-255：暫停緊取消收藏，一樣留喺原位（暫停仍然係載入嘅歌）
+    it('should keep the song in its place when un-favourited while paused', () => {
+        const home = mount(['apollo-18-01', 'room-01', 'apollo-18-03']);
+        toFavourites(home);
+        act(() => home.handlers()?.onSpindle());
+        act(() => home.handlers()?.onSpindle());
+        expect(home.result.current.playback.status).toBe('paused');
+        act(() => home.handlers()?.onFavourite());
+        expect(home.view()?.track?.id).toBe('apollo-18-01');
+        expect(listRows(home)).toEqual(['apollo-18-01', 'room-01', 'apollo-18-03']);
+    });
+
     it('should put the song back in its place when favourited again while it plays', () => {
         const home = playingFavourites();
+        act(() => home.handlers()?.onFavourite());
+        expect(home.store.getSnapshot().map((entry) => entry.trackId)).toEqual([
+            'apollo-18-01',
+            'room-01',
+            'apollo-18-03',
+        ]);
+    });
+});
+
+/* W-067：喺其他分頁（store 直接改，冇經呢個畫面嘅心形掣）取消收藏播緊嘅歌：一樣播完先消失 */
+describe('useHome un-favouriting the playing song from another tab', () => {
+    const playingSecond = () => {
+        const home = mount(['apollo-18-01', 'room-01', 'apollo-18-03']);
+        toFavourites(home);
+        act(() => home.handlers()?.onSpindle());
+        act(() => home.controller.next());
+        act(() => home.store.remove('room-01'));
+        return home;
+    };
+
+    it('should keep the song, its title and the heart (off) at the top left while it plays', () => {
+        const home = playingSecond();
+        expect(home.result.current.playback).toMatchObject({
+            status: 'playing',
+            trackId: 'room-01',
+        });
+        expect(home.view()?.track?.id).toBe('room-01');
+        expect(home.view()?.favourite).toBe(false);
+        expect(listRows(home)).toEqual(['apollo-18-01', 'room-01', 'apollo-18-03']);
+    });
+
+    it('should go on to the following favourite, not back to the first one', () => {
+        const home = playingSecond();
+        act(() => home.controller.next());
+        expect(home.result.current.playback.trackId).toBe('apollo-18-03');
+        expect(listRows(home)).toEqual(['apollo-18-01', 'apollo-18-03']);
+    });
+
+    it('should put it back in its place when favourited again here while it plays', () => {
+        const home = playingSecond();
         act(() => home.handlers()?.onFavourite());
         expect(home.store.getSnapshot().map((entry) => entry.trackId)).toEqual([
             'apollo-18-01',

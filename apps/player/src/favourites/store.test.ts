@@ -157,6 +157,21 @@ describe('createFavouritesStore', () => {
         expect(listener).toHaveBeenCalledTimes(1);
     });
 
+    // S-257：store 唔再用（主頁 unmount）就唔再聽其他分頁
+    it('should stop listening to other tabs once disposed', () => {
+        const storage = memoryStorage();
+        const events = new EventTarget();
+        const store = createFavouritesStore({ storage, events });
+        store.dispose();
+        storage.setItem(FAVOURITES_STORAGE_KEY, JSON.stringify([{ trackId: 'a-01', addedAt: 5 }]));
+        events.dispatchEvent(Object.assign(new Event('storage'), { key: FAVOURITES_STORAGE_KEY }));
+        expect(store.has('a-01')).toBe(false);
+        // 再聽（StrictMode 重新 mount）：照跟其他分頁
+        store.listen();
+        events.dispatchEvent(Object.assign(new Event('storage'), { key: FAVOURITES_STORAGE_KEY }));
+        expect(store.has('a-01')).toBe(true);
+    });
+
     it('should read again when another tab clears all storage (key null)', () => {
         const storage = memoryStorage();
         const events = new EventTarget();

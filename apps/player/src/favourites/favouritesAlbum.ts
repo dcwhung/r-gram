@@ -8,6 +8,7 @@ import {
     type CatalogDocument,
     type CatalogTrack,
     FAVOURITES_ALBUM_ID,
+    glowColor,
 } from '@r-gram/catalog';
 import { findTrack } from '../catalog/selectors';
 import { t } from '../i18n/t';
@@ -15,6 +16,16 @@ import type { FavouriteEntry } from './store';
 
 /** 強調色：紅（Functional Spec §CR-002「Favourites」；設計稿 ALBUMS.favourites.accent） */
 export const FAVOURITES_ACCENT = '#d7263d';
+
+/**
+ * 著燈色（設計稿 ALBUMS.favourites.glow = #fb3751）：設計稿定咗呢個值，唔由強調色計（計出嚟係 #f92441）。
+ * 左上心形、播放模式掣光圈、旋鈕 ♥、細唱片機一律用佢（S-253）
+ */
+export const FAVOURITES_GLOW = 'hsl(352 96% 60%)';
+
+/** 一隻碟嘅著燈色：Favourites 碟用設計稿嘅值，真專輯由專輯色計 */
+export const discGlow = (albumId: string | null, accent: string): string =>
+    albumId === FAVOURITES_ALBUM_ID ? FAVOURITES_GLOW : glowColor(accent);
 
 /** 字母盤嘅標記：心形（字母盤唔畫佢，由旋鈕旁邊嘅 ♥ 負責） */
 export const FAVOURITES_WHEEL_KEY = '♥';
