@@ -71,14 +71,15 @@ describe('startBrowserUpdates', () => {
         expect(env.reload).toHaveBeenCalledTimes(1);
     });
 
-    it('should hold the update while a finger is on the screen', async () => {
-        await setup();
-        const down = Object.assign(new Event('pointerdown'), { pointerId: 1 });
-        window.dispatchEvent(down);
+    it('should leave a new version waiting once the app is in use', async () => {
+        const container = fakeContainer(true);
+        const { env, manager } = await setup(container);
+        manager.endLaunch();
         pwa.options?.onNeedRefresh?.();
+        container.dispatchEvent(new Event('controllerchange'));
         expect(pwa.updateSW).not.toHaveBeenCalled();
-        window.dispatchEvent(Object.assign(new Event('pointerup'), { pointerId: 1 }));
-        expect(pwa.updateSW).toHaveBeenCalledTimes(1);
+        expect(env.reload).not.toHaveBeenCalled();
+        expect(manager.getSnapshot()).toBe('waiting');
     });
 
     it('should still give the app a manager without service worker support', async () => {

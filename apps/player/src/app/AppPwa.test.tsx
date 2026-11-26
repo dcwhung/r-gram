@@ -35,7 +35,7 @@ const fakePort = () => {
             return () => listeners.delete(listener);
         },
         getSnapshot: () => status,
-        setPlaying: vi.fn(),
+        endLaunch: vi.fn(),
         applyNow: vi.fn(),
     };
     const set = (next: UpdateStatus) =>
@@ -57,15 +57,23 @@ describe('App and the update manager', () => {
         setViewport(393, 852);
     });
 
-    it('should tell the update manager when a song starts and stops playing', async () => {
+    // S-197：Preload 期間先會自動換版；主頁一出就話畀 UpdateManager 知（之後只出提示）
+    it('should tell the update manager when start-up is over', async () => {
         const { port } = fakePort();
+        render(<App startup={startup} updates={port} />);
+        expect(port.endLaunch).not.toHaveBeenCalled();
+        await screen.findByRole('button', { name: '開啟歌單' });
+        expect(port.endLaunch).toHaveBeenCalled();
+    });
+
+    // S-197：播緊歌都好、停咗都好，有新版就出提示
+    it('should show the update prompt while a song plays', async () => {
+        const { port, set } = fakePort();
         await renderHome(port);
-        expect(port.setPlaying).toHaveBeenLastCalledWith(false);
         await userEvent.click(screen.getByRole('button', { name: '開啟歌單' }));
         await userEvent.click(screen.getByRole('button', { name: '播放' }));
-        expect(port.setPlaying).toHaveBeenLastCalledWith(true);
-        await userEvent.click(screen.getByRole('button', { name: '暫停' }));
-        expect(port.setPlaying).toHaveBeenLastCalledWith(false);
+        set('waiting');
+        expect(screen.getByRole('button', { name: '立即更新並重新載入' })).toBeVisible();
     });
 
     it('should show the update prompt while an update waits', async () => {
