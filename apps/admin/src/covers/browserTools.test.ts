@@ -1,4 +1,4 @@
-import { browserTools, type CanvasDeps } from './browserTools';
+import { browserDeps, browserTools, type CanvasDeps } from './browserTools';
 import { WEBP_QUALITY } from './limits';
 
 interface FakeCanvas {
@@ -86,5 +86,15 @@ describe('browserTools', () => {
         const { deps } = fakeDeps('image/webp', false);
         const image = { width: 10, height: 20, close: vi.fn() };
         await expect(browserTools(deps).render(image, REQUEST)).rejects.toThrow();
+    });
+
+    // S-228：EXIF 方向照圖嘅設定轉正（唔靠瀏覽器預設）
+    it('should decode with the browser, turning the image by its EXIF orientation', async () => {
+        const bitmap = { width: 4, height: 3, close: vi.fn() };
+        const createImageBitmap = vi.fn(async () => bitmap);
+        vi.stubGlobal('createImageBitmap', createImageBitmap);
+        const source = new Blob(['jpeg'], { type: 'image/jpeg' });
+        await expect(browserTools(browserDeps).decode(source)).resolves.toBe(bitmap);
+        expect(createImageBitmap).toHaveBeenCalledWith(source, { imageOrientation: 'from-image' });
     });
 });
