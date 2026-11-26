@@ -287,10 +287,6 @@ body {
     margin: 2px 12px;
 }
 
-.spike-landscape .spike-check > span {
-    flex: 1 1 auto;
-}
-
 .spike-landscape-play {
     display: flex;
     gap: 12px;
