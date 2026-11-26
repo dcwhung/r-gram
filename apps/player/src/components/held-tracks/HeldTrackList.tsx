@@ -56,6 +56,7 @@ const Rows = ({ layout, held, measure, onPlay, scroll, showRow }: RowsProps) => 
             key={row.id}
             layout={layout}
             row={row}
+            index={index}
             y={top + rowCentre(index, pitch, scroll)}
             accent={held.accent}
             measure={measure}

@@ -13,6 +13,8 @@ const TITLE_WEIGHT = 500;
 interface HeldTrackRowProps {
     layout: StageLayout;
     row: Row;
+    /** 第幾行（由 0 起）：鍵盤移 focus 用（rowFocus.ts） */
+    index: number;
     /** 呢行中線嘅 y（已經減咗捲動） */
     y: number;
     accent: string;
@@ -72,7 +74,7 @@ const RowBody = ({ layout, row, y, accent, measure }: BodyProps) => {
  * 歌單欄一行（設計稿第 18 版 trackPanel()；Functional Spec FR-044、D11、D57）。播得 = 一粒掣（名 = 歌號同歌名）；
  * 未有音檔 = 灰色、唔係掣，讀屏讀「未有音檔」。
  */
-export const HeldTrackRow = ({ canPress, onPlay, onFocus, ...body }: HeldTrackRowProps) => {
+export const HeldTrackRow = ({ index, canPress, onPlay, onFocus, ...body }: HeldTrackRowProps) => {
     const { row } = body;
     const names = { no: row.no, title: row.title };
     if (!row.playable) {
@@ -93,6 +95,8 @@ export const HeldTrackRow = ({ canPress, onPlay, onFocus, ...body }: HeldTrackRo
         <g role="listitem" className="held-row" data-playable="true">
             <g
                 className="held-button"
+                data-part="held-button"
+                data-index={index}
                 aria-label={t('heldTracks.play', names)}
                 aria-disabled={!canPress || undefined}
                 onFocus={onFocus}
