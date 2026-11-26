@@ -19,6 +19,13 @@
     }
 }
 
+/* 淡出咗（揀碟期間）：姿勢變就即時到位，淡入返嗰陣已經喺新位（設計稿 data-arm-instant） */
+.tonearm-arm[data-instant='true'],
+.tonearm-arm[data-instant='true'] .tonearm-lift,
+.tonearm-arm[data-instant='true'] .tonearm-shadow {
+    transition: none;
+}
+
 @keyframes tonearm-led-on {
     from {
         opacity: 0;

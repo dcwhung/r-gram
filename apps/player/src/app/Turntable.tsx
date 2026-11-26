@@ -1,17 +1,18 @@
 import { useRef } from 'react';
-import { Disc } from '../components/disc/Disc';
+import { flushSync } from 'react-dom';
+import { DiscStack } from '../components/disc-stack/DiscStack';
 import { Screws } from '../components/metal/Screws';
 import { Platter } from '../components/platter/Platter';
-import { SmallButtons } from '../components/small-buttons/SmallButtons';
 import { Spindle } from '../components/spindle/Spindle';
-import { Tonearm } from '../components/tonearm/Tonearm';
 import { useArmLeadIn } from '../components/tonearm/useArmLeadIn';
 import { DESIGN_HEIGHT } from '../stage/fitStage';
 import type { Point, StageLayout } from '../stage/layouts';
+import { DialControls, type DialHandlers } from './DialControls';
 import type { HomeView } from './homeView';
 import { ListVeil } from './ListVeil';
+import { MachineChrome } from './MachineChrome';
 
-export interface HomeHandlers {
+export interface HomeHandlers extends DialHandlers {
     /** 㩒唱片夾：開歌單｜播揀中嗰首｜暫停 / 繼續 */
     onSpindle: () => void;
     onBooklet: () => void;
@@ -24,11 +25,14 @@ export interface HomeHandlers {
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */
 export const isLowerHalf = ({ y }: Point) => y > DESIGN_HEIGHT / 2;
 
-/** S-074：暗層係 focus 緊嘅掣，收返之後佢冇咗：focus 交返唱片夾，唔好跌去 body */
+/**
+ * S-074：暗層係 focus 緊嘅掣，收返之後佢冇咗：focus 交返唱片夾，唔好跌去 body。
+ * 收返之後唱片夾由暗層上面搬返去碟後面（重新 mount），所以先同步 render 完先 focus 新嗰個。
+ */
 const useCloseList = (onCloseList: () => void) => {
     const spindleRef = useRef<SVGGElement>(null);
     const closeList = () => {
-        onCloseList();
+        flushSync(onCloseList);
         spindleRef.current?.focus();
     };
     return { spindleRef, closeList };
@@ -41,55 +45,45 @@ interface TurntableProps {
 }
 
 /**
- * 唱片機（貼底組，FR-039）：左下螺絲、轉盤、碟、唱臂、三粒細掣、唱片夾。旋鈕同刻度係 T-036。
- * 唱片夾畫喺最後：歌單嘅暗層（暫時嘅佔位，T-037）要喺佢下面、其他嘢上面。
+ * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
+ * 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 歌單嘅暗層（暫時嘅佔位，T-037）蓋住全部，只有唱片夾喺佢上面。
  */
 export const Turntable = ({ layout, view, handlers }: TurntableProps) => {
-    const leadIn = useArmLeadIn(view.armPose);
+    const leadIn = useArmLeadIn(view.armPose, view.chromeHidden);
     const { spindleRef, closeList } = useCloseList(handlers.onCloseList);
-    const { disc, hub } = layout;
+    const spindle = (
+        <Spindle
+            ref={spindleRef}
+            layout={layout}
+            mode={view.spindle}
+            progress={view.progress}
+            accent={view.accent}
+            // 電視開住時唱片夾喺電視後面（T-060），useHome 唔理；停用令讀屏用戶知（S-073）
+            disabled={view.mvOpen}
+            onPress={handlers.onSpindle}
+        />
+    );
     return (
         <>
             <g data-part="screws">
                 <Screws points={layout.screws.points.filter(isLowerHalf)} />
             </g>
-            <Platter disc={disc} platter={layout.platter} />
-            <g transform={`translate(${disc.x} ${disc.y})`}>
-                {/* B-033：以專輯 id 做 key，換碟時新封面由 0° 開始；碟等唱針放低之後先轉 */}
-                <Disc
-                    key={view.album?.id ?? ''}
-                    r={disc.r}
-                    hub={hub}
-                    coverUrl={view.coverUrl}
-                    accent={view.accent}
-                    spinning={view.armPose === 'playing' && leadIn === null}
-                />
-            </g>
-            <Tonearm arm={layout.arm} pose={view.armPose} leadIn={leadIn} glow={view.glow} />
-            <SmallButtons
+            <Platter disc={layout.disc} platter={layout.platter} />
+            {/* 碟等唱針放低之後先轉（leadIn） */}
+            <DiscStack
                 layout={layout}
-                glow={view.glow}
-                hasSong={view.hasSong}
-                hasMv={view.hasMv}
-                bookletOpen={view.bookletOpen}
-                mvOpen={view.mvOpen}
-                playing={view.playing}
-                covered={view.listOpen}
-                onBooklet={handlers.onBooklet}
-                onMv={handlers.onMv}
-                onMode={handlers.onMode}
-            />
+                entries={view.dial.entries}
+                current={view.dial.current}
+                open={view.dial.open}
+                spinning={view.spinning && leadIn === null}
+            >
+                {!view.listOpen && spindle}
+            </DiscStack>
+            <MachineChrome layout={layout} view={view} handlers={handlers} leadIn={leadIn} />
+            <DialControls layout={layout} view={view} handlers={handlers} />
             {view.listOpen && <ListVeil onClose={closeList} />}
-            <Spindle
-                ref={spindleRef}
-                layout={layout}
-                mode={view.spindle}
-                progress={view.progress}
-                accent={view.accent}
-                // 電視開住時唱片夾喺電視後面（T-060），useHome 唔理；停用令讀屏用戶知（S-073）
-                disabled={view.mvOpen}
-                onPress={handlers.onSpindle}
-            />
+            {view.listOpen && spindle}
         </>
     );
 };

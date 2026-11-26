@@ -70,3 +70,46 @@ describe('useHome cover pick', () => {
         );
     });
 });
+
+/* T-036：擰旋鈕揀碟、♥（Functional Spec US-003、US-013；D27：留喺揀咗嗰隻碟） */
+describe('useHome turning the knob', () => {
+    const turn = (home: { current: ReturnType<typeof useHome> }, position?: number) => ({
+        start: () => act(() => home.current.handlers?.onTurnStart()),
+        to: () => act(() => home.current.handlers?.onTurn(position ?? 0)),
+        end: () => act(() => home.current.handlers?.onTurnEnd()),
+    });
+
+    it('should open the dial, follow the knob and stay on the chosen disc when released', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        turn(result).start();
+        expect(result.current.stage.scene).toBe('discChange');
+        turn(result, 1).to();
+        expect(result.current.stage.viewAlbumId).toBe('room');
+        expect(result.current.view?.dial.current).toBe(1);
+        turn(result).end();
+        expect(result.current.stage).toMatchObject({ scene: 'home', viewAlbumId: 'room' });
+    });
+
+    it('should go to the Favourites disc at the ♥ position', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        turn(result).start();
+        turn(result, 2).to();
+        expect(result.current.stage.viewAlbumId).toBe('favourites');
+    });
+
+    it('should ignore a position outside the dial', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        turn(result).start();
+        const before = result.current.stage;
+        turn(result, 9).to();
+        expect(result.current.stage).toBe(before);
+    });
+
+    it('should go to the Favourites disc and back with ♥', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        act(() => result.current.handlers?.onFavourites());
+        expect(result.current.stage.viewAlbumId).toBe('favourites');
+        act(() => result.current.handlers?.onFavourites());
+        expect(result.current.stage.viewAlbumId).toBe('apollo-18');
+    });
+});

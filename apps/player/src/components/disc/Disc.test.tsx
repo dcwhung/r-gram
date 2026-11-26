@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { Disc } from './Disc';
 import { DISC_ART_RADIUS } from './discArt';
@@ -42,6 +42,44 @@ describe('Disc', () => {
             'fill',
             '#2f8f57',
         );
+    });
+
+    // B-076：封面載入失敗（冇 CORS、404、離線未 cache）唔可以出瀏覽器嘅「圖片失敗」圖案：改顯示專輯色
+    it('should show the album colour instead of a broken image when the cover fails to load', () => {
+        const container = renderDisc({ coverUrl: 'https://api.example/img/missing.webp' });
+        const image = container.querySelector('image');
+        expect(image).not.toBeNull();
+        fireEvent.error(image as Element);
+        expect(container.querySelector('image')).toBeNull();
+        expect(container.querySelector('[data-part="cover-fill"]')).toHaveAttribute(
+            'fill',
+            '#2f8f57',
+        );
+    });
+
+    it('should paint the album colour under the cover while the cover is still loading', () => {
+        const container = renderDisc({ coverUrl: 'https://api.example/img/abc.webp' });
+        const fill = container.querySelector('[data-part="cover-fill"]');
+        expect(fill).not.toBeNull();
+        expect(fill?.compareDocumentPosition(container.querySelector('image') as Node)).toBe(
+            Node.DOCUMENT_POSITION_FOLLOWING,
+        );
+    });
+
+    // T-036：轉盤兩旁嘅碟用縮圖；轉到正中時大封面疊喺縮圖上面，未載入完都唔會空白
+    it('should draw the thumbnail under the cover and keep it when the cover fails', () => {
+        const container = renderDisc({
+            coverUrl: 'https://api.example/img/abc.webp',
+            thumbUrl: 'https://api.example/img/abc-thumb.webp',
+        });
+        const hrefs = () =>
+            [...container.querySelectorAll('image')].map((image) => image.getAttribute('href'));
+        expect(hrefs()).toEqual([
+            'https://api.example/img/abc-thumb.webp',
+            'https://api.example/img/abc.webp',
+        ]);
+        fireEvent.error(container.querySelectorAll('image')[1] as Element);
+        expect(hrefs()).toEqual(['https://api.example/img/abc-thumb.webp']);
     });
 
     // 碟係空心：封面由銀邊（0.972）去到透明膠圈（0.16），用 even-odd 挖走中間。以設計稿 ART = 500 畫

@@ -70,7 +70,15 @@ export const PHONE_LAYOUT: StageLayout = {
     platter: { r: PLATTER_RADIUS },
     hub: { clear: 0.16, clamp: 0.118, rim: 0.972 },
     arm: ARM,
-    orbit: { r: 1000, startDeg: -48, stepDeg: 30, scale: 0.72, veil: 0.42, spread: 0.9 },
+    orbit: {
+        r: 1000,
+        startDeg: -48,
+        stepDeg: 30,
+        scale: 0.72,
+        veil: 0.42,
+        spread: 0.9,
+        shown: { from: -1, to: 2 },
+    },
     buttons: {
         r: 44,
         ringGap: 9,
@@ -88,6 +96,8 @@ export const PHONE_LAYOUT: StageLayout = {
         y: KNOB_Y,
         r: KNOB_RADIUS,
         heartHitGap: 10,
+        // 設計稿冇（佢用㩒一下開關）：真機拖動嘅死區，T-036 定
+        turnDeadZone: 0.3,
     },
     scale: {
         fromDeg: 185,
@@ -98,7 +108,18 @@ export const PHONE_LAYOUT: StageLayout = {
         heart: 26,
         heartGap: 18,
     },
-    dial: { inner: 186, outer: 288, letters: 237, current: 46, other: 28 },
+    dial: {
+        inner: 186,
+        outer: 288,
+        letters: 237,
+        current: 46,
+        other: 28,
+        // 18 格（17 張 + ♥）時一格 = 11.25°（設計稿 DIAL_CLEARANCE = DIAL.letters × rad(11.25) × 1.3）
+        letterRule: { allUpTo: 18, maxLetters: 9, clearanceStepDeg: 11.25, clearanceFactor: 1.3 },
+        dotR: 2.2,
+        plateFrom: 0.42,
+        keyFrom: 0.5,
+    },
     screws: {
         // 右下角喺碟底下，見唔到，所以得三粒
         points: [

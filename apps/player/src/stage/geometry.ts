@@ -67,6 +67,30 @@ export const heartHitPoint = (layout: StageLayout, open = 0): Point => {
     return polar(knob, lerp(closed, dial.letters, open), scale.toDeg);
 };
 
+/** 一隻碟喺轉碟時嘅位置同樣：圓心、半徑、透明度、白紗透明度 */
+export interface DiscPose extends Point {
+    r: number;
+    opacity: number;
+    veil: number;
+}
+
+/**
+ * 離揀中嗰隻碟 offset 張嘅碟（設計稿 discPose()）：揀中嗰隻留喺轉盤；其他碟沿弧線排，細啲、蓋白紗。
+ * 字母盤閂埋時其他碟散開兼睇唔到，打開時（CSS 過場）沿弧線滑入。只有 `orbit.shown` 範圍入面嘅碟見到。
+ */
+export const orbitPose = (
+    { disc, orbit }: StageLayout,
+    offset: number,
+    open: boolean,
+): DiscPose => {
+    if (offset === 0) return { x: disc.x, y: disc.y, r: disc.r, opacity: 1, veil: 0 };
+    const pivot = polar(disc, -orbit.r, orbit.startDeg);
+    const spread = open ? 1 : 1 + orbit.spread;
+    const at = polar(pivot, orbit.r, orbit.startDeg + offset * orbit.stepDeg * spread);
+    const shown = open && offset >= orbit.shown.from && offset <= orbit.shown.to;
+    return { ...at, r: disc.r * orbit.scale, opacity: shown ? 1 : 0, veil: orbit.veil };
+};
+
 /* ---------- 量度（淨空規則） ---------- */
 
 const minButtonGapTo = (layout: StageLayout, radius: number): number =>
