@@ -86,6 +86,7 @@ CR-010（Functional Spec v1.12、Technical Spec v1.10、Implementation Plan v1.9
 | B-090 ①（S-220 字眼） | Technical Spec「CR-010 → 實作對齊」同 Implementation Plan T-109、T-110：`update.applyLabel`、prop 入 `TopGroup`、`info.update`、`UpdateNotice`、`rowStep` 已刪、`updateBox.test.ts` |
 | B-090 ③（拆 spike 頁） | 新任務 T-115（等 T-114 重量；連 `tsconfig.node.json`、`manifest.node.test.ts`、`precache.node.test.ts` 共十二樣） |
 | B-090 ④（旋鈕取消規則） | Functional Spec D102（code 已做） |
+| B-092 | Review／QA T-038、T-116、T-113（S-229、S-233、S-237、S-238、S-250；觀察） | ① S-250：D99 放低隻碟之後，鎖屏嘅播放位置冇清（`setPositionState()` 冇參數叫一次就得）。② S-237：`useHome` 嘅 controller 參數可以唔傳（spike 場景用），會開多一個引擎同 `<audio>`：T-115 拆 spike 頁時一齊拎走。③ S-238：細唱片機隻碟跟 store 嘅「播緊」轉，唔係跟真正出聲。④ S-229：同步頁封面要喺解碼之前限制大細（而家 8000 px 檢查喺解碼之後）。⑤ S-233：同步頁 CSP `connect-src` 收窄到 `MEDIA_BASE` 嘅 origin。⑥ Spec 字眼：D99 ④ 同 T-038 E1 提到「隨機但冇開重覆」，播放模式表已經冇呢個組合：下次 CR 改。⑦ 第一次同步唔報 `COVER_NOT_SQUARE`，第二次先出（檢查結果喺封面存好嗰陣先寫）。⑧ 停頓偵測靠 `timeupdate` 先過 `waiting`：真 iPhone 嘅次序喺 U-24 一齊睇。⑨ T-038 邊界決定（未入 spec）：D109 只限自動下一首；播完或者失敗之後鎖屏「上一首」去上一首；暫停期間網絡出錯唔重試唔報錯，下次 play 原位重載（W-064）：下次 CR 寫入 | ② T-115；⑥⑨ 下次 CR；其餘有空先做 |
 | B-075 ②（旗幟 fps） | 已量（約 5 fps）→ T-114 |
 | B-032（轉碟 fps） | 留喺上表，改為 U-24 ⑤ |
 | B-016、B-060 ②、B-074 ④、B-081 ⑥ | 留喺上表，改為第一次部署（T-116） |
