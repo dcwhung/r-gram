@@ -70,7 +70,7 @@ export const Tv = ({ layout, tv, handlers, measure = estimateTextWidth }: TvProp
                     <g data-part="tv-set" transform={`translate(${set.x} ${set.y + extraUnits})`}>
                         <TvShell tv={set} />
                         <TvGlass tv={set} />
-                        <TvPanel tv={set} />
+                        <TvPanel layout={layout} view={tv} handlers={handlers} locked={locked} />
                         <TvStrip tv={set} view={tv} measure={measure} />
                         <TvButtons layout={layout} view={tv} handlers={handlers} locked={locked} />
                     </g>

@@ -38,12 +38,20 @@ export interface TvParts {
     tvHandlers: TvHandlers | null;
 }
 
-/** 電視畫面同 ▶ ❚❚ ■（直接去電視 controller，唔經場景狀態機） */
+/** 電視畫面、▶ ❚❚ ■ 同兩粒旋鈕（直接去電視 controller，唔經場景狀態機） */
 export const tvParts = (mv: MvController, snapshot: MvSnapshot, view: HomeView): TvParts => {
     const tv = tvView(snapshot, { accent: view.accent, glow: view.glow }, mv.element);
     if (!tv) return { tv: null, tvHandlers: null };
     return {
         tv,
-        tvHandlers: { onPlay: () => mv.play(), onPause: () => mv.pause(), onStop: () => mv.stop() },
+        tvHandlers: {
+            onPlay: () => mv.play(),
+            onPause: () => mv.pause(),
+            onStop: () => mv.stop(),
+            onVolume: (level) => mv.setVolume(level),
+            onToggleMute: () => mv.toggleMute(),
+            onSeekBy: (deltaSec) => mv.seekBy(deltaSec),
+            onSeekTo: (positionSec) => mv.seekTo(positionSec),
+        },
     };
 };

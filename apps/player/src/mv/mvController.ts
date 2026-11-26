@@ -4,6 +4,8 @@
  * - 開：手勢入面 `cue`（gain 0），鎖屏轉去 MV；升起 + 開機（crtOn 完）先 `reveal` 出聲。計時喺呢度，唔靠 render
  * - 收（■ 或者播完）：即刻靜，熄機 + 收埋（tvCloseMs）之後先停引擎、鎖屏轉返唱片、`phase = closed`
  * - 載入失敗：電視留低，螢幕講「未能播放 MV」，▶ = 由頭再試；自動播被拒：停喺度等 ▶
+ * - 旋鈕（T-061）：音量、靜音經 gain（D104；轉音量 = 取消靜音），音量同靜音下次開電視照用；快轉／倒轉。
+ *   未開機、熄機期間旋鈕唔郁
  * 唱片點停、收埋之後唔續播（C8）係主頁嘅事（useHome、playbackController.pauseFor）。
  */
 import { MOTION } from '../config/motion';
@@ -55,6 +57,12 @@ export interface MvController {
     pause(): void;
     /** ■：熄機、收埋 */
     stop(): void;
+    /** 0–1（冇 Web Audio = 唔做嘢） */
+    setVolume(level: number): void;
+    toggleMute(): void;
+    /** 快轉（正數）／倒轉（負數）幾多秒，夾喺 MV 入面 */
+    seekBy(deltaSec: number): void;
+    seekTo(positionSec: number): void;
 }
 
 type Timer = ReturnType<typeof setTimeout>;
@@ -83,12 +91,12 @@ class Controller implements MvController {
         this.engine = deps.engine;
         this.sessions = deps.sessions ?? null;
         this.reduceMotion = deps.reduceMotion ?? prefersReducedMotion;
-        this.snapshot = { ...CLOSED, volumeSupported: this.engine.audio.supported };
+        this.snapshot = { ...CLOSED, ...this.levels() };
         this.engine.subscribe((event) => this.onEngine(event));
         this.session?.bind({
             play: () => this.play(),
             pause: () => this.pause(),
-            seekTo: (positionSec) => this.engine.seek(positionSec),
+            seekTo: (positionSec) => this.seekTo(positionSec),
         });
     }
 
@@ -140,13 +148,46 @@ class Controller implements MvController {
         this.after(this.closeDelay(), () => this.close());
     }
 
+    setVolume(level: number): void {
+        if (!this.knobsWork()) return;
+        const { audio } = this.engine;
+        audio.setVolume(level);
+        audio.setMuted(false);
+        this.update(this.levels());
+    }
+
+    toggleMute(): void {
+        if (!this.knobsWork()) return;
+        const { audio } = this.engine;
+        audio.setMuted(!audio.muted);
+        this.update(this.levels());
+    }
+
+    seekBy(deltaSec: number): void {
+        this.seekTo(this.engine.positionSec + deltaSec);
+    }
+
+    seekTo(positionSec: number): void {
+        const { phase, status } = this.snapshot;
+        if (phase !== 'open' || (status !== 'playing' && status !== 'paused')) return;
+        this.engine.seek(positionSec);
+        this.update({ positionSec: this.engine.positionSec });
+        this.reportPosition();
+    }
+
+    /** 音量旋鈕：電視開住（唔係熄機緊）、有 Web Audio */
+    private knobsWork(): boolean {
+        return this.snapshot.phase === 'open' && this.engine.audio.supported;
+    }
+
     private get session(): MediaSessionPort | null {
         return this.sessions?.mv ?? null;
     }
 
-    /** 音量同有冇 Web Audio（T-061 再加旋鈕） */
-    private levels(): Pick<MvSnapshot, 'volumeSupported'> {
-        return { volumeSupported: this.engine.audio.supported };
+    /** 音量、靜音、有冇 Web Audio（成個 app 一個 gain，所以收埋再開都係同一個音量） */
+    private levels(): Pick<MvSnapshot, 'volume' | 'muted' | 'volumeSupported'> {
+        const { audio } = this.engine;
+        return { volume: audio.volume, muted: audio.muted, volumeSupported: audio.supported };
     }
 
     /** 開機（crtOn 完）先出聲；減少動態效果 = 即刻 */

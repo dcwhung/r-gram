@@ -88,6 +88,11 @@ export const zhHant = {
         stop: '關閉電視',
         volume: 'MV 音量',
         seek: '快轉或倒轉',
+        /** 音量旋鈕讀出嘅值（aria-valuetext，T-061） */
+        volumeValue: '{percent}%',
+        muted: '已靜音',
+        /** 快轉／倒轉旋鈕讀出嘅值：而家位置／長度 */
+        seekValue: '{time}／{duration}',
         /** 電視成組（role="group"）嘅名 */
         tv: 'MV 電視',
         /** MV 載入失敗（螢幕上一行；US-004 同類嘅提示） */

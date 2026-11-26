@@ -22,6 +22,13 @@ export interface TvView {
     failed: boolean;
     /** 成個 app 嗰個 `<video>`：電視 mount 時搬入螢幕 */
     video: HTMLVideoElement;
+    /** 音量旋鈕（T-061）：0–1、靜音、有冇 Web Audio（冇 = 停用） */
+    volume: number;
+    muted: boolean;
+    volumeSupported: boolean;
+    /** 快轉／倒轉旋鈕（T-061）：而家位置同長度（未知 = null，旋鈕停用） */
+    positionSec: number;
+    durationSec: number | null;
 }
 
 const activeButton = ({ phase, status }: MvSnapshot): TvButton | null => {
@@ -46,5 +53,10 @@ export const tvView = (
         timeText: formatTime(positionSec),
         failed: snapshot.failed,
         video,
+        volume: snapshot.volume,
+        muted: snapshot.muted,
+        volumeSupported: snapshot.volumeSupported,
+        positionSec,
+        durationSec,
     };
 };

@@ -45,6 +45,21 @@
     cursor: default;
 }
 
+.tv-knob {
+    cursor: grab;
+    touch-action: none;
+}
+
+.tv-knob[aria-disabled='true'] {
+    cursor: default;
+}
+
+/* 旋鈕喺深灰控制板上面：focus 框用白色先睇得到 */
+.tv-knob:focus-visible {
+    outline: calc(var(--u) * 4) solid var(--color-paper);
+    outline-offset: calc(var(--u) * -2);
+}
+
 .tv-button:focus-visible {
     outline: calc(var(--u) * 4) solid var(--color-ink);
     outline-offset: calc(var(--u) * 4);

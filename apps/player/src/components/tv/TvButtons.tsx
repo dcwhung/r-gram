@@ -30,6 +30,12 @@ export interface TvHandlers {
     onPlay: () => void;
     onPause: () => void;
     onStop: () => void;
+    /** 音量旋鈕（T-061）：0–1 */
+    onVolume: (level: number) => void;
+    onToggleMute: () => void;
+    /** 快轉／倒轉旋鈕（T-061）：正數快轉、負數倒轉（秒） */
+    onSeekBy: (deltaSec: number) => void;
+    onSeekTo: (positionSec: number) => void;
 }
 
 interface TvButtonsProps {

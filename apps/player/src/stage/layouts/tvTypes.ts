@@ -55,6 +55,13 @@ export interface TvLayout {
         rim: number;
         ticks: number;
         glyphGap: number;
+        /** 音量把手由靜（左下）到最大（右下）扭幾多度（T-061） */
+        sweepDeg: number;
+        /** 快轉／倒轉：每扭幾多度算一格；把手開始時嘅角度（設計稿 −63°） */
+        seekStepDeg: number;
+        seekRestDeg: number;
+        /** pointer 郁過幾多 CSS px 先算扭（之下 = 㩒一下） */
+        dragThresholdPx: number;
     };
     /** 機身下面：進度線、指示燈、`MV` + 歌名、時間、散熱坑 */
     strip: {

@@ -44,7 +44,25 @@ export const PHONE_TV: TvLayout = {
         corner: 26,
         grille: { top: 24, bottom: 136, pitch: 15, inset: 22, slot: 6 },
     },
-    knobs: { x: 885, volumeY: 300, seekY: 520, r: 44, dialR: 64, rim: 7, ticks: 24, glyphGap: 26 },
+    /*
+     * 兩粒旋鈕（T-061）：設計稿只畫咗樣（把手 26°、−63°），點扭由呢度定（US-007「點樣扭要先出 mockup 確認」；🅰️）：
+     * 音量把手掃 270°（真收音機旋鈕常見嘅掃角，最細喺左下、最大喺右下）；快轉／倒轉每扭 30°（刻度兩格）一格；
+     * 拖動門檻同其他旋鈕一樣 6 px
+     */
+    knobs: {
+        x: 885,
+        volumeY: 300,
+        seekY: 520,
+        r: 44,
+        dialR: 64,
+        rim: 7,
+        ticks: 24,
+        glyphGap: 26,
+        sweepDeg: 270,
+        seekStepDeg: 30,
+        seekRestDeg: -63,
+        dragThresholdPx: 6,
+    },
     strip: {
         lineX: 70,
         lineY: 729,
