@@ -1,4 +1,16 @@
-import { armLook, leadInAfter, leadInOnPose, leadInStart } from './armPose';
+import { MOTION } from '../../config/motion';
+import { armLook, leadInAfter, leadInMs, leadInOnPose, leadInStart } from './armPose';
+
+/* T-011 報告 §2.4：落針 timer 同唱臂開場讀同一組 token，畫面同聲音用同一個數 */
+describe('leadInMs', () => {
+    it('should be the swing plus the needle drop', () => {
+        expect(leadInMs(false)).toBe(MOTION.scene.tonearmMs + MOTION.scene.needleDropMs);
+    });
+
+    it('should be 0 with reduced motion (no lead-in, sound as soon as it loads)', () => {
+        expect(leadInMs(true)).toBe(0);
+    });
+});
 
 describe('armLook', () => {
     it.each([

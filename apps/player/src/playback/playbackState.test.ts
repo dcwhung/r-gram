@@ -50,3 +50,72 @@ describe('playbackReducer (state only until T-038)', () => {
         );
     });
 });
+
+/* T-038（T-011 報告 §2.5）：由引擎事件推動嘅 action */
+describe('playbackReducer engine actions', () => {
+    it('should move to the next track without a lead-in and reset the time', () => {
+        const state = playbackReducer(
+            { ...playing, positionSec: 200, durationSec: 210 },
+            { type: 'advanced', trackId: 'room-02' },
+        );
+        expect(state).toEqual({ ...playing, trackId: 'room-02' });
+    });
+
+    it('should play again after a lock-screen next while paused', () => {
+        const paused: PlaybackState = { ...playing, status: 'paused', pauseReason: 'user' };
+        expect(playbackReducer(paused, { type: 'advanced', trackId: 'room-02' })).toMatchObject({
+            status: 'playing',
+            pauseReason: null,
+        });
+    });
+
+    it('should keep the disc loaded when the queue ends (D99, D88)', () => {
+        const ended = playbackReducer(playing, { type: 'ended' });
+        expect(ended).toMatchObject({ status: 'ended', albumId: 'room', trackId: 'room-01' });
+        expect(playbackReducer(ended, { type: 'resumed' })).toBe(ended);
+    });
+
+    it('should put the disc down on release', () => {
+        expect(playbackReducer(playing, { type: 'release' })).toBe(IDLE_PLAYBACK);
+    });
+
+    it('should resume after a pause, including one the system made', () => {
+        const paused = playbackReducer(playing, { type: 'pauseFor', reason: 'user' });
+        expect(playbackReducer(paused, { type: 'resumed' })).toEqual(playing);
+        expect(playbackReducer(IDLE_PLAYBACK, { type: 'resumed' })).toBe(IDLE_PLAYBACK);
+    });
+
+    it('should update the time only when the second or the duration changes', () => {
+        const first = playbackReducer(playing, { type: 'time', positionSec: 1.2, durationSec: 90 });
+        expect(first).toMatchObject({ positionSec: 1.2, durationSec: 90 });
+        expect(playbackReducer(first, { type: 'time', positionSec: 1.7, durationSec: 90 })).toBe(
+            first,
+        );
+        expect(
+            playbackReducer(first, { type: 'time', positionSec: 2.1, durationSec: 90 }),
+        ).toMatchObject({ positionSec: 2.1 });
+        expect(
+            playbackReducer(IDLE_PLAYBACK, { type: 'time', positionSec: 3, durationSec: 9 }),
+        ).toBe(IDLE_PLAYBACK);
+    });
+
+    // US-004、D36 ③：載入失敗 = 泊位、一行提示；被拒（blocked）= 當重開 app 回復（下一下行完整開場）
+    it('should record a failed load, and a blocked play as a restore pause', () => {
+        expect(playbackReducer(playing, { type: 'failed', reason: 'network' })).toMatchObject({
+            status: 'error',
+            pauseReason: null,
+        });
+        expect(playbackReducer(playing, { type: 'failed', reason: 'blocked' })).toMatchObject({
+            status: 'paused',
+            pauseReason: 'restore',
+        });
+        expect(playbackReducer(IDLE_PLAYBACK, { type: 'failed', reason: 'decode' })).toBe(
+            IDLE_PLAYBACK,
+        );
+    });
+
+    it('should not pause a failed track', () => {
+        const failed: PlaybackState = { ...playing, status: 'error' };
+        expect(playbackReducer(failed, { type: 'pauseFor', reason: 'mv' })).toBe(failed);
+    });
+});
