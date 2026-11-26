@@ -8,6 +8,7 @@ import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
 import type { HomeView } from './homeView';
 import { type HomeHandlers, isLowerHalf } from './Turntable';
+import { useColumnEntrance } from './useColumnEntrance';
 import { useListFloating } from './useListFloating';
 import { useSettledColumn } from './useSettledColumn';
 
@@ -46,16 +47,17 @@ const ArcList = ({
     );
 
 /**
- * 碟名下面嘅歌單欄（B-086）：快擰途中唔 render，停定先出（useSettledColumn）；以碟做 key（換碟 = 新嘅捲動、
- * 新嘅飄落）
+ * 碟名下面嘅歌單欄（B-086）：快擰途中唔 render，停定先出（useSettledColumn）；以碟同出現次數做 key（換碟、
+ * 唔係拎住時打開字母盤 = 新嘅捲動、新嘅飄落，useColumnEntrance）
  */
 const TrackColumn = ({ layout, view, measure }: PartProps) => {
     const disc = view.dial.entries[view.dial.current];
     const column = useSettledColumn(view.trackColumn, disc?.albumId ?? null);
+    const entrance = useColumnEntrance(view.dial.open, view.holding);
     return (
         column && (
             <HeldTrackList
-                key={column.albumId}
+                key={`${column.albumId}:${entrance}`}
                 layout={layout}
                 held={column}
                 albumTitle={disc?.title ?? ''}
