@@ -45,9 +45,24 @@ export const zhHant = {
         },
     },
     albums: {
-        /** error.message（CR-007：唯讀，只有 404） */
+        /** error.message（CR-007：專輯由同步建立；寫入只有 info.txt 文字框（API-019）同封面結果（API-017），T-106） */
         errors: {
             notFound: '找不到指定的專輯。',
+            invalid: '資料有誤，請修正後再儲存。',
+            /** 409 STALE：讀入之後檔案喺 bucket 改過（Functional Spec D75 嘅句子） */
+            stale: '檔案已在其他地方更改，請重新載入。',
+            /** 413 TOO_LARGE：`{maxBytes}`、`{maxLines}` = INFO_TEXT_MAX_BYTES、INFO_TEXT_MAX_LINES */
+            tooLarge: 'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限。',
+        },
+        /** details[].message：key = details[].reason */
+        reasons: {
+            REQUIRED: '必須填寫。',
+            NOT_AN_OBJECT: '內容必須為 JSON 物件。',
+            NOT_EDITABLE: '此欄位不可修改。',
+            /** `{max}` = UNKNOWN_FIELDS_MAX */
+            TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
+            NOT_TEXT: '必須為文字。',
+            INVALID_VALUE: '格式不正確。',
         },
     },
     tracks: {
