@@ -410,6 +410,31 @@ describe('POST /api/sync/folders/:folder: limits and failures', () => {
         expect(again.body).toMatchObject({ added: [], updated: [], unchanged: count });
     });
 
+    it('should not settle info.txt while a track of an earlier batch is still missing', async () => {
+        const count = SYNC_TRACKS_MAX + 3;
+        const lines = Array.from({ length: count }, (_, index) => `${index + 1}. 歌${index + 1}`);
+        await putMedia('info.txt', `唱片名稱：大碟\n${lines.join('\n')}`);
+        for (let no = 1; no <= count; no += 1) {
+            await putMedia(`${String(no).padStart(2, '0')} 歌${no}.m4a`);
+            await putMedia(`${String(no).padStart(2, '0')} 歌${no}.txt`, `歌${no}\n曲：甲`);
+        }
+        const { bindings } = mediaWith({
+            get: (args, original) => {
+                if (String(args[0]).includes('/02 ')) throw new Error('R2 unavailable');
+                return original(...args);
+            },
+        });
+        const first = await syncFolder(FOLDER, '', bindings);
+        expect(first.body.failed.map(({ no }: Loose) => no)).toEqual([2]);
+        const second = await syncFolder(FOLDER, `?from=${first.body.nextFrom}`);
+        expect(second.body).toMatchObject({ more: false, failed: [] });
+        expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
+        const again = await syncFolder();
+        expect(again.body.added.map(({ no }: Loose) => no)).toEqual([2]);
+        expect(await countOf('tracks')).toBe(count);
+        expect((await albumRow(ALBUM_ID))?.info_etag).not.toBeNull();
+    });
+
     it('should apply the rest when one track fails and retry it on the next scan', async () => {
         await putKomorebi();
         await putMedia('01 下一位參賽者.txt', '下一位參賽者');
