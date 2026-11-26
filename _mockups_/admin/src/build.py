@@ -3,6 +3,7 @@
 用法（喺 _mockups_/admin 入面）：python3 src/build.py
 資料：apps/api/seed/discography.json、credits.json（只抽 mockup 用到嘅欄位）。
 """
+import base64
 import json
 from pathlib import Path
 
@@ -24,6 +25,9 @@ NEUTRAL = '#6e6e6e'
 # 同播放端設計稿用同一套字體（RB Slab）
 FONTS = HERE.parents[1] / 'home-turntable' / 'src' / 'fonts.css'
 FONTS_MARKER = '/*__FONTS__*/'
+# 未有封面嘅碟用 Favourites 碟嗰個預設封面（黑底 + 用戶提供嘅 logo）
+LOGO = HERE.parents[1] / 'home-turntable' / 'src' / 'logo-full.png'
+LOGO_MARKER = '__LOGO_FULL__'
 
 
 def clean(value):
@@ -56,6 +60,8 @@ def main():
     assert html.count('/*__DATA__*/null') == 1
     assert html.count(FONTS_MARKER) == 1
     html = html.replace(FONTS_MARKER, FONTS.read_text(encoding='utf-8'))
+    assert html.count(LOGO_MARKER) == 1
+    html = html.replace(LOGO_MARKER, 'data:image/png;base64,' + base64.b64encode(LOGO.read_bytes()).decode('ascii'))
     out = HERE.parent / 'index.html'
     out.write_text(html.replace('/*__DATA__*/null', data), encoding='utf-8')
     print(f'built {out.name} ({out.stat().st_size // 1024} KB), {len(albums)} albums, {len(tracks)} demo tracks')
