@@ -29,6 +29,10 @@ const DESIGN_POSITIONS = 18;
 const MARGIN_TOLERANCE = 2;
 /** 細唱片機歌名最細字級最少放得落幾多個中文字（W-045） */
 const MIN_MINI_CHARS = 5;
+/** 字形喺基線下面最多伸幾多（字級嘅比例；中文字約 0.12，留餘位當 0.25） */
+const DESCENT_EM = 0.25;
+/** 字形喺基線上面最多伸幾多（字級嘅比例） */
+const ASCENT_EM = 1;
 /** CR-003 決定 2：任何專輯數都要過，測試掃 1 至 30 張 */
 const MIN_ALBUMS = 1;
 const MAX_ALBUMS = 30;
@@ -173,14 +177,23 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
             );
         });
 
-        /* D57：唯一低過 44pt 嘅感應範圍係歌單欄嘅行（用戶揀咗密行距）；行闊仍然要 ≥ 44pt */
-        // W-045：細唱片機歌名淨係用歌單行右邊之後嘅位，最細字級最少放得落「…」前面幾個中文字
-        it('should leave the mini title room right of the rows, enough for a few characters', () => {
+        /*
+         * W-045（B-083 ④ 改擺法）：細唱片機兩行字喺歌單第一行上面：歌名嘅底（最大字級）喺行嘅感應範圍頂之上，
+         * 歌名嘅頂喺碟名年份嗰行之下（設計稿：成行喺年份嗰行下面）；歌名最左去到 title.left，最細字級最少放得落幾個中文字
+         */
+        it('should keep the mini caption above the held rows and below the year line', () => {
+            const { miniTurntable: mini } = layout;
+            const titleBottom = mini.y + mini.title.dy + mini.title.size * DESCENT_EM;
+            expect(titleBottom).toBeLessThan(column.top);
+            const titleTop = mini.y + mini.title.dy - mini.title.size * ASCENT_EM;
+            expect(titleTop).toBeGreaterThan(layout.info.year.y);
+        });
+
+        it('should let the mini title use the room from title.left, enough for a few characters', () => {
             const { title } = layout.miniTurntable;
-            // S-192：留返 render 同量字嘅差（renderSlack）做餘位
-            const room = miniLabelX(layout) - heldRowHitRight(layout);
-            expect(miniTitleMaxWidth(layout) * (1 + title.renderSlack)).toBeLessThanOrEqual(room);
-            expect(miniTitleMaxWidth(layout)).toBeLessThan(room);
+            expect(miniLabelX(layout) - miniTitleMaxWidth(layout)).toBeGreaterThanOrEqual(
+                title.left,
+            );
             expect(miniTitleMaxWidth(layout)).toBeGreaterThanOrEqual(
                 MIN_MINI_CHARS * title.minSize,
             );
