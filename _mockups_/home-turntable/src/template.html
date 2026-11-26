@@ -173,7 +173,7 @@ svg.demo .version-glow, svg.live .version-glow { animation: versionGlow 1.4s eas
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
-    <p class="lede"><b>第 20 版（等你確認）：有新版本嘅提示。</b>唔再另外出一粒「已有新版本／立即更新」；右上角版本號變成一粒掣：透明底、膠囊形框線、橙黃字，純色一明一暗，㩒 = 重新載入更新；永遠喺暗層下面。（版本掣第 4 稿用戶已確認。）另外：手機打橫時畫面唔跟住轉，app 自己將畫面轉返直向（唔再出「請將裝置轉為直向」）；弧線歌單同旋鈕頭尾相接；播完最後一首隔 3 秒變返未揀歌（見下面三格，等你確認）。</p>
+    <p class="lede"><b>第 20 版（2026-11-26 用戶已確認）：有新版本嘅提示、頭尾相接、播完最後一首。</b>唔再另外出一粒「已有新版本／立即更新」；右上角版本號變成一粒掣：透明底、膠囊形框線、橙黃字，純色一明一暗，㩒 = 重新載入更新；永遠喺暗層下面。（版本掣第 4 稿用戶已確認。）另外：手機打橫時畫面唔跟住轉，app 自己將畫面轉返直向（唔再出「請將裝置轉為直向」）；弧線歌單同旋鈕頭尾相接；播完最後一首隔 3 秒變返未揀歌（見下面幾格）。接駁位用「點 + 短線」，唔加碟名。</p>
     <p class="lede"><b>第 19 版（2026-11-26 用戶逐點定案）：揀碟同歌單。</b>① 歌單欄（碟名下面嗰欄）純睇：行唔㩒得，只可以捲。未揀歌（開 app 冇歌、揀完碟鬆手、手上拎住另一隻碟）或者字母盤開住就出；揀咗歌就收。② 揀歌一律㩒碟面開弧線歌單：歌單欄收起，歌名飄落弧線；㩒暗位收返，歌單欄出返。③ 唱片夾一定有 play：未揀歌時㩒 = 播呢隻碟第一首。④ 字母盤開住 = 冇細掣，鬆手 = 有細掣；有細唱片機或者未鬆手 = 冇唱臂。⑤ 歌單欄由右上逐行飄落；快擰途中唔顯示，停定先出；鬆手時底部縮短讓位畀三粒細掣（唱臂可以疊喺歌單上面）。⑥ 細唱片機旁邊嘅字推上，長歌名先縮字再「…」；播完會寫「已播完」、唱針離開碟。⑦ 旋鈕要㩒住一陣或者開始擰先開；弧線歌單嘅行唔㩒得。</p>
     <p class="lede"><b>第 18 版（已確認）。</b>① 字母盤改用實際資料：21 隻碟 + ♥ = 22 格，次序按類型（專輯、迷你專輯、精選、現場、原聲、單曲）再按編號；因為多過 17 隻碟，由第一日起就係「每 3 個出一個字母，其餘用細點」。② 左上歌名太長：先縮字（44 → 最細 32）；最細字都放唔落就斷做兩行，歌號同時間嗰行位置不變；兩行都放唔落先用「…」。③ 播緊時揀碟（模擬真實情況：唱片機照播，人行開去拎第二隻碟睇，揀啱先放入機播）：一擰旋鈕，唱臂、左下三粒細掣同左上歌名淡出，隻碟停轉，聲照播；擰到另一隻碟，左上碟名跟住變，唱片機縮去右上角照播（碟照轉），旁邊寫住播緊邊首。碟名下面即刻列出嗰隻碟嘅歌單（冇黑色層：黑字，字級比「播放中」大一級，隻碟左邊蓋一層半透明嘅底色；歌多可以上下捲）。鬆手喺另一隻碟 = 手上拎住嗰隻碟：冇轉盤、冇唱臂；㩒歌單其中一行 = 放入唱片機播嗰首（原本首歌先停）；㩒右上角細唱片機 = 返去播緊嗰隻碟。轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉。</p>
     <p class="lede">第 17 版（已確認）。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用細點；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
@@ -185,19 +185,19 @@ svg.demo .version-glow, svg.live .version-glow { animation: versionGlow 1.4s eas
         <label class="chk"><input type="checkbox" id="showGap"> 淨空（CD 16、轉盤 40、螺絲 120）</label>
     </div>
 
-    <h2 style="margin-top:0">弧線歌單頭尾相接（第 20 版，等你確認）</h2>
-    <p class="lede">弧線歌單（㩒碟面嗰個）頭尾相接：捲過最後一首就返去第一首，反方向一樣。頭同尾之間有一格「接駁位」：一粒點加一條專輯色短線，一眼睇到邊度係尾、邊度係頭；接駁位揀唔到，捲動會跳過。每首歌同一時間只出現一次，所以歌少嘅碟上面會少幾行。碟名下面嘅歌單欄（純睇）唔變，照舊到尾就停。第一格自動來回捲過接駁位。</p>
+    <h2 style="margin-top:0">弧線歌單頭尾相接（第 20 版，用戶 2026-11-26 已確認）</h2>
+    <p class="lede">弧線歌單（㩒碟面嗰個）頭尾相接：捲過最後一首就返去第一首，反方向一樣。頭同尾之間有一格「接駁位」：一粒點加一條專輯色短線，一眼睇到邊度係尾、邊度係頭；接駁位揀唔到，捲動會跳過。每首歌同一時間只出現一次，所以歌少嘅碟上面會少幾行。接駁位只係點加短線（唔加碟名）。碟名下面嘅歌單欄（純睇）唔變，照舊到尾就停。第一格自動來回捲過接駁位。</p>
     <div class="demo-bar"><span class="lede" id="loopDemoNote" style="margin:0">自動示範：由第 10 首捲落去，過接駁位返去第 1 首，再捲返上去</span></div>
     <div class="grid" id="loopGrid"><article class="card"><h3>自動示範</h3><p class="tag">來回捲過接駁位</p><svg class="stage demo" id="loopDemo" viewBox="0 0 1080 1920" role="img" aria-label="弧線歌單頭尾相接示範"></svg></article></div>
 
-    <h2>旋鈕頭尾相接（第 20 版，等你確認）</h2>
+    <h2>旋鈕頭尾相接（第 20 版，用戶 2026-11-26 已確認）</h2>
     <p class="lede">刻度弧照舊（固定一段，♥ 喺最尾）。擰過 ♥ 再擰：跳返第一隻碟，指針由刻度尾跳返刻度頭；由第一隻碟向後擰：跳去 ♥。碟疊跟住頭尾相接：指住 ♥ 時，下一隻滑入嚟嘅係第一隻碟；指住第一隻碟時，前面嗰隻係 ♥。鍵盤左右鍵一樣。（下面兩格係靜止圖；互動格冇得擰旋鈕，所以冇改。）</p>
     <div class="grid" id="knobLoopGrid"></div>
 
-    <h2>播完最後一首（第 20 版）</h2>
+    <h2>播完最後一首（第 20 版，用戶 2026-11-26 已確認）</h2>
     <p class="lede">順序播放播完最後一首（唔係重覆模式）：歌停，唱針返泊位，唱片夾由暫停變返 play。隔 3 秒，左上資訊變返「未揀歌」（歌名嗰部分淡出），歌單欄由右上飄落返出嚟——即係下面「未揀歌嘅主頁」嗰格嘅樣。之後㩒 play = 由第一首播返。3 秒內㩒 play 都係由第一首播。</p>
 
-    <h2>有新版本：版本號變成閃動嘅掣（第 20 版，等你確認）</h2>
+    <h2>有新版本：版本號變成閃動嘅掣（第 20 版，用戶 2026-11-26 已確認）</h2>
     <p class="lede">用緊 app 期間有新版本：唔再出另外一粒「已有新版本／立即更新」提示，改為右上角嘅版本號變成一粒掣（第 4 稿）：透明底、膠囊形框線、橙黃字，純色，一明一暗（冇立體掣、冇光暈）。㩒落去 = 重新載入並更新（播緊嘅歌會停）。唔㩒都得：下次重新開 app 會自動更新。感應範圍 44pt；開咗「減少動態效果」就唔閃，常亮。粒掣永遠喺暗層下面：歌單、歌書、MV 開住時跟住變暗，㩒唔到。下面只影畫面頂部。</p>
     <div class="grid update-grid">
         <article class="card"><h3>主頁（播緊歌）</h3><p>透明底、橙黃框線同字，純色一明一暗</p><svg class="stage demo" id="updateDemoA" viewBox="0 0 1080 560" role="img" aria-label="版本掣：主頁"></svg></article>
@@ -1451,17 +1451,16 @@ svg.demo .version-glow, svg.live .version-glow { animation: versionGlow 1.4s eas
     /* 第 20 版：弧線歌單頭尾相接（用戶 2026-11-26：要 loop，但要明顯睇到頭同尾）。
        最後一首之後係一格「接駁位」：一條專輯色短線；再落就係第一首。接駁位唔揀得，捲動會跳過。
        每首歌同一時間只出現一次：歌少嘅碟，上面顯示嘅行數跟住減少（above = 歌數一半，向下取整） */
-    const LIST_LOOP = { markW: 230, markStroke: 5, dot: 9, labelSize: 24, labelGap: 20, labelSpacing: 4, minOpacity: 0.45 };
+    const LIST_LOOP = { markW: 230, markStroke: 5, dot: 9, gap: 8, minOpacity: 0.45 };
     const mod = (value, size) => ((value % size) + size) % size;
     const loopWindow = (count) => {
         const side = Math.floor(LIST.visible);
         const above = Math.min(side, Math.floor(count / 2));
         return { above, below: Math.min(side, count - above) };
     };
-    const loopSeam = (x, y, accent, label) =>
+    const loopSeam = (x, y, accent) =>
         `<circle cx="${n(x + LIST_LOOP.dot)}" cy="${n(y)}" r="${LIST_LOOP.dot}" fill="${accent}"/>` +
-        `<path d="M${n(x + LIST_LOOP.dot * 2 + 8)} ${n(y)}h${LIST_LOOP.markW}" stroke="${accent}" stroke-width="${LIST_LOOP.markStroke}" stroke-linecap="round"/>` +
-        (label ? `<text x="${n(x + LIST_LOOP.dot * 2 + 8 + LIST_LOOP.markW + LIST_LOOP.labelGap)}" y="${n(y)}" dominant-baseline="central" font-family="${MIXED}" font-size="${LIST_LOOP.labelSize}" fill="${PAPER}" letter-spacing="${LIST_LOOP.labelSpacing}">${esc(label)}</text>` : '');
+        `<path d="M${n(x + LIST_LOOP.dot * 2 + LIST_LOOP.gap)} ${n(y)}h${LIST_LOOP.markW}" stroke="${accent}" stroke-width="${LIST_LOOP.markStroke}" stroke-linecap="round"/>`;
     /** 框入面係邊首（捲緊、或者啱啱喺接駁位時攞最近嗰首） */
     const listRowOf = (st) => {
         const count = st.listCut ?? (TRACKS[st.album] ?? { rows: [] }).rows.length;
@@ -1498,7 +1497,7 @@ svg.demo .version-glow, svg.live .version-glow { animation: versionGlow 1.4s eas
             if (at === rows.length) { // 接駁位：一條專輯色短線，唔揀得（捲動會跳過）
                 const seamOpacity = n(lerp(LIST_LOOP.minOpacity, 1, clamp01(1 - Math.abs(k) / LIST.visible))); // 接駁位要明顯：淡出得比歌名慢
                 const fadeIn = floating ? ` class="list-row-float" style="--dx: 0px; --dy: 0px; --s: 1; --o0: 0; --o1: ${seamOpacity}; --d: ${LIST_FLOAT.frameDelay}ms"` : '';
-                out += `<g data-loop="seam" opacity="${seamOpacity}" pointer-events="none"${fadeIn}>${loopSeam(x, y, accent, st.loopLabel ? ALBUMS[st.album].title : '')}</g>`;
+                out += `<g data-loop="seam" opacity="${seamOpacity}" pointer-events="none"${fadeIn}>${loopSeam(x, y, accent)}</g>`;
                 continue;
             }
             const [title, flag] = rows[at];
@@ -2199,7 +2198,6 @@ svg.demo .version-glow, svg.live .version-glow { animation: versionGlow 1.4s eas
         ['框入面係最後一首', '下面係接駁位（點 + 短線），再落係第 01 首', { album: 'komorebi', song: false, list: true, wheel: 0, listFocus: TRACKS.komorebi.rows.length - 1 }],
         ['框入面係第一首', '上面係接駁位，再上係最尾嗰幾首', { album: 'komorebi', song: false, list: true, wheel: 0, listFocus: 0 }],
         ['歌少嘅碟（3 首）', '每首只出現一次：上面只得接駁位，三首都喺下面', { album: 'juntos', song: false, list: true, wheel: 0, listFocus: 0, listCut: 3 }],
-        ['另一個做法：接駁位加碟名', '短線後面寫碟名，更加明顯係「由頭開始」；要唔要你決定', { album: 'komorebi', song: false, list: true, wheel: 0, listFocus: 0, loopLabel: true }],
     ];
     const KNOB_LOOP_VIEWS = [
         ['指住 ♥（最尾）', '下一隻滑入嚟嘅係第一隻碟；再擰落去指針跳返刻度頭', { album: 'favourites', song: false, booklet: false, wheel: 1, loopStack: true }],
