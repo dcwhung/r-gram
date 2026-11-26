@@ -344,6 +344,22 @@ describe('PUT /api/tracks/:id/text: only the song text file of the track is writ
         expect(puts).toEqual([]);
     });
 
+    // S-184（review probe P6）
+    it('should answer 409 FOLDER_MISMATCH when the stored folder belongs to another album', async () => {
+        await putMedia('01 下一位參賽者.m4a', 'a', 'album-12-other');
+        await env.DB.prepare("UPDATE albums SET folder = 'album-12-other'").run();
+        const { puts, bindings } = recordedMedia();
+        const { status, body } = await putText(
+            'komorebi-01',
+            { text: SONG, etag: null },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('FOLDER_MISMATCH');
+        expect(puts).toEqual([]);
+    });
+
     it('should not write when two song text files have the number', async () => {
         await putMedia('01 a.txt', 'a');
         await putMedia('01 b.txt', 'b');

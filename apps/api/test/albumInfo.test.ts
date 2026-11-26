@@ -236,6 +236,22 @@ describe('PUT /api/albums/:id/info: checks before writing', () => {
         expect(await env.MEDIA.head(INFO_KEY)).toBeNull();
     });
 
+    // S-184（review probe P6）：D1 嘅資料夾被人手改成另一張碟嘅資料夾 → 409，乜都唔寫
+    it('should answer 409 FOLDER_MISMATCH when the stored folder belongs to another album', async () => {
+        await putMedia('01 a.m4a', 'a', 'album-12-other');
+        await env.DB.prepare("UPDATE albums SET folder = 'album-12-other'").run();
+        const { puts, bindings } = recordedMedia();
+        const { status, body } = await putInfo(
+            { text: '唱片名稱：K', etag: null },
+            ALBUM_ID,
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error).toMatchObject({ code: 'FOLDER_MISMATCH', message: expect.any(String) });
+        expect(puts).toEqual([]);
+        expect(await env.MEDIA.head('album-12-other/info.txt')).toBeNull();
+    });
+
     it('should never delete anything in the media bucket', async () => {
         const { calls, bindings } = recordedMedia();
         await putInfo({ text: '唱片名稱：K', etag: await etagOf() }, ALBUM_ID, bindings);
