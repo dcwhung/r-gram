@@ -51,6 +51,7 @@ export const HomeScene = ({
                     measure={measure}
                     onReturnToLoaded={focusSpindleAfter(handlers.onReturnToLoaded)}
                     listHandlers={listHandlers}
+                    onFavourite={handlers.onFavourite}
                     update={update}
                 />
             }

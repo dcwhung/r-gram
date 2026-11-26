@@ -2,7 +2,7 @@ import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { act, renderHook } from '@testing-library/react';
 import { memoryStorage, sampleDocument } from '../catalog/testing/catalogFixtures';
 import { FAVOURITES_STORAGE_KEY } from '../config/storageKeys';
-import { createFavouritesStore, type FavouritesStore } from '../favourites/store';
+import { createFavouritesStore } from '../favourites/store';
 import { t } from '../i18n/t';
 import { createTestPlayback } from '../playback/testing/testPlayback';
 import { useHome } from './useHome';

@@ -23,6 +23,7 @@ const renderInfo = (props: Partial<Parameters<typeof InfoBlock>[0]> = {}) => {
                 accent="#d7263d"
                 glow={GLOW}
                 measure={estimateTextWidth}
+                hitSize={hitSizeUnits(PHONE_LAYOUT)}
                 onFavourite={onFavourite}
                 {...props}
             />
@@ -70,8 +71,15 @@ describe('InfoBlock heart', () => {
         const { part } = renderInfo();
         const hit = part('heart-hit');
         const size = hitSizeUnits(PHONE_LAYOUT);
-        expect(Number(hit?.getAttribute('width'))).toBeCloseTo(size);
-        expect(Number(hit?.getAttribute('height'))).toBeCloseTo(size);
+        const width = Number(hit?.getAttribute('width'));
+        expect(width).toBeGreaterThanOrEqual(size);
+        expect(Number(hit?.getAttribute('height'))).toBe(width);
+        const heart = part('heart-outline')?.querySelector('[data-part="icon"]');
+        const centre = /translate\(([\d.]+) ([\d.]+)\)/.exec(
+            heart?.getAttribute('transform') ?? '',
+        );
+        expect(Number(hit?.getAttribute('x')) + width / 2).toBeCloseTo(Number(centre?.[1]), 0);
+        expect(Number(hit?.getAttribute('y')) + width / 2).toBeCloseTo(Number(centre?.[2]), 0);
     });
 
     it('should not be a button while the song part is faded out', () => {

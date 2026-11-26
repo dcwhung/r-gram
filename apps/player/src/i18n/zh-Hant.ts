@@ -71,6 +71,8 @@ export const zhHant = {
         go: '前往「我的收藏」',
         add: '收藏這首歌',
         remove: '取消收藏這首歌',
+        /** Favourites 碟嘅歌原本嗰隻碟（D19；設計稿 TRACKS.favourites：碟名 · 年份；冇年份就淨係碟名） */
+        origin: '{album} · {year}',
     },
     booklet: {
         open: '歌書：歌詞及創作人員',

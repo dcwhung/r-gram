@@ -56,10 +56,18 @@ export interface InfoLayout {
         lift: number;
         levels: readonly number[];
     };
-    /** 歌名後面嘅心形：離歌名尾幾遠（到心形中心）、大細、中心比基線高幾多（× 歌名字級）、空心線粗（icon 格單位） */
-    heart: { gap: number; size: number; rise: number; stroke: number };
+    /**
+     * 歌名後面嘅心形掣（T-070）：離歌名尾幾遠（到心形中心）、大細、中心比基線高幾多（× 歌名字級）、
+     * 空心線粗（icon 格單位）、已收藏時光暈嘅透明度
+     */
+    heart: { gap: number; size: number; rise: number; stroke: number; haloOpacity: number };
     /** 「第 nn 首 · m:ss」 */
     track: TextLine;
+    /**
+     * Favourites 碟嘅歌原本嗰隻碟（D19；設計稿 infoParts() 嘅 `from`）：歌單開住喺 `y`（「第 nn 首」行嘅位置）；
+     * 播緊時喺「第 nn 首」行下面 `belowTrack`
+     */
+    origin: TextLine & { belowTrack: number };
     /** 歌單開住時框入面嗰首嘅歌號（專輯色 slab）：x、字級、喺歌名第一行基線上面幾多 */
     listNumber: { x: number; size: number; lift: number };
     /** 右上版本號（靠右對齊：x 係右邊） */

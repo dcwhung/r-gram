@@ -20,6 +20,7 @@ const handlers = {
     onTurnCancel: vi.fn(),
     onFavourites: vi.fn(),
     onReturnToLoaded: vi.fn(),
+    onFavourite: vi.fn(),
     onOpenList: vi.fn(),
     onFocusListTrack: vi.fn(),
     onPlayListTrack: vi.fn(),

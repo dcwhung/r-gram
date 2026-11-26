@@ -4,16 +4,23 @@ import { t } from '../../i18n/t';
 import type { InfoLayout } from '../../stage/layouts';
 import { padTrackNumber } from '../../utils/formatTime';
 import type { TextMeasure } from '../../utils/textMeasure';
-import { Icon } from '../icons/Icon';
 import { px } from '../svgNumber';
+import { FavouriteHeart } from './FavouriteHeart';
 import { fitSongTitle, type SongFit } from './songFit';
+import { SongOrigin } from './SongOrigin';
 
 interface SongLinesProps {
     info: InfoLayout;
     track: CatalogTrack;
     timeText: string;
     accent: string;
+    glow: string;
     measure: TextMeasure;
+    hitSize: number;
+    songHidden?: boolean;
+    favourite?: boolean;
+    onFavourite?: () => void;
+    origin?: string | null;
 }
 
 /** 歌名前面三條專輯色棒（設計稿 info()）：跟歌名第一行 */
@@ -39,22 +46,6 @@ const Bars = ({ info, accent, top }: Pick<SongLinesProps, 'info' | 'accent'> & {
     );
 };
 
-/**
- * 歌名後面嘅心形：而家係佔位（未收藏嘅空心樣、唔可以㩒）。收藏同心形掣係 T-070，到時改做掣。
- * 讀屏唔讀（未有功能）。
- */
-const HeartPlaceholder = ({ info, at }: { info: InfoLayout; at: SongFit['heart'] }) => (
-    <g
-        data-part="song-heart"
-        aria-hidden="true"
-        className="info-heart"
-        strokeWidth={info.heart.stroke}
-        strokeLinejoin="round"
-    >
-        <Icon name="heart" cx={at.x} cy={at.y} size={info.heart.size} color="none" />
-    </g>
-);
-
 /** 歌名（一行或者兩行；歌單開住時亦用，T-037） */
 export const SongTitle = ({ x, fit, title }: { x: number; fit: SongFit; title: string }) => (
     <text
@@ -72,8 +63,12 @@ export const SongTitle = ({ x, fit, title }: { x: number; fit: SongFit; title: s
     </text>
 );
 
-/** 歌名（縮字 → 兩行 → 「…」，FR-036、D51）、心形、「第 nn 首 · m:ss」 */
-export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesProps) => {
+/**
+ * 歌名（縮字 → 兩行 → 「…」，FR-036、D51）、心形掣（US-010）、「第 nn 首 · m:ss」；
+ * Favourites 碟加一行原本嗰隻碟（D19）
+ */
+export const SongLines = (props: SongLinesProps) => {
+    const { info, track, timeText, accent, measure, origin = null } = props;
     const { song, track: line } = info;
     // 只喺歌名、版面或者量字函數（字體載入完）變先重新 fit：播放進度每秒更新都唔使重新量（backlog B-056 ①）
     const fit = useMemo(
@@ -84,7 +79,15 @@ export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesP
         <>
             <Bars info={info} accent={accent} top={fit.top} />
             <SongTitle x={song.x} fit={fit} title={track.title} />
-            <HeartPlaceholder info={info} at={fit.heart} />
+            <FavouriteHeart
+                info={info}
+                at={fit.heart}
+                hitSize={props.hitSize}
+                favourite={props.favourite ?? false}
+                glow={props.glow}
+                hidden={props.songHidden ?? false}
+                onPress={props.onFavourite}
+            />
             <text
                 data-part="track-line"
                 className="info-track"
@@ -95,6 +98,7 @@ export const SongLines = ({ info, track, timeText, accent, measure }: SongLinesP
             >
                 {t('track.position', { no: padTrackNumber(track.no), time: timeText })}
             </text>
+            {origin && <SongOrigin info={info} text={origin} y={line.y + info.origin.belowTrack} />}
         </>
     );
 };

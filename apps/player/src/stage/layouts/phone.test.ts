@@ -94,7 +94,15 @@ describe('PHONE_LAYOUT', () => {
             levels: [0.72, 1, 0.5],
         });
         // 第 18 版 SONG_FIT：heart 71 = 心形中心離歌名尾 46 + 半個心形 25；heartRise 0.364 × 字級
-        expect(info.heart).toEqual({ gap: 46, size: 50, rise: 0.364, stroke: 2.6 });
+        expect(info.heart).toEqual({
+            gap: 46,
+            size: 50,
+            rise: 0.364,
+            stroke: 2.6,
+            haloOpacity: 0.55,
+        });
+        // 設計稿 infoParts()：Favourites 碟原本嗰隻碟（from）；播緊時喺「第 nn 首」行下面（T-070）
+        expect(info.origin).toEqual({ x: 74, y: 368, size: 22, spacing: 2, belowTrack: 36 });
         expect(info.track).toEqual({ x: 74, y: 368, size: 22, spacing: 3 });
         expect(info.version).toEqual({ x: 1008, y: 118, size: 22, spacing: 3 });
     });
