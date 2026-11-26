@@ -119,11 +119,13 @@ export interface MiniTurntableLayout extends Point {
 }
 
 /**
- * 拎住嘅碟嘅歌單欄（設計稿第 18 版 TRACKLIST、trackPanel()、listScrim()；T-049）：
- * 一欄靠左對齊，由 `x` 起、字最遠去到 `right`；欄頂 `top`，欄底旋鈕開住時 `bottomOpen`、鬆手之後 `bottomHeld`
+ * 碟名下面嘅歌單欄（設計稿第 19 版 TRACKLIST、trackPanel()、listScrim()、PANEL_FLOAT；T-049、B-086）：
+ * 一欄靠左對齊，由 `x` 起、字最遠去到 `right`；欄頂 `top`，欄底字母盤開住時 `bottomOpen`、鬆手之後 `bottomIdle`
+ *（讓位畀三粒細掣）
  *（呢兩個係設計高度嘅值，高身手機跟貼底組向下移）。字級 `size`、行距 `pitch`；歌號字級 = size × `number.scale`，
  * 歌名喺 x + `number.width`。頂底淡出高 `fade`；位置條（左邊）闊 `bar.width`、x `bar.x`、最短 `bar.minLength`。
- * 一行嘅感應範圍由 0 伸到 right + `rowReach`。半透明層（舞台底色）：由左邊 `scrim.opacity`（到 `scrim.solid`）
+ * 一行嘅透明範圍由 0 伸到 right + `rowReach`（唔係掣，擋住下面嘅碟面）。出現時每行由 (`entrance.dx`, `entrance.dy`)
+ * 飄落自己嘅位置。半透明層（舞台底色）：由左邊 `scrim.opacity`（到 `scrim.solid`）
  * 直線淡到 `scrim.end` 嘅 0。拖動要過 `dragThresholdPx`（CSS px，唔係設計單位）先當拖，拖過唔當㩒
  */
 export interface HeldTracksLayout {
@@ -131,7 +133,7 @@ export interface HeldTracksLayout {
     right: number;
     top: number;
     bottomOpen: number;
-    bottomHeld: number;
+    bottomIdle: number;
     size: number;
     pitch: number;
     number: { scale: number; width: number };
@@ -140,6 +142,7 @@ export interface HeldTracksLayout {
     rowReach: number;
     scrim: { solid: number; end: number; opacity: number };
     dragThresholdPx: number;
+    entrance: { dx: number; dy: number };
 }
 
 /**

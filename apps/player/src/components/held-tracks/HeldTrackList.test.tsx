@@ -1,5 +1,6 @@
-import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import type { HeldTrackRow, TrackColumnView } from '../../app/heldTracksView';
+import { MOTION } from '../../config/motion';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { estimateTextWidth, type TextMeasure } from '../../utils/textMeasure';
 import { HeldTrackList } from './HeldTrackList';
@@ -306,6 +307,7 @@ describe('HeldTrackList motion', () => {
     });
 
     it('should fade out the rows given up when the dial is released', () => {
+        vi.useFakeTimers();
         const { container, rerender } = render(listOf(held(LONG, { dialOpen: true })));
         rerender(listOf(held(LONG)));
         const ghosts = container.querySelector('[data-part="held-ghosts"]');
@@ -317,8 +319,9 @@ describe('HeldTrackList motion', () => {
         );
         expect(ys.length).toBeGreaterThan(0);
         expect(ys.every((y) => y > bottomIdle - fade && y <= bottomOpen)).toBe(true);
-        if (ghosts) fireEvent.animationEnd(ghosts);
+        act(() => vi.advanceTimersByTime(MOTION.scene.chromeFadeMs));
         expect(container.querySelector('[data-part="held-ghosts"]')).toBeNull();
+        vi.useRealTimers();
     });
 
     it('should not fade anything out on release when motion is reduced', () => {

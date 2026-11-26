@@ -34,6 +34,11 @@ export const MOTION = {
          *（設計稿第 18 版 SWAP_FADE_MS；Functional Spec D52）
          */
         chromeFadeMs: 320,
+        /** 歌單欄出現（字母盤開住）：每行由右上飄落兼淡入（設計稿第 19 版 PANEL_FLOAT.duration） */
+        columnRowInMs: 460,
+        /** 每行遲幾耐出發（行多就縮短：成欄攤開唔超過 columnRowSpreadMs） */
+        columnRowStaggerMs: 60,
+        columnRowSpreadMs: 560,
         /** 碟轉一圈 */
         discRotationMs: 5400,
         /** 唱臂轉入碟上面 / 返泊位（由泊位開始播嘅第一段：升高住轉入） */
@@ -69,5 +74,7 @@ export const MOTION = {
     input: {
         /** 㩒住旋鈕幾耐先開字母盤（S-152：輕點唔開，免得開咗即刻收、閃一下） */
         dialHoldMs: 180,
+        /** 快擰途中唔顯示歌單欄：旋鈕停喺一隻碟幾耐先出（設計稿第 19 版 PANEL_FLOAT.settle；B-086 ④） */
+        columnSettleMs: 140,
     },
 } as const;

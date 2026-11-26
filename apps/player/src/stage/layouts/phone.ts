@@ -48,7 +48,7 @@ const HELD_TRACKS = {
     right: 600,
     top: 330,
     bottomOpen: 1470,
-    bottomHeld: 1650,
+    bottomIdle: 1290,
     size: 28,
     pitch: 66,
     number: { scale: 0.72, width: 56 },
@@ -57,6 +57,7 @@ const HELD_TRACKS = {
     rowReach: 20,
     scrim: { solid: 0, end: DESIGN_WIDTH, opacity: 0.62 },
     dragThresholdPx: 6,
+    entrance: { dx: 170, dy: -62 },
 } as const;
 
 /*

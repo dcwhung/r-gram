@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { type CSSProperties, memo } from 'react';
 import type { TrackColumnView } from '../../app/heldTracksView';
 import { t } from '../../i18n/t';
 import { heldRowHitRight } from '../../stage/geometry';
@@ -7,10 +7,12 @@ import type { TextMeasure } from '../../utils/textMeasure';
 import { useSvgId } from '../svgId';
 import { px } from '../svgNumber';
 import { clipRef, ColumnEdges, fadeRef } from './ColumnEdges';
+import { ColumnGhosts } from './ColumnGhosts';
 import { rowCentre } from './columnLayout';
 import { HeldTrackRow } from './HeldTrackRow';
 import './heldTracks.css';
 import { ScrollBar } from './ScrollBar';
+import { useColumnMotion } from './useColumnMotion';
 import { useHeldScroll } from './useHeldScroll';
 import { useShownTitles } from './useShownTitles';
 
@@ -56,13 +58,16 @@ const ColumnFrame = ({ layout, room }: { layout: StageLayout; room: number }) =>
     />
 );
 
-type RowsProps = Pick<HeldTrackListProps, 'layout' | 'held'> & { shown: readonly string[] };
+type RowsProps = Pick<HeldTrackListProps, 'layout' | 'held'> & {
+    shown: readonly string[];
+    enterDelays: readonly (number | null)[] | null;
+};
 
 /**
  * 全部行（欄外嘅都 render，讀屏讀得到成張歌單），以未捲嘅位置畫；捲動係外面一層 transform。
  * memo：捲動唔使 render 任何一行，亦唔使重新截短歌名（review W-043）
  */
-const Rows = memo(function Rows({ layout, held, shown }: RowsProps) {
+const Rows = memo(function Rows({ layout, held, shown, enterDelays }: RowsProps) {
     const { top, pitch } = layout.heldTracks;
     return held.rows.map((row, index) => (
         <HeldTrackRow
@@ -72,25 +77,38 @@ const Rows = memo(function Rows({ layout, held, shown }: RowsProps) {
             y={top + rowCentre(index, pitch, 0)}
             accent={held.accent}
             shown={shown[index] ?? row.title}
+            enterDelayMs={enterDelays?.[index] ?? null}
         />
     ));
 });
 
+/** 飄落嘅起點（CSS 變數，設計單位 = SVG 入面嘅 px） */
+const entranceStyle = ({ heldTracks }: StageLayout) =>
+    ({
+        '--enter-dx': `${heldTracks.entrance.dx}px`,
+        '--enter-dy': `${heldTracks.entrance.dy}px`,
+    }) as CSSProperties;
+
 /**
  * 歌單欄（設計稿第 19 版 TRACKLIST、trackPanel()；backlog B-086）：碟名下面一欄黑字，冇黑色層。純睇：
  * 行唔㩒得、唔入 Tab 次序；歌多就喺欄入面捲（拖動、滾輪、欄本身攞到 focus 時用鍵盤），頂底淡出、左邊位置條。
- * 以碟做 key render（換碟捲動歸零）。欄底跟貼底組：高身手機向下伸。
+ * 以碟做 key render（換碟捲動歸零）。欄底跟貼底組：高身手機向下伸。字母盤開住時出現 = 逐行飄落；
+ * 鬆手 = 欄底縮短，讓出嚟嘅行淡出（useColumnMotion）。
  */
 export const HeldTrackList = ({ layout, held, albumTitle, measure }: HeldTrackListProps) => {
     const { top, fade } = layout.heldTracks;
     const { room, metrics, listRef, handlers } = useHeldScroll(layout, held);
     const shown = useShownTitles(held.rows, layout, measure);
+    const motion = useColumnMotion(layout, held, room, metrics.scroll);
     // 歌多過欄高先有嘢捲：欄先入 Tab 次序（S-177）、先有 focus 外框（S-179）
     const focusable = metrics.maxScroll > 0;
     const id = useSvgId('held-tracks');
     if (held.rows.length === 0) return <EmptyText layout={layout} text={held.emptyText} />;
     return (
-        <g data-part="held-tracks" className="held-tracks">
+        <g data-part="held-tracks" className="held-tracks" style={entranceStyle(layout)}>
+            {motion.ghosts && (
+                <ColumnGhosts layout={layout} held={held} {...motion.ghosts} shown={shown} />
+            )}
             <ColumnEdges id={id} top={top} room={room} fade={fade} metrics={metrics} />
             <g
                 ref={listRef}
@@ -105,7 +123,12 @@ export const HeldTrackList = ({ layout, held, albumTitle, measure }: HeldTrackLi
             >
                 <g mask={fadeRef(id)}>
                     <g data-part="held-scroll" transform={`translate(0 ${px(-metrics.scroll)})`}>
-                        <Rows layout={layout} held={held} shown={shown} />
+                        <Rows
+                            layout={layout}
+                            held={held}
+                            shown={shown}
+                            enterDelays={motion.enterDelays}
+                        />
                     </g>
                 </g>
             </g>

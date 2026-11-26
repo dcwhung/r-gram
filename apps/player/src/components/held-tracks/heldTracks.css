@@ -53,3 +53,38 @@
 .held-tracks:has(.held-list:focus-visible) .held-bar-track {
     fill: var(--color-info-faint);
 }
+
+/*
+ * 過場（設計稿第 19 版 PANEL_FLOAT、panel-row-in、panel-ghost-out；backlog B-086 ④⑤）：
+ * 字母盤開住時欄出現 = 每行由右上（--enter-dx、--enter-dy）飄落兼淡入，delay 由元件逐行畀；
+ * 鬆手 = 讓出嚟嘅行淡出（同三粒細掣淡入一樣用 chrome-fade）。減少動態效果：即時出現，冇淡出嘅行
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .held-row-in {
+        animation: held-row-in var(--motion-scene-column-row-in) cubic-bezier(0.22, 0.75, 0.25, 1)
+            var(--enter-delay) both;
+    }
+
+    .held-ghosts {
+        animation: held-ghost-out var(--motion-scene-chrome-fade) ease both;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .held-ghosts {
+        display: none;
+    }
+}
+
+@keyframes held-row-in {
+    from {
+        transform: translate(var(--enter-dx), var(--enter-dy));
+        opacity: 0;
+    }
+}
+
+@keyframes held-ghost-out {
+    to {
+        opacity: 0;
+    }
+}

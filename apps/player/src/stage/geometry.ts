@@ -162,16 +162,16 @@ export const miniHitBox = ({ miniTurntable: mini }: StageLayout) => ({
 });
 
 /**
- * 拎住嘅碟嘅歌單欄欄底（T-049）：旋鈕開住時較高（避開字母盤），鬆手之後較低。
+ * 歌單欄欄底（B-086 ⑤）：字母盤開住到旋鈕上面（bottomOpen）；鬆手之後縮短，讓位畀三粒細掣（bottomIdle）。
  * 欄底要避開嘅嘢貼底，所以高身手機加返 extraUnits（欄頂貼頂唔郁）
  */
 export const heldColumnBottom = (
     { heldTracks }: StageLayout,
     dialOpen: boolean,
     extraUnits = 0,
-): number => (dialOpen ? heldTracks.bottomOpen : heldTracks.bottomHeld) + extraUnits;
+): number => (dialOpen ? heldTracks.bottomOpen : heldTracks.bottomIdle) + extraUnits;
 
-/** 歌單欄一行嘅感應範圍右邊（由畫面左邊起成行都㩒得，D57） */
+/** 歌單欄一行嘅透明範圍右邊（由畫面左邊起；唔係掣，擋住下面嘅碟面，B-086 ①） */
 export const heldRowHitRight = ({ heldTracks }: StageLayout): number =>
     heldTracks.right + heldTracks.rowReach;
 

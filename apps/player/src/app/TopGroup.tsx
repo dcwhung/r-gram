@@ -8,6 +8,7 @@ import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
 import type { HomeView } from './homeView';
 import { type HomeHandlers, isLowerHalf } from './Turntable';
+import { useSettledColumn } from './useSettledColumn';
 
 interface TopGroupProps {
     layout: StageLayout;
@@ -40,8 +41,32 @@ const ArcList = ({
     );
 
 /**
- * 主頁貼頂組（FR-039；設計稿第 18 版 scene() 次序）：頂部螺絲 → 弧線歌單（T-037：暗層蓋住唱片機同螺絲）→
- * 右上角細唱片機（T-048）→ 碟名下面拎住嘅碟嘅歌單欄（T-049）→ 左上資訊 → 右上版本號
+ * 碟名下面嘅歌單欄（B-086）：快擰途中唔 render，停定先出（useSettledColumn）；以碟做 key（換碟 = 新嘅捲動、
+ * 新嘅飄落）
+ */
+const TrackColumn = ({
+    layout,
+    view,
+    measure,
+}: Pick<TopGroupProps, 'layout' | 'view' | 'measure'>) => {
+    const disc = view.dial.entries[view.dial.current];
+    const column = useSettledColumn(view.trackColumn, disc?.albumId ?? null);
+    return (
+        column && (
+            <HeldTrackList
+                key={column.albumId}
+                layout={layout}
+                held={column}
+                albumTitle={disc?.title ?? ''}
+                measure={measure}
+            />
+        )
+    );
+};
+
+/**
+ * 主頁貼頂組（FR-039；設計稿第 19 版 scene() 次序）：頂部螺絲 → 弧線歌單（T-037：暗層蓋住唱片機同螺絲）→
+ * 右上角細唱片機（T-048）→ 碟名下面嘅歌單欄（B-086；喺泊位嘅唱臂上面）→ 左上資訊 → 右上版本號
  */
 export const TopGroup = ({
     layout,
@@ -63,15 +88,7 @@ export const TopGroup = ({
                 onPress={onReturnToLoaded}
             />
         )}
-        {view.trackColumn && (
-            <HeldTrackList
-                key={view.trackColumn.albumId}
-                layout={layout}
-                held={view.trackColumn}
-                albumTitle={view.dial.entries[view.dial.current]?.title ?? ''}
-                measure={measure}
-            />
-        )}
+        <TrackColumn layout={layout} view={view} measure={measure} />
         <InfoBlock
             info={layout.info}
             album={view.album}
