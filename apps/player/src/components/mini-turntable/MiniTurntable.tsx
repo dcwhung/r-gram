@@ -59,8 +59,8 @@ const Machine = ({ layout, mini }: MachineProps) => {
 type CaptionProps = MachineProps & Pick<MiniTurntableProps, 'measure'>;
 
 /**
- * 兩行字靠右對齊喺碟左邊：「播放中」／「已暫停」，下面係歌名。歌名只用歌單行右邊之後嘅位（W-045），
- * 放唔落就縮字，再唔得先「…」；完整歌名喺掣嘅無障礙名
+ * 兩行字靠右對齊喺碟左邊、歌單第一行上面：「播放中」／「已暫停」，下面係歌名。歌名向左用到 `title.left`
+ *（W-045，B-083 ④），放唔落就縮字，再唔得先「…」；完整歌名喺掣嘅無障礙名
  */
 const Caption = ({ layout, mini, measure }: CaptionProps) => {
     const { miniTurntable: shape } = layout;
@@ -79,7 +79,7 @@ const Caption = ({ layout, mini, measure }: CaptionProps) => {
                 data-part="mini-label"
                 className="mini-label"
                 x={x}
-                y={shape.y - shape.label.rise}
+                y={shape.y + shape.label.dy}
                 textAnchor="end"
                 fontSize={shape.label.size}
                 letterSpacing={shape.label.spacing}
@@ -90,7 +90,7 @@ const Caption = ({ layout, mini, measure }: CaptionProps) => {
                 data-part="mini-title"
                 className="mini-title"
                 x={x}
-                y={shape.y + shape.title.drop}
+                y={shape.y + shape.title.dy}
                 textAnchor="end"
                 fontSize={fitted.size}
             >
