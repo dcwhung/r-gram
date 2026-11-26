@@ -170,6 +170,46 @@ describe('useHome un-favouriting the song playing from the Favourites disc', () 
     });
 });
 
+/* W-067：喺其他分頁（store 直接改，冇經呢個畫面嘅心形掣）取消收藏播緊嘅歌：一樣播完先消失 */
+describe('useHome un-favouriting the playing song from another tab', () => {
+    const playingSecond = () => {
+        const home = mount(['apollo-18-01', 'room-01', 'apollo-18-03']);
+        toFavourites(home);
+        act(() => home.handlers()?.onSpindle());
+        act(() => home.controller.next());
+        act(() => home.store.remove('room-01'));
+        return home;
+    };
+
+    it('should keep the song, its title and the heart (off) at the top left while it plays', () => {
+        const home = playingSecond();
+        expect(home.result.current.playback).toMatchObject({
+            status: 'playing',
+            trackId: 'room-01',
+        });
+        expect(home.view()?.track?.id).toBe('room-01');
+        expect(home.view()?.favourite).toBe(false);
+        expect(listRows(home)).toEqual(['apollo-18-01', 'room-01', 'apollo-18-03']);
+    });
+
+    it('should go on to the following favourite, not back to the first one', () => {
+        const home = playingSecond();
+        act(() => home.controller.next());
+        expect(home.result.current.playback.trackId).toBe('apollo-18-03');
+        expect(listRows(home)).toEqual(['apollo-18-01', 'apollo-18-03']);
+    });
+
+    it('should put it back in its place when favourited again here while it plays', () => {
+        const home = playingSecond();
+        act(() => home.handlers()?.onFavourite());
+        expect(home.store.getSnapshot().map((entry) => entry.trackId)).toEqual([
+            'apollo-18-01',
+            'room-01',
+            'apollo-18-03',
+        ]);
+    });
+});
+
 /* T-070：Favourites 碟播緊時收藏有變：隊列跟住（自動下一首跨碟） */
 describe('useHome queue of the Favourites disc', () => {
     it('should go on across albums and into a song favourited while the disc plays', () => {
