@@ -124,7 +124,8 @@ const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose)
         holding,
         armHidden,
         buttonsHidden: dialOpen,
-        songHidden: armHidden,
+        // 弧線歌單開住：左上係框入面嗰首（設計稿 songFade = list ? 1）
+        songHidden: armHidden && stage.scene !== 'list',
         spinning: pose === 'playing' && !armHidden,
     };
 };

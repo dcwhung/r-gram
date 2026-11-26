@@ -29,6 +29,8 @@ interface MiniTurntableProps {
     measure: TextMeasure;
     /** 㩒：放低拎住嘅碟，返去載入嘅碟 */
     onPress: () => void;
+    /** 弧線歌單嘅暗層蓋住（照畫）：㩒唔到、Tab 唔到、讀屏唔讀 */
+    covered?: boolean;
 }
 
 type MachineProps = Pick<MiniTurntableProps, 'layout' | 'mini'>;
@@ -111,14 +113,17 @@ const Caption = ({ layout, mini, measure }: CaptionProps) => {
  * 右上角細唱片機（設計稿第 18 版 miniTurntable()；Functional Spec FR-043、D58）：拎住另一隻碟時照播載入嘅碟。
  * 成組（連兩行字）係一粒掣，㩒 = 返去載入嘅碟。唔顯示時淡出（chromeFade），唔接受 pointer、唔入 Tab 次序。
  */
-export const MiniTurntable = ({ layout, mini, measure, onPress }: MiniTurntableProps) => {
+export const MiniTurntable = (props: MiniTurntableProps) => {
+    const { layout, mini, measure, onPress, covered = false } = props;
     const box = miniHitBox(layout);
+    const active = mini.shown && !covered;
     return (
         <ChromeFade part="mini-turntable" hidden={!mini.shown}>
             <g
                 data-part="mini-button"
                 aria-label={t(captionKeys(mini).back, { title: mini.title })}
-                {...pressable(onPress, !mini.shown, mini.shown)}
+                aria-hidden={covered || undefined}
+                {...pressable(onPress, !active, active)}
             >
                 <rect
                     data-part="mini-hit"

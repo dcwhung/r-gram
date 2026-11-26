@@ -119,9 +119,13 @@ const cancelDiscChange: Handler<'cancelDiscChange'> = (state) =>
         ? { ...state, ...state.discChangeFrom, scene: 'home', discChangeFrom: null }
         : state;
 
-/** 字母盤開住都收埋；換碟跟 viewAlbum（記低拎住嗰隻碟，♥ 返得去）。電視開住時唔會拎住碟 */
+/**
+ * 字母盤開住都收埋；換碟跟 viewAlbum（記低拎住嗰隻碟，♥ 返得去）。電視開住時唔會拎住碟；
+ * 弧線歌單開住時細唱片機喺暗層下面，㩒唔到
+ */
 const returnToLoaded: Handler<'returnToLoaded'> = (state, { loadedAlbumId }) => {
-    if (!loadedAlbumId || isMvShowing(state) || !isHolding(state, loadedAlbumId)) return state;
+    const away = loadedAlbumId && state.scene !== 'list' && isHolding(state, loadedAlbumId);
+    if (!loadedAlbumId || isMvShowing(state) || !away) return state;
     return {
         ...viewAlbum(state, loadedAlbumId),
         scene: 'home',
