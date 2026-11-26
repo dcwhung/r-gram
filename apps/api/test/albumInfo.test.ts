@@ -71,7 +71,7 @@ describe('GET /api/albums/:id/info', () => {
 
     it('should say when the file is not UTF-8 or too large', async () => {
         await putMedia('info.txt', new Uint8Array([0x41, 0xff]));
-        expect((await getInfo()).body).toMatchObject({ text: 'A�', problem: 'BAD_ENCODING' });
+        expect((await getInfo()).body).toMatchObject({ text: 'A\uFFFD', problem: 'BAD_ENCODING' });
         await putMedia('info.txt', 'x'.repeat(INFO_TEXT_MAX_BYTES + 1));
         expect((await getInfo()).body).toMatchObject({ text: null, problem: 'TOO_LARGE' });
     });
@@ -122,7 +122,7 @@ describe('PUT /api/albums/:id/info: saving', () => {
     });
 
     it('should store UTF-8 without BOM and with LF only', async () => {
-        await putInfo({ text: '﻿唱片名稱：K\r\n1. 甲\r\n', etag: await etagOf() });
+        await putInfo({ text: '\uFEFF唱片名稱：K\r\n1. 甲\r\n', etag: await etagOf() });
         expect(await mediaText()).toBe('唱片名稱：K\n1. 甲\n');
     });
 

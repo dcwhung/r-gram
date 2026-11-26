@@ -53,7 +53,7 @@ describe('isWritableTextKey', () => {
 
 describe('normalizeText', () => {
     it('should drop the BOM and turn CRLF and CR into LF, and change nothing else', () => {
-        expect(normalizeText('﻿甲\r\n乙\r丙\n  丁 \t')).toBe('甲\n乙\n丙\n  丁 \t');
+        expect(normalizeText('\uFEFF甲\r\n乙\r丙\n  丁 \t')).toBe('甲\n乙\n丙\n  丁 \t');
     });
 });
 
@@ -79,7 +79,7 @@ describe('putMediaText', () => {
     });
 
     it('should write the text as UTF-8 without BOM and with LF', async () => {
-        await putMediaText(env.MEDIA, text(KEY), '﻿甲\r\n乙', null);
+        await putMediaText(env.MEDIA, text(KEY), '\uFEFF甲\r\n乙', null);
         const bytes = new Uint8Array((await (await env.MEDIA.get(KEY))?.arrayBuffer()) ?? []);
         expect([...bytes]).toEqual([...new TextEncoder().encode('甲\n乙')]);
     });

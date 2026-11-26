@@ -17,7 +17,7 @@ export type MediaTextTarget =
 export const MEDIA_ETAG = /^"[0-9A-Za-z-]{1,128}"$/;
 const QUOTES = /^"|"$/g;
 const TEXT_CONTENT_TYPE = 'text/plain; charset=utf-8';
-const BOM = '﻿';
+const BOM = '\uFEFF';
 const LINE_BREAKS = /\r\n?/g;
 
 const matchesKind = (target: MediaTextTarget): boolean => {

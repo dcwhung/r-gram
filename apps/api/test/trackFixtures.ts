@@ -1,17 +1,10 @@
 /* 歌曲 API test 共用：D1 / R2 讀取、常用請求 */
+import { formatAlbumInfo } from '@r-gram/catalog';
 import { env } from 'cloudflare:test';
-import { NOW, api, insertAlbum, insertTrack, json } from './albumFixtures';
+import { api, insertAlbum, insertTrack } from './albumFixtures';
 
 export const LYRICS_PREFIX = 'catalog/v1/lyrics/';
 export const LYRICS_NAME = /^[0-9a-f]{16}\.json$/;
-
-export interface ErrorBody {
-    error: {
-        code: string;
-        message: string;
-        details?: Record<string, unknown>[];
-    };
-}
 
 export const trackRow = (id: string) =>
     env.DB.prepare('SELECT * FROM tracks WHERE id = ?').bind(id).first<Record<string, unknown>>();
@@ -20,13 +13,6 @@ export const lyricsRow = (trackId: string) =>
     env.DB.prepare('SELECT * FROM lyrics WHERE track_id = ?')
         .bind(trackId)
         .first<Record<string, unknown>>();
-
-export const numbersOf = async (albumId: string) =>
-    (
-        await env.DB.prepare('SELECT id, "no" FROM tracks WHERE album_id = ? ORDER BY "no"')
-            .bind(albumId)
-            .all<{ id: string; no: number }>()
-    ).results.map((row) => `${row.no}:${row.id}`);
 
 /** R2 入面嘅歌詞檔名（唔連 prefix） */
 export const lyricsFiles = async () =>
@@ -45,18 +31,48 @@ export const seedAlbum = async () => {
     await insertTrack('apollo-18-03', 'apollo-18', 3, { title: '睡前' });
 };
 
-export const ifMatch = (updatedAt: string = NOW) => ({ 'if-match': `"${updatedAt}"` });
+const NUMBER_DIGITS = 2;
 
-export const putText = (id: string, text: unknown, updatedAt: string = NOW, query = '') =>
-    api('PUT', `/api/tracks/${id}/text${query}`, { text }, ifMatch(updatedAt));
-
-export const getText = async (id: string) =>
-    json<{ trackId: string; text: string; updatedAt: string }>(
-        await api('GET', `/api/tracks/${id}/text`),
+/**
+ * T-106：歌曲文字框寫返媒體 bucket，所以 D1 嘅專輯要喺 bucket 有資料夾：照 D1 放 `info.txt`（碟名、年份、曲目）
+ * 同每首歌一個音檔（同步之後內容不變）
+ */
+export const mirrorAlbumToMedia = async (albumId: string) => {
+    const album = await env.DB.prepare('SELECT folder, title, year FROM albums WHERE id = ?')
+        .bind(albumId)
+        .first<{ folder: string; title: string; year: number | null }>();
+    const { results } = await env.DB.prepare(
+        'SELECT "no", title FROM tracks WHERE album_id = ? ORDER BY "no"',
+    )
+        .bind(albumId)
+        .all<{ no: number; title: string }>();
+    const folder = album?.folder ?? '';
+    await env.MEDIA.put(
+        `${folder}/info.txt`,
+        formatAlbumInfo({
+            title: album?.title ?? albumId,
+            year: album?.year ?? null,
+            tracks: results,
+        }),
     );
+    for (const { no } of results)
+        await env.MEDIA.put(`${folder}/${String(no).padStart(NUMBER_DIGITS, '0')} 歌.m4a`, 'a');
+};
 
-export const createTrack = (albumId: string, body: unknown) =>
-    api('POST', `/api/albums/${albumId}/tracks`, body);
+/** 而家嗰首歌嘅歌曲文字檔嘅 ETag（冇 = null，新檔） */
+const currentTextEtag = async (id: string): Promise<string | null> => {
+    const key = await env.DB.prepare('SELECT text_key FROM tracks WHERE id = ?')
+        .bind(id)
+        .first<string | null>('text_key');
+    return key ? ((await env.MEDIA.head(key))?.httpEtag ?? null) : null;
+};
 
-export const detailsOf = async (response: Response) =>
-    (await json<ErrorBody>(response)).error.details ?? [];
+/** API-041：用而家個檔嘅版本儲存（測試唔係講版本衝突嗰陣用） */
+export const saveSongText = async (id: string, text: string, query = '', bindings = env) =>
+    api(
+        'PUT',
+        `/api/tracks/${id}/text${query}`,
+        { text, etag: await currentTextEtag(id) },
+        {},
+        bindings,
+    );
