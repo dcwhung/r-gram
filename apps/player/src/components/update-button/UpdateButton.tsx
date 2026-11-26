@@ -17,7 +17,7 @@ interface UpdateButtonProps {
     measure: TextMeasure;
     /** 㩒：即刻換新版本並重新載入（同以前「立即更新」一樣，唔理防 loop 嘅 30 秒） */
     onPress: () => void;
-    /** 暗層蓋住（歌單、歌書、MV）：照畫（跟住變暗），㩒唔到、Tab 唔到、讀屏唔讀 */
+    /** 暗層蓋住（歌單、歌書、MV）：照畫（跟住變暗），唔係掣（㩒唔到、Tab 唔到），版本號照畀讀屏讀（W-058） */
     covered?: boolean;
 }
 
@@ -78,15 +78,12 @@ export const UpdateButton = ({ layout, measure, onPress, covered = false }: Upda
     const text = t('app.version', { version: APP_VERSION });
     const pill = usePill(layout, measure, text);
     const hit = updateHitBox(layout, pill);
+    // 暗層下面（W-058，D95 🅰️ ①）：淨係一組普通圖形（唔係掣、唔入 Tab 次序、㩒唔到），版本號照畀讀屏讀
+    const behaviour = covered
+        ? { pointerEvents: 'none' }
+        : { 'aria-label': t('update.applyLabel'), ...pressable(onPress) };
     return (
-        <g
-            data-part="update-button"
-            className="update-button"
-            aria-label={t('update.applyLabel')}
-            aria-hidden={covered || undefined}
-            pointerEvents={covered ? 'none' : undefined}
-            {...pressable(onPress, covered, !covered)}
-        >
+        <g data-part="update-button" className="update-button" {...behaviour}>
             <Body layout={layout} pill={pill} text={text} />
             {covered ? null : (
                 <rect
