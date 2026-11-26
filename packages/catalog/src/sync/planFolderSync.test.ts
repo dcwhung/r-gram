@@ -156,6 +156,20 @@ describe('planFolderSync', () => {
             expect(fifth).toMatchObject({ title: '太平門（現場）', read: null, changed: false });
         });
 
+        it('should read song text again when the audio file it is compared with is renamed', () => {
+            const tracks = [
+                track(5, {
+                    title: '太平門',
+                    audioKey: key('05 太平門 (Live).mp3'),
+                    textKey: key('05 太平門.txt'),
+                    textSourceEtag: '"t5"',
+                }),
+            ];
+            const result = plan({ files, info: { kind: 'none' }, tracks, album: album() });
+            expect(result.tracks[1]).toMatchObject({ compareTitle: '太平門', changed: true });
+            expect(result.tracks[1]?.read).toMatchObject({ key: key('05 太平門.txt') });
+        });
+
         it('should fall back the same way when info.txt cannot be used', () => {
             const tooLarge = {
                 kind: 'read' as const,

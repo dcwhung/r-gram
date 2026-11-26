@@ -276,6 +276,18 @@ describe('POST /api/sync/folders/:folder: checks', () => {
         expect((await albumRow(ALBUM_ID))?.info_etag).toBeNull();
     });
 
+    it('should drop a title mismatch without info.txt once the audio file is renamed', async () => {
+        await putMedia('05 太平門 (Live).m4a');
+        await putMedia('05 太平門.txt', TEXT_05);
+        expect(codesOf((await syncFolder()).body)).toEqual([
+            ['NO_INFO', undefined],
+            ['TITLE_MISMATCH', 5],
+        ]);
+        await deleteMedia('05 太平門 (Live).m4a');
+        await putMedia('05 太平門.m4a');
+        expect(codesOf((await syncFolder()).body)).toEqual([['NO_INFO', undefined]]);
+    });
+
     it('should treat info.txt that is not UTF-8 like a missing one', async () => {
         await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
         await putMedia('01 a.m4a');
