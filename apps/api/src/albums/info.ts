@@ -4,7 +4,7 @@
  * - 讀：資料夾第一層嘅 `info.txt`（唔分大細楷，同同步一樣揀第一個）→ `{ key, etag, text, problem }`；
  *   冇 = `{ key: <folder>/info.txt, etag: null, text: formatAlbumInfo(D1 而家嘅碟名、年份、曲目) }`
  * - 寫：body `{ text, etag }`（400）→ 大細、行數上限（413，同 parseAlbumInfo 一樣）；內容唔擋 → 專輯（404）→
- *   D1 嘅資料夾要過 resolveFolder()（400／404／409，同 API-034）→ key = 已有嘅 `info.txt`，冇 = `<folder>/info.txt`
+ *   D1 嘅資料夾要過 resolveAlbumFolder()（400／404／409，同 API-034；id 唔係呢張碟 = 409 FOLDER_MISMATCH）→ key = 已有嘅 `info.txt`，冇 = `<folder>/info.txt`
  *   → putMediaText()（版本唔啱 = 409 STALE，乜都唔寫）→ 同步呢個資料夾（runFolderSync，同 API-034 一樣）→
  *   `{ key, etag, ...API-034 嘅回應 }`（album、checks、pendingRemovals、coverJobs、more、nextFrom…）。
  *   寫咗檔而同步出錯 = 500，下次同步會補返（bucket 係唯一來源）
@@ -23,7 +23,7 @@ import { readMediaText } from '../media/readText';
 import { readTextRequest } from '../media/textBody';
 import { normalizeText, putMediaText } from '../media/writeText';
 import { syncError } from '../sync/errors';
-import { resolveFolder } from '../sync/folderTarget';
+import { resolveAlbumFolder } from '../sync/folderTarget';
 import { infoFileOf } from '../sync/infoFile';
 import { runFolderSync } from '../sync/syncFolder';
 import { tracksOf } from '../tracks/rows';
@@ -67,7 +67,7 @@ const writeAndSync = async (
     text: string,
     etag: string | null,
 ) => {
-    const target = await resolveFolder(c.env, album.folder);
+    const target = await resolveAlbumFolder(c.env, album.folder, album.id);
     if (typeof target === 'string') return syncError(c, target);
     const key = infoKeyOf(target.folder, await listFolder(c.env.MEDIA, target.folder));
     if (key === 'stale') return albumError(c, 'stale');

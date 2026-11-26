@@ -2,8 +2,8 @@
  * API-040 GET、API-041 PUT /api/tracks/:id/text（T-106；Technical Spec「寫返媒體 bucket」；Functional Spec D72、D75、FR-129）：
  * 歌曲文字框讀寫媒體 bucket 嘅 `NN ….txt`（揀邊個檔：packages/catalog songTextTarget()，同同步一樣）。
  * - 讀：`{ trackId, key, etag, text, problem }`；冇檔 = `{ key: null, etag: null, text: 歌名 }`；幾個檔而冇 D1 嗰個 = 409 TEXT_CONFLICT
- * - 寫：body `{ text, etag }`（400）→ parseSongText()（逐行 400；太大 413）→ 歌（404）→ 資料夾過 resolveFolder()
- *  （同 API-034）→ 冇音檔 409 NO_AUDIO → 衝突 409 TEXT_CONFLICT → 會清走現有歌詞而冇 ?force=1 → 409 LYRICS_REMOVED（D30）
+ * - 寫：body `{ text, etag }`（400）→ parseSongText()（逐行 400；太大 413）→ 歌（404）→ 資料夾過 resolveAlbumFolder()
+ *  （同 API-034；id 唔係呢張碟 = 409 FOLDER_MISMATCH）→ 冇音檔 409 NO_AUDIO → 衝突 409 TEXT_CONFLICT → 會清走現有歌詞而冇 ?force=1 → 409 LYRICS_REMOVED（D30）
  *   → putMediaText()（已有 = 嗰個檔；冇 = `NN 歌名.txt`；版本唔啱 = 409 STALE）→ 同步呢個資料夾（runFolderSync，
  *   由呢首歌起；credit、歌詞、歌詞 JSON 由同步照 `.txt` 寫）→ `{ trackId, key, etag, text, track, checks, hints, sync }`。
  *   任何一步擋住都乜都唔寫；寫咗檔而同步出錯 = 500，下次同步會補返
@@ -24,7 +24,7 @@ import { readMediaText } from '../media/readText';
 import { readTextRequest } from '../media/textBody';
 import { normalizeText, putMediaText } from '../media/writeText';
 import { syncError } from '../sync/errors';
-import { resolveFolder, type FolderTarget } from '../sync/folderTarget';
+import { resolveAlbumFolder, type FolderTarget } from '../sync/folderTarget';
 import { runFolderSync } from '../sync/syncFolder';
 import { trackError, trackValidationError } from './errors';
 import { trackOf } from './rows';
@@ -114,7 +114,7 @@ const syncedResponse = async (
 };
 
 const writeAndSync = async (c: Context<AppEnv>, row: TrackTextRow, body: SongBody) => {
-    const folder = await resolveFolder(c.env, row.folder);
+    const folder = await resolveAlbumFolder(c.env, row.folder, row.album_id);
     if (typeof folder === 'string') return syncError(c, folder);
     const listing = await listFolder(c.env.MEDIA, folder.folder);
     const target = targetOf(row, listing.files);

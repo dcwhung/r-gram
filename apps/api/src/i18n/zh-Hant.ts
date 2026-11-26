@@ -155,6 +155,8 @@ export const zhHant = {
             folderEmpty: '媒體庫中找不到此資料夾，或資料夾內沒有檔案。',
             /** 409 DUPLICATE_ALBUM_ID */
             duplicateAlbumId: '另一個資料夾亦使用相同的專輯 id，請只保留一個資料夾後再掃描。',
+            /** 409 FOLDER_MISMATCH（API-019、041；review S-184）：D1 記錄的資料夾屬於另一個專輯 id */
+            folderMismatch: '此專輯記錄的資料夾屬於另一張專輯，未有儲存，請重新掃描媒體庫。',
         },
         /** details[].message：key = details[].reason */
         reasons: {

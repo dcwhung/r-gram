@@ -76,6 +76,8 @@ export const ERROR_CODE = {
     invalidFolder: 'INVALID_FOLDER',
     /** 同步：另一個資料夾都用緊呢個專輯 id（Functional Spec D67；API-034） */
     duplicateAlbumId: 'DUPLICATE_ALBUM_ID',
+    /** 寫返媒體 bucket：D1 記住嘅資料夾嘅 id 唔係呢張碟（人手改過 D1；T-106 API-019、041，review S-184） */
+    folderMismatch: 'FOLDER_MISMATCH',
     /** 歌曲文字：呢首歌冇音檔（Functional Spec D54；T-106 API-041 用） */
     noAudio: 'NO_AUDIO',
     /** 歌曲文字：同一個歌號有幾個 `.txt`，而 D1 連住嗰個唔喺度（T-106 API-040、041） */
