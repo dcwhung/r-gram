@@ -295,7 +295,7 @@ body.home .vu .cap { font-size: 12px; margin-top: 2px; }
     body.home .hifi .screw { display: none; }
     .hifi-brand { display: none; }
     body.home .meters { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-    body.home .lcd { font-size: 10.5px; padding: 0 4px; letter-spacing: 0; }
+    body.home .lcd { font-size: 10px; padding: 0 3px; letter-spacing: 0; white-space: nowrap; }
     body.home .vu .cap { font-size: 10px; font-weight: 400; }
     .hifi-controls { grid-template-columns: auto; }
     .hifi-controls svg { display: none; }
@@ -305,6 +305,19 @@ body.home .vu .cap { font-size: 12px; margin-top: 2px; }
     .hifi-controls .last { font-size: 9.5px; padding: 0 4px; letter-spacing: 0; }
     .hifi .foot { width: 44px; }
     .shelf { --cell: 150px; }
+    /* 矮畫面：切換列同圖例各自一行、橫向捲，留多啲高度畀碟架 */
+    .switch { flex-wrap: nowrap; overflow-x: auto; padding-block: 6px; scrollbar-width: none; }
+    .switch b, .switch button { flex: none; }
+    .switch span { display: flex; gap: 6px; }
+    body.home .wall { padding: 12px 10px 0; }
+    body.home .wall > .row { flex-wrap: nowrap; gap: 10px; }
+    body.home .wall h1 { font-size: 20px; margin: 0; white-space: nowrap; }
+    body.home .wall .head { flex: none; }
+    body.home .legend { flex-wrap: nowrap; overflow-x: auto; gap: 12px; scrollbar-width: none; font-size: 12px; }
+    body.home .lg i { width: 18px; }
+    body.home .shelf-scroll { margin-top: 4px; }
+    body.home .shelf { --case: 112px; --stand: 128px; --row: 206px; }
+    body.home .top { padding-block: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
