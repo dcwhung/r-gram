@@ -13,9 +13,19 @@ export const APP_LANG = 'zh-Hant';
  * 全部 icon 檔（`public/` 入面嘅路徑）。正式 app icon（方案 D：黑碟）：由
  * `_mockups_/app-icon/export/d-black-disc/` 抄入嚟（`icon-180.png` → `apple-touch-icon.png`），唔好人手改；
  * 要換就重新 export 再抄。maskable 版嘅碟同唱臂縮入 Android 圓形遮罩嘅安全區入面。
+ * favicon（16 / 32 / 48）係專為細尺寸畫嘅簡化版（線粗啲），唔係 192 縮細（T-112）。
  */
 export const APP_ICONS = {
+    favicon16: { src: 'icons/icon-16.png', sizes: '16x16', type: 'image/png' },
+    favicon32: { src: 'icons/icon-32.png', sizes: '32x32', type: 'image/png' },
+    favicon48: { src: 'icons/icon-48.png', sizes: '48x48', type: 'image/png' },
     any192: { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+    maskable192: {
+        src: 'icons/icon-maskable-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'maskable',
+    },
     any512: { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png' },
     maskable512: {
         src: 'icons/icon-maskable-512.png',
@@ -51,7 +61,12 @@ export const appManifest = ({ name, description }: ManifestText) => ({
     orientation: 'portrait' as const,
     background_color: LAUNCH_COLOR,
     theme_color: LAUNCH_COLOR,
-    icons: [{ ...APP_ICONS.any192 }, { ...APP_ICONS.any512 }, { ...APP_ICONS.maskable512 }],
+    icons: [
+        { ...APP_ICONS.any192 },
+        { ...APP_ICONS.maskable192 },
+        { ...APP_ICONS.any512 },
+        { ...APP_ICONS.maskable512 },
+    ],
 });
 
 /** type（唔係 interface）：要畀得 Vite 嘅 `HtmlTagDescriptor.attrs`（字串索引） */
@@ -62,14 +77,16 @@ export type IconLink = {
     type?: string;
 };
 
-/** index.html 嘅 favicon 同 iOS 主畫面 icon（iOS 唔讀 manifest 嘅 icon）；同 manifest 用同一批檔 */
+const FAVICONS = [APP_ICONS.favicon16, APP_ICONS.favicon32, APP_ICONS.favicon48] as const;
+
+/** index.html 嘅 favicon（分頁、書籤）同 iOS 主畫面 icon（iOS 唔讀 manifest 嘅 icon）；同 manifest 用同一批檔 */
 export const iconLinks = (): IconLink[] => [
-    {
+    ...FAVICONS.map(({ src, sizes, type }) => ({
         rel: 'icon',
-        type: APP_ICONS.any192.type,
-        sizes: APP_ICONS.any192.sizes,
-        href: `${APP_BASE}${APP_ICONS.any192.src}`,
-    },
+        type,
+        sizes,
+        href: `${APP_BASE}${src}`,
+    })),
     {
         rel: 'apple-touch-icon',
         sizes: APP_ICONS.appleTouch.sizes,
