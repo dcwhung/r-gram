@@ -177,7 +177,10 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
         // W-045：細唱片機歌名淨係用歌單行右邊之後嘅位，最細字級最少放得落「…」前面幾個中文字
         it('should leave the mini title room right of the rows, enough for a few characters', () => {
             const { title } = layout.miniTurntable;
-            expect(miniLabelX(layout) - miniTitleMaxWidth(layout)).toBe(heldRowHitRight(layout));
+            // S-192：留返 render 同量字嘅差（renderSlack）做餘位
+            const room = miniLabelX(layout) - heldRowHitRight(layout);
+            expect(miniTitleMaxWidth(layout) * (1 + title.renderSlack)).toBeLessThanOrEqual(room);
+            expect(miniTitleMaxWidth(layout)).toBeLessThan(room);
             expect(miniTitleMaxWidth(layout)).toBeGreaterThanOrEqual(
                 MIN_MINI_CHARS * title.minSize,
             );

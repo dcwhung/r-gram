@@ -142,6 +142,19 @@ describe('MiniTurntable', () => {
             expect((shape.title.size - size) % shape.title.step).toBe(0);
         });
 
+        /*
+         * S-192：量字（canvas）比實際 render 窄約 2%。「長夜的晚安」32 號量出嚟 160，啱啱放得落 162；
+         * render 闊 2% 就入咗行嘅感應範圍。要留返餘位：render 闊 renderSlack 都唔掂到行
+         */
+        it('should keep a title that only just fits clear of the rows when it renders wider', () => {
+            const node = renderMini(mini({ title: '長夜的晚安' })).part('mini-title');
+            const size = Number(node?.getAttribute('font-size'));
+            const font = { family: 'cjk', size, weight: 700, spacing: 0 } as const;
+            const measured = estimateTextWidth(node?.textContent ?? '', font);
+            const rendered = measured * (1 + shape.title.renderSlack);
+            expect(miniLabelX(PHONE_LAYOUT) - rendered).toBeGreaterThanOrEqual(rowsRight);
+        });
+
         it('should only shrink a title that fits at the minimum size', () => {
             const node = renderMini(mini({ title: '長夜的晚安' })).part('mini-title');
             expect(node).toHaveTextContent('長夜的晚安');
