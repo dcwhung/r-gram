@@ -296,6 +296,30 @@ describe('PUT /api/tracks/:id/text: versions', () => {
         expect(await mediaText(TEXT_05_KEY)).toBe(`${TEXT_05}\n[00:09.00]別處改的`);
     });
 
+    // S-181（review probe P1）
+    it('should answer 409 FILE_TOO_LARGE and keep a file too large to show', async () => {
+        const large = 'x'.repeat(SONG_TEXT_MAX_BYTES + 1);
+        await putMedia('05 太平門.txt', large);
+        const read = await getText('komorebi-05');
+        expect(read.body).toMatchObject({ text: null, problem: 'TOO_LARGE' });
+        const { puts, bindings } = recordedMedia();
+        for (const etag of [read.body.etag, null]) {
+            const { status, body } = await putText(
+                'komorebi-05',
+                { text: TEXT_05, etag },
+                '?force=1',
+                bindings,
+            );
+            expect(status).toBe(409);
+            expect(body.error).toMatchObject({
+                code: 'FILE_TOO_LARGE',
+                message: expect.stringContaining('電腦'),
+            });
+        }
+        expect(puts).toEqual([]);
+        expect(await mediaText(TEXT_05_KEY)).toBe(large);
+    });
+
     it('should not create a file over one that appeared since it was read', async () => {
         const { status } = await putText('komorebi-05', { text: TEXT_05, etag: null });
         expect(status).toBe(409);

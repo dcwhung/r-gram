@@ -151,6 +151,29 @@ describe('PUT /api/albums/:id/info: versions', () => {
         expect((await albumRow(ALBUM_ID))?.title).toBe('Komorebi');
     });
 
+    // S-181（review probe P1）：太大嘅檔管理員冇見過內容，唔可以覆蓋（帶佢嘅 ETag 都唔得）
+    it('should answer 409 FILE_TOO_LARGE and keep a file too large to show', async () => {
+        const large = 'x'.repeat(INFO_TEXT_MAX_BYTES + 1);
+        await putMedia('info.txt', large);
+        const read = await getInfo();
+        expect(read.body).toMatchObject({ text: null, problem: 'TOO_LARGE' });
+        const { puts, bindings } = recordedMedia();
+        for (const etag of [read.body.etag, null]) {
+            const { status, body } = await putInfo(
+                { text: '唱片名稱：K', etag },
+                ALBUM_ID,
+                bindings,
+            );
+            expect(status).toBe(409);
+            expect(body.error).toMatchObject({
+                code: 'FILE_TOO_LARGE',
+                message: expect.stringContaining('電腦'),
+            });
+        }
+        expect(puts).toEqual([]);
+        expect(await mediaText()).toBe(large);
+    });
+
     it('should not create a file over one that appeared since it was read', async () => {
         const { status } = await putInfo({ text: '唱片名稱：K', etag: null });
         expect(status).toBe(409);
