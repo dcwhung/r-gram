@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import type { HeldTrackRow, HeldTracksView } from '../../app/heldTracksView';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { estimateTextWidth, type TextMeasure } from '../../utils/textMeasure';
@@ -161,6 +161,21 @@ describe('HeldTrackList', () => {
         fireEvent.wheel(list(), { deltaY: pitch });
         expect(rowY('播放第 1 首：歌 1')).toBe(top + pitch * 0.5 - pitch);
         expect(list()).toHaveAttribute('data-fade-top', 'true');
+    });
+
+    // S-177：欄食咗滾輪（頁面唔捲、唔回彈）；短歌單冇嘢捲，欄唔入 Tab 次序
+    it('should keep the wheel from scrolling the page', () => {
+        const { list } = renderList(held(LONG));
+        const wheel = createEvent.wheel(list(), { deltaY: pitch });
+        fireEvent(list(), wheel);
+        expect(wheel.defaultPrevented).toBe(true);
+    });
+
+    it('should only put a column that can scroll in the Tab order', () => {
+        const short = renderList(held([row(1), row(2)]));
+        expect(short.list()).not.toHaveAttribute('tabindex');
+        short.unmount();
+        expect(renderList(held(LONG)).list()).toHaveAttribute('tabindex', '0');
     });
 
     // 滑鼠滾輪可以用「行」或者「版」做單位（WheelEvent.deltaMode）
