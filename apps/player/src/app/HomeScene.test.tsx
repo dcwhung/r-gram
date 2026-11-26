@@ -265,6 +265,23 @@ describe('HomeScene holding another disc', () => {
         expect(container.querySelector('.spindle')).toHaveAttribute('aria-disabled', 'true');
     });
 
+    // QA W-056：鍵盤開字母盤，滑鼠㩒唱片夾：pointerdown 搶 focus → 旋鈕 blur 收字母盤 → click 唔可以播
+    it('should not play from a press that began while the dial was open', () => {
+        handlers.onSpindle.mockClear();
+        const { container, rerender } = render(
+            scene(viewOf('room', null, { scene: 'discChange' })),
+        );
+        const spindle = () => container.querySelector('.spindle') as Element;
+        fireEvent.pointerDown(spindle());
+        rerender(scene(viewOf('room')));
+        fireEvent.pointerUp(spindle());
+        fireEvent.click(spindle());
+        expect(handlers.onSpindle).not.toHaveBeenCalled();
+        fireEvent.pointerDown(spindle());
+        fireEvent.click(spindle());
+        expect(handlers.onSpindle).toHaveBeenCalledTimes(1);
+    });
+
     // 設計稿第 19 版 scene()：弧線歌單嘅暗層蓋住細唱片機（照畫），開住歌單時㩒唔到、Tab 唔到
     it('should keep the mini turntable under the veil of the arc list of the held disc', () => {
         const { container } = render(scene(viewOf('room', null, { scene: 'list' }, PLAYING)));
