@@ -9,13 +9,15 @@
     - AC-5 播（W-051）：行唔㩒得（㩒任何一行冇反應、唔收返）；播只經唱片夾（▶）或者 Enter / 空白鍵；㩒行以外嘅暗位收返
     - AC-6 無障礙：`listbox` + `option`（`aria-selected`、`aria-posinset/setsize`、`aria-activedescendant`）；暗層「關閉歌單」；Tab 只喺歌單、唱片夾、暗層同舞台外嘅更新掣之間兜圈（S-199）；減少動態效果冇過場
     - AC-7 由歌單欄飄落（T-108；FS §CR-008「飄落弧線」；Plan A3；設計稿第 19 版 `LIST_FLOAT`、`openListFloating()`、`listLayer()`）：未揀歌（冇歌載入、拎住）㩒碟面 = 弧線上見到嘅行由歌單欄嘅位（x 74、y 363 …）飄去弧線，560 ms、逐行遲 80；暗層 360 ms；框線遲 280 再 300 ms；其餘行原地 240 ms 淡出（只計 1290 之內）；顯示載入嘅碟㩒碟面直接開、冇飄落；㩒暗位收返 → 歌單欄出返；減少動態效果冇過場
+    - AC-8 頭尾相接（T-110；FS §CR-009 D97；Plan T-110 A1–A4；設計稿第 20 版 `LIST_LOOP`、`loopWindow()`、`listRowOf()`、`listLayer()`、格「框入面係最後一首／第一首」「歌少嘅碟（3 首）」）：圈 = N + 1；最後一首 ⇄ 接駁位 ⇄ 第一首，拖動、滾輪、方向鍵、Page Up／Down 都一樣（Home／End = 頭尾）；接駁位唔會停喺框入面、揀唔到、㩒冇反應；點 r 9 + 線 230 × 5（隔 8）、專輯色、最淡 0.45、`aria-hidden`、喺 listbox 外面；每首最多出現一次，上 min(4, ⌊N/2⌋)、下 min(4, N − 上)；灰色行過接駁位都跳；冇歌不變；由歌單欄開：近邊行飄落、另一邊嘅行同接駁位 280 ms 原地淡入，減少動態效果即時；左上資訊永遠係歌（接駁位最近時 = 最後一首）；歌單欄唔頭尾相接
 - Scope files:
-    - `apps/player/src/components/arc-list/**`、`apps/player/src/components/scroll/**`（連 test、css）
+    - `apps/player/src/components/arc-list/**`、`apps/player/src/components/scroll/**`（連 test、css；T-110 加 `ArcSeam.tsx`、`ArcListbox.tsx`、`ArcTrackListLoop.test.tsx`，刪咗 `scroll/rowStep*`）
     - `apps/player/src/app/`：`listView.ts`、`listView.test.ts`、`DiscFace.tsx`、`discFace.css`、`useListOpener.ts`、`useListFloating.ts`、`useListFloating.test.ts`（T-108；`arc-list/` 新增 `ArcColumnGhosts.tsx`、`arcFloat.ts`、`arcFloat.test.ts`、`useArcFloat.ts`、`useStable.ts`）
     - `apps/player/src/stage/arcRows.ts`、`arcRows.test.ts`；`apps/player/src/components/info-block/ListSongLines.tsx`、`SongPart.tsx`
     - 1-hop（屬其他鏈）：`HomeScene`、`Turntable`、`TopGroup`、`homeView`、`useHome`、`InfoBlock`（`player-home` / `player-holding`）；`held-tracks/**`（`player-holding`，共用 `scroll/**`）；`stageReducer`、`Spindle`（`player-core`）；`phone.ts`、`geometry.ts`、`zh-Hant.ts`（`player-foundation`）
 - Commands: `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
 - Browser check（未有 e2e spec；T-040 加咗之後改跑 e2e）：production build（`VITE_CATALOG_URL` = `https://127.0.0.1:8743`），本機 https 假 Worker（21 張真專輯、真歌單；`juntos` 歌號跳號 + 兩個長歌名 + 灰色行；`hours` 冇歌；`ni-dou` 全灰）+ `127.0.0.1` 靜態 server；Chromium `/opt/pw-browsers/chromium`（route 擋晒非本機並記數）；393 × 852、1280 × 800，各 normal / `reduce`：AC-1 – AC-6 逐項；CDP touch 兩隻手指；1280 × 800 同設計稿兩格並排截圖
 - 2026-11-26（T-108）：browser check 用 `player-holding` 同一套 `qa-t108/qa.cjs`（暫停 Web Animations 取樣 `arc-row-float` 起點同 delay）
+- 2026-11-26（T-110）：browser check = `/tmp/…/scratchpad/qa-t109-t110/loop.cjs`（自己嘅斷言；1、3、9、12、30 首、灰色行、冇歌、歌單欄）+ T-108 `qa.cjs` 做回歸；1-hop 加 `utils/ring.ts`（`player-foundation`）
 - PWA gate: no。Security / Data gate: no（歌名經 React 文字節點）。Performance gate: no（捲動唔量字，`useArcTitles` 由單元測試鎖住）
 - Out of scope（已知、已接受）：W-052（字母盤開住㩒碟面，等用戶）；S-200（吸附冇過場）、S-201、S-206；S-215（飄落途中捲動）；真正出聲（T-038）；Favourites 歌單（T-070）

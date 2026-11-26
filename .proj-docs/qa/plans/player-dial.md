@@ -11,8 +11,9 @@
     - AC-8 㩒住先開（S-152，用戶決定 B-083 ①）：pointer 㩒住 `dialHoldMs`（180 ms）或者郁過 `turnThresholdPx`（6 px）先開字母盤；輕點（< 180 ms、冇郁）乜都唔做、碟唔變；未開就放手 / 取消 / 離開 = 放棄；鍵盤照舊（第一下方向鍵即開）
     - AC-7 無障礙同減少動態（FS FR-010、FR-038；TS 14）：`role="slider"` + `aria-valuemin/max/now/text`（碟名）；旋鈕感應 ≥ 44pt（390pt 基準）、♥ 方格 ≥ 44pt；`prefers-reduced-motion: reduce` 全部即時
     - AC-9 細掣同唱臂兩條規則（T-108；FS §CR-008 D86；Plan A5；設計稿第 19 版 `armFade`、`buttonsFade`）：`MachineChrome`：細掣跟字母盤（開住冇、鬆手有，拎住都有）；唱臂：字母盤開住或者有細唱片機冇；320 ms（`chromeFadeMs`）；減少動態效果即時。舊 AC-5 嘅「拎住時細掣淡出」作廢。旋鈕 AC-8（180 ms / 6 px）照驗做回歸
+    - AC-10 頭尾相接（T-110；FS §CR-009 D98；Plan T-110 A5、A6；設計稿第 20 版 `stackOffset()`、`STACK_LOOP`、`discs()`、格「指住 ♥」「指住第一隻碟」；review W-060、S-217、S-218）：擰（連超過一圈）／方向鍵過 ♥ = 第一隻碟、反方向一樣；指針淨係跨過嗰一步即刻跳（之後一步照行過場），Home／End 唔當跳；Esc 取消行最短路，跨過 ♥ 就跳（S-218）；Enter／放手留喺指住嗰隻；碟疊：指住 ♥ 時第一隻碟係「下一隻」畫喺最頂，指住第一隻碟時 ♥ 係「前面」；≤ 5 個條目一隻碟跳位（S-217，接受）；字母、刻度色弧；過 ♥ 之後拎住、細唱片機、歌單欄、140 ms、欄出場照舊
 - Scope files:
-    - `apps/player/src/components/knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（連 test、css）
+    - `apps/player/src/components/knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（連 test、css；T-110 加 `knob/useSeamJump.ts`、`disc-stack/stackOrder*`）
     - `apps/player/src/app/dialView.ts`、`dialView.test.ts`、`DialControls.tsx`、`MachineChrome.tsx`（接駁測試喺 `HomeScene.test.tsx`，屬 `player-home`）
     - 1-hop（屬其他鏈）：`stageReducer.ts`、`disc/Disc*`、`tonearm/Tonearm.tsx`（`player-core`）；`HomeScene` / `Turntable` / `homeView` / `useHome`（`player-home`）；`stage/geometry.ts`、`layouts/phone.ts`、`config/motion.ts`（`player-foundation`）
 - Commands: `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
@@ -21,5 +22,6 @@
     - 字母：揀中格 0、1、3、10、15、18 – 21 逐格對 `dialShowsLetter`、位置、字級、字款
     - W-037：MutationObserver + 逐 frame 取樣離開轉盤嗰隻碟嘅 computed transform（向後、向前各一格）；打開時碟位置對 `discPose()`
     - 載入歌（唱片夾 → 歌單 → 播）之後逐 frame 取樣三組淡出淡入、封面轉動、唱臂 transform；鍵盤全套；♥；歌單開住嘅 Tab；`reducedMotion: 'reduce'`；儲存
+- 2026-11-26（T-110）：browser check = `/tmp/…/scratchpad/qa-t109-t110/loop.cjs` 嘅 knob／hold 部分（MutationObserver 記低每一步嘅 `aria-valuenow` 同 `knob-move--jump`；40 ms 後讀指針角度）；1-hop 加 `utils/ring.ts`（`player-foundation`）
 - PWA gate: no（冇改 build 設定、manifest、Service Worker）。Security / Data gate: no（冇新輸入面）。Performance gate: no（真機 fps 係 review S-153，backlog）
 - Out of scope（已知、已接受）：細唱片機、拎住嘅碟嘅歌單欄（T-048、T-049，見 `plans/player-holding.md`；`MachineChrome` 拎住時轉盤淡出、細掣唔入 Tab 喺嗰度驗）；S-155 已由 T-048 取代；S-151（spec 字眼）、S-153（真機性能）；Favourites 碟面同左上「我的收藏」（T-070）；跳多格時新碟直接出現（review 接受）

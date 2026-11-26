@@ -9,13 +9,17 @@
     - AC-5 防 loop（W-049）：30 秒內 reload 過 → 唔自動換、Preload 之後出提示；㩒「立即更新」照換；被擋之後唔會喺用緊時自己 reload
     - AC-6 更新提示：右上、唔蓋任何控件嘅 44pt 感應範圍（主頁、歌單開住、拎住另一隻碟；量 393 / 390 / 360 闊）；`role="status"`、掣名「立即更新並重新載入」、≥ 44 px、對比 ≥ 4.5；歌單開住 Tab 去得到（S-199）
     - AC-7 「請打直」：手機（coarse pointer）打橫 = 蓋住、舞台 `inert` + `aria-hidden`、文字由語言檔、`role="alert"`；電腦打橫 / 852 × 393 fine pointer 唔出；減少動態冇動畫；轉返直即刻恢復
+    - AC-8 版本掣（T-109；FS §CR-009 D95；Plan T-109 A1–A6；設計稿第 20 版 `UPDATE_PILL`、`updateButton()`、`versionGlow`；review W-057、W-058、W-059、S-219、S-221）：取代 AC-4／AC-6 嘅「已有新版本／立即更新」提示。`waiting`（Preload 走咗之後）：右上版本號變成透明底、橙黃 `#f09a00` 膠囊（右 1034、高 58、字 slab 26、字兩邊 26、線 3），感應範圍高 122、伸到右邊 1080；成粒一明一暗 1.4 秒、1 ↔ 0.2，減少動態效果常亮；㩒（click、tap、Enter、Space，字母盤開住都得）= `applyNow`；弧線歌單、歌書、MV 開住：暗層下面、唔係掣、唔入 Tab、讀屏照讀版本號（W-058）；拎住另一隻碟唔撞細唱片機同佢啲字；冇新版本 = 灰色版本號；讀屏通知「已有新版本」一次，打橫唔通知；開 app 先自動換（30 秒防 loop 照舊）
+    - AC-9 icon 細尺寸（T-112；FS D100；Plan T-112 A1–A3）：`icon-16/32/48`、`icon-maskable-192` 同 `_mockups_/app-icon/export/d-black-disc/` byte 一樣；build 出嚟三條 `rel="icon"`（sizes、type）、`apple-touch-icon` 不變；manifest = any 192、maskable 192、any 512、maskable 512；每個 icon 喺 `sw.js` precache 一次（`precache.node.test.ts`）
+    - AC-10 spike 頁同 app 分開（T-010，產品嗰邊）：`dist/spike.html` 有、唔 precache（`spikePage.ts` 嘅 `globIgnores`）、導航 fallback denylist；app 嘅 SW 裝咗之後 `/spike.html`（連 `?media=`）照開 spike 頁；app 冇連結去佢
 - Scope files:
     - `apps/player/src/pwa/`：`manifest.ts`、`manifest.node.test.ts`、`registerUpdates.ts`、`registerUpdates.test.ts`、`reloadGuard.ts`、`reloadGuard.test.ts`、`updateChecks.ts`、`updateChecks.test.ts`、`updateManager.ts`、`updateManager.test.ts`、`useUpdates.ts`（`catalogCaching*` 屬 `player-catalog`）
-    - `apps/player/src/components/update-prompt/**`、`apps/player/src/components/rotate-notice/**`
+    - `apps/player/src/components/update-button/**`（2026-11-26 T-109 取代已刪嘅 `update-prompt/**`）、`apps/player/src/components/rotate-notice/**`；`apps/player/src/pwa/spikePage.ts`、`precache.node.test.ts`（T-010、S-221）
     - `apps/player/src/stage/deviceClass.ts`、`deviceClass.test.ts`、`usePhoneLandscape.ts`、`usePhoneLandscape.test.ts`；`apps/player/src/app/AppPwa.test.tsx`；`apps/player/src/config/appVersion.ts`、`appVersion.test.ts`
     - `apps/player/public/robots.txt`、`apps/player/public/icons/**`、`apps/player/vite.config.ts`、`apps/player/index.html`、`apps/player/src/main.tsx`
     - 1-hop（屬其他鏈）：`App.tsx`（`player-core`）、`Stage.tsx`、`zh-Hant.ts`、`motion.ts`（`player-foundation`）、`storageKeys.ts`、`catalogCaching.ts`（`player-catalog`）、`useListFocus.ts`（`player-list`）
 - Commands: `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
 - Browser check：兩個 production build（A = 0.1.0、B = 0.1.1，HEAD 嘅 `git archive` 副本，B 只改 `package.json` version）由 `127.0.0.1` 靜態 server 切換；本機 https 假 Worker；Chromium（`--ignore-certificate-errors` 只為本機自簽證書，SW 嘅 fetch 唔跟 context 設定）；`serviceWorkers: 'allow'`，route 擋晒非本機並記數；AC-1 – AC-7；normal 全套，`reduce` 跑用緊時更新、「請打直」、版面
+- 2026-11-26（T-109、T-112、T-010）：browser check = `/tmp/…/scratchpad/qa-t109-t110/update.cjs`（A／B 兩個 build；主流程、四種㩒法、打橫通知；393 × 852、1280 × 800 × normal／`reduce`）+ T-112 靜態檢查（build 嘅 `index.html`、manifest、icon、`sw.js`）+ `spike.cjs`（spike 頁喺 app SW 下面）
 - PWA gate: yes（manifest、icon、更新邏輯、build 設定）。Security / Data gate: no（冇新輸入面；SW 只向自己 origin）。Performance gate: no（precache 12 項 1125 KiB，見 QA 報告 S-207）
 - Out of scope（已知、已接受）：提示同「請打直」冇設計稿（用戶睇截圖）；S-205（版本號規則，T-041）；D14 / US-011 字眼（PM）；Chromium `in-incognito` 嘅 installability（測試環境）；真機 iOS / Android 安裝

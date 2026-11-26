@@ -13,8 +13,9 @@
     - AC-10 弧線歌單嘅接駁（T-037；W-051、W-052 維持；FS US-004、D25）：`homeView` 嘅 `canOpenList`（主頁、冇 MV、唔係拎住、有碟）、`listOpen`、`list`、`listTrack`；`useHome` 嘅 `onOpenList` / `onCloseList` / `onFocusListTrack` / `onPlayListTrack`（只播播得嘅歌）；`HomeScene` / `Turntable` 嘅 `DiscFace`（唱片夾窿、有歌載入先入 Tab）；`InfoBlock` 歌單開住用 `ListSongLines`（白字、框入面嗰首）；`VersionText` 歌單開住轉暗；`ListVeil` 已刪。瀏覽器驗喺 `player-list`
     - AC-7 開 app 之後（T-034）：`useHome.finishPreload()` 喺 Preload 載入完先開第一隻碟（catalog 遲過 Preload 開始先到都得）；歌名兩行嘅 `aria-label` = 成個歌名（B-072 ①）；`breakAt` 註解同設計稿規則一致（B-070）
     - AC-11 揀碟歌單欄第 19 版嘅接駁（T-108；FS §CR-008 D83–D86；Plan A2、A4、A5；設計稿第 19 版 `scene()` `armFade`／`buttonsFade`、`spindle()`、`ACTIONS.playpause`）：`homeView` 嘅 `trackColumn`（`showsColumn`）、`armHidden`（字母盤開住或者拎住）、`buttonsHidden`（只係字母盤開住）、`spindle` 未揀歌 = `idle`（play）、`canOpenList`（拎住都得）；`useHome` 嘅唱片夾：未揀歌 = 播第一首有音檔嘅歌（拎住 = 隻碟入機），字母盤開住 / MV 冇反應；`playbackState` 嘅 `ended`（`toggle`、`pauseFor` 唔郁）；`playHeldTrack`、`startHeld`、`onPlayHeldTrack` 已刪；`HomeScene.test.tsx` 鎖 W-056（字母盤開住時開始嘅㩒唔播）。瀏覽器驗喺 `player-holding`
+    - AC-12 版本掣嘅接駁（T-109；FS D95）：`HomeScene` 收 `update`（`App` 只喺 `waiting` 而且 Preload 走咗先畀）→ `TopGroup`；`HomeSceneUpdate.test.tsx` 鎖住層次（暗層下面、細唱片機上面）同 `covered`。瀏覽器驗喺 `player-pwa` AC-8
 - Scope files:
-    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`Turntable.tsx`（`ListVeil.tsx` 已刪）、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
+    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`HomeSceneUpdate.test.tsx`（T-109）、`Turntable.tsx`（`ListVeil.tsx` 已刪）、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
     - `apps/player/src/components/info-block/**`（連 `songFit.ts`；`ListSongLines.tsx`、`SongPart.tsx` 屬 `player-list`）、`apps/player/src/components/small-buttons/**`
     - `apps/player/src/components/tonearm/armPose.ts`、`armPose.test.ts`、`useArmLeadIn.ts`、`useArmLeadIn.test.ts`
     - `apps/player/src/stage/useStageBackdrop.ts`、`useStageBackdrop.test.ts`

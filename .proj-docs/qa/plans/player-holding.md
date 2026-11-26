@@ -11,7 +11,8 @@
     - AC-7 㩒一行（FS「㩒歌單欄其中一行」、TS `playHeldTrack`、S-180）：拎住嘅碟落轉盤、嗰首係而家首歌、細唱片機消失、chrome 淡入、唱臂由泊位行完整開場；Enter／空白鍵一樣；同一個 tick 或者連續兩下只計第一下
     - AC-8 減少動態（FS「減少動態效果」）：全部即時，唱臂冇開場動畫
     - AC-9 歌單欄第 19 版（T-108；FS §CR-008 D82、D83、D87、D88；Plan T-108 A1、A2、A6、A7；設計稿第 19 版 `showsColumn()`、`TRACKLIST`、`PANEL_FLOAT`、`panelMetrics()`、`ACTIONS.wheel`／`turn`、`miniTurntable()`）：行唔係掣、唔入 Tab、㩒落冇反應、唔會開弧線歌單，拖動 / 滾輪照捲；出現 = 字母盤開住或者顯示緊嘅碟未揀歌（開 app 冇歌、鬆手、拎住），顯示載入嘅碟而字母盤收埋、弧線歌單、MV 冇；欄頂 330；欄底字母盤開住 1470、鬆手 1290（高身手機 + `--stage-extra`）；出現逐行由 (170, −62) 飄落、460 ms、遲 i × min(60, 560 ÷ 見到行數)；快擰唔顯示、停定 140 ms 先出；鬆手時 (1290 − 100, 1470] 嘅行 320 ms 淡出；唔係拎住時打開字母盤重播飄落兼捲返頂（W-055），拎住時唔重播；拎住時鬆手：細掣有、唱臂冇；「已播完」（單元測試：`homeView`、`MiniTurntable`、`playbackState`）；減少動態效果即時
-- 2026-11-26：捲動 helper（`useDragScroll`、`useWheel`、`rowStep`）搬咗去 `components/scroll/`，屬 `player-list`（1-hop）；歌單欄嘅捲動照喺呢度驗
+- 2026-11-26：捲動 helper（`useDragScroll`、`useWheel`；`rowStep` T-110 已刪）搬咗去 `components/scroll/`，屬 `player-list`（1-hop）；歌單欄嘅捲動照喺呢度驗
+    - AC-10 `TopGroup` 版本掣（T-109）：有新版本時唔畫 `VersionText`，改畫 `UpdateButton`（螺絲之後、細唱片機之前，喺暗層下面）；拎住時唔撞細唱片機。瀏覽器驗喺 `player-pwa` AC-8
 - Scope files:
     - `apps/player/src/components/mini-turntable/**`、`apps/player/src/components/held-tracks/**`（連 test、css）
     - `apps/player/src/app/`：`holding.ts`、`holding.test.ts`、`miniView.ts`、`heldTracksView.ts`、`heldTracksView.test.ts`、`useSpindleFocus.ts`、`useSpindleFocus.test.tsx`、`TopGroup.tsx`、`useSettledColumn.ts`、`useSettledColumn.test.ts`、`useColumnEntrance.ts`、`useColumnEntrance.test.ts`（T-108；`held-tracks/` 新增 `ColumnGhosts.tsx`、`useColumnMotion.ts`，`rowFocus.ts` 已刪）
