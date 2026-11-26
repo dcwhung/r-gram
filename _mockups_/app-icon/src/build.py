@@ -4,9 +4,6 @@ Inputs (not copied, read from _mockups_/home-turntable/src):
   fonts.css      Rokkitt (the only font allowed in this public repo)
   logo-full.png  user-supplied RubberBand logo (emblem + wordmark, white with alpha)
 
-src/player-home.jpg is a picture of the confirmed player home scene (node src/capture_home.cjs), used by the
-"in the interface" preview.
-
 The icon uses the emblem only (the circled R with its stem): it is cut out of logo-full.png in memory,
 as a square whose centre is the centre of the emblem's ring. The wordmark is never embedded.
 
@@ -23,7 +20,6 @@ SHARED = SRC.parent.parent / 'home-turntable' / 'src'
 FONTS_MARKER = '/*__FONTS__*/'
 EMBLEM_MARKER = '__EMBLEM__'
 EMBLEM_RING_MARKER = '__EMBLEM_RING__'
-PLAYER_HOME_MARKER = '__PLAYER_HOME__'
 
 INK = 128  # alpha threshold between ink and background
 # Measured on logo-full.png (640 x 525): the ring is 388 px across and ends at row 414; the stem starts at row 4;
@@ -71,8 +67,6 @@ def main() -> None:
     html = replace_once(html, FONTS_MARKER, fonts)
     html = replace_once(html, EMBLEM_MARKER, data_uri(cut_emblem()))
     html = replace_once(html, EMBLEM_RING_MARKER, f'{RING_RADIUS / EMBLEM_HALF:.4f}')
-    home = base64.b64encode((SRC / 'player-home.jpg').read_bytes()).decode('ascii')
-    html = replace_once(html, PLAYER_HOME_MARKER, f'data:image/jpeg;base64,{home}')
     (SRC.parent / 'index.html').write_text(html, encoding='utf-8')
     print(f'built index.html ({len(html) // 1024} KB)')
 
