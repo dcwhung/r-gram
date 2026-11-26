@@ -4,6 +4,7 @@ import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import type { UpdateStatus } from '../pwa/updateManager';
 import type { UpdatePort } from '../pwa/useUpdates';
 import { App } from './App';
+import { testPlayback } from '../playback/testing/testPlayback';
 import type { StartupDeps } from './startup/startupDeps';
 
 /** T-039、T-109：App 同 PWA 規則（版本掣、「請打直」）嘅接駁；其他主頁行為見 App.test.tsx */
@@ -50,7 +51,7 @@ const fakePort = () => {
 };
 
 const renderHome = async (port: UpdatePort) => {
-    render(<App startup={startup} updates={port} />);
+    render(<App playback={testPlayback()} startup={startup} updates={port} />);
     await screen.findByRole('button', { name: '開啟歌單' });
 };
 
@@ -63,7 +64,7 @@ describe('App and the update manager', () => {
     // S-197：Preload 期間先會自動換版；主頁一出就話畀 UpdateManager 知（之後只出提示）
     it('should tell the update manager when start-up is over', async () => {
         const { port } = fakePort();
-        render(<App startup={startup} updates={port} />);
+        render(<App playback={testPlayback()} startup={startup} updates={port} />);
         expect(port.endLaunch).not.toHaveBeenCalled();
         await screen.findByRole('button', { name: '開啟歌單' });
         // W-059：主頁一出 DOM 就會返，useLaunchEnd 嘅 effect 未必已經跑：等佢
@@ -74,7 +75,7 @@ describe('App and the update manager', () => {
     it('should never show the update button or notice during Preload', async () => {
         const { port, set } = fakePort();
         const pending: StartupDeps = { ...startup, loadCatalog: () => new Promise(() => {}) };
-        render(<App startup={pending} updates={port} />);
+        render(<App playback={testPlayback()} startup={pending} updates={port} />);
         set('waiting');
         await act(() => Promise.resolve());
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
@@ -125,7 +126,7 @@ describe('App and the update manager', () => {
     });
 
     it('should run without an update manager (tests, browsers without service workers)', async () => {
-        render(<App startup={startup} />);
+        render(<App playback={testPlayback()} startup={startup} />);
         await screen.findByRole('button', { name: '開啟歌單' });
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
         expect(screen.getByTestId('stage').querySelector('[data-part="version"]')).toBeTruthy();
@@ -151,7 +152,7 @@ describe('App on a phone turned sideways', () => {
     it('should not show the update button over the rotate notice', async () => {
         setViewport(852, 393);
         const { port, set } = fakePort();
-        render(<App startup={startup} updates={port} />);
+        render(<App playback={testPlayback()} startup={startup} updates={port} />);
         await screen.findByRole('alert');
         set('waiting');
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();

@@ -7,6 +7,7 @@ import type { CatalogLoadResult } from '../catalog/loader';
 import { MOTION } from '../config/motion';
 import { installFakeFonts, removeFakeFonts } from '../utils/testing/fakeFonts';
 import { App } from './App';
+import { testPlayback } from '../playback/testing/testPlayback';
 import type { StartupDeps } from './startup/startupDeps';
 
 const stubReducedMotion = (reduce: boolean) =>
@@ -42,7 +43,9 @@ const PRELOAD_STEPS = [preloadStepMs + preloadHoldMs, flagFadeMs];
 
 /** 開 app，等 Preload 行完（減少動態效果：冇停留、冇淡出；fake timers：行晒 Preload 嘅時間線） */
 const renderHome = async (catalog: CatalogDocument = sampleDocument()) => {
-    const { container } = render(<App startup={instantStartup(catalog)} />);
+    const { container } = render(
+        <App playback={testPlayback()} startup={instantStartup(catalog)} />,
+    );
     await flush();
     if (vi.isFakeTimers()) {
         for (const ms of PRELOAD_STEPS) await act(() => vi.advanceTimersByTimeAsync(ms));
@@ -87,7 +90,7 @@ describe('App start-up', () => {
 
     it('should open on Preload with the app name, the unofficial notice and the version', async () => {
         const { deps } = lateCatalog();
-        render(<App startup={deps} />);
+        render(<App playback={testPlayback()} startup={deps} />);
         expect(screen.getByText('R Gram')).toBeInTheDocument();
         expect(
             screen.getByText(new RegExp(`非官方\\s·\\sv${packageJson.version}$`)),
@@ -102,7 +105,7 @@ describe('App start-up', () => {
     // S-078：catalog 最遲先到都要入到主頁
     it('should open the home scene when the catalog arrives last', async () => {
         const { deps, arrive } = lateCatalog();
-        render(<App startup={deps} />);
+        render(<App playback={testPlayback()} startup={deps} />);
         await screen.findByRole('progressbar');
         await act(async () =>
             arrive({ status: 'ready', source: 'network', document: sampleDocument() }),
@@ -117,7 +120,7 @@ describe('App start-up', () => {
 
     it('should offer a retry when there is no catalog at all', async () => {
         const { deps, arrive } = lateCatalog();
-        render(<App startup={deps} />);
+        render(<App playback={testPlayback()} startup={deps} />);
         await act(async () => arrive({ status: 'unavailable', failure: 'network' }));
         expect(await screen.findByRole('alert')).toHaveTextContent('未能載入唱片資料');
         await userEvent.click(screen.getByRole('button', { name: '重試' }));

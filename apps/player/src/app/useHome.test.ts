@@ -6,6 +6,7 @@ import {
     sampleDocument,
     withSecondCover,
 } from '../catalog/testing/catalogFixtures';
+import { createTestPlayback, testPlayback } from '../playback/testing/testPlayback';
 import { useHome } from './useHome';
 
 /** `apollo-18` 第 1 首有 MV */
@@ -22,7 +23,7 @@ const press = (home: { current: ReturnType<typeof useHome> }, name: 'onSpindle' 
 describe('useHome', () => {
     // S-073：電視開住時唱片夾喺電視後面（T-060）：就算有人叫到 onSpindle 都唔反應
     it('should ignore the clamp while the MV is open', () => {
-        const { result } = renderHook(() => useHome(catalogWithMv()));
+        const { result } = renderHook(() => useHome(catalogWithMv(), testPlayback()));
         press(result, 'onSpindle');
         press(result, 'onMv');
         const before = { stage: result.current.stage, playback: result.current.playback };
@@ -36,7 +37,7 @@ describe('useHome', () => {
 /* Review S-078：catalog 遲過 Preload 開始先到，都要離開得 Preload（T-034） */
 describe('useHome finishPreload', () => {
     it('should open the first disc when Preload finishes after a late catalog', () => {
-        const { result, rerender } = renderHook(({ catalog }) => useHome(catalog), {
+        const { result, rerender } = renderHook(({ catalog }) => useHome(catalog, testPlayback()), {
             initialProps: { catalog: null as CatalogDocument | null },
         });
         expect(result.current.stage.scene).toBe('preload');
@@ -48,7 +49,7 @@ describe('useHome finishPreload', () => {
     });
 
     it('should stay on Preload when there is still no catalog', () => {
-        const { result } = renderHook(() => useHome(null));
+        const { result } = renderHook(() => useHome(null, testPlayback()));
         act(() => result.current.finishPreload());
         expect(result.current.stage.scene).toBe('preload');
     });
@@ -64,9 +65,12 @@ describe('useHome cover pick', () => {
 
     it('should show the cover picked when the app started, even after a catalog refresh', () => {
         let random = () => 0.9;
-        const { result, rerender } = renderHook(({ catalog }) => useHome(catalog, () => random()), {
-            initialProps: { catalog: catalogWithTwoCovers() },
-        });
+        const { result, rerender } = renderHook(
+            ({ catalog }) => useHome(catalog, testPlayback(), () => random()),
+            {
+                initialProps: { catalog: catalogWithTwoCovers() },
+            },
+        );
         random = () => 0;
         rerender({ catalog: catalogWithTwoCovers() });
         expect(result.current.view?.coverUrl).toBe(
@@ -85,7 +89,7 @@ describe('useHome turning the knob', () => {
     });
 
     it('should open the dial, follow the knob and stay on the chosen disc when released', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         turn(result).start();
         expect(result.current.stage.scene).toBe('discChange');
         turn(result, 1).to();
@@ -97,7 +101,7 @@ describe('useHome turning the knob', () => {
 
     // S-154：Esc 取消：收埋字母盤，返去開始揀碟嗰陣嘅碟
     it('should go back to the disc shown when the turn started on cancel', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         turn(result).start();
         turn(result, 1).to();
         turn(result).cancel();
@@ -105,14 +109,14 @@ describe('useHome turning the knob', () => {
     });
 
     it('should go to the Favourites disc at the ♥ position', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         turn(result).start();
         turn(result, 2).to();
         expect(result.current.stage.viewAlbumId).toBe('favourites');
     });
 
     it('should ignore a position outside the dial', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         turn(result).start();
         const before = result.current.stage;
         turn(result, 9).to();
@@ -120,7 +124,7 @@ describe('useHome turning the knob', () => {
     });
 
     it('should go to the Favourites disc and back with ♥', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         act(() => result.current.handlers?.onFavourites());
         expect(result.current.stage.viewAlbumId).toBe('favourites');
         act(() => result.current.handlers?.onFavourites());
@@ -132,7 +136,7 @@ describe('useHome turning the knob', () => {
 describe('useHome holding another disc', () => {
     /** 㩒唱片夾播第一首（apollo-18-01），再擰去 room 鬆手 */
     const holdRoom = (document: CatalogDocument = sampleDocument()) => {
-        const { result } = renderHook(() => useHome(document));
+        const { result } = renderHook(() => useHome(document, testPlayback()));
         press(result, 'onSpindle');
         act(() => result.current.handlers?.onTurnStart());
         act(() => result.current.handlers?.onTurn(1));
@@ -223,12 +227,12 @@ describe('useHome holding another disc', () => {
 /* 設計稿第 19 版 showsColumn()（B-086）：未揀歌就有歌單欄；揀咗歌就冇；弧線歌單開住時收起，收返就出返 */
 describe('useHome track column', () => {
     it('should show the column of the first disc right after Preload', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         expect(result.current.view?.trackColumn).toMatchObject({ albumId: 'apollo-18' });
     });
 
     it('should hide the column in the arc list and bring it back when closed without choosing', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         act(() => result.current.handlers?.onOpenList());
         expect(result.current.view?.trackColumn).toBeNull();
         act(() => result.current.handlers?.onCloseList());
@@ -236,7 +240,7 @@ describe('useHome track column', () => {
     });
 
     it('should hide the column once a track of the disc is chosen', () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         act(() => result.current.handlers?.onOpenList());
         act(() => result.current.handlers?.onPlayListTrack('apollo-18-01'));
         expect(result.current.view?.trackColumn).toBeNull();
@@ -248,7 +252,7 @@ describe('useHome track column', () => {
 /* T-037：弧線歌單（Functional Spec US-004、D25、D52；設計稿第 18 版「歌單（㩒碟面）」） */
 describe('useHome arc list', () => {
     const open = () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+        const { result } = renderHook(() => useHome(sampleDocument(), testPlayback()));
         act(() => result.current.handlers?.onOpenList());
         return result;
     };
@@ -308,7 +312,7 @@ describe('useHome arc list', () => {
 describe('useHome clamp with no chosen track', () => {
     it('should play the first track with audio of the disc on screen', () => {
         const document = makeDocument([makeAlbum('room', [null, 'room/02.m4a'])]);
-        const { result } = renderHook(() => useHome(document));
+        const { result } = renderHook(() => useHome(document, testPlayback()));
         expect(result.current.view?.spindle).toBe('idle');
         press(result, 'onSpindle');
         expect(result.current.stage.scene).toBe('home');
@@ -318,7 +322,7 @@ describe('useHome clamp with no chosen track', () => {
 
     it('should do nothing when the disc has no playable track', () => {
         const document = makeDocument([makeAlbum('room', [null])]);
-        const { result } = renderHook(() => useHome(document));
+        const { result } = renderHook(() => useHome(document, testPlayback()));
         const before = { stage: result.current.stage, playback: result.current.playback };
         press(result, 'onSpindle');
         expect(result.current.stage).toBe(before.stage);
@@ -330,7 +334,7 @@ describe('useHome clamp with no chosen track', () => {
 describe('useHome empty list', () => {
     it('should close the list of an album without tracks when the clamp is pressed', () => {
         const document = makeDocument([makeAlbum('room', [])]);
-        const { result } = renderHook(() => useHome(document));
+        const { result } = renderHook(() => useHome(document, testPlayback()));
         act(() => result.current.handlers?.onOpenList());
         expect(result.current.stage.scene).toBe('list');
         press(result, 'onSpindle');
