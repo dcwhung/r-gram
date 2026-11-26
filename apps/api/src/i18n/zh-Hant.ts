@@ -8,7 +8,7 @@
  * - tracks：歌曲 API（T-023）：同上，另加歌曲文字逐行錯誤（reason = packages/catalog 嘅錯誤碼）同唔擋儲存嘅提示
  * - assets：封面上載（API-050）同公開圖（API-071）嘅錯誤（T-024）
  * - catalog：生成 catalog（API-061）同公開內容（API-070、API-072）嘅錯誤（T-026）
- * - scan：掃描（API-030、API-031；T-025）嘅錯誤、檔案原因同套用逐項結果
+ * - sync：同步（API-033、API-034、API-035；T-105）嘅錯誤、逐項結果同檢查結果嘅句子
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
@@ -118,15 +118,18 @@ export const zhHant = {
             writeFailed: '內容檔未能寫入，播放端會繼續使用上一份內容，請稍後重試。',
         },
     },
-    scan: {
+    sync: {
         /** error.message（按情況） */
         errors: {
             invalid: '資料有誤，請修正後再試。',
-            notFound: '找不到指定的專輯。',
+            /** 400 INVALID_FOLDER */
+            invalidFolder: '資料夾名稱不符合「類別-序號-id」的格式，或屬於保留的資料夾。',
             /** 404 FOLDER_EMPTY */
-            folderEmpty: '媒體庫中找不到此專輯的資料夾，或資料夾內沒有檔案。',
+            folderEmpty: '媒體庫中找不到此資料夾，或資料夾內沒有檔案。',
+            /** 409 DUPLICATE_ALBUM_ID */
+            duplicateAlbumId: '另一個資料夾亦使用相同的專輯 id，請只保留一個資料夾後再掃描。',
         },
-        /** details[].message、skipped[] / unmatchedFiles[] / 歌曲文字檔錯誤嘅 message：key = reason */
+        /** details[].message：key = details[].reason */
         reasons: {
             REQUIRED: '必須填寫。',
             NOT_AN_OBJECT: '內容必須為 JSON 物件。',
@@ -136,34 +139,58 @@ export const zhHant = {
             /** `{min}`、`{max}` = TRACK_NO_MIN、TRACK_NO_MAX */
             INVALID_NUMBER: '歌號必須為 {min} 至 {max} 的整數。',
             NOT_A_LIST: '必須為列表。',
-            /** `{max}` = SCAN_APPLY_MAX_ITEMS */
-            TOO_MANY_ITEMS: '每次最多套用 {max} 項，請分批套用。',
+            /** `{max}` = SYNC_REMOVALS_MAX */
+            TOO_MANY_ITEMS: '每次最多確認 {max} 項，請分批確認。',
             INVALID_VALUE: '格式不正確。',
-            NOT_IN_FOLDER: '檔案不在此專輯的資料夾內。',
-            NOT_IN_ALBUM: '此歌曲不屬於這張專輯。',
-            WRONG_FILE: '檔案類別或歌號與此項目不符。',
-            DUPLICATE_ITEM: '同一首歌或同一個歌號在此類項目中重複出現。',
-            NO_AUDIO: '此歌號在資料夾內沒有音檔，因此不會匯入。',
-            AUDIO_CONFLICT: '此歌號有多於一個音檔，請先只保留一個，才可建立歌曲。',
-            NO_FIRST_COVER: '沒有第一張封面，因此不會匯入第二張封面。',
-            /** 資料夾同時有 cover.jpg 同 cover.png（S-139） */
-            FIRST_COVER_CONFLICT: '第一張封面有多於一個檔案，請先只保留一個，才可匯入第二張封面。',
-            UNKNOWN_EXTENSION: '無法識別此檔案類別。',
-            NO_TRACK_NUMBER: '檔名開頭沒有 1 至 999 的歌號。',
+        },
+        /** 歌曲文字檔檔案層面嘅錯誤（第 0 行；其餘逐行錯誤用 tracks.reasons） */
+        fileReasons: {
             BAD_ENCODING: '歌曲文字檔必須為 UTF-8 編碼。',
             FILE_NOT_FOUND: '媒體庫中已找不到此檔案。',
         },
-        /** 套用（API-031）逐項失敗嘅 message：key = 結果嘅 code */
+        /** 確認移除（API-035）同同步（API-034）逐項失敗嘅 message：key = 結果嘅 code */
         items: {
-            STALE: '檔案或歌曲在掃描後已更改，未有套用，請重新掃描。',
-            NO_AUDIO: '此歌號現時沒有音檔，未有套用。',
-            NUMBER_TAKEN: '同一張專輯內已有歌曲使用此歌號，未有建立。',
-            LYRICS_REMOVED: '套用後會清除這首歌現有的歌詞，請確認後再套用。',
-            VALIDATION_ERROR: '歌曲文字有格式錯誤，未有套用。',
-            MANUAL_KEPT: '此歌曲的檔案為手動指定，掃描不會更改。',
-            NOT_FOUND: '找不到指定的歌曲。',
-            /** 套用此項時出 exception（review W-035）：未能確認寫入咗未，所以叫管理員重新掃描 */
-            INTERNAL: '套用此項時發生錯誤，未能確認是否已套用，請重新掃描。',
+            STILL_PRESENT: '檔案或資料夾仍在媒體庫中，未有移除。',
+            STALE: '資料在掃描後已更改，未有處理，請重新掃描。',
+            NOT_FOUND: '找不到指定的專輯或歌曲。',
+            /** 處理此項時出 exception（review W-035）：未能確認寫入咗未，所以叫管理員重新掃描 */
+            INTERNAL: '處理此項時發生錯誤，未能確認是否已完成，請重新掃描。',
+        },
+        /** 檢查結果入面「第幾行」（歌曲文字檔逐行錯誤） */
+        linePlace: '第 {line} 行',
+        /**
+         * 檢查結果（Functional Spec D77；albums.checks）嘅 message：key = code。參數由同步填（packages/catalog checkOf）；
+         * `{reason}` 換做歌曲文字錯誤嘅句子，`{place}` 換做「第幾行」
+         */
+        checks: {
+            INVALID_FOLDER_NAME: '資料夾名稱不符合格式：「{folder}」。',
+            DUPLICATE_ALBUM_ID:
+                '專輯 id「{id}」同時用於多個資料夾（{folders}），只會使用原有的資料夾。',
+            DUPLICATE_ORDINAL: '資料夾「{other}」的類別及序號與此專輯相同，次序會按 id 排列。',
+            NO_INFO: '找不到 info.txt，唱片名稱暫用「{title}」。',
+            INFO_CONFLICT: '資料夾內有多於一個 info.txt，此檔不會使用。',
+            INFO_BAD_ENCODING: 'info.txt 必須為 UTF-8 編碼，暫時當作沒有 info.txt。',
+            INFO_TOO_LARGE:
+                'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限，暫時當作沒有 info.txt。',
+            INFO_UNKNOWN_LINE: 'info.txt 第 {line} 行無法識別，已略過。',
+            INFO_DUPLICATE_LABEL: 'info.txt 第 {line} 行：此標籤已出現過，已略過。',
+            INFO_DUPLICATE_NUMBER: 'info.txt 第 {line} 行：第 {no} 首重複出現，已略過。',
+            INFO_BAD_YEAR: 'info.txt 第 {line} 行：無法讀取發行年份。',
+            INFO_NO_TITLE: 'info.txt 沒有唱片名稱，暫用專輯 id。',
+            INFO_TOO_LONG: 'info.txt 第 {line} 行：名稱最多 {max} 個字，已略過。',
+            AUDIO_NOT_LISTED: '第 {no} 首有音檔，但 info.txt 沒有這一首。',
+            FILE_WITHOUT_TRACK: '第 {no} 首不在曲目表內，此檔不會匯入。',
+            NO_AUDIO: '第 {no} 首沒有音檔，歌曲文字及 MV 不會匯入。',
+            TITLE_MISMATCH: '第 {no} 首：歌名為「{title}」，此檔為「{other}」。',
+            TEXT_INVALID: '第 {no} 首的歌曲文字檔{place}：{reason}',
+            AUDIO_CONFLICT: '第 {no} 首有多於一個音檔，請只保留一個。',
+            MV_CONFLICT: '第 {no} 首有多於一個 MV，請只保留一個。',
+            TEXT_CONFLICT: '第 {no} 首有多於一個歌曲文字檔，請只保留一個。',
+            COVER_CONFLICT: '封面有多於一個檔案（jpg 及 png），請只保留一個。',
+            NO_FIRST_COVER: '沒有第一張封面，因此不會匯入第二張封面。',
+            COVER_FAILED: '封面未能處理，下次掃描會再試。',
+            COVER_NOT_SQUARE: '封面不是正方形，已置中裁切。',
+            SUBTITLE_IGNORED: '第 {no} 首：副題已不再使用，第 {line} 行已略過。',
         },
     },
 } as const;

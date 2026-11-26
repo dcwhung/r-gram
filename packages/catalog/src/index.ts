@@ -26,25 +26,7 @@ export {
     type NumberedKind,
     type UnmatchedReason,
 } from './scan/classifyFile';
-export { planScan } from './scan/planScan';
 export type { ScanFile } from './scan/scanFiles';
-export type {
-    CoverSource,
-    FileChange,
-    MatchedMedia,
-    MediaKind,
-    NewTrackPlan,
-    ScanAlbumState,
-    ScanConflict,
-    ScanInput,
-    ScanPlan,
-    ScanTrackState,
-    SkippedFile,
-    SkipReason,
-    TextCandidate,
-    TextSource,
-} from './scan/scanTypes';
-export { songTextChange, type SongTextComparison, type TextChange } from './scan/songTextChange';
 export { titleFromFileName } from './scan/titleFromFileName';
 export {
     FAVOURITES_ALBUM_ID,
