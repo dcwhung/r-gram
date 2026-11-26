@@ -8,6 +8,7 @@
  */
 import { startsWithTimestamp } from '../lrc/parseLrc';
 import { CREDIT_FIELDS, type CreditField, type TrackCredits } from '../schema/types';
+import { withoutHiddenCharacters } from '../text/hiddenCharacters';
 import { readLabel } from './labels';
 import {
     byteLength,
@@ -49,9 +50,12 @@ const readTitle = (lines: string[], errors: SongTextError[]): { title: string; n
         errors.push({ line: Math.max(index, 0) + 1, code: 'TITLE_REQUIRED', text });
         return { title: '', next: index < 0 ? lines.length : index };
     }
-    if (charCount(text) > TITLE_MAX_CHARS)
+    // S-158：睇唔到嘅字元唔入歌名；淨係得呢啲字 = 冇歌名（嗰行唔當標籤或者歌詞）
+    const title = withoutHiddenCharacters(text).trim();
+    if (title === '') errors.push({ line: index + 1, code: 'TITLE_REQUIRED', text });
+    if (charCount(title) > TITLE_MAX_CHARS)
         errors.push({ line: index + 1, code: 'TITLE_TOO_LONG', text });
-    return { title: text, next: index + 1 };
+    return { title, next: index + 1 };
 };
 
 const isTooLong = (value: string | null): boolean =>

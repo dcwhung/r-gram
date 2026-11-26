@@ -4,6 +4,7 @@
  */
 import { isTrackNo } from '../schema/ids';
 import { isAlbumYear } from '../schema/year';
+import { withoutHiddenCharacters } from '../text/hiddenCharacters';
 
 export type InfoField = 'title' | 'year' | 'tracks';
 
@@ -46,12 +47,15 @@ export const readInfoLabel = (line: string): { field: InfoField; value: string }
     return { field, value: (value ?? '').trim() };
 };
 
-/** 曲目行；歌號唔喺 1–999 或者冇歌名 → null */
+/** 歌名、碟名：去走睇唔到嘅字元（S-158）再 trim；淨係得呢啲字 = 空 */
+export const cleanTitle = (value: string): string => withoutHiddenCharacters(value).trim();
+
+/** 曲目行；歌號唔喺 1–999 或者冇歌名（包括淨係睇唔到嘅字元）→ null */
 export const readTrackLine = (line: string): { no: number; title: string } | null => {
     const match = TRACK_LINE.exec(line);
     if (!match) return null;
     const no = Number(toAsciiDigits(match[1] ?? ''));
-    const title = (match[2] ?? '').trim();
+    const title = cleanTitle(match[2] ?? '');
     return isTrackNo(no) && title !== '' ? { no, title } : null;
 };
 

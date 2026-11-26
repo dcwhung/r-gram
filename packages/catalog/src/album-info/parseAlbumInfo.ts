@@ -8,7 +8,7 @@
 import { byteLength, charCount, TITLE_MAX_CHARS } from '../song-text/limits';
 import { songLines } from '../song-text/lines';
 import { checkOf, type Check } from '../sync/checks';
-import { readInfoLabel, readTrackLine, readYear, type InfoField } from './lines';
+import { cleanTitle, readInfoLabel, readTrackLine, readYear, type InfoField } from './lines';
 import { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from './limits';
 import type { AlbumInfo } from './types';
 
@@ -44,7 +44,9 @@ const tooLarge = (): AlbumInfo => ({
 const isTooManyBytes = (text: string): boolean =>
     text.length > INFO_TEXT_MAX_BYTES || byteLength(text) > INFO_TEXT_MAX_BYTES;
 
-const readTitle = (value: string, line: number, state: ReadState): void => {
+/** 空（包括淨係睇唔到嘅字元，S-158）= 冇碟名，最尾出 INFO_NO_TITLE */
+const readTitle = (raw: string, line: number, state: ReadState): void => {
+    const value = cleanTitle(raw);
     if (value === '') return;
     if (charCount(value) <= TITLE_MAX_CHARS) {
         state.title = value;
