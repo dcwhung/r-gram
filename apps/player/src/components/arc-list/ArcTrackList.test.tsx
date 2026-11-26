@@ -251,6 +251,20 @@ describe('ArcTrackList', () => {
         expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-03');
     });
 
+    // W-050：手指嘅隱含 capture 由行轉去成個歌單（setPointerCapture）時，行收到 lostpointercapture：唔係拖完
+    it('should keep dragging when the capture moves from a row to the list', () => {
+        const { container, option, selected } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        const row = option('第 1 首：歌 1');
+        fireEvent.pointerDown(row, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerMove(row, { pointerId: 1, clientY: 1000 - PITCH });
+        fireEvent.lostPointerCapture(row, { pointerId: 1 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 2 });
+        fireEvent.pointerUp(root, { pointerId: 1 });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3');
+    });
+
     it('should let a new press replace one that never started dragging', () => {
         const { container, selected } = renderList(view(LONG, 0));
         const root = container.querySelector('[data-part="arc-list"]');
