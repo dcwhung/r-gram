@@ -303,3 +303,16 @@ describe('useHome arc list', () => {
         expect(result.current.playback.status).toBe('playing');
     });
 });
+
+/* T-037：設計稿 ACTIONS.playpause：冇歌嘅碟（D39）歌單入面㩒唱片夾 = 收返歌單 */
+describe('useHome empty list', () => {
+    it('should close the list of an album without tracks when the clamp is pressed', () => {
+        const document = makeDocument([makeAlbum('room', [])]);
+        const { result } = renderHook(() => useHome(document));
+        press(result, 'onSpindle');
+        expect(result.current.stage.scene).toBe('list');
+        press(result, 'onSpindle');
+        expect(result.current.stage.scene).toBe('home');
+        expect(result.current.playback.status).toBe('idle');
+    });
+});
