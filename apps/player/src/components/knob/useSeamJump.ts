@@ -8,6 +8,7 @@
  * - 唔係旋鈕要求嘅改動（例如㩒 ♥ 掣）：唔跳
  */
 import { useRef, useState } from 'react';
+import { ringDelta } from '../../utils/ring';
 import { crossesSeam } from './knobTurn';
 
 /** 旋鈕要求緊嘅一步：去邊格、跳唔跳 */
@@ -29,25 +30,42 @@ export interface SeamJump {
     finish: () => void;
 }
 
+/** 一步跨過接駁位嘅方向：+1 = 由 ♥ 去第一隻碟、−1 = 倒轉、0 = 冇跨過 */
+const seamCrossing = (from: number, to: number, positions: number): number =>
+    crossesSeam(from, to, positions) ? Math.sign(ringDelta(from, to, positions)) : 0;
+
+/** 今次揀碟嘅開始嗰格同淨係過咗接駁位幾多次（向前 +1、向後 −1） */
+interface Gesture {
+    startAt: number;
+    laps: number;
+}
+
 export const useSeamJump = (current: number, positions: number): SeamJump => {
     const [pending, setPending] = useState<Step | null>(null);
     const [shown, setShown] = useState({ current, jump: false });
     // 未經 start（例如一開始已經喺度揀緊）：當開始嗰格係第一次 render 嗰格
-    const startAt = useRef(current);
+    const gesture = useRef<Gesture>({ startAt: current, laps: 0 });
     // 「render 期間調整 state」：指住嗰格一變，就喺同一次 render 決定呢一步跳唔跳
     if (shown.current !== current) {
         setShown({ current, jump: pending !== null && pending.to === current && pending.jump });
         setPending(null);
     }
-    const ask = (to: number, mayJump: boolean) =>
-        setPending({ to, jump: mayJump && crossesSeam(current, to, positions) });
     return {
         jump: shown.jump,
-        turn: ask,
-        start: () => {
-            startAt.current = current;
+        turn: (to, mayJump) => {
+            // Home / End 沿刻度轉過去，唔算過接駁位
+            const crossing = mayJump ? seamCrossing(current, to, positions) : 0;
+            gesture.current.laps += crossing;
+            setPending({ to, jump: crossing !== 0 });
         },
-        cancel: () => ask(startAt.current, true),
+        start: () => {
+            gesture.current = { startAt: current, laps: 0 };
+        },
+        cancel: () => {
+            const { startAt, laps } = gesture.current;
+            gesture.current = { startAt, laps: 0 };
+            setPending({ to: startAt, jump: laps !== 0 });
+        },
         finish: () => setShown({ current, jump: false }),
     };
 };
