@@ -17,6 +17,7 @@ const handlers = {
     onTurnEnd: vi.fn(),
     onTurnCancel: vi.fn(),
     onFavourites: vi.fn(),
+    onReturnToLoaded: vi.fn(),
 };
 
 const viewOf = (

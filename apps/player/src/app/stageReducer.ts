@@ -4,12 +4,14 @@
  *   preload → home ⇄ discChange    （close = 留喺揀咗嗰隻碟；cancel = 還原開始嗰陣嘅碟，S-154）
  *             home ⇄ list          （discChange 亦可以直接入 list：D27）
  *   overlay（只喺 home）：booklet ｜ mv，兩個唔會同時出現
+ *   拎住另一隻碟（T-048）：home / discChange 而顯示嘅碟唔係載入嘅碟；returnToLoaded → home（載入嘅碟）
  *
  * 唔合規嘅動作原樣回傳同一個 state（reference 相同），元件唔使自己再判斷。
  * 呢度冇「過場中」嘅狀態：過場係畫面嘅事，所以每個轉換本身就係「冇動畫」嘅路徑（減少動態效果時直接用）。
  * 播放狀態喺另一個 store；動作要用到嘅播放事實（有冇歌、有冇 MV）由發出動作嗰邊帶入嚟。
  */
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
+import { isHolding } from './holding';
 
 export type Scene = 'preload' | 'home' | 'discChange' | 'list';
 export type Overlay = 'booklet' | 'mv' | null;
@@ -41,14 +43,17 @@ export type StageAction =
     | { type: 'selectAlbum'; albumId: string }
     | { type: 'closeDiscChange' }
     | { type: 'cancelDiscChange' }
-    | { type: 'openList' }
+    /** 載入嘅碟（播放狀態）：拎住另一隻碟時唔開弧線歌單（T-048） */
+    | { type: 'openList'; loadedAlbumId: string | null }
     | { type: 'focusTrack'; trackId: string }
     | { type: 'playSelected' }
     | { type: 'closeList' }
     | { type: 'toggleFavourites' }
     | { type: 'toggleBooklet'; hasSong: boolean }
     | { type: 'openMv'; hasMv: boolean }
-    | { type: 'closeMv' };
+    | { type: 'closeMv' }
+    /** 㩒細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048；Functional Spec FR-043） */
+    | { type: 'returnToLoaded'; loadedAlbumId: string | null };
 
 export const INITIAL_STAGE: StageState = {
     scene: 'preload',
@@ -98,8 +103,10 @@ const toggleBooklet: Handler<'toggleBooklet'> = (state, { hasSong }) => {
     return isOpenHome(state) && hasSong ? { ...state, overlay: 'booklet' } : state;
 };
 
-const openList: Handler<'openList'> = (state) => {
-    const canOpen = isOpenHome(state) || state.scene === 'discChange';
+/** 拎住嘅碟冇轉盤、冇唱片夾，歌單喺碟名下面（T-049），所以唔開弧線歌單 */
+const openList: Handler<'openList'> = (state, { loadedAlbumId }) => {
+    const canOpen =
+        (isOpenHome(state) || state.scene === 'discChange') && !isHolding(state, loadedAlbumId);
     return canOpen ? { ...state, scene: 'list', overlay: null, discChangeFrom: null } : state;
 };
 
@@ -115,6 +122,17 @@ const cancelDiscChange: Handler<'cancelDiscChange'> = (state) =>
     state.scene === 'discChange' && state.discChangeFrom
         ? { ...state, ...state.discChangeFrom, scene: 'home', discChangeFrom: null }
         : state;
+
+/** 字母盤開住都收埋；換碟跟 viewAlbum（記低拎住嗰隻碟，♥ 返得去）。電視開住時唔會拎住碟 */
+const returnToLoaded: Handler<'returnToLoaded'> = (state, { loadedAlbumId }) => {
+    if (!loadedAlbumId || isMvShowing(state) || !isHolding(state, loadedAlbumId)) return state;
+    return {
+        ...viewAlbum(state, loadedAlbumId),
+        scene: 'home',
+        overlay: null,
+        discChangeFrom: null,
+    };
+};
 
 const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
     preloadDone: (state, { albumId, trackId }) =>
@@ -145,6 +163,7 @@ const HANDLERS: { [T in StageAction['type']]: Handler<T> } = {
     openMv: (state, { hasMv }) =>
         isOpenHome(state) && hasMv ? { ...state, overlay: 'mv' } : state,
     closeMv: (state) => (isMvShowing(state) ? { ...state, overlay: null } : state),
+    returnToLoaded,
 };
 
 export const stageReducer = (state: StageState, action: StageAction): StageState => {

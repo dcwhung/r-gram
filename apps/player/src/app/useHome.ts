@@ -42,16 +42,16 @@ const playSelected = ({ catalog, stage, dispatch, play }: HomeContext) => {
 };
 
 /** 未揀歌：打開歌單，預先揀中第一首（US-004） */
-const openList = ({ catalog, stage, dispatch }: HomeContext) => {
+const openList = ({ catalog, stage, view, dispatch }: HomeContext) => {
     const focus = listFocusTrackId(catalog, stage);
-    dispatch({ type: 'openList' });
+    dispatch({ type: 'openList', loadedAlbumId: view.loadedAlbumId });
     if (focus) dispatch({ type: 'focusTrack', trackId: focus });
 };
 
 const pressSpindle = (context: HomeContext) => {
     const { view, play } = context;
-    // 電視開住時唱片夾喺電視後面（T-060），唔反應
-    if (view.mvOpen) return;
+    // 電視開住時唱片夾喺電視後面（T-060）；拎住另一隻碟時冇轉盤（T-048）：都唔反應
+    if (view.mvOpen || view.holding) return;
     if (view.spindle === 'list') playSelected(context);
     else if (view.spindle === 'idle') openList(context);
     else play({ type: 'toggle' });
@@ -97,6 +97,8 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
     // 四個播放模式係 T-071
     onMode: () => {},
     onCloseList: () => context.dispatch({ type: 'closeList' }),
+    onReturnToLoaded: () =>
+        context.dispatch({ type: 'returnToLoaded', loadedAlbumId: context.view.loadedAlbumId }),
 });
 
 export interface Home {

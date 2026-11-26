@@ -20,6 +20,8 @@ export interface HomeHandlers extends DialHandlers {
     onMode: () => void;
     /** 㩒歌單嘅暗位收返 */
     onCloseList: () => void;
+    /** 㩒右上角細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048） */
+    onReturnToLoaded: () => void;
 }
 
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */

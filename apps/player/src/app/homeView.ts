@@ -16,6 +16,8 @@ import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
 import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
+import { isHolding, loadedAlbumOf } from './holding';
+import { loadedArmPose, type MiniView, miniView } from './miniView';
 import type { PlaybackState } from './playbackState';
 import type { StageState } from './stageReducer';
 
@@ -23,12 +25,12 @@ import type { StageState } from './stageReducer';
 const isLoadedHere = (stage: StageState, playback: PlaybackState): boolean =>
     playback.status !== 'idle' && playback.albumId === stage.viewAlbumId;
 
-/** 唱臂姿勢（FR-040、D36）：其餘情況（未揀歌、MV、熄 MV 之後、重開 app、睇緊另一隻碟）一律泊位 */
-export const armPose = (stage: StageState, playback: PlaybackState): ArmPose => {
-    if (!isLoadedHere(stage, playback) || stage.overlay === 'mv') return 'parked';
-    if (playback.status === 'playing') return 'playing';
-    return playback.pauseReason === 'user' ? 'lifted' : 'parked';
-};
+/**
+ * 唱臂姿勢（FR-040、D36）：其餘情況（未揀歌、MV、熄 MV 之後、重開 app、拎住另一隻碟）一律泊位。
+ * 拎住另一隻碟時大唱片機嘅唱臂淡出咗；載入嘅碟嘅唱臂喺細唱片機（miniView）
+ */
+export const armPose = (stage: StageState, playback: PlaybackState): ArmPose =>
+    !isLoadedHere(stage, playback) || stage.overlay === 'mv' ? 'parked' : loadedArmPose(playback);
 
 /** 唱片夾：歌單入面係 play；呢隻碟有歌就 pause / play；冇就「開啟歌單」 */
 export const spindleMode = (stage: StageState, playback: PlaybackState): SpindleMode => {
@@ -75,6 +77,8 @@ export interface HomeView {
     songHidden: boolean;
     /** 畫面上嘅碟轉緊：播緊呢隻碟，而且唔係揀緊碟、唔係拎住另一隻碟 */
     spinning: boolean;
+    /** 右上角嘅細唱片機（載入嘅碟，T-048）；冇歌載入 = null */
+    mini: MiniView | null;
 }
 
 const loadedTrack = (album: CatalogAlbum | null, stage: StageState, playback: PlaybackState) =>
@@ -90,18 +94,13 @@ const colours = (document: CatalogDocument, album: CatalogAlbum | null, covers: 
     return { accent, glow: glowColor(accent), coverUrl };
 };
 
-/** 唱片機入面嘅碟：播放狀態唔係 idle 先有 */
-const loadedAlbumOf = (playback: PlaybackState): string | null =>
-    playback.status === 'idle' ? null : playback.albumId;
-
 /**
  * 揀碟相關嘅衍生值（Technical Spec「補充：第 18 版」）：`holding` = 載入嘅碟 ≠ 顯示嘅碟（主頁或者揀緊碟）；
  * 揀碟期間或者拎住另一隻碟時，唱臂、細掣同歌名嗰部分淡出，碟停轉
  */
 const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose) => {
     const loadedAlbumId = loadedAlbumOf(playback);
-    const onHome = stage.scene === 'home' || stage.scene === 'discChange';
-    const holding = loadedAlbumId !== null && onHome && stage.viewAlbumId !== loadedAlbumId;
+    const holding = isHolding(stage, loadedAlbumId);
     const chromeHidden = stage.scene === 'discChange' || holding;
     return {
         loadedAlbumId,
@@ -112,8 +111,11 @@ const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose)
     };
 };
 
-const progressOf = ({ positionSec, durationSec }: PlaybackState): number =>
-    durationSec ? Math.min(1, positionSec / durationSec) : 0;
+/** 播放進度（0–1）同左上嘅時間 */
+const timing = ({ positionSec, durationSec }: PlaybackState) => ({
+    progress: durationSec ? Math.min(1, positionSec / durationSec) : 0,
+    timeText: formatTime(positionSec),
+});
 
 export const homeView = (
     document: CatalogDocument,
@@ -125,21 +127,23 @@ export const homeView = (
     const track = loadedTrack(album, stage, playback);
     const spindle = spindleMode(stage, playback);
     const pose = armPose(stage, playback);
+    const dial = dialView(document, stage, covers);
+    const choosing = choosingView(stage, playback, pose);
     return {
         album,
         track,
         ...colours(document, album, covers),
         spindle,
         armPose: pose,
-        progress: progressOf(playback),
-        timeText: formatTime(playback.positionSec),
+        ...timing(playback),
         hasSong: track !== null,
         hasMv: Boolean(track?.mv),
         playing: spindle === 'playing',
         listOpen: stage.scene === 'list',
         bookletOpen: stage.overlay === 'booklet',
         mvOpen: stage.overlay === 'mv',
-        dial: dialView(document, stage, covers),
-        ...choosingView(stage, playback, pose),
+        dial,
+        ...choosing,
+        mini: miniView(document, playback, dial.entries, choosing.holding),
     };
 };
