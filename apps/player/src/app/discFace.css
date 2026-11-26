@@ -1,0 +1,10 @@
+/* 主頁碟面（開歌單）：透明；鍵盤 focus 時沿碟邊畫虛線（SVG 元素嘅 outline 喺 Safari 唔可靠） */
+.disc-face {
+    outline: none;
+}
+
+.disc-face:focus-visible {
+    stroke: var(--color-ink);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}

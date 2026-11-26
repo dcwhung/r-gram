@@ -10,8 +10,8 @@ import { useSwapInstant } from '../components/tonearm/useSwapInstant';
 import { DESIGN_HEIGHT } from '../stage/fitStage';
 import type { Point, StageLayout } from '../stage/layouts';
 import { DialControls, type DialHandlers } from './DialControls';
+import { DiscFace } from './DiscFace';
 import type { HomeView } from './homeView';
-import { ListVeil } from './ListVeil';
 import { MachineChrome } from './MachineChrome';
 
 export interface HomeHandlers extends DialHandlers {
@@ -41,21 +41,17 @@ interface TurntableProps {
     layout: StageLayout;
     view: HomeView;
     handlers: HomeHandlers;
-    /** 唱片夾（`useSpindleFocus`）：收返歌單（S-074）之後 focus 交返佢；`onCloseList` 已經包好 */
+    /** 唱片夾（`useSpindleFocus`）：收返歌單（S-074）之後 focus 交返佢 */
     spindleRef: RefObject<SVGGElement | null>;
+    /** 碟面（`useListOpener`）：由碟面打開嘅歌單收返之後 focus 交返佢（T-037） */
+    faceRef: RefObject<SVGPathElement | null>;
 }
 
 /**
- * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
- * 半透明層（拎住另一隻碟，T-049）→ 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
- * 拎住另一隻碟時（T-048）轉盤都淡出、唱片夾唔係掣；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
- * 歌單嘅暗層（暫時嘅佔位，T-037）蓋住全部，只有唱片夾喺佢上面。
+ * 緊接喺而家隻碟後面：唱片夾，再上面係碟面嘅感應範圍（中間留返唱片夾嘅位；T-037，只喺開得歌單時先有）
  */
-export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps) => {
-    const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
-    const leadIn = useArmLeadIn(view.armPose, instant);
-    const lowerScrews = layout.screws.points.filter(isLowerHalf);
-    const spindle = (
+const Hub = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) => (
+    <>
         <Spindle
             ref={spindleRef}
             layout={layout}
@@ -67,7 +63,27 @@ export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps
             inert={view.holding}
             onPress={handlers.onSpindle}
         />
-    );
+        {view.canOpenList && (
+            <DiscFace
+                ref={faceRef}
+                layout={layout}
+                focusable={view.spindle !== 'idle'}
+                onPress={handlers.onOpenList}
+            />
+        )}
+    </>
+);
+
+/**
+ * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
+ * 半透明層（拎住另一隻碟，T-049）→ 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 拎住另一隻碟時（T-048）轉盤都淡出、唱片夾唔係掣；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
+ * 主頁碟面（T-037）喺唱片夾後面：㩒碟面開弧線歌單；歌單本身（暗層、框、歌名）喺貼頂組（TopGroup）。
+ */
+export const Turntable = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) => {
+    const instant = useSwapInstant(view.album?.id ?? null) || view.chromeHidden;
+    const leadIn = useArmLeadIn(view.armPose, instant);
+    const lowerScrews = layout.screws.points.filter(isLowerHalf);
     return (
         <>
             <g data-part="screws">
@@ -84,7 +100,13 @@ export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps
                 open={view.dial.open}
                 spinning={view.spinning && leadIn === null}
             >
-                {!view.listOpen && spindle}
+                <Hub
+                    layout={layout}
+                    view={view}
+                    handlers={handlers}
+                    spindleRef={spindleRef}
+                    faceRef={faceRef}
+                />
             </DiscStack>
             <HeldScrim layout={layout} shown={view.holding} screws={lowerScrews} />
             <MachineChrome
@@ -95,8 +117,6 @@ export const Turntable = ({ layout, view, handlers, spindleRef }: TurntableProps
                 instant={instant}
             />
             <DialControls layout={layout} view={view} handlers={handlers} />
-            {view.listOpen && <ListVeil onClose={handlers.onCloseList} />}
-            {view.listOpen && spindle}
         </>
     );
 };

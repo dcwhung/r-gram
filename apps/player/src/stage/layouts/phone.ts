@@ -74,6 +74,8 @@ const ARC_LIST = {
     fade: { power: 1.5, rest: 0.62, off: 0.5, min: 0.06 },
     veil: 0.8,
     titleChars: 8,
+    // 同歌單欄一樣（設計稿互動格嘅拖動門檻）
+    dragThresholdPx: 6,
 } as const;
 
 /*
@@ -215,6 +217,8 @@ export const PHONE_LAYOUT: StageLayout = {
         },
         heart: { gap: 46, size: 50, rise: 0.364, stroke: 2.6 },
         track: { x: 74, y: 368, size: 22, spacing: 3 },
+        // 歌單開住（設計稿 infoParts() st.list）：框入面嗰首嘅歌號，slab 32、喺歌名第一行基線上面 2
+        listNumber: { x: 74, size: 32, lift: 2 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
     },
     miniTurntable: MINI,

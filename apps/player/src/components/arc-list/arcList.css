@@ -1,0 +1,57 @@
+/*
+ * 弧線歌單（設計稿第 18 版 listLayer()、focusFrame()、dimLayer()）：暗層上面白字、白色框線。
+ * 位置、字級、透明度喺幾何表 list；歌號嘅專輯色由元件畀（fill）。
+ */
+
+/* 歌單自己處理拖動：瀏覽器唔好當係捲頁或者縮放（Technical Spec 實現注意事項 13） */
+.arc-list {
+    touch-action: none;
+}
+
+.arc-veil,
+.arc-listbox {
+    outline: none;
+}
+
+.arc-frame {
+    stroke: var(--color-paper);
+}
+
+.arc-number {
+    font-family: var(--font-slab);
+}
+
+.arc-title {
+    fill: var(--color-paper);
+    font-family: var(--font-cjk);
+    font-weight: 500;
+}
+
+.arc-title--focus {
+    font-weight: 700;
+}
+
+/* 未有音檔（D11）：歌號灰（設計稿 #9a978f），成行再淡一半（opacity 由元件計） */
+.arc-row--off .arc-number {
+    fill: var(--color-arc-off);
+}
+
+.arc-empty {
+    fill: var(--color-paper);
+    font-family: var(--font-cjk);
+    font-weight: 700;
+}
+
+/*
+ * 鍵盤 focus：歌單（listbox）攞到 focus 時框線加粗（SVG 元素嘅 outline 喺 Safari 唔可靠）；
+ * 暗層（關閉歌單）攞到 focus 時喺唱片夾個窿同舞台邊畫虛線
+ */
+.arc-list:has(.arc-listbox:focus-visible) .arc-frame {
+    stroke-width: 6;
+}
+
+.arc-veil:focus-visible {
+    stroke: var(--color-paper);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}

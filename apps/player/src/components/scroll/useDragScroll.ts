@@ -1,7 +1,7 @@
 /*
  * 元件內部嘅拖動捲動（歌單欄 T-049、弧線歌單 T-037 共用；Technical Spec 實現注意事項 13）：
  * 過咗門檻（CSS px）先當拖，之後捉住 pointer；每次移動按 px 換算做設計單位，向反方向捲（手指向上 = 睇下面）。
- * 拖完嗰下 click 唔當㩒（D57；設計稿互動格「拖過就唔當㩒」）。
+ * 拖完嗰下 click 唔當㩒（D57；設計稿互動格「拖過就唔當㩒」）：喺 capture 階段截住，唔會去到行或者暗層。
  */
 import { type MouseEvent, type PointerEvent, useRef } from 'react';
 
@@ -37,10 +37,9 @@ export const useDragScroll = (
     const drag = useRef<DragState | null>(null);
     const dragged = useRef(false);
     const end = () => {
-        const moved = drag.current?.moved ?? false;
-        if (moved) dragged.current = true;
+        dragged.current = drag.current?.moved ?? false;
         drag.current = null;
-        if (moved) onDragEnd?.();
+        if (dragged.current) onDragEnd?.();
     };
     return {
         onPointerDown: ({ pointerId, clientY }: PointerEvent<SVGGElement>) => {
@@ -55,9 +54,8 @@ export const useDragScroll = (
         onPointerUp: end,
         onPointerCancel: end,
         onClickCapture: (event: MouseEvent) => {
-            if (!dragged.current) return;
+            if (dragged.current) event.stopPropagation();
             dragged.current = false;
-            event.stopPropagation();
         },
     };
 };

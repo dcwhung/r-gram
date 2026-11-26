@@ -33,6 +33,12 @@ export const zhHant = {
         close: '關閉歌單',
         /** 冇歌嘅碟（設計稿 T.emptyAlbum；Functional Spec D39） */
         empty: '尚未有歌曲',
+        /** 弧線歌單（role="listbox"，T-037）嘅名 */
+        label: '{album} 的歌曲',
+        /** 一行（role="option"）：歌號同歌名 */
+        track: '第 {no} 首：{title}',
+        /** 未有音檔嘅一行（灰色、唔停得；D11） */
+        unavailable: '第 {no} 首：{title}（未有音檔）',
     },
     /** 拎住嘅碟嘅歌單欄（T-049；Functional Spec FR-044） */
     heldTracks: {

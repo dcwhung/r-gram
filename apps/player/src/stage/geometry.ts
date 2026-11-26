@@ -50,6 +50,10 @@ export const buttonOuterRadius = ({ buttons }: StageLayout): number =>
 export const hitSizeUnits = ({ clearance }: StageLayout): number =>
     clearance.hitPt / (clearance.viewportPt / DESIGN_WIDTH);
 
+/** 唱片夾嘅感應範圍半徑：唱片夾本身（碟孔）同 44pt 規則，取大嗰個 */
+export const spindleHitRadius = (layout: StageLayout): number =>
+    Math.max(layout.disc.r * layout.hub.clamp, hitSizeUnits(layout) / 2);
+
 /**
  * ♥ = 刻度最後一格，永遠喺弧尾（toDeg），同專輯數無關。平時喺嗰格刻度線外面；
  * 轉碟時（open 0 → 1）沿同一個角度滑出去字母盤。

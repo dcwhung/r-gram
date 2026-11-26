@@ -60,6 +60,8 @@ export interface InfoLayout {
     heart: { gap: number; size: number; rise: number; stroke: number };
     /** 「第 nn 首 · m:ss」 */
     track: TextLine;
+    /** 歌單開住時框入面嗰首嘅歌號（專輯色 slab）：x、字級、喺歌名第一行基線上面幾多 */
+    listNumber: { x: number; size: number; lift: number };
     /** 右上版本號（靠右對齊：x 係右邊） */
     version: TextLine;
 }
@@ -145,7 +147,8 @@ export interface HeldTracksLayout {
  * 揀中嗰行（框入面）字級 `focusSize`，其他 `restSize`；歌號字級 = 行字級 × `number.scale`，歌名喺歌號後面
  * 歌號字級 × `number.gapEm` + `number.pad`。框高 `frame.height`、左邊圓頭前面留 `frame.gap`、線粗 `frame.stroke`
  *（CSS px，唔跟縮放）。越遠越淡：(1 − |k| ÷ `visible`)^`fade.power`，唔係揀中 × `fade.rest`，未有音檔 × `fade.off`，
- * 最淡 `fade.min`；|k| > `visible` 唔畫。暗層黑色 `veil`。歌名放唔落 `titleChars` 個（揀中字級）全形字就「…」
+ * 最淡 `fade.min`；|k| > `visible` 唔畫。暗層黑色 `veil`。歌名放唔落 `titleChars` 個（揀中字級）全形字就「…」。
+ * 拖動要過 `dragThresholdPx`（CSS px）先當拖
  */
 export interface ArcListLayout {
     focusSize: number;
@@ -156,6 +159,8 @@ export interface ArcListLayout {
     fade: { power: number; rest: number; off: number; min: number };
     veil: number;
     titleChars: number;
+    /** 拖動要過幾多 CSS px 先當拖（拖過唔當㩒） */
+    dragThresholdPx: number;
 }
 
 export interface StageLayout {
