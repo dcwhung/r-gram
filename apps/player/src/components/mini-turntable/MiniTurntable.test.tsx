@@ -10,6 +10,7 @@ const mini = (overrides: Partial<MiniView> = {}): MiniView => ({
     title: '我永遠記得',
     paused: false,
     ended: false,
+    failed: false,
     armPose: 'playing',
     spinning: true,
     accent: '#2f8f57',
@@ -41,6 +42,15 @@ describe('MiniTurntable', () => {
         const { part } = renderMini(mini({ paused: true, ended: true, armPose: 'parked' }));
         expect(part('mini-label')).toHaveTextContent('已播完');
         expect(screen.getByRole('button', { name: '返回已播完的唱片：我永遠記得' })).toBeVisible();
+    });
+
+    // S-242：拎住時載入嘅歌載入失敗：唔寫「已暫停」，同左上一樣寫「未能播放」
+    it('should say the loaded song failed to load', () => {
+        const { part } = renderMini(mini({ paused: true, failed: true, armPose: 'parked' }));
+        expect(part('mini-label')).toHaveTextContent('未能播放');
+        expect(
+            screen.getByRole('button', { name: '返回未能播放的唱片：我永遠記得' }),
+        ).toBeVisible();
     });
 
     it('should be one button named after going back to the playing disc', () => {

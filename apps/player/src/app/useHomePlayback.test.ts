@@ -117,6 +117,22 @@ describe('useHome real playback', () => {
         expect(home.result.current.view?.failed).toBe(false);
     });
 
+    // S-242：拎住另一隻碟時載入嘅歌載入失敗，細唱片機講「未能播放」，唔係「已暫停」
+    it('should tell the mini turntable that the loaded track failed', () => {
+        const home = mount();
+        act(() => home.result.current.handlers?.onSpindle());
+        act(() => home.result.current.handlers?.onTurnStart());
+        act(() => home.result.current.handlers?.onTurn(1));
+        act(() => home.result.current.handlers?.onTurnEnd());
+        act(() => home.element.fail('unsupported'));
+        expect(home.result.current.view?.mini).toMatchObject({
+            shown: true,
+            failed: true,
+            ended: false,
+            armPose: 'parked',
+        });
+    });
+
     it('should pause for the MV with the arm parked', () => {
         const document = sampleDocument();
         const first = document.albums[0]?.tracks[0];
