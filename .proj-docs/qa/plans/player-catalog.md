@@ -12,9 +12,10 @@
     - AC-7 Selectors（TS API-070「按管理端次序」、「`audio` 可以係 null，播放端顯示灰色」；FS D11；CR-003 決定 7 全部專輯都顯示）：專輯次序 = catalog 次序；專輯嘅歌按次序；歌連佢嗰隻碟；`audio === null` 唔播得；冇歌嘅專輯照列；唔改 document
     - AC-8 隨機封面（T-046；FS D56、FR-042、CR-005「兩張封面」播放端表）：有兩張封面嘅專輯每次開 app 揀一張（兩邊都會出）；唔寫 localStorage / sessionStorage / IndexedDB / cookie / Cache Storage；大封面同縮圖同一張（`albumArt`）；catalog 更新期間已揀嘅唔變、新專輯先揀；專輯色永遠跟第一張；得一張封面 = 永遠嗰張、唔預載；另一張（封面 + 縮圖）有空先預載，每張圖一次
     - AC-9 圖片同歌詞離線 cache（T-034、backlog B-071、B-072 ③；FS FR-042「兩張都入離線 cache」、非功能「已睇過嘅封面可以離線開」；TS「性能考量」圖片 / 歌詞 CacheFirst、「播放端隨機封面」離線 cache）：預載同背景攞圖用 cors（`fetchImage`，2xx + 讀完 body 先算攞到；失敗唔記低，下次再試）；Service Worker `r-gram-catalog-img`（上限 200）、`r-gram-catalog-lyrics`（上限 400）CacheFirst、只留 200、`ignoreVary`；圖片冇 CORS header = 唔入 cache（唔留 opaque）；離線重新載入：catalog 用本機副本、畫面上嘅封面由 SW cache 出
+    - AC-10 臨時測試 catalog（T-113；FS D107；Plan T-113 A1–A4）：`public/test-catalog/catalog.json` = `scripts/dev/build-test-catalog.mjs` 生成結果（21 張、291 首、冇封面、歌詞 `null`）；`VITE_CATALOG_URL=/test-catalog/catalog.json` 可以用（root-relative，`defaultDeps.test.ts`）；唔入 precache、runtime cache 都冇；T-041 之前拎走。另外 T-038：`storageKeys.ts` 加 `PLAY_MODE_STORAGE_KEY`、`limits.ts` 加 `STALL_*`、`PREVIOUS_RESTART_S`（用嘅地方屬 `player-playback`）
 - Scope files:
     - `apps/player/src/catalog/**`（`loader.ts`、`catalogStore.ts`、`defaultDeps.ts`、`selectors.ts`、`coverVariants.ts`、`useCoverVariants.ts`、`usePrefetchOtherArt.ts`、`fetchImage.ts`、`testing/catalogFixtures.ts`、`testing/catalogFixtures.test.ts` 同 `*.test.ts`）
-    - `apps/player/src/config/storageKeys.ts`、`apps/player/src/config/limits.ts`、`apps/player/src/utils/idle.ts`、`idle.test.ts`
+    - `apps/player/src/config/storageKeys.ts`、`apps/player/src/config/limits.ts`、`apps/player/public/test-catalog/catalog.json`（T-113；`README.md` 係文件）、`apps/player/src/utils/idle.ts`、`idle.test.ts`
     - `apps/player/src/pwa/catalogCaching.ts`、`catalogCaching.test.ts`（`vite.config.ts` 用佢，`vite.config.ts` 本身屬 `player-foundation`）
     - 1-hop importer：`app/useHome.ts`、`app/homeView.ts`（屬 `player-home`，唔喺呢度凍結）
 - Commands:
@@ -28,5 +29,6 @@
     - 壞本機副本 8 種；storage 拋錯；`store.write` 拋錯；fetch 同步拋錯 / 回 null；`process.getActiveResourcesInfo()` 驗冇 timer 留低
     - 全部 fetch 經 guard：唔係 `127.0.0.1` / `localhost` 就拒絕並計數
 - Browser（T-046 起）：用 `player-home` 嘅 harness，兩張封面嘅碟每個尺寸重新載入 16 次：記大封面、`/img/` 請求（另一張封面 + 縮圖）、本機儲存；`refreshCatalog()` 後封面不變；專輯色；得一張封面嘅碟
+- 2026-11-26（T-113）：`/tmp/…/scratchpad/qa-t038-t116/``t113.cjs`（build 指 `/test-catalog/catalog.json`：Preload 走、22 格、SW 控制下 cache 冇 test-catalog）+ 重新生成同 committed 檔 byte 一樣
 - PWA gate（T-034 起）: yes，用 `player-startup` 嘅 harness（假 Worker 要 https：cache 規則同 validator 都只收 https）：第一次上網開 → 上網重新載入 → 停晒兩個 server、清 HTTP cache、離線重新載入 6 次：Cache Storage 內容（每項 status / type）、畫面封面嘅顏色同 `workerStart`、本機儲存；再開一個 context 喺圖片冇 CORS header 時睇畫面同 cache；`dist/sw.js` 嘅 cache 名同上限 = 常數。Security / Data gate: yes（外來輸入 = 網絡同本機 JSON，由 AC-2、AC-4 覆蓋）。Performance gate: no（冇 backend API 改動）
 - Out of scope：Preload 畫面同進度（`player-startup`）；返回前景重新驗證（TS:627，T-035）；Worker 端 `serve.ts` 嘅 ETag / CORS（S-045，T-026 / T-027）；validator 只收 https（B-001）；`.env.example`（S-047）；歌詞 cache 未有畫面用（歌書 T-072）；backlog B-075 ③（S-143）

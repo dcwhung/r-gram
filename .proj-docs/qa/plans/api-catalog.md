@@ -15,6 +15,7 @@
     - AC-7 並發（TS「API 設計」並發；review W-020）：同時多個寫入 → 最後生效嗰份 = D1；A→B→A 自我修正；撞過上限 → 記失敗，重試修返
     - AC-8 公開路由（TS API-070、API-072、「安全設計」公開路由 / Header）：content type、`Cache-Control`（60 秒 / immutable）、ETag、`If-None-Match`（strong、weak、list、`*`）→ 304 冇 body、`HEAD`；CORS 只回 `PLAYER_ORIGINS`、`Vary: Origin`、expose `ETag`、preflight `GET,HEAD`；`nosniff`、CSP `default-src 'none'; sandbox`、冇 cookie；歌詞名唔合規 / traversal → 404
     - AC-9 訊息（CLAUDE.md 介面文字）：`catalog` 錯誤訊息係中文書面語，冇未填 `{…}`
+    - AC-10（T-116）：只改註解（bucket 名 `rb-discography-catalog`）；冇行為改動（T0）
 - Scope files:
     - `apps/api/src/catalog/**`（`buildDocument`、`conditional`、`errors`、`issues`、`rebuild`、`rebuildRoute`、`routes`、`serve`、`snapshot`、`state`）
     - `apps/api/test/{catalogRebuild,catalogRebuildRoute,catalogPublic,lyricsAfterCatalog}.test.ts`、`test/catalogFixtures.ts`
@@ -25,5 +26,6 @@
     - `npm run coverage`（全部 workspace 一次；門檻 80%）
 - Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie；本機 D1 / R2。失敗：直接改 D1 嘅值、R2 / D1 proxy（put reject / 回 null、delete reject、prepare throw）。並發：`Promise.all` 多個寫入；put proxy 喺寫入之前插入另一個請求（A→B→A）或者先改 etag（撞上限）。`loadCatalog()` 嘅 fetch 直接叫 Worker handler。預期由 spec 寫，唔抄 developer 嘅 test
 - HTTP smoke：唔使（冇改 middleware 次序；route 經 workerd 打 `src/index.ts`）。唔好 request `wrangler.toml` 嘅真 `MEDIA_BASE`
+- 2026-11-26（T-116）：T0（註解）；本機 Worker 嘅 `catalog.json` 同圖 header（CORS 只回播放端 origin、`max-age=60`／`immutable`、`nosniff`）喺 `/tmp/…/scratchpad/qa-t038-t116/``t116/`
 - PWA gate: no。Performance gate: no（每個寫入讀兩句 D1 + head / put 一個 R2 object；291 首歌估計 < 170 KB）。Security / Data gate: yes（AC-4、AC-5、AC-8）
 - Out of scope: 管理端提示同重試掣（T-051 起）；~~seed 之後生成~~（CR-007 取消 seed）；Worker 中途被中止嘅窄位（`rebuild.ts` 註解已記）；共用歌詞檔同時寫入嘅窄位（`lyricsCleanup.ts` 註解已記）

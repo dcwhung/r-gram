@@ -14,6 +14,7 @@
     - AC-10 弧線歌單同 PWA 嘅接駁（T-037、T-039；S-197）：`App` 掛 `UpdatePrompt`（「請打直」時唔出）、`RotateNotice`、`useLaunchEnd`（Preload 完先停自動換版）、`Stage covered`；`Spindle` 感應半徑 = `spindleHitRadius`（唱片夾同 44pt 取大）、標籤 `list.open` / `playback.*`。瀏覽器驗喺 `player-list`、`player-pwa`（`AppPwa.test.tsx` 屬 `player-pwa`）
     - AC-11 揀碟歌單欄第 19 版用到嘅核心（T-108；FS §CR-008 D84、D85；Plan A1、A3、A4）：`stageReducer`：`openList` 拎住時照開、`discChange` 唔去 `list`，`playHeldTrack` 已刪；`Spindle`：未揀歌 = play 圖案（`idle`），字母盤開住 `aria-disabled`（照 focus 得）、㩒冇反應；冇 `inert` 唱片夾；`pressable`：停用時開始嘅 pointer 㩒（pointerdown）嗰下 click 唔算，就算 click 前已經解除停用（QA W-056：鍵盤開字母盤再用滑鼠㩒唱片夾唔播）；鍵盤路徑不變。瀏覽器驗喺 `player-holding`，`pressable` 嘅全部用家（唱片夾、碟面、♥、細掣、細唱片機、暗層、Preload 重試）用 `qa-t108/pressable.cjs` 驗 click / tap / Enter / Space
     - AC-12 版本掣用到嘅核心（T-109；FS D95）：`App`：`useUpdateStatus` = `waiting` 而且 Preload `exit` = `gone` 先畀 `HomeScene` 版本掣；`UpdateNotice`（讀屏，打橫唔通知）取代 `UpdatePrompt`；`App.test.tsx` 由轉盤上嗰隻碟攞封面（T-110 碟疊次序）。瀏覽器驗喺 `player-pwa` AC-8
+    - AC-13 播放 controller 接駁（T-038；Plan P3）：`App` 收 `playback`（`main.tsx` 建一個），經 `useBoot` 畀 `useHome`；`App.test.tsx` 用 `testing/testPlayback`
 - Scope files:
     - `apps/player/src/app/`：`App.tsx`、`App.test.tsx`、`stageReducer.ts`、`stageReducer.test.ts`（`TurntableShell.tsx`、`app.css` 已刪；主頁嘅其他檔屬 `player-home`，見 `plans/player-home.md`；`app/startup/**` 屬 `player-startup`）
     - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`，亦唔包 `player-startup` 嘅 `flag/**`（見 `plans/player-startup.md`），亦唔包 `player-dial` 嘅 `knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（見 `plans/player-dial.md`），亦唔包 `player-holding` 嘅 `mini-turntable/**`、`held-tracks/**`、`svgId.ts`、`tonearm/useSwapInstant*`（見 `plans/player-holding.md`），亦唔包 `player-list` 嘅 `arc-list/**`、`scroll/**`、`info-block/ListSongLines.tsx`、`SongPart.tsx`（見 `plans/player-list.md`），亦唔包 `player-pwa` 嘅 `update-button/**`、`rotate-notice/**`（見 `plans/player-pwa.md`）
@@ -29,5 +30,6 @@
     - 零件位置（設計單位，經 `getScreenCTM()`）同設計稿「未揀歌」「播緊」兩格逐項比；1080 × 1920 @1x 同設計稿做分區像素比對（封面、左上文字、旋鈕唔比：未接／未做）
     - 真滑鼠㩒唱片夾行 AC-3；取樣封面角度驗 AC-4；真鍵盤事件驗 AC-5；`reducedMotion: 'reduce'` 驗 AC-6
     - console 冇 error／warning；頁面冇重覆 id、冇指去唔存在 id 嘅 `url(#…)`
+- 2026-11-26（T-038）：只係 prop 接駁；browser 由 `/tmp/…/scratchpad/qa-t038-t116/``t038.cjs` 覆蓋（一個 element、開 app 冇 `play()`）
 - PWA gate: no（`vite.config.ts`、`index.html`、manifest、`package.json` 冇改；T-034 嘅 PWA 驗收喺 `player-catalog`）。Security / Data gate: no（冇外來輸入）。Performance gate: no
 - Out of scope（已知、已接受）：所有零件係同一個 SVG 畫布入面嘅 React 元件（Technical Spec 由 CR-003 同步）；`TurntableShell` 係暫時外殼（封面未接、左上係 App 名、冇旋鈕；T-035 取代）；設計稿第 16 版嘅暫停（唱針升起、唱臂留喺碟上）、歌書暫停時唔收、固定刻度弧（T-035／T-038）；backlog S-035、S-039 – S-042；高身手機多出嘅高度點對位（B-009）

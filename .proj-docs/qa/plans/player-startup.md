@@ -9,6 +9,7 @@
     - AC-5 減少動態效果（FS「過場動畫」；TS 實現注意事項 11）：旗靜止一格、冇淡入淡出、冇等
     - AC-6 無障礙（FR-037；FR-010）：錯誤 `role="alert"`；重試係 `role="button"`、Tab 得到、Enter / 空白鍵、感應範圍 124 單位（390pt 基準 = 44.8pt）；canvas `aria-hidden`；進度 `role="progressbar"` + `aria-valuenow`；文字全部經語言檔、書面語
     - AC-7 儲存（FR-042「唔記低」）：只有 `rgram.catalog.v1` 同 Service Worker 嘅 cache；揀中嘅封面唔寫任何儲存
+    - AC-8 播放 controller 接駁（T-038）：`useBoot(deps, playback)` 將 controller 交畀 `useHome`；Preload 時間線不變
 - Scope files:
     - `apps/player/src/app/startup/**`（`startupDeps`、`startupState`、`startupTasks`、`useBoot`、`usePreloadExit`、`useStartup` 同 `*.test.ts`）
     - `apps/player/src/components/flag/**`（`FlagCanvas`、`PreloadInfo`、`PreloadScreen`、`flagMesh`、`flagRenderer`、`flagScene`、`useFlagAnimation`、`preload.css` 同 `*.test.ts(x)`）
@@ -21,5 +22,6 @@
     - Chromium（`/opt/pw-browsers/chromium`）`--no-proxy-server`、`--host-resolver-rules`（只解析 127.0.0.1）、`--ignore-certificate-errors`；非本機請求 abort 兼計數
     - 360 × 640、393 × 852、1280 × 800：AC-1 座標（經 `getScreenCTM()` 換返設計單位）、logo 白色像素範圍、AC-2 進度序列、主頁封面；`reducedMotion: 'reduce'` 驗 AC-5
     - 393 × 852：AC-3 每種失敗量「去到主頁 / 錯誤」嘅時間；重試連續兩次（滑鼠 + Enter）；AC-6、AC-7
+- 2026-11-26（T-038）：Preload 由 `/tmp/…/scratchpad/qa-t038-t116/``regress-qa.cjs`、`t038.cjs`（每個 context 等 Preload 走）覆蓋
 - PWA gate: yes（同 `player-catalog` 一齊做：第一次上網開、離線重新載入、Cache Storage）。Security / Data gate: no（外來輸入由 `player-catalog` 驗）。Performance gate: no（冇 backend 改動；旗幟 fps 要真機，見 backlog B-075 ②）
 - Out of scope：重開 app 回復上次嘅碟同歌（D12）；由背景返嚟唔再出 Preload（US-001，冇背景載入）；旗幟真機 fps；backlog B-075（S-141 – S-147）

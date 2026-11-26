@@ -14,8 +14,9 @@
     - AC-7 開 app 之後（T-034）：`useHome.finishPreload()` 喺 Preload 載入完先開第一隻碟（catalog 遲過 Preload 開始先到都得）；歌名兩行嘅 `aria-label` = 成個歌名（B-072 ①）；`breakAt` 註解同設計稿規則一致（B-070）
     - AC-11 揀碟歌單欄第 19 版嘅接駁（T-108；FS §CR-008 D83–D86；Plan A2、A4、A5；設計稿第 19 版 `scene()` `armFade`／`buttonsFade`、`spindle()`、`ACTIONS.playpause`）：`homeView` 嘅 `trackColumn`（`showsColumn`）、`armHidden`（字母盤開住或者拎住）、`buttonsHidden`（只係字母盤開住）、`spindle` 未揀歌 = `idle`（play）、`canOpenList`（拎住都得）；`useHome` 嘅唱片夾：未揀歌 = 播第一首有音檔嘅歌（拎住 = 隻碟入機），字母盤開住 / MV 冇反應；`playbackState` 嘅 `ended`（`toggle`、`pauseFor` 唔郁）；`playHeldTrack`、`startHeld`、`onPlayHeldTrack` 已刪；`HomeScene.test.tsx` 鎖 W-056（字母盤開住時開始嘅㩒唔播）。瀏覽器驗喺 `player-holding`
     - AC-12 版本掣嘅接駁（T-109；FS D95）：`HomeScene` 收 `update`（`App` 只喺 `waiting` 而且 Preload 走咗先畀）→ `TopGroup`；`HomeSceneUpdate.test.tsx` 鎖住層次（暗層下面、細唱片機上面）同 `covered`。瀏覽器驗喺 `player-pwa` AC-8
+    - AC-13 真播放嘅接駁（T-038；FS §CR-010 D103、§CR-009 D99 ①–⑤；Plan P2、P3、E1–E5）：`useHome` 經 `useSyncExternalStore` 讀 `playbackController`（`App` 由 `main.tsx` 畀；冇畀只限 spike 頁，S-237 已接受）；手勢 handler 同步行到 `controller.start()`；D99 ①（擰旋鈕、開歌單、㩒歌書／MV = 即刻放低，放低後唔開）、②（`useEndedRelease`，屬 `player-playback`）、⑤（`returnToLoaded`）；`PlaybackNotice`（`aria-live` 錯誤提示）；細掣嘅播放模式掣（`mode`、`DEFAULT_PLAY_MODE`）；`armPose.leadInMs()` 同 `useArmLeadIn` 用同一組 token；`playbackState` 搬去 `src/playback`（`player-playback`）
 - Scope files:
-    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`HomeSceneUpdate.test.tsx`（T-109）、`Turntable.tsx`（`ListVeil.tsx` 已刪）、`homeView.ts`、`homeView.test.ts`、`playbackState.ts`、`playbackState.test.ts`、`useHome.ts`、`useHome.test.ts`（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
+    - `apps/player/src/app/`：`HomeScene.tsx`、`HomeScene.test.tsx`、`HomeSceneUpdate.test.tsx`（T-109）、`Turntable.tsx`（`ListVeil.tsx` 已刪）、`homeView.ts`、`homeView.test.ts`、`useHome.ts`、`useHome.test.ts`、`useHomeEnded.test.ts`、`useHomePlayback.test.ts`、`PlaybackNotice.tsx`、`PlaybackNotice.test.tsx`（T-038；`playbackState*` 已搬去 `src/playback`，屬 `player-playback`）（`PreloadPlaceholder.tsx` 已刪，Preload 屬 `player-startup`）
     - `apps/player/src/components/info-block/**`（連 `songFit.ts`；`ListSongLines.tsx`、`SongPart.tsx` 屬 `player-list`）、`apps/player/src/components/small-buttons/**`
     - `apps/player/src/components/tonearm/armPose.ts`、`armPose.test.ts`、`useArmLeadIn.ts`、`useArmLeadIn.test.ts`
     - `apps/player/src/stage/useStageBackdrop.ts`、`useStageBackdrop.test.ts`
@@ -28,5 +29,6 @@
     - 360 × 640、393 × 852、1280 × 800：AC-2 屬性同字體、AC-3 / AC-4 狀態、Tab 次序、AC-5 錨定（設計單位）
     - 唱臂：每格取樣（computed transform、小燈、`data-spinning`）量 AC-1 時間線；`reducedMotion: 'reduce'` 再行一次
     - 超長碟名量字級、「…」、右邊界；AC-6 五種歌名（放得落、縮字、兩行中文 + 括號、兩行英文、兩行 +「…」）量字級、基線、右邊、心形中心、色棒；MV 開完收返（泊位）用 `isPointInFill` 逐點驗唱臂唔掂歌名同心形；字體 woff2 遲 2.5 秒對比
+- 2026-11-26（T-038）：browser check = `/tmp/…/scratchpad/qa-t038-t116/``t038.cjs`（真 `<audio>`；見 `plans/player-playback.md`）+ T-108 `regress-qa.cjs`、`regress-pressable.cjs` 做回歸（`/media/*` 出一條 90 秒 tone，唱片夾真係播）
 - PWA gate: no（呢條鏈冇 build 設定、manifest、Service Worker）。Security / Data gate: no。Performance gate: no
 - Out of scope（已知、已接受）：旋鈕、刻度、♥（T-036）；心形係佔位（T-070）；歌單、歌書、MV 畫面（T-037、T-072、T-060）；時間 0:00（冇播放，T-038）；production build 未揀得歌（T-037），歌名 `aria-label` 只由單元測試驗；W-031（括號斷位：spec 同設計稿講法唔同，等用戶）；S-127、S-130 – S-132；backlog B-055、B-056、B-063、B-064、B-070 – B-072

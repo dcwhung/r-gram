@@ -12,6 +12,7 @@
     - AC-8 版本掣（T-109；FS §CR-009 D95；Plan T-109 A1–A6；設計稿第 20 版 `UPDATE_PILL`、`updateButton()`、`versionGlow`；review W-057、W-058、W-059、S-219、S-221）：取代 AC-4／AC-6 嘅「已有新版本／立即更新」提示。`waiting`（Preload 走咗之後）：右上版本號變成透明底、橙黃 `#f09a00` 膠囊（右 1034、高 58、字 slab 26、字兩邊 26、線 3），感應範圍高 122、伸到右邊 1080；成粒一明一暗 1.4 秒、1 ↔ 0.2，減少動態效果常亮；㩒（click、tap、Enter、Space，字母盤開住都得）= `applyNow`；弧線歌單、歌書、MV 開住：暗層下面、唔係掣、唔入 Tab、讀屏照讀版本號（W-058）；拎住另一隻碟唔撞細唱片機同佢啲字；冇新版本 = 灰色版本號；讀屏通知「已有新版本」一次，打橫唔通知；開 app 先自動換（30 秒防 loop 照舊）
     - AC-9 icon 細尺寸（T-112；FS D100；Plan T-112 A1–A3）：`icon-16/32/48`、`icon-maskable-192` 同 `_mockups_/app-icon/export/d-black-disc/` byte 一樣；build 出嚟三條 `rel="icon"`（sizes、type）、`apple-touch-icon` 不變；manifest = any 192、maskable 192、any 512、maskable 512；每個 icon 喺 `sw.js` precache 一次（`precache.node.test.ts`）
     - AC-10 spike 頁同 app 分開（T-010，產品嗰邊）：`dist/spike.html` 有、唔 precache（`spikePage.ts` 嘅 `globIgnores`）、導航 fallback denylist；app 嘅 SW 裝咗之後 `/spike.html`（連 `?media=`）照開 spike 頁；app 冇連結去佢
+    - AC-11 CR-010（T-038、T-113）：`main.tsx` 喺 React 外面建一個 `audioEngine` + `playbackController`；`AppPwa.test.tsx` 跟住改；`precache.node.test.ts` 鎖 `test-catalog` 唔入 precache；手機打橫照出「請將裝置轉為直向」（D101，冇改）
 - Scope files:
     - `apps/player/src/pwa/`：`manifest.ts`、`manifest.node.test.ts`、`registerUpdates.ts`、`registerUpdates.test.ts`、`reloadGuard.ts`、`reloadGuard.test.ts`、`updateChecks.ts`、`updateChecks.test.ts`、`updateManager.ts`、`updateManager.test.ts`、`useUpdates.ts`（`catalogCaching*` 屬 `player-catalog`）
     - `apps/player/src/components/update-button/**`（2026-11-26 T-109 取代已刪嘅 `update-prompt/**`）、`apps/player/src/components/rotate-notice/**`；`apps/player/src/pwa/spikePage.ts`、`precache.node.test.ts`（T-010、S-221）
@@ -21,5 +22,6 @@
 - Commands: `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
 - Browser check：兩個 production build（A = 0.1.0、B = 0.1.1，HEAD 嘅 `git archive` 副本，B 只改 `package.json` version）由 `127.0.0.1` 靜態 server 切換；本機 https 假 Worker；Chromium（`--ignore-certificate-errors` 只為本機自簽證書，SW 嘅 fetch 唔跟 context 設定）；`serviceWorkers: 'allow'`，route 擋晒非本機並記數；AC-1 – AC-7；normal 全套，`reduce` 跑用緊時更新、「請打直」、版面
 - 2026-11-26（T-109、T-112、T-010）：browser check = `/tmp/…/scratchpad/qa-t109-t110/update.cjs`（A／B 兩個 build；主流程、四種㩒法、打橫通知；393 × 852、1280 × 800 × normal／`reduce`）+ T-112 靜態檢查（build 嘅 `index.html`、manifest、icon、`sw.js`）+ `spike.cjs`（spike 頁喺 app SW 下面）
+- 2026-11-26（T-038、T-113）：`/tmp/…/scratchpad/qa-t038-t116/``update.cjs`（A／B build，四個 run）、`t038.cjs` R1（打橫）、`t113.cjs`（precache／runtime cache）
 - PWA gate: yes（manifest、icon、更新邏輯、build 設定）。Security / Data gate: no（冇新輸入面；SW 只向自己 origin）。Performance gate: no（precache 12 項 1125 KiB，見 QA 報告 S-207）
 - Out of scope（已知、已接受）：提示同「請打直」冇設計稿（用戶睇截圖）；S-205（版本號規則，T-041）；D14 / US-011 字眼（PM）；Chromium `in-incognito` 嘅 installability（測試環境）；真機 iOS / Android 安裝

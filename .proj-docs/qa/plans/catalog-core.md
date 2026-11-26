@@ -14,6 +14,7 @@
     - ~~AC-13 初始專輯揀選~~（CR-007，T-104：`planAlbumSeed()` 同 seed 匯入刪走，D79）
     - AC-14 資料夾名、次序同內容檔（CR-007，T-103、T-104；TS v1.7「`packages/catalog`：新增同改」；FS D67、D69）：`parseAlbumFolder()` = `expectedFolder()` 反方向（`^(album|ep|best|live|ost|single)-(\d{2,3})-<id>$`，序號 ≥ 1，id 過 `isAlbumId()`，其他 → `undefined`）；`albumOrder()` 類別 → 序號 → id；`CatalogAlbum` 冇 `label`、`CatalogTrack` 冇 `subtitle`（舊 document 有都照收）；`wheelKeyFor()` 第一個 `\p{L}\p{N}`，冇 = `?`，21 張碟同 seed 一樣
     - AC-12 年份同歌號（CR-006，T-101、T-102；TS「只有年份」`packages/catalog` 行、「歌號同歌 id」；FS D60、D61、D63）：`CatalogAlbum` / `SeedAlbum` 冇 `releaseDate`、`type`；validator `year` = `null` 或者 1900–2100（`isAlbumYear`），舊 document 仲有 `releaseDate` / `type` 照收（唔睇）；`trackIdFor()` 喺 `schema/ids.ts`（`<albumId>-<NN>`，100 以上三位），`isTrackNo()` 1–999；seed：21 張都有年份（終於好天氣 = 2016），291 首歌 id 同歌名不變
+    - AC-15 封面尺寸同上載上限（T-116）：`schema/coverSize.ts` 嘅 `COVER_SIDE_PX = 1200`、`THUMB_SIDE_PX = 320`、`IMAGE_MAX_BYTES = 2 MB`，由 `index.ts` export；管理端同 Worker 共用
 - Scope files:
     - `packages/catalog/`：`src/**`（`src/song-text/**` 除外，屬 `catalog-song-text`；`src/{sync,album-info,text,scan}/**` 除外，屬 `api-sync`，CR-007）、`package.json`、`tsconfig.json`、`tsconfig.src.json`、`tsconfig.node.json`、`vitest.config.ts`
     - `apps/api/seed/discography.json`、`apps/api/seed/credits.json`（`seed.node.test.ts` 讀真資料；由 `seed-tools` 鏈嘅 script 生成）
@@ -22,6 +23,7 @@
     - `npm run lint`
     - `npm run typecheck`
     - `npx vitest run --project @r-gram/catalog --coverage --coverage.include='src/**/*.ts'`（淨揀一個 project 時，`include` 相對嗰個 project 嘅資料夾）
+- 2026-11-26（T-116）：`coverSize.test.ts`
 - PWA gate: no。Performance gate: no
 - Security / Data gate: yes（validator 同 LRC parser 處理外來輸入；由上面嘅 unit test 覆蓋）
 - Out of scope: 根設定同 CI（`repo-scaffold`）；`apps/*`；API body 嘅長度上限（backlog B-006）；~~seed 匯入 script 同 `seed/albums.sql`~~（CR-007 刪走）；同步、`info.txt`、掃描分類（`api-sync`）

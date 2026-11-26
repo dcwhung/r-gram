@@ -1,0 +1,21 @@
+# Test Plan — player-playback
+
+- Chain: 播放端真播放（`apps/player`）：一個 `<audio>` 嘅 `audioEngine`（手勢入面靜音 cue、唱針放低先出聲、`ended` 同步接下一首、系統暫停／恢復、卡住重試、錯誤分類）、`playbackController`（外部 store、隊列、D99 放低、D109、D110、Media Session）、`queue`／`playModes`（四個模式、存本機）、`playbackState`（由 `player-home` 搬入）、`playbackSource`、`mediaSession`／`sessionSync`、`app/useEndedRelease`（3 秒 timer）。任務 T-038（連 review 修正 C-001、C-002、W-062、W-063、S-236–S-244）
+- AC（L1：FS = Functional Spec v1.12 §CR-010 D103、D109、D110 同 §CR-009 D99（細項 ①–⑤）、D85、D88、D36、D10、FR-040、US-004／005／006／014、「播放模式」表；TS「CR-010 對技術設計嘅影響 → 播放架構」；spike 報告 `reports/2026-11-26_17-10_spike-report_T-011.md` §2.2–2.7；Plan v1.9 T-038 P1–P8、E1–E5；設計稿第 20 版「播完最後一首」）:
+    - AC-1 一個 `<audio>`（P1、D103）：成個 app 一個 element，唔入 DOM、唔設 `crossOrigin`；引擎合約（世代、`cue` 停喺 0、`land`、`stop` 唔發 `ended`、`ended` 同步接歌、卡住 4 s／8 s／重試 2 次、錯誤分類、`MEDIA_ERR_ABORTED` 唔當壞檔）
+    - AC-2 開場（P2、FR-040、D103）：所有 `start` 路（唱片夾、弧線歌單 Enter／Space／唱片夾、未揀歌 play-first、拎住時入機、播完再播、失敗再㩒）喺手勢入面靜音 `play()`；出聲 = `leadInMs()` = `tonearmMs + needleDropMs`（810 ms）；之後先著燈、轉碟；減少動態效果冇開場；暫停 = 升針、唱臂留低，繼續即刻
+    - AC-3 自動下一首（D103、US-014、播放模式表）：同一個 element、畫面隱藏都得；冇音檔嘅歌跳過；順序停、全部重複兜返、單曲重複、隨機每輪唔重複而且唔停；模式掣循環、存 `rgram.playMode.v1`
+    - AC-4 播完最後一首（D99、E1–E5、D88）：停、唱臂泊位、唱片夾 play；3 秒後未揀歌、歌單欄飄返、鎖屏清空；3 秒內／後㩒 = 第一首；擰旋鈕、開歌單、㩒歌書／MV = 即刻放低（MV／歌書唔開）；歌書開住 = 收埋先計；拎住 = 「已播完」、冇 timer，返去 = 未揀歌
+    - AC-5 錯誤（US-004、P3）：「第 nn 首 · 未能播放」、`aria-live` 講歌名、唱臂泊位、再㩒重試；拎住時細唱片機「未能播放」（S-242）
+    - AC-6 D109／D110／W-062：隱藏時自動下一首失敗跳一次、再失敗停、前景停；鎖屏上一首 > 3 秒由頭、≤ 3 秒上一首；歌中途網絡錯（隱藏）唔即刻重載，返前景先試
+    - AC-7 Media Session（P4）：metadata（歌名、RubberBand、碟名、縮圖 + 大封面）、handler 各註冊一次、`playbackState` 跟 element、位置夾喺長度內、放低 = `none`
+    - AC-8 畫面跟實際：時間同進度圈跟 `currentTime`；碟只喺出聲時轉（卡住停）
+- Scope files:
+    - `apps/player/src/playback/**`（`audioEngine`、`playbackController`、`queue`、`playModes`、`playbackState`、`playbackSource`、`mediaSession`、`sessionSync` 同各自 `*.test.ts`、`playbackControllerSession.test.ts`、`testing/{fakeAudioElement,fakeMediaSession,testPlayback}.ts`）
+    - `apps/player/src/app/useEndedRelease.ts`
+    - 1-hop（屬其他鏈）：`app/useHome.ts`、`useHomeEnded.test.ts`、`useHomePlayback.test.ts`、`PlaybackNotice.tsx`（`player-home`）；`main.tsx`（`player-pwa`）；`config/{motion,limits,storageKeys}.ts`（`player-foundation`／`player-catalog`）；`tonearm/armPose.ts`（`player-home`）
+- Commands:
+    - `npx vitest run --project @r-gram/player src/playback src/app/useHomeEnded.test.ts src/app/useHomePlayback.test.ts`（lint／typecheck／coverage 引用同一個 SHA 嘅 gate）
+    - Browser（未有 e2e；T-040 之後改跑 e2e）：`/tmp/…/scratchpad/qa-t038-t116/t038.cjs` + `t038-server.mjs`（HEAD production build，`VITE_CATALOG_URL` = 本機假 Worker；假媒體 bucket 有 Range；7 張測試碟：3 秒 tone、20 秒 tone、404、冇音檔、D109 組合、5 首隨機）；393 × 852、1280 × 800 × normal／`reduce`；斷言喺真 `<audio>`（`paused`、`muted`、`currentTime`、`src`、`play()` 次數同時間、element 數）；Media Session handler 由測試直接叫；`visibilitychange` 模擬隱藏；非本機請求一律 abort
+- PWA gate: no（呢條鏈冇改 build 設定、manifest、SW）。Security / Data gate: no（URL 全部經 `mediaUrl()`）。Performance gate: no（冇 backend）
+- Out of scope（真機，U-24 ①②③⑤，P8）：iOS 落針有冇延遲、鎖機播完成隻碟、鎖屏暫停 → 等 → 播放、耳機掣、系統中斷（電話、Siri）、真網絡斷線；S-237、S-238（已接受）；MV 音訊（T-060、T-061）；續播位置（T-062）

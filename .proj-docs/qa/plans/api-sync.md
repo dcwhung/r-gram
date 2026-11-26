@@ -12,6 +12,7 @@
     - AC-8 封面工作同檢查結果（FS D74、D77；TS 步驟 6、7）：`cover`／`cover2` 來源 ETag 唔同 → `coverJobs`；`cover2` 冇第一張 = `NO_FIRST_COVER`；`albums.checks` 記最近一次（≤ 100 條），訊息經 `zh-Hant.ts` 書面語
     - AC-9 Catalog（TS API-034 / 035）：寫咗 D1 就生成；`catalog.json` 過 `parseCatalogDocument()`、同 D1 一致、次序 `albumOrder()`
     - AC-10 守門同上限（TS「安全設計」、操作上限表）：三條 route 冇 session 401、寫入跨站 403；100 首嘅碟 API-034 操作數 < 1000
+    - AC-11 API-033 回 `mediaBase`（T-116；TS「CR-010 → 冇設計嘅同步頁」）：只喺已登入回應、值 = `MEDIA_BASE`
 - Scope files:
     - `apps/api/src/sync/**`、`apps/api/src/media/{applyGuard,errors,listing,songTextFile}.ts`
     - `packages/catalog/src/{sync,album-info,text,scan}/**`（連 `*.test.ts`）
@@ -20,5 +21,6 @@
 - Commands:
     - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）
 - Probe（repo 外 clone，唔入 repo）：workerd vitest，經 `src/index.ts` 打真 session cookie；本機 D1 / R2 由空開始，自己砌假 bucket（2–3 個資料夾、冇 `info.txt`、冇音檔嘅歌、歌名唔吻合、`cover.jpg`／`cover2.png`、同步／純文字歌詞、`_fonts/`、名唔啱嘅資料夾）；故障用 binding proxy（R2 `get` reject、`list` truncated）；D1 / R2 計數 proxy 量操作數。Sanity mutant：每個 review 修正至少一個
+- 2026-11-26（T-116）：`syncOverview.test.ts` + 本機 Worker 真同步（`/tmp/…/scratchpad/qa-t038-t116/``t116/admin.cjs`）
 - PWA gate: no。Performance gate: yes（操作數，AC-10）。Security / Data gate: yes（AC-6、AC-7、AC-10）
 - Out of scope: 寫返 bucket（`api-writeback`）；API-017 封面結果（`api-albums`）；管理端畫面同瀏覽器封面處理（T-055）；`COVER_FAILED` 儲存（S-185 未建）；真 R2 行為（B-060 ②、T-028）

@@ -9,6 +9,7 @@
     - AC-5 寫入後置步驟（TS API-061）：只喺成功寫入之後行；hook throw → 照回成功、`catalog: { ok: false }`；`skipPostWrite` 唔生成
     - AC-6 訊息（CLAUDE.md 介面文字規則）：`message`、`details[].message` 係中文書面語，冇未填 `{…}`
     - AC-7 取消嘅 route（TS「API 一覽嘅變化」）：`POST /api/albums`、`PATCH`／`DELETE /api/albums/:id`、`PUT /api/albums/order` → 404（`test/removedRoutes.test.ts` 屬 `api-auth`）
+    - AC-14 封面尺寸共用（T-116）：`COVER_SIDE_PX`、`THUMB_SIDE_PX`、`IMAGE_MAX_BYTES` 由 `packages/catalog` 嚟（`config.ts` re-export），行為不變；`albumCover.test.ts` 跟住改
 - Scope files:
     - `apps/api/src/albums/{cover,coverBody,coverStore,errors,overview,routes,rows,store}.ts`、`src/api/{afterWrite,errors}.ts`、`src/lib/{fields,updatedAt}.ts`、`src/i18n/fillMessage.ts`
     - `apps/api/test/{albumsList,albumCover,afterWrite,fillMessage,updatedAt}.test.ts`、`test/albumFixtures.ts`
@@ -16,5 +17,6 @@
 - Commands:
     - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）
 - Probe（scratchpad，唔入 repo）：workerd vitest，經 `src/index.ts` 打真 session cookie；API-050 上載真 WebP；D1 proxy 喺 `UPDATE albums SET cover` 之前改 `updated_at`／`checks`（S-187）；R2 proxy 記低 `get` 嘅 `range`（S-186）；Sanity mutant（W-048 嘅 N19、N21、N30、N31）
+- 2026-11-26（T-116）：`albumCover.test.ts` + 本機 Worker 收管理端出嘅 1200／320 WebP（`/tmp/…/scratchpad/qa-t038-t116/``t116/`）
 - PWA gate: no。Performance gate: no（API-017 約 11 個操作）。Security / Data gate: yes（AC-1、AC-4）
 - Out of scope: 同步本身（`api-sync`）；`info.txt` 文字框（`api-writeback`）；`COVER_FAILED` 儲存（S-185 未建）；D80 統計等用戶確認（U-8）

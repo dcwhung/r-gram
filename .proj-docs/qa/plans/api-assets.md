@@ -11,6 +11,7 @@
     - AC-7 公開圖（TS API-071、「安全設計」公開路由、「性能 → 圖片」）：唔使 session、唔設 cookie；`GET` / `HEAD` → content type 跟副檔名、`public, max-age=31536000, immutable`、`nosniff`、ETag；唔合規 / 唔存在 / 大楷 / 其他副檔名 / traversal（連編碼）→ 404；CORS 只回 `PLAYER_ORIGINS`（`Vary: Origin`），外來 / 冇 Origin 冇 ACAO；preflight 只開 GET / HEAD
     - AC-8 後置步驟（backlog B-043 ③；TS API-061）：上載唔行 hook、唔加 `catalog`；其他寫入照行一次
     - AC-9 訊息（CLAUDE.md 介面文字）：全部 `message` / `details[].message` 係中文書面語，冇未填 `{…}`
+    - AC-10（T-116）：只改註解（bucket 名 `rb-discography-catalog`）；冇行為改動（T0）
 - Scope files:
     - `apps/api/src/assets/**`（`src/catalog/**` 由 T-026 起屬 `api-catalog`）
     - `apps/api/test/{webp,png,jpeg,assetsUpload,catalogImage}.test.ts`、`test/imageFixtures.ts`
@@ -21,5 +22,6 @@
     - `npm run coverage`（全部 workspace 一次；門檻 80%）
 - Probe（scratchpad，唔入 repo）：workerd vitest project，用 repo 嘅 `wrangler.toml`、`migrations/`、`test/applyMigrations.ts`；經 `src/index.ts` 打真 session cookie；本機 R2 / D1。圖由 QA 自己用 Pillow 生成（漸變 / 雜訊，唔用下載或者真封面），截短 / 改 byte 喺 probe 做。後置步驟：scratch app 照 `src/api/routes.ts` 接線，hook 換做計數器。預期由 spec 寫，唔抄 developer 嘅 test
 - HTTP smoke：唔使（route 經 workerd 打 `src/index.ts`；只喺改到 `wrangler.toml` 或者 middleware 次序先做）
+- 2026-11-26（T-116）：T0（註解），引用同一個 SHA 嘅 gate；本機 Worker 收到 API-050 上載（`admin-sync` 嘅同步）
 - PWA gate: no。Performance gate: no（parser 只行檔頭，一個 R2 put + 一句 D1）。Security / Data gate: yes（AC-1、AC-3、AC-5、AC-7）
 - Out of scope: 管理端裁切 / 轉 WebP / 抽色（T-052）；`catalog.json`、歌詞公開讀取（T-026）；seed 封面（T-027、B-053）；`assets` 冇尺寸欄（B-052 ①）；HEAD 用 `get()`、CSP sandbox（B-051）；完整結構檢查（B-050）
