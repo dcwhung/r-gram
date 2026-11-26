@@ -5,6 +5,10 @@
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { tomlKeyNames } from './toml-keys.mjs';
+
+/** secret：唔可以喺 wrangler.toml 出現做 key */
+const SECRET_KEY = 'ADMIN_EMAILS';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ALL_ZERO_UUID = /^[0-]+$/;
@@ -63,7 +67,8 @@ export const deployConfigProblems = (toml) => {
     const problems = RULES.filter(([name, isValid]) => !isValid(valueOf(toml, name))).map(
         ([name, , expected]) => `${name}: 仲係 placeholder 或者格式唔啱（要：${expected}）`,
     );
-    if (/^\s*ADMIN_EMAILS\s*=/m.test(toml))
+    // 任何寫法嘅 key（quoted、dotted、表頭、inline table）都算（S-234）
+    if (tomlKeyNames(toml).has(SECRET_KEY))
         problems.push(
             'ADMIN_EMAILS: 係 secret，唔可以寫喺 wrangler.toml；用 wrangler secret put ADMIN_EMAILS',
         );
