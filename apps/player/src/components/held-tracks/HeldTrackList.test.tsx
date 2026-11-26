@@ -1,7 +1,7 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import type { HeldTrackRow, HeldTracksView } from '../../app/heldTracksView';
 import { PHONE_LAYOUT } from '../../stage/layouts';
-import { estimateTextWidth } from '../../utils/textMeasure';
+import { estimateTextWidth, type TextMeasure } from '../../utils/textMeasure';
 import { HeldTrackList } from './HeldTrackList';
 
 const ACCENT = '#c8442b';
@@ -29,26 +29,32 @@ const held = (rows: readonly HeldTrackRow[], overrides: Partial<HeldTracksView> 
 
 const LONG = Array.from({ length: 30 }, (_, index) => row(index + 1));
 
-const renderList = (view: HeldTracksView, onPlay = vi.fn()) => {
+const renderList = (
+    view: HeldTracksView,
+    onPlay = vi.fn(),
+    measure: TextMeasure = estimateTextWidth,
+) => {
     const result = render(
         <svg>
             <HeldTrackList
                 layout={PHONE_LAYOUT}
                 held={view}
                 albumTitle="ROOM"
-                measure={estimateTextWidth}
+                measure={measure}
                 onPlay={onPlay}
             />
         </svg>,
     );
     const list = () => screen.getByRole('list', { name: 'ROOM 的歌曲' });
-    const rowY = (name: string) =>
-        Number(
-            screen
-                .getByRole('button', { name })
-                .querySelector('[data-part="held-title"]')
-                ?.getAttribute('y'),
-        );
+    /** 行喺畫面上嘅中線：行嘅 y（未捲）+ 成欄捲動嘅 translate */
+    const rowY = (name: string) => {
+        const title = screen
+            .getByRole('button', { name })
+            .querySelector('[data-part="held-title"]');
+        const shift = title?.closest('[data-part="held-scroll"]')?.getAttribute('transform') ?? '';
+        const [, dy = '0'] = /translate\(0 (-?[\d.]+)\)/.exec(shift) ?? [];
+        return Number(title?.getAttribute('y')) + Number(dy);
+    };
     return { ...result, onPlay, list, rowY };
 };
 
@@ -72,6 +78,15 @@ describe('HeldTrackList', () => {
         expect(number).toHaveTextContent('01');
         expect(number).toHaveAttribute('x', '74');
         expect(container.querySelector('[data-part="held-title"]')).toHaveAttribute('x', '130');
+    });
+
+    // W-044：D57「由畫面左邊起成行都㩒得」：感應範圍由 x 0 起，去到 right + rowReach
+    it('should make the whole row pressable from the left edge of the screen', () => {
+        const { container } = renderList(held([row(1)]));
+        const hit = container.querySelector('[data-part="held-hit"]');
+        expect(hit).toHaveAttribute('x', '0');
+        const { right, rowReach } = PHONE_LAYOUT.heldTracks;
+        expect(hit).toHaveAttribute('width', String(right + rowReach));
     });
 
     it('should play the pressed row by click or by keyboard', () => {
@@ -148,6 +163,37 @@ describe('HeldTrackList', () => {
         expect(list()).toHaveAttribute('data-fade-top', 'true');
     });
 
+    // S-177：欄食咗滾輪（頁面唔捲、唔回彈）；短歌單冇嘢捲，欄唔入 Tab 次序
+    it('should keep the wheel from scrolling the page', () => {
+        const { list } = renderList(held(LONG));
+        const wheel = createEvent.wheel(list(), { deltaY: pitch });
+        fireEvent(list(), wheel);
+        expect(wheel.defaultPrevented).toBe(true);
+    });
+
+    it('should only put a column that can scroll in the Tab order', () => {
+        const short = renderList(held([row(1), row(2)]));
+        expect(short.list()).not.toHaveAttribute('tabindex');
+        short.unmount();
+        expect(renderList(held(LONG)).list()).toHaveAttribute('tabindex', '0');
+    });
+
+    // S-179：欄本身 focus 得（長歌單）先有外框，同行嘅感應範圍一樣闊、同欄一樣高；淨係畫面
+    it('should have a focus frame around a column that can take the focus', () => {
+        const long = renderList(held(LONG));
+        const frame = long.container.querySelector('[data-part="held-frame"]');
+        const { right, rowReach, bottomHeld } = PHONE_LAYOUT.heldTracks;
+        expect(frame).toHaveAttribute('x', '0');
+        expect(frame).toHaveAttribute('y', String(top));
+        expect(frame).toHaveAttribute('width', String(right + rowReach));
+        expect(frame).toHaveAttribute('height', String(bottomHeld - top));
+        expect(frame).toHaveAttribute('fill', 'none');
+        expect(frame).toHaveAttribute('aria-hidden', 'true');
+        long.unmount();
+        const short = renderList(held([row(1)]));
+        expect(short.container.querySelector('[data-part="held-frame"]')).toBeNull();
+    });
+
     // 滑鼠滾輪可以用「行」或者「版」做單位（WheelEvent.deltaMode）
     it('should scroll a row per wheel line and a column per wheel page', () => {
         const { list, rowY } = renderList(held(LONG));
@@ -185,6 +231,82 @@ describe('HeldTrackList', () => {
         act(() => last.focus());
         const bottom = PHONE_LAYOUT.heldTracks.bottomHeld;
         expect(rowY('播放第 30 首：歌 30')).toBe(bottom - pitch * 0.5);
+    });
+
+    /*
+     * W-042：focus 喺行時，方向鍵、Page Up／Down、Home／End 移 focus 去另一行（跳過灰色行），
+     * 嗰行捲入欄；focus 喺欄本身先純捲（上面幾個測試）
+     */
+    describe('keyboard on a focused row', () => {
+        const MANY = Array.from({ length: 41 }, (_, index) => row(index + 1));
+        const bottom = PHONE_LAYOUT.heldTracks.bottomHeld;
+        const name = (no: number) => `播放第 ${no} 首：歌 ${no}`;
+        const focused = () => document.activeElement;
+        const expectFocusedVisible = (no: number, rowY: (name: string) => number) => {
+            expect(focused()).toBe(screen.getByRole('button', { name: name(no) }));
+            const centre = rowY(name(no));
+            expect(centre - pitch / 2).toBeGreaterThanOrEqual(top);
+            expect(centre + pitch / 2).toBeLessThanOrEqual(bottom);
+        };
+        const press = (key: string) => {
+            const target = focused();
+            if (target) fireEvent.keyDown(target, { key });
+        };
+
+        it('should move the focus down a row with ArrowDown and to the last row with End', () => {
+            const { rowY } = renderList(held(MANY));
+            act(() => screen.getByRole('button', { name: name(1) }).focus());
+            ['ArrowDown', 'ArrowDown', 'ArrowDown'].forEach(press);
+            expectFocusedVisible(4, rowY);
+            press('End');
+            expectFocusedVisible(41, rowY);
+            press('ArrowUp');
+            expectFocusedVisible(40, rowY);
+            press('Home');
+            expectFocusedVisible(1, rowY);
+        });
+
+        it('should move the focus a page away with Page Down and Page Up', () => {
+            const { rowY } = renderList(held(MANY));
+            const room = bottom - top;
+            const perPage = Math.floor((room - pitch) / pitch);
+            act(() => screen.getByRole('button', { name: name(1) }).focus());
+            press('PageDown');
+            expectFocusedVisible(1 + perPage, rowY);
+            press('PageDown');
+            press('PageUp');
+            expectFocusedVisible(1 + perPage, rowY);
+            press('PageUp');
+            expectFocusedVisible(1, rowY);
+        });
+
+        it('should skip grey rows and stay on the last row at the end', () => {
+            const rows = [row(1), row(2, false), row(3), row(4, false)];
+            renderList(held(rows));
+            act(() => screen.getByRole('button', { name: name(1) }).focus());
+            press('ArrowDown');
+            expect(focused()).toBe(screen.getByRole('button', { name: name(3) }));
+            press('ArrowDown');
+            press('End');
+            expect(focused()).toBe(screen.getByRole('button', { name: name(3) }));
+            press('ArrowUp');
+            expect(focused()).toBe(screen.getByRole('button', { name: name(1) }));
+        });
+    });
+
+    // W-043：歌名只喺行、量字函數、闊度變先截短；捲動（滾輪、拖動）唔再量字
+    it('should not measure any title again when the column scrolls', () => {
+        const longTitle = '(Just Like) Starting Over (Live Version) Extended';
+        const rows = Array.from({ length: 41 }, (_, index) =>
+            row(index + 1, true, index % 2 === 0 ? longTitle : `歌 ${index + 1}`),
+        );
+        const measure = vi.fn(estimateTextWidth);
+        const { list } = renderList(held(rows), vi.fn(), measure);
+        const before = measure.mock.calls.length;
+        expect(before).toBeGreaterThan(0);
+        fireEvent.wheel(list(), { deltaY: pitch });
+        fireEvent.keyDown(list(), { key: 'PageDown' });
+        expect(measure.mock.calls.length - before).toBe(0);
     });
 
     // D57：拖過唔當㩒

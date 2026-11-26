@@ -39,12 +39,16 @@
     fill: var(--color-held-bar-track);
 }
 
-/* 鍵盤 focus：喺成行嘅感應範圍畫虛線框（SVG 元素嘅 outline 喺 Safari 唔可靠；同 metal-button 一樣） */
+/*
+ * 鍵盤 focus：喺成行嘅感應範圍畫虛線框（SVG 元素嘅 outline 喺 Safari 唔可靠；同 metal-button 一樣）；
+ * 欄本身（長歌單）focus 時喺欄外圍畫同一個框（S-179）
+ */
 .held-button {
     outline: none;
 }
 
-.held-button:focus-visible [data-part='held-hit'] {
+.held-button:focus-visible [data-part='held-hit'],
+.held-list:focus-visible ~ [data-part='held-frame'] {
     stroke: var(--color-ink);
     stroke-width: 3;
     stroke-dasharray: 8 6;

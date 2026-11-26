@@ -35,18 +35,29 @@ const canvasContext = (): MeasureContext | null => {
     return new OffscreenCanvas(1, 1).getContext('2d');
 };
 
-/** CSS font shorthand：字體名每次由 `--font-*` 讀，主題改咗都跟到 */
-const cssFont = ({ family, size, weight }: TextFont): string => {
-    const stack = getComputedStyle(document.documentElement).getPropertyValue(`--font-${family}`);
-    return `${weight} ${size}px ${stack.trim()}`;
+/**
+ * 字體名由 `--font-*` 讀（主題改字體都跟到）。每個量字函數每款字只讀一次 getComputedStyle（review W-043：
+ * 歌單欄一次量幾十行）；字體載入咗會換一個新嘅量字函數（useTextMeasure），所以唔會用舊值
+ */
+const fontStacks = () => {
+    const stacks = new Map<FontFamily, string>();
+    return (family: FontFamily): string => {
+        const cached = stacks.get(family);
+        if (cached !== undefined) return cached;
+        const style = getComputedStyle(document.documentElement);
+        const stack = style.getPropertyValue(`--font-${family}`).trim();
+        stacks.set(family, stack);
+        return stack;
+    };
 };
 
 /** 揀量度方法：有 canvas 就真係量，冇就估 */
 export const createTextMeasure = (): TextMeasure => {
     const context = canvasContext();
     if (!context) return estimateTextWidth;
+    const stackOf = fontStacks();
     return (text, font) => {
-        context.font = cssFont(font);
+        context.font = `${font.weight} ${font.size}px ${stackOf(font.family)}`;
         return context.measureText(text).width + font.spacing * charCount(text);
     };
 };

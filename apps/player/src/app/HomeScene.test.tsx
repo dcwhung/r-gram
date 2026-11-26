@@ -1,8 +1,9 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { useState } from 'react';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { estimateTextWidth } from '../utils/textMeasure';
 import { HomeScene } from './HomeScene';
-import { homeView } from './homeView';
+import { type HomeView, homeView } from './homeView';
 import { IDLE_PLAYBACK, type PlaybackState } from './playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
@@ -44,6 +45,23 @@ const CURRENT_COVER = '[data-current="true"] [data-part="cover"]';
 const scene = (view: ReturnType<typeof viewOf>) => (
     <HomeScene view={view} handlers={handlers} measure={estimateTextWidth} />
 );
+
+/**
+ * 動作真係改到畫面嘅場景（S-180）：㩒細唱片機或者一行之後換成 `to`（同一次 flushSync 入面 render），
+ * 好似 useHome 咁；其餘 handler 照用上面嘅 mock
+ */
+const Live = ({ from, to }: { from: HomeView; to: HomeView }) => {
+    const [view, setView] = useState(from);
+    const live = {
+        ...handlers,
+        onReturnToLoaded: () => setView(to),
+        onPlayHeldTrack: (trackId: string) => {
+            handlers.onPlayHeldTrack(trackId);
+            setView(to);
+        },
+    };
+    return <HomeScene view={view} handlers={live} measure={estimateTextWidth} />;
+};
 
 describe('HomeScene', () => {
     it('should show the cover of the disc when the catalog has one', () => {
@@ -181,17 +199,28 @@ describe('HomeScene holding another disc', () => {
 
     it('should go back to the loaded disc when the mini turntable is pressed', () => {
         render(scene(holding()));
-        fireEvent.click(screen.getByRole('button', { name: '返回播放中的唱片' }));
+        fireEvent.click(screen.getByRole('button', { name: '返回播放中的唱片：apollo-18 1' }));
         expect(handlers.onReturnToLoaded).toHaveBeenCalled();
     });
 
     // 瀏覽器實測（T-048）：㩒完細唱片機佢就淡出、離開 Tab 次序：focus 交畀唱片夾（同 S-074 一樣），唔好留喺睇唔到嘅掣
     it('should hand the focus to the clamp after the mini turntable is pressed', () => {
-        const { container } = render(scene(holding()));
-        const mini = screen.getByRole('button', { name: '返回播放中的唱片' });
+        const back = viewOf('apollo-18', null, {}, PLAYING);
+        const { container } = render(<Live from={holding()} to={back} />);
+        const mini = screen.getByRole('button', { name: '返回播放中的唱片：apollo-18 1' });
         mini.focus();
         fireEvent.keyDown(mini, { key: 'Enter' });
         expect(document.activeElement).toBe(container.querySelector('.spindle'));
+    });
+
+    // S-180：動作冇生效（仍然拎住碟）：唱片夾仍然唔係掣（aria-hidden），focus 唔好落去佢度，留喺原位
+    it('should leave the focus where it is when the press changes nothing', () => {
+        render(scene(holding()));
+        const mini = screen.getByRole('button', { name: '返回播放中的唱片：apollo-18 1' });
+        mini.focus();
+        fireEvent.keyDown(mini, { key: 'Enter' });
+        expect(handlers.onReturnToLoaded).toHaveBeenCalled();
+        expect(document.activeElement).toBe(mini);
     });
 
     it('should say paused on the mini turntable while the song is paused', () => {
@@ -279,8 +308,19 @@ describe('HomeScene holding another disc', () => {
         expect(list && info && list.compareDocumentPosition(info) & follows).toBeTruthy();
     });
 
-    it('should play the pressed row and hand the focus to the clamp', () => {
+    // W-044：設計稿 scene()：細唱片機喺下、歌單欄喺上（兩者感應範圍重疊嗰條屬歌單行，S-173）
+    it('should draw the track column above the mini turntable', () => {
         const { container } = render(scene(holding()));
+        const mini = part(container, 'mini-turntable');
+        const list = part(container, 'held-tracks');
+        const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(mini && list && mini.compareDocumentPosition(list) & follows).toBeTruthy();
+    });
+
+    it('should play the pressed row and hand the focus to the clamp', () => {
+        const started: PlaybackState = { ...PLAYING, albumId: 'room', trackId: 'room-01' };
+        const playing = viewOf('room', null, { selectedTrackId: 'room-01' }, started);
+        const { container } = render(<Live from={holding()} to={playing} />);
         const button = screen.getByRole('button', { name: '播放第 1 首：room 1' });
         button.focus();
         fireEvent.keyDown(button, { key: 'Enter' });

@@ -138,11 +138,13 @@ const returnToLoaded: Handler<'returnToLoaded'> = (state, { loadedAlbumId }) => 
 };
 
 /**
- * 旋鈕開住時行未㩒得（鬆手先㩒得）。播放狀態換咗載入嘅碟之後 holding 自動解除：
+ * 旋鈕開住時行未㩒得（鬆手先㩒得）。拎住另一隻碟時一定未揀歌（換碟會清走揀中嘅歌），所以已經揀咗 =
+ * 呢次拎住已經㩒過一行，`loadedAlbumId` 係過時嘅（同一個 tick 連㩒兩行；review S-180）：唔理。
+ * 播放狀態換咗載入嘅碟之後 holding 自動解除：
  * 轉盤淡入、細唱片機淡出、唱臂由泊位行完整開場（畫面嘅事，唔喺呢度）
  */
 const playHeldTrack: Handler<'playHeldTrack'> = (state, { trackId, loadedAlbumId }) =>
-    isOpenHome(state) && isHolding(state, loadedAlbumId) && trackId !== state.selectedTrackId
+    isOpenHome(state) && isHolding(state, loadedAlbumId) && state.selectedTrackId === null
         ? { ...state, selectedTrackId: trackId }
         : state;
 

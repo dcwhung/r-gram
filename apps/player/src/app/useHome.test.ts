@@ -1,6 +1,11 @@
 import type { CatalogDocument } from '@r-gram/catalog';
 import { act, renderHook } from '@testing-library/react';
-import { sampleDocument, withSecondCover } from '../catalog/testing/catalogFixtures';
+import {
+    makeAlbum,
+    makeDocument,
+    sampleDocument,
+    withSecondCover,
+} from '../catalog/testing/catalogFixtures';
 import { useHome } from './useHome';
 
 /** `apollo-18` 第 1 首有 MV */
@@ -127,8 +132,8 @@ describe('useHome turning the knob', () => {
 /* T-048：播緊時拎住另一隻碟（Functional Spec FR-043、D52）：聲照播；㩒細唱片機返去載入嘅碟 */
 describe('useHome holding another disc', () => {
     /** 開歌單、播第一首（apollo-18-01），再擰去 room 鬆手 */
-    const holdRoom = () => {
-        const { result } = renderHook(() => useHome(sampleDocument()));
+    const holdRoom = (document: CatalogDocument = sampleDocument()) => {
+        const { result } = renderHook(() => useHome(document));
         press(result, 'onSpindle');
         press(result, 'onSpindle');
         act(() => result.current.handlers?.onTurnStart());
@@ -184,6 +189,39 @@ describe('useHome holding another disc', () => {
         act(() => result.current.handlers?.onTurnStart());
         act(() => result.current.handlers?.onPlayHeldTrack('room-01'));
         expect(result.current.playback).toBe(before);
+    });
+
+    // W-044：拎住嘅碟自己有首冇音檔嘅歌（灰色行）：叫到 onPlayHeldTrack 都唔播
+    it('should not play a track of the held disc that has no audio', () => {
+        const document = makeDocument([
+            makeAlbum('apollo-18', ['apollo-18/01.m4a']),
+            makeAlbum('room', ['room/01.m4a', null]),
+        ]);
+        const result = holdRoom(document);
+        expect(result.current.view?.heldTracks?.rows[1]).toMatchObject({
+            id: 'room-02',
+            playable: false,
+        });
+        const before = { stage: result.current.stage, playback: result.current.playback };
+        act(() => result.current.handlers?.onPlayHeldTrack('room-02'));
+        expect(result.current.playback).toBe(before.playback);
+        expect(result.current.stage).toBe(before.stage);
+    });
+
+    // S-180：同一個 tick 連㩒兩行（兩下用同一個 render 嘅 handlers）：只播第一下
+    it('should play only the first of two rows pressed in the same tick', () => {
+        const document = makeDocument([
+            makeAlbum('apollo-18', ['apollo-18/01.m4a']),
+            makeAlbum('room', ['room/01.m4a', 'room/02.m4a']),
+        ]);
+        const result = holdRoom(document);
+        const handlers = result.current.handlers;
+        act(() => {
+            handlers?.onPlayHeldTrack('room-01');
+            handlers?.onPlayHeldTrack('room-02');
+        });
+        expect(result.current.playback).toMatchObject({ albumId: 'room', trackId: 'room-01' });
+        expect(result.current.stage.selectedTrackId).toBe('room-01');
     });
 
     it('should list the held disc under its title with the rows pressable only after release', () => {
