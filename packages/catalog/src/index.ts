@@ -4,7 +4,7 @@
  */
 export { formatAlbumInfo } from './album-info/formatAlbumInfo';
 export { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from './album-info/limits';
-export { parseAlbumInfo } from './album-info/parseAlbumInfo';
+export { infoTooLarge, parseAlbumInfo } from './album-info/parseAlbumInfo';
 export type { AlbumInfo, AlbumInfoFields, AlbumInfoTrack } from './album-info/types';
 export { dominantColor, glowColor, NEUTRAL_ACCENT, NEUTRAL_GLOW } from './color/color';
 export {
