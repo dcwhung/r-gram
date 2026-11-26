@@ -3,8 +3,6 @@
  * 到時用佢取代呢個 reducer，`PlaybackState` 嘅形狀就係主頁讀嘅接口（Technical Spec「播放狀態（獨立 store）」）。
  * 呢度冇聲：`playing` 只係狀態。
  */
-import { loadedAlbumOf } from './holding';
-
 export type PlaybackStatus = 'idle' | 'playing' | 'paused';
 
 /**
@@ -26,11 +24,6 @@ export interface PlaybackState {
 
 export type PlaybackAction =
     | { type: 'start'; albumId: string; trackId: string }
-    /**
-     * 㩒拎住嘅碟嘅一行（T-049）：同 `start` 一樣，但只喺載入嘅碟仍然係 `loadedAlbumId`（㩒嗰陣畫面見到嗰隻）先做；
-     * 同一個 tick 連㩒兩行，第二下帶住過時嘅值，唔理（review S-180）
-     */
-    | { type: 'startHeld'; albumId: string; trackId: string; loadedAlbumId: string | null }
     | { type: 'toggle' }
     | { type: 'pauseFor'; reason: PauseReason };
 
@@ -60,10 +53,6 @@ export const playbackReducer = (state: PlaybackState, action: PlaybackAction): P
     switch (action.type) {
         case 'start':
             return start(action.albumId, action.trackId);
-        case 'startHeld':
-            return loadedAlbumOf(state) === action.loadedAlbumId
-                ? start(action.albumId, action.trackId)
-                : state;
         case 'toggle':
             return toggle(state);
         case 'pauseFor':

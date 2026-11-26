@@ -46,10 +46,6 @@ export const HomeScene = ({ view, handlers, measure, layout = PHONE_LAYOUT }: Ho
                     view={view}
                     measure={measure}
                     onReturnToLoaded={focusSpindleAfter(handlers.onReturnToLoaded)}
-                    // 㩒完一行歌單欄就冇咗（隻碟落咗轉盤）：focus 交畀唱片夾
-                    onPlayHeldTrack={(trackId) =>
-                        focusSpindleAfter(() => handlers.onPlayHeldTrack(trackId))()
-                    }
                     listHandlers={listHandlers}
                 />
             }

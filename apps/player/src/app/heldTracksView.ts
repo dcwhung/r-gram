@@ -1,6 +1,6 @@
 /*
  * 拎住嘅碟嘅歌單欄要嘅值（純函數；Functional Spec FR-044、D11、D39、D57、D60、D70；設計稿第 18 版 trackPanel()）。
- * 拎住另一隻碟先有；列出顯示嘅碟全部歌（冇音檔 = 灰色、㩒唔到）；旋鈕開住時欄較短、行未㩒得。
+ * 拎住另一隻碟先有；列出顯示嘅碟全部歌（冇音檔 = 灰色）；純睇，行唔㩒得（B-086 ①）。
  */
 import {
     type CatalogTrack,
@@ -23,7 +23,7 @@ export interface TrackRow {
     /** 顯示嘅歌號（兩位） */
     number: string;
     title: string;
-    /** 有音檔先播得；冇 = 灰色、唔係掣 */
+    /** 有音檔先播得；冇 = 灰色 */
     playable: boolean;
 }
 
@@ -37,10 +37,8 @@ export interface HeldTracksView {
     rows: readonly HeldTrackRow[];
     /** 冇歌時欄入面嗰行灰字（Favourites 碟有自己一句） */
     emptyText: string;
-    /** 旋鈕開住：欄底較高（避開字母盤） */
+    /** 旋鈕開住：欄底較低（字母盤開住冇細掣） */
     dialOpen: boolean;
-    /** 鬆手之後先㩒得 */
-    pressable: boolean;
 }
 
 export const trackRow = (track: CatalogTrack): TrackRow => ({
@@ -67,6 +65,5 @@ export const heldTracksView = (
         rows: albumTracks(document, albumId).map(trackRow),
         emptyText: t(favourites ? 'favourites.empty' : 'list.empty'),
         dialOpen,
-        pressable: !dialOpen,
     };
 };

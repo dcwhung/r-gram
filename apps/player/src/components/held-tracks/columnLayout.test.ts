@@ -1,4 +1,4 @@
-import { clampScroll, columnMetrics, maxScroll, rowCentre, scrollToShow } from './columnLayout';
+import { clampScroll, columnMetrics, maxScroll, rowCentre } from './columnLayout';
 
 /* 拎住嘅碟嘅歌單欄（純函數；設計稿第 18 版 panelMetrics()、trackPanel()；Functional Spec FR-044） */
 const PITCH = 66;
@@ -30,13 +30,6 @@ describe('columnLayout', () => {
         expect(rowCentre(0, PITCH, 0)).toBe(PITCH / 2);
         expect(rowCentre(2, PITCH, 0)).toBe(PITCH * 2.5);
         expect(rowCentre(2, PITCH, PITCH)).toBe(PITCH * 1.5);
-    });
-
-    it('should scroll just enough to show a focused row', () => {
-        expect(scrollToShow(0, PITCH, ROOM, 0)).toBe(0);
-        expect(scrollToShow(25, PITCH, ROOM, 0)).toBe(26 * PITCH - ROOM);
-        expect(scrollToShow(3, PITCH, ROOM, 5 * PITCH)).toBe(3 * PITCH);
-        expect(scrollToShow(4, PITCH, ROOM, 2 * PITCH)).toBe(2 * PITCH);
     });
 
     it('should fade nothing and show no bar when every row fits', () => {

@@ -35,13 +35,15 @@ describe('heldTracksView', () => {
         expect(view?.rows.map((row) => row.number)).toEqual(['03', '12']);
     });
 
-    it('should let rows be pressed only once the dial is released', () => {
+    it('should tell whether the dial is open (the column is longer then)', () => {
         expect(heldTracksView(sampleDocument(), stageOn('room'), true)).toMatchObject({
-            pressable: true,
             dialOpen: false,
         });
         expect(heldTracksView(sampleDocument(), stageOn('room', 'discChange'), true)).toMatchObject(
-            { pressable: false, dialOpen: true },
+            { dialOpen: true },
+        );
+        expect(heldTracksView(sampleDocument(), stageOn('room'), true)).not.toHaveProperty(
+            'pressable',
         );
     });
 

@@ -14,19 +14,6 @@ export const clampScroll = (scroll: number, most: number): number =>
 export const rowCentre = (index: number, pitch: number, scroll: number): number =>
     pitch * (index + 0.5) - scroll;
 
-/** focus 到某一行：唔喺欄入面就捲到啱啱見到成行（鍵盤 Tab） */
-export const scrollToShow = (
-    index: number,
-    pitch: number,
-    room: number,
-    scroll: number,
-): number => {
-    const rowTop = index * pitch;
-    if (rowTop < scroll) return rowTop;
-    const rowBottom = rowTop + pitch;
-    return rowBottom > scroll + room ? rowBottom - room : scroll;
-};
-
 export interface ColumnInput {
     count: number;
     pitch: number;

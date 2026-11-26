@@ -63,20 +63,6 @@ const playListTrack = (context: HomeContext, trackId: string) => {
     play({ type: 'start', albumId: view.list.albumId, trackId });
 };
 
-/**
- * 㩒拎住嘅碟嘅歌單欄一行（T-049）：只喺鬆手之後、嗰首屬拎住嘅碟而且播得。揀中嗰首，再叫播放狀態 `startHeld`
- *（舊歌停、換隊列）。兩邊都帶住㩒嗰陣嘅載入嘅碟：同一個 tick 連㩒兩行，第二下兩邊都唔理（S-180）。
- * 載入嘅碟變咗 → holding 解除 → 唱臂由泊位行完整開場。真正出聲係 T-038
- */
-const playHeldTrack = ({ view, dispatch, play }: HomeContext, trackId: string) => {
-    const held = view.heldTracks;
-    const row = held?.rows.find((candidate) => candidate.id === trackId);
-    if (!held?.pressable || !row?.playable) return;
-    const { loadedAlbumId } = view;
-    dispatch({ type: 'playHeldTrack', trackId, loadedAlbumId });
-    play({ type: 'startHeld', albumId: held.albumId, trackId, loadedAlbumId });
-};
-
 const pressSpindle = (context: HomeContext) => {
     const { view, play } = context;
     // 電視開住時唱片夾喺電視後面（T-060）；拎住另一隻碟時冇轉盤（T-048）：都唔反應
@@ -138,7 +124,6 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
     ...listHandlers(context),
     onReturnToLoaded: () =>
         context.dispatch({ type: 'returnToLoaded', loadedAlbumId: context.view.loadedAlbumId }),
-    onPlayHeldTrack: (trackId: string) => playHeldTrack(context, trackId),
 });
 
 export interface Home {

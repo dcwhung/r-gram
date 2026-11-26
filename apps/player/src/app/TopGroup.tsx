@@ -15,8 +15,6 @@ interface TopGroupProps {
     measure: TextMeasure;
     /** 㩒細唱片機（已經包好 focus 交接） */
     onReturnToLoaded: () => void;
-    /** 㩒歌單欄一行（已經包好 focus 交接） */
-    onPlayHeldTrack: (trackId: string) => void;
     /** 弧線歌單（T-037）：收返、捲到停低、㩒一行（收返同播已經包好 focus 交接） */
     listHandlers: Pick<HomeHandlers, 'onCloseList' | 'onFocusListTrack' | 'onPlayListTrack'>;
 }
@@ -27,7 +25,7 @@ const ArcList = ({
     view,
     measure,
     listHandlers,
-}: Omit<TopGroupProps, 'onReturnToLoaded' | 'onPlayHeldTrack'>) =>
+}: Omit<TopGroupProps, 'onReturnToLoaded'>) =>
     view.list && (
         <ArcTrackList
             key={view.list.albumId}
@@ -50,7 +48,6 @@ export const TopGroup = ({
     view,
     measure,
     onReturnToLoaded,
-    onPlayHeldTrack,
     listHandlers,
 }: TopGroupProps) => (
     <>
@@ -73,7 +70,6 @@ export const TopGroup = ({
                 held={view.heldTracks}
                 albumTitle={view.dial.entries[view.dial.current]?.title ?? ''}
                 measure={measure}
-                onPlay={onPlayHeldTrack}
             />
         )}
         <InfoBlock
