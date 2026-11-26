@@ -9,6 +9,12 @@ describe('readCatalogUrl', () => {
         expect(readCatalogUrl({ VITE_CATALOG_URL: FIXTURE_CATALOG_URL })).toBe(FIXTURE_CATALOG_URL);
     });
 
+    // T-113：同一個部署入面嘅檔（public/test-catalog）用根相對路徑，fetch 按頁面 origin 解析
+    it('should accept a root-relative URL', () => {
+        const url = '/test-catalog/catalog.json';
+        expect(readCatalogUrl({ VITE_CATALOG_URL: url })).toBe(url);
+    });
+
     it.each([undefined, '', '   '])('should return null for %j', (value) => {
         expect(readCatalogUrl({ VITE_CATALOG_URL: value })).toBeNull();
     });
