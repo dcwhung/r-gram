@@ -191,6 +191,58 @@ describe('planFolderSync', () => {
         });
     });
 
+    describe('info.txt that cannot be used after a usable one (S-164)', () => {
+        const badEncoding: SyncInfo = {
+            kind: 'read',
+            key: INFO_KEY,
+            etag: '"bad"',
+            info: {
+                usable: false,
+                title: null,
+                year: null,
+                tracks: [],
+                checks: [checkOf('INFO_BAD_ENCODING')],
+            },
+        };
+        const tracks = [
+            track(1, { title: '下一位參賽者', audioKey: key('01 a.m4a') }),
+            track(2, { title: '跟住去邊度' }),
+        ];
+
+        it('should keep the stored title, year and track list and list no track for removal', () => {
+            const files = [file('info.txt', '"bad"'), file('01 a.m4a'), file('03 c.m4a')];
+            const stored = album({ title: 'K', year: 1999, checks: [] });
+            const result = plan({ files, info: badEncoding, tracks, album: stored });
+            expect(result.album).toEqual({ title: 'K', year: 1999 });
+            expect(result.tracks.map(({ no, title }) => [no, title])).toEqual([
+                [1, '下一位參賽者'],
+                [2, '跟住去邊度'],
+            ]);
+            expect(result.pendingRemovals).toEqual([]);
+            expect(result.infoSettled).toBe(false);
+            expect(codesOf(result.checks)).toEqual([
+                ['INFO_BAD_ENCODING', undefined],
+                ['AUDIO_NOT_LISTED', 3],
+            ]);
+        });
+
+        it('should not carry the checks of the earlier info.txt', () => {
+            const stored = album({
+                checks: [checkOf('INFO_UNKNOWN_LINE', { key: INFO_KEY, line: 7 })],
+            });
+            const result = plan({ info: badEncoding, tracks, album: stored });
+            expect(codesOf(result.checks)).toEqual([['INFO_BAD_ENCODING', undefined]]);
+        });
+
+        it('should fall back to the audio files when no info.txt was ever used', () => {
+            const files = [file('01 a.m4a'), file('03 c.m4a')];
+            const never = album({ infoEtag: null });
+            const result = plan({ files, info: badEncoding, tracks, album: never });
+            expect(result.tracks.map(({ no }) => no)).toEqual([1, 3]);
+            expect(result.album).toEqual({ title: ALBUM, year: null });
+        });
+    });
+
     describe('info.txt not read again (same ETag)', () => {
         const tracks = [track(1, { title: '下一位參賽者' }), track(4, { title: '毒蟲圖鑑' })];
         const unchanged: SyncInfo = { kind: 'unchanged', key: INFO_KEY, etag: '"info"' };

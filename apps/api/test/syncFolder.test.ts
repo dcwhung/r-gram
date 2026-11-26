@@ -297,6 +297,38 @@ describe('POST /api/sync/folders/:folder: checks', () => {
         expect((await tracksOf()).map(({ no }) => no)).toEqual([1]);
     });
 
+    it('should keep the album as it was when a used info.txt becomes unusable', async () => {
+        await putKomorebi();
+        await syncFolder();
+        const before = await tracksOf();
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const { body } = await syncFolder();
+        expect(body.album).toMatchObject({ title: 'Komorebi', year: 2026 });
+        expect(body.pendingRemovals).toEqual([]);
+        expect(codesOf(body)).toEqual([['INFO_BAD_ENCODING', undefined]]);
+        expect(await tracksOf()).toEqual(before);
+        expect((await syncFolder()).body.pendingRemovals).toEqual([]);
+    });
+
+    it('should keep the album as it was when info.txt cannot be read', async () => {
+        await putKomorebi();
+        await syncFolder();
+        await putMedia('info.txt', `${KOMOREBI_INFO}\n6. 新歌`);
+        const { bindings } = mediaWith({
+            get: (args, original) => {
+                if (String(args[0]).endsWith('info.txt')) throw new Error('R2 unavailable');
+                return original(...args);
+            },
+        });
+        const { status, body } = await syncFolder(FOLDER, '', bindings);
+        expect(status).toBe(200);
+        expect(body.album).toMatchObject({ title: 'Komorebi' });
+        expect(codesOf(body)).toEqual([['INFO_UNREADABLE', undefined]]);
+        expect(body.checks[0].key).toBe(mediaKey('info.txt'));
+        expect(await countOf('tracks')).toBe(5);
+        expect((await syncFolder()).body.added.map(({ no }: Loose) => no)).toEqual([6]);
+    });
+
     it('should not read an info.txt larger than the limit', async () => {
         await putMedia('info.txt', 'x'.repeat(16 * 1024 + 1));
         await putMedia('01 a.m4a');

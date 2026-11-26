@@ -184,6 +184,16 @@ describe('POST /api/sync/removals: tracks, covers, albums', () => {
         expect((await syncFolder()).body.pendingRemovals).toEqual([]);
     });
 
+    it('should not delete a track while a used info.txt cannot be read', async () => {
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const item = { kind: 'track', albumId: ALBUM_ID, trackId: 'komorebi-04' };
+        expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
+            ok: false,
+            code: 'STALE',
+        });
+        expect(await countOf('tracks')).toBe(5);
+    });
+
     it('should keep a track that info.txt lists again', async () => {
         const item = { kind: 'track', albumId: ALBUM_ID, trackId: 'komorebi-04' };
         expect((await confirmRemovals([item])).body.results[0]).toMatchObject({
