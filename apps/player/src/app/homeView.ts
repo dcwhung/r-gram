@@ -38,8 +38,8 @@ export const spindleMode = (stage: StageState, playback: PlaybackState): Spindle
 };
 
 /**
- * 打開歌單時預先揀中嘅歌（US-004）：載入嘅碟 = 播緊（暫停緊）嗰首（設計稿 SONG = 框入面嗰首，T-037）；
- * 否則已揀中嗰首，再唔係第一首播得嘅
+ * 打開歌單時框入面嘅歌（US-004）：載入嘅碟 = 播緊（暫停緊）嗰首（設計稿 SONG = 框入面嗰首，T-037）；
+ * 未揀歌嘅碟 = 第一首播得嘅（設計稿第 19 版 openListFloating()；B-086 ②）
  */
 export const listFocusTrackId = (
     document: CatalogDocument,
@@ -47,7 +47,6 @@ export const listFocusTrackId = (
     playback: PlaybackState = IDLE_PLAYBACK,
 ): string | null => {
     if (isLoadedHere(stage, playback)) return playback.trackId;
-    if (stage.selectedTrackId) return stage.selectedTrackId;
     if (!stage.viewAlbumId) return null;
     return albumTracks(document, stage.viewAlbumId).find(isPlayable)?.id ?? null;
 };
@@ -87,7 +86,7 @@ export interface HomeView {
     mini: MiniView | null;
     /** 碟名下面嘅歌單欄（純睇；字母盤開住或者未揀歌先有，B-086）；冇 = null */
     trackColumn: TrackColumnView | null;
-    /** 主頁㩒碟面開弧線歌單（T-037）：冇歌載入時揀中嘅碟、或者載入嘅碟；拎住另一隻碟、電視開住都唔得 */
+    /** 主頁㩒碟面開弧線歌單（T-037、B-086 ②）：字母盤收埋就得，拎住另一隻碟都一樣；電視開住唔得 */
     canOpenList: boolean;
     /** 弧線歌單（T-037）；冇開 = null */
     list: ArcListView | null;
@@ -150,14 +149,9 @@ const openFlags = (stage: StageState) => ({
     mvOpen: stage.overlay === 'mv',
 });
 
-/** 弧線歌單：設計稿 ACTIONS.list = 主頁（冇開歌單、電視、字母盤）而且唔係拎住另一隻碟 */
-const listParts = (
-    document: CatalogDocument,
-    album: CatalogAlbum | null,
-    stage: StageState,
-    holding: boolean,
-) => ({
-    canOpenList: album !== null && stage.scene === 'home' && stage.overlay !== 'mv' && !holding,
+/** 弧線歌單：設計稿第 19 版 ACTIONS.list = 主頁（冇開歌單、電視、字母盤），拎住另一隻碟都得 */
+const listParts = (document: CatalogDocument, album: CatalogAlbum | null, stage: StageState) => ({
+    canOpenList: album !== null && stage.scene === 'home' && stage.overlay !== 'mv',
     list: listView(document, stage),
     listTrack:
         stage.scene === 'list'
@@ -191,6 +185,6 @@ export const homeView = (
         dial,
         ...choosing,
         ...heldParts(document, stage, playback, dial, choosing.holding),
-        ...listParts(document, album, stage, choosing.holding),
+        ...listParts(document, album, stage),
     };
 };

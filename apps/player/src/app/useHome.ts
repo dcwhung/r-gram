@@ -44,9 +44,9 @@ const playSelected = ({ catalog, stage, view, dispatch, play }: HomeContext) => 
 };
 
 /** 打開歌單，預先揀中載入嘅歌或者第一首（US-004） */
-const openList = ({ catalog, stage, view, playback, dispatch }: HomeContext) => {
+const openList = ({ catalog, stage, playback, dispatch }: HomeContext) => {
     const focus = listFocusTrackId(catalog, stage, playback);
-    dispatch({ type: 'openList', loadedAlbumId: view.loadedAlbumId });
+    dispatch({ type: 'openList' });
     if (focus) dispatch({ type: 'focusTrack', trackId: focus });
 };
 
@@ -104,7 +104,7 @@ const dialHandlers = (context: HomeContext) => ({
     onFavourites: () => context.dispatch({ type: 'toggleFavourites' }),
 });
 
-/** 弧線歌單（T-037）：㩒碟面打開（拎住另一隻碟唔得）、捲到框入面嗰首、㩒一行播 */
+/** 弧線歌單（T-037、B-086 ②）：㩒碟面打開（拎住另一隻碟都得）、捲到框入面嗰首、Enter 播 */
 const listHandlers = (context: HomeContext) => ({
     onOpenList: () => {
         if (context.view.canOpenList) openList(context);

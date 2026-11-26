@@ -175,11 +175,8 @@ describe('useHome holding another disc', () => {
             albumId: 'room',
             trackId: 'room-01',
         });
-        expect(result.current.view).toMatchObject({
-            holding: false,
-            mini: null,
-            armPose: 'playing',
-        });
+        expect(result.current.view).toMatchObject({ holding: false, armPose: 'playing' });
+        expect(result.current.view?.mini?.shown).toBe(false);
     });
 
     it('should do nothing on the disc face while the dial is open', () => {

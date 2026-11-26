@@ -2,7 +2,7 @@
  * 場景狀態機（純函數）。Functional Spec CR-002；Technical Spec「CR-002 對技術設計嘅影響」。
  *
  *   preload → home ⇄ discChange    （close = 留喺揀咗嗰隻碟；cancel = 還原開始嗰陣嘅碟，S-154）
- *             home ⇄ list          （discChange 亦可以直接入 list：D27）
+ *             home ⇄ list          （只由主頁入：字母盤開住時㩒碟面冇反應，B-086 ④；拎住另一隻碟都入得，B-086 ②）
  *   overlay（只喺 home）：booklet ｜ mv，兩個唔會同時出現
  *   拎住另一隻碟（T-048）：home / discChange 而顯示嘅碟唔係載入嘅碟；returnToLoaded → home（載入嘅碟）
  *
@@ -43,8 +43,7 @@ export type StageAction =
     | { type: 'selectAlbum'; albumId: string }
     | { type: 'closeDiscChange' }
     | { type: 'cancelDiscChange' }
-    /** 載入嘅碟（播放狀態）：拎住另一隻碟時唔開弧線歌單（T-048） */
-    | { type: 'openList'; loadedAlbumId: string | null }
+    | { type: 'openList' }
     | { type: 'focusTrack'; trackId: string }
     | { type: 'playSelected' }
     | { type: 'closeList' }
@@ -103,12 +102,9 @@ const toggleBooklet: Handler<'toggleBooklet'> = (state, { hasSong }) => {
     return isOpenHome(state) && hasSong ? { ...state, overlay: 'booklet' } : state;
 };
 
-/** 拎住嘅碟冇轉盤、冇唱片夾，歌單喺碟名下面（T-049），所以唔開弧線歌單 */
-const openList: Handler<'openList'> = (state, { loadedAlbumId }) => {
-    const canOpen =
-        (isOpenHome(state) || state.scene === 'discChange') && !isHolding(state, loadedAlbumId);
-    return canOpen ? { ...state, scene: 'list', overlay: null, discChangeFrom: null } : state;
-};
+/** 揀歌一律㩒碟面開弧線歌單（B-086 ②）：只喺主頁（字母盤收埋、電視冇開），拎住另一隻碟都得 */
+const openList: Handler<'openList'> = (state) =>
+    isOpenHome(state) ? { ...state, scene: 'list', overlay: null } : state;
 
 const openDiscChange: Handler<'openDiscChange'> = (state) => {
     if (!isOpenHome(state)) return state;
