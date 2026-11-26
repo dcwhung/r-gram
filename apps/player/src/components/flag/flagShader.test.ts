@@ -1,5 +1,11 @@
 import { HOIST, LIGHT, LIGHT_HALF, SHADE, TAU, WAVES } from './flagMesh';
-import { FLAG_FRAGMENT_SOURCE, FLAG_VERTEX_SOURCE, glslFloat, waveShifts } from './flagShader';
+import {
+    FLAG_FRAGMENT_SOURCE,
+    FLAG_UNIFORM,
+    FLAG_VERTEX_SOURCE,
+    glslFloat,
+    waveShifts,
+} from './flagShader';
 
 /** `const float NAME = 1.0;` / `const vec3 NAME = vec3(1.0, 2.0, 3.0);` → { NAME: number[] } */
 const declaredConstants = (source: string) => {
@@ -91,5 +97,22 @@ describe('waveShifts', () => {
                 expect(Math.cos(base - shift)).toBeCloseTo(Math.cos(original), 5);
             });
         }
+    });
+
+    // S-254（mutant A5）：fragment 嘅角度式要同 flagMesh 嘅 flagWave() 一樣：
+    // TAU × (ku·u + kv·v) − phase × speed + offset = TAU × (…) − uShift（uShift = waveShifts）
+    it('should take the wave shift away in the fragment angle, as flagWave() does', () => {
+        const line = FLAG_FRAGMENT_SOURCE.split('\n').find((text) => text.includes('vec3 angle ='));
+        expect(line?.trim()).toBe(
+            `vec3 angle = TAU * (WAVE_KU * vUv.x + WAVE_KV * vUv.y) - ${FLAG_UNIFORM.shift};`,
+        );
+        const [u, v, phase] = [0.3, 0.7, 12.5];
+        const shifts = waveShifts(phase, new Float32Array(WAVES.length));
+        WAVES.forEach((wave, index) => {
+            const shader = TAU * (wave.ku * u + wave.kv * v) - (shifts[index] ?? 0);
+            const mesh = TAU * (wave.ku * u + wave.kv * v) - phase * wave.speed + wave.offset;
+            expect(Math.sin(shader)).toBeCloseTo(Math.sin(mesh), 4);
+            expect(Math.cos(shader)).toBeCloseTo(Math.cos(mesh), 4);
+        });
     });
 });
