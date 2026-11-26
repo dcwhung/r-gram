@@ -342,49 +342,6 @@ describe('stageReducer', () => {
             expect(stageReducer(state, { type: 'returnToLoaded', loadedAlbumId })).toBe(state);
         });
 
-        /* T-049：㩒歌單欄一行 = 揀中嗰首（播放由發出動作嗰邊做；載入嘅碟變咗之後 holding 自動解除） */
-        it('should select the pressed row of the held disc on playHeldTrack', () => {
-            const pressed = stageReducer(holding(), {
-                type: 'playHeldTrack',
-                trackId: 'hours-03',
-                loadedAlbumId: LOADED,
-            });
-            expect(pressed).toMatchObject({
-                scene: 'home',
-                viewAlbumId: 'hours',
-                selectedTrackId: 'hours-03',
-            });
-        });
-
-        /*
-         * S-180：同一個 tick 連㩒兩行：兩下帶住同一個（已經過時嘅）載入嘅碟。第一下揀中咗拎住嘅碟嘅歌
-         *（隻碟已經放入唱片機），第二下唔再算
-         */
-        it('should ignore a second playHeldTrack that still carries the old loaded disc', () => {
-            const first = stageReducer(holding(), {
-                type: 'playHeldTrack',
-                trackId: 'hours-01',
-                loadedAlbumId: LOADED,
-            });
-            const second = stageReducer(first, {
-                type: 'playHeldTrack',
-                trackId: 'hours-02',
-                loadedAlbumId: LOADED,
-            });
-            expect(second).toBe(first);
-        });
-
-        // 旋鈕開住時行未㩒得（鬆手先㩒得）；冇拎住碟就冇歌單欄
-        it.each([
-            ['the dial is still open', turnedTo('hours'), LOADED],
-            ['no song is loaded', holding(), null],
-            ['the loaded disc is on screen', after(), LOADED],
-            ['still on Preload', INITIAL_STAGE, LOADED],
-        ])('should ignore playHeldTrack when %s', (_case, state, loadedAlbumId) => {
-            const action = { type: 'playHeldTrack', trackId: 'hours-01', loadedAlbumId } as const;
-            expect(stageReducer(state, action)).toBe(state);
-        });
-
         // D58 ④：拎住期間 ♥ = 轉去 ♥ 格（拎住 Favourites 碟）；再㩒返去拎住之前嗰隻碟
         it('should hold the favourites disc on the heart and go back to the held disc again', () => {
             const favourites = stageReducer(holding(), { type: 'toggleFavourites' });
@@ -484,7 +441,6 @@ describe('stageReducer', () => {
             { type: 'openList', loadedAlbumId: null },
             { type: 'openList', loadedAlbumId: 'komorebi' },
             { type: 'returnToLoaded', loadedAlbumId: 'komorebi' },
-            { type: 'playHeldTrack', trackId: 'track-c', loadedAlbumId: 'komorebi' },
             { type: 'focusTrack', trackId: 'track-a' },
             { type: 'focusTrack', trackId: 'track-b' },
             { type: 'playSelected' },

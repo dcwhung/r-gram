@@ -21,20 +21,6 @@ describe('playbackReducer (state only until T-038)', () => {
         });
     });
 
-    // S-180：㩒拎住嘅碟嘅一行：只喺載入嘅碟仍然係㩒嗰陣嗰隻先開始（同一個 tick 連㩒兩行，第二下過時）
-    it('should start a held track only while the loaded disc is still the one pressed against', () => {
-        const action = {
-            type: 'startHeld',
-            albumId: 'apollo-18',
-            trackId: 'apollo-18-03',
-            loadedAlbumId: 'room',
-        } as const;
-        const started = playbackReducer(playing, action);
-        expect(started).toMatchObject({ albumId: 'apollo-18', trackId: 'apollo-18-03' });
-        const again = { ...action, trackId: 'apollo-18-01' };
-        expect(playbackReducer(started, again)).toBe(started);
-    });
-
     it('should pause on the user’s request and resume from there', () => {
         const paused = playbackReducer(playing, { type: 'toggle' });
         expect(paused).toMatchObject({ status: 'paused', pauseReason: 'user' });

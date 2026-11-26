@@ -174,74 +174,12 @@ describe('useHome holding another disc', () => {
         expect(result.current.playback).toBe(playback);
     });
 
-    /* T-049：㩒歌單欄一行 = 將拎住嘅碟放入唱片機播嗰首（舊歌停、隻碟落轉盤、唱臂由泊位行完整開場） */
-    it('should put the held disc on the turntable and play the pressed row', () => {
+    it('should list the held disc under its title, longer while the dial is open', () => {
         const result = holdRoom();
-        act(() => result.current.handlers?.onPlayHeldTrack('room-01'));
-        expect(result.current.playback).toMatchObject({
-            status: 'playing',
-            albumId: 'room',
-            trackId: 'room-01',
-        });
-        expect(result.current.stage).toMatchObject({
-            viewAlbumId: 'room',
-            selectedTrackId: 'room-01',
-        });
-        expect(result.current.view).toMatchObject({ holding: false, armPose: 'playing' });
-    });
-
-    it('should not play a row without audio, a row of another disc or while the dial is open', () => {
-        const result = holdRoom();
-        const before = result.current.playback;
-        act(() => result.current.handlers?.onPlayHeldTrack('apollo-18-03'));
-        act(() => result.current.handlers?.onPlayHeldTrack('missing'));
+        expect(result.current.view?.heldTracks).toMatchObject({ albumId: 'room', dialOpen: false });
+        expect(result.current.handlers).not.toHaveProperty('onPlayHeldTrack');
         act(() => result.current.handlers?.onTurnStart());
-        act(() => result.current.handlers?.onPlayHeldTrack('room-01'));
-        expect(result.current.playback).toBe(before);
-    });
-
-    // W-044：拎住嘅碟自己有首冇音檔嘅歌（灰色行）：叫到 onPlayHeldTrack 都唔播
-    it('should not play a track of the held disc that has no audio', () => {
-        const document = makeDocument([
-            makeAlbum('apollo-18', ['apollo-18/01.m4a']),
-            makeAlbum('room', ['room/01.m4a', null]),
-        ]);
-        const result = holdRoom(document);
-        expect(result.current.view?.heldTracks?.rows[1]).toMatchObject({
-            id: 'room-02',
-            playable: false,
-        });
-        const before = { stage: result.current.stage, playback: result.current.playback };
-        act(() => result.current.handlers?.onPlayHeldTrack('room-02'));
-        expect(result.current.playback).toBe(before.playback);
-        expect(result.current.stage).toBe(before.stage);
-    });
-
-    // S-180：同一個 tick 連㩒兩行（兩下用同一個 render 嘅 handlers）：只播第一下
-    it('should play only the first of two rows pressed in the same tick', () => {
-        const document = makeDocument([
-            makeAlbum('apollo-18', ['apollo-18/01.m4a']),
-            makeAlbum('room', ['room/01.m4a', 'room/02.m4a']),
-        ]);
-        const result = holdRoom(document);
-        const handlers = result.current.handlers;
-        act(() => {
-            handlers?.onPlayHeldTrack('room-01');
-            handlers?.onPlayHeldTrack('room-02');
-        });
-        expect(result.current.playback).toMatchObject({ albumId: 'room', trackId: 'room-01' });
-        expect(result.current.stage.selectedTrackId).toBe('room-01');
-    });
-
-    it('should list the held disc under its title with the rows pressable only after release', () => {
-        const result = holdRoom();
-        expect(result.current.view?.heldTracks).toMatchObject({
-            albumId: 'room',
-            pressable: true,
-            dialOpen: false,
-        });
-        act(() => result.current.handlers?.onTurnStart());
-        expect(result.current.view?.heldTracks).toMatchObject({ pressable: false, dialOpen: true });
+        expect(result.current.view?.heldTracks).toMatchObject({ dialOpen: true });
     });
 });
 

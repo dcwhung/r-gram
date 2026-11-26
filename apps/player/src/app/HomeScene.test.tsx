@@ -19,7 +19,6 @@ const handlers = {
     onTurnCancel: vi.fn(),
     onFavourites: vi.fn(),
     onReturnToLoaded: vi.fn(),
-    onPlayHeldTrack: vi.fn(),
     onOpenList: vi.fn(),
     onFocusListTrack: vi.fn(),
     onPlayListTrack: vi.fn(),
@@ -50,19 +49,12 @@ const scene = (view: ReturnType<typeof viewOf>) => (
 );
 
 /**
- * 動作真係改到畫面嘅場景（S-180）：㩒細唱片機或者一行之後換成 `to`（同一次 flushSync 入面 render），
+ * 動作真係改到畫面嘅場景（S-180）：㩒細唱片機之後換成 `to`（同一次 flushSync 入面 render），
  * 好似 useHome 咁；其餘 handler 照用上面嘅 mock
  */
 const Live = ({ from, to }: { from: HomeView; to: HomeView }) => {
     const [view, setView] = useState(from);
-    const live = {
-        ...handlers,
-        onReturnToLoaded: () => setView(to),
-        onPlayHeldTrack: (trackId: string) => {
-            handlers.onPlayHeldTrack(trackId);
-            setView(to);
-        },
-    };
+    const live = { ...handlers, onReturnToLoaded: () => setView(to) };
     return <HomeScene view={view} handlers={live} measure={estimateTextWidth} />;
 };
 
@@ -334,15 +326,17 @@ describe('HomeScene holding another disc', () => {
         expect(mini && list && mini.compareDocumentPosition(list) & follows).toBeTruthy();
     });
 
-    it('should play the pressed row and hand the focus to the clamp', () => {
-        const started: PlaybackState = { ...PLAYING, albumId: 'room', trackId: 'room-01' };
-        const playing = viewOf('room', null, { selectedTrackId: 'room-01' }, started);
-        const { container } = render(<Live from={holding()} to={playing} />);
-        const button = screen.getByRole('button', { name: '播放第 1 首：room 1' });
-        button.focus();
-        fireEvent.keyDown(button, { key: 'Enter' });
-        expect(handlers.onPlayHeldTrack).toHaveBeenCalledWith('room-01');
-        expect(document.activeElement).toBe(container.querySelector('.spindle'));
+    // B-086 ①：歌單欄純睇：㩒一行、Enter 都冇反應，亦唔會㩒到下面嘅碟面
+    it('should do nothing when a row of the track column is pressed', () => {
+        Object.values(handlers).forEach((handler) => handler.mockClear());
+        const { container } = render(scene(holding()));
+        const item = screen.getByRole('listitem', { name: '第 1 首：room 1' });
+        fireEvent.click(item);
+        fireEvent.keyDown(item, { key: 'Enter' });
+        const hit = item.querySelector('[data-part="held-hit"]');
+        if (hit) fireEvent.click(hit);
+        Object.values(handlers).forEach((handler) => expect(handler).not.toHaveBeenCalled());
+        expect(container.querySelector('[data-part="held-tracks"] .pressable')).toBeNull();
     });
 });
 
