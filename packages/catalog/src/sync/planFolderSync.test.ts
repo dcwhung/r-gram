@@ -28,7 +28,7 @@ const INFO =
 const album = (extra: Partial<SyncAlbumState> = {}): SyncAlbumState => ({
     title: 'Komorebi',
     year: 2026,
-    infoEtag: '"info"',
+    infoUsed: true,
     coverSourceEtag: null,
     cover2SourceEtag: null,
     hasCover: false,
@@ -82,6 +82,7 @@ describe('planFolderSync', () => {
             ]);
             expect(result.checks).toEqual([]);
             expect(result.infoSettled).toBe(true);
+            expect(result.infoUsed).toBe(true);
         });
 
         it('should anchor song text and MV on the audio and keep a track without audio greyed', () => {
@@ -136,6 +137,7 @@ describe('planFolderSync', () => {
             expect(result.tracks[1]?.compareTitle).toBe('太平門');
             expect(result.checks).toEqual([checkOf('NO_INFO', {}, { title: ALBUM })]);
             expect(result.infoSettled).toBe(false);
+            expect(result.infoUsed).toBe(false);
         });
 
         it('should keep the stored title of a track whose song text is not read again', () => {
@@ -240,10 +242,22 @@ describe('planFolderSync', () => {
 
         it('should fall back to the audio files when no info.txt was ever used', () => {
             const files = [file('01 下一位參賽者.m4a'), file('03 c.m4a')];
-            const never = album({ infoEtag: null });
+            const never = album({ infoUsed: false });
             const result = plan({ files, info: badEncoding, tracks, album: never });
             expect(result.tracks.map(({ no }) => no)).toEqual([1, 3]);
             expect(result.album).toEqual({ title: ALBUM, year: null });
+            expect(result.infoUsed).toBe(false);
+        });
+
+        // W-046：「用過 `info.txt`」唔再睇 info_etag（只喺完整同步先記），睇 albums.info_used
+        it('should keep the stored album once info.txt was used, even if no sync ever completed', () => {
+            const files = [file('info.txt', '"bad"'), file('01 下一位參賽者.m4a')];
+            const used = album({ title: 'K', year: 1999, infoUsed: true });
+            const result = plan({ files, info: badEncoding, tracks, album: used });
+            expect(result.album).toEqual({ title: 'K', year: 1999 });
+            expect(result.tracks.map(({ no }) => no)).toEqual([1, 2]);
+            expect(result.pendingRemovals).toEqual([]);
+            expect(result.infoUsed).toBe(true);
         });
     });
 
@@ -266,6 +280,7 @@ describe('planFolderSync', () => {
             );
             expect(result.pendingRemovals).toEqual([]);
             expect(result.infoSettled).toBe(true);
+            expect(result.infoUsed).toBe(true);
         });
 
         it('should keep the stored checks of info.txt', () => {

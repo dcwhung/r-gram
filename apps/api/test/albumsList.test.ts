@@ -35,7 +35,8 @@ const seedTwoAlbums = async () => {
         cover: 'cover0000000000a.webp',
         title: 'Beaming',
         checks: JSON.stringify(CHECKS),
-        info_etag: '"i1"',
+        // W-046：hasInfo 跟「用過 info.txt」嘅標記，唔跟只喺完整同步先記嘅 info_etag
+        info_used: 1,
     });
     await insertAlbum('a', 1, { title: 'Apollo 18' });
     await insertTrack('b-01', 'b', 1, { audio_key: 'b/01 x.m4a', mv_key: 'b/01 x.mp4' });
@@ -81,7 +82,7 @@ describe('GET /api/albums', () => {
     it('should not expose the fields CR-007 removed', async () => {
         await seedTwoAlbums();
         const [first] = (await list()).albums;
-        for (const key of ['enabled', 'label', 'expectedFolder', 'checks', 'infoEtag'])
+        for (const key of ['enabled', 'label', 'expectedFolder', 'checks', 'infoEtag', 'infoUsed'])
             expect(first, key).not.toHaveProperty(key);
     });
 
