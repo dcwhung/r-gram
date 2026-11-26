@@ -11,6 +11,7 @@ import { api, json } from './albumFixtures';
 import { liveDocument } from './catalogFixtures';
 import {
     ALBUM_ID,
+    KOMOREBI_INFO,
     TEXT_05,
     endlessList,
     mediaKey,
@@ -224,6 +225,33 @@ describe('PUT /api/tracks/:id/text: checks before writing', () => {
         expect(status).toBe(409);
         expect(body.error.code).toBe('NO_AUDIO');
         expect(puts).toEqual([]);
+    });
+
+    // S-183（review probe P7）：歌號已經唔喺 info.txt（待確認移除）嘅歌唔寫
+    it('should answer 409 TRACK_NOT_LISTED for a track info.txt no longer lists', async () => {
+        await putMedia('info.txt', KOMOREBI_INFO.replace('5. 太平門', ''));
+        const synced = await syncFolder();
+        expect(synced.body.pendingRemovals).toContainEqual(
+            expect.objectContaining({ kind: 'track', trackId: 'komorebi-05' }),
+        );
+        const { puts, bindings } = recordedMedia();
+        const text = TEXT_05.replace('第二句', '改過的第二句');
+        const { status, body } = await putText(
+            'komorebi-05',
+            { text, etag: await etagOf() },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error).toMatchObject({ code: 'TRACK_NOT_LISTED', message: expect.any(String) });
+        expect(puts).toEqual([]);
+        expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
+    });
+
+    it('should still save a listed track while info.txt cannot be used', async () => {
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const { status } = await save05(TEXT_05.replace('第二句', '改過的第二句'));
+        expect(status).toBe(200);
     });
 
     it('should list every song-text error by line and write nothing', async () => {
