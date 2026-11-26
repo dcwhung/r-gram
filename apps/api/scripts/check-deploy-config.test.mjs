@@ -83,6 +83,33 @@ describe('deployConfigProblems', () => {
         const problems = deployConfigProblems(`${GOOD}ADMIN_EMAILS = "a@example.com"\n`);
         expect(problems).toEqual([expect.stringContaining('wrangler secret put ADMIN_EMAILS')]);
     });
+
+    // S-234：TOML 嘅其他寫法一樣係 ADMIN_EMAILS 呢個 key
+    it.each([
+        ['a double-quoted key', `${GOOD}"ADMIN_EMAILS" = "a@example.com"\n`],
+        ['a single-quoted key', `${GOOD}'ADMIN_EMAILS' = "a@example.com"\n`],
+        ['an escaped quoted key', `${GOOD}"ADMIN\\u005FEMAILS" = "a@example.com"\n`],
+        ['a dotted key', `vars.ADMIN_EMAILS = "a@example.com"\n${GOOD}`],
+        ['a quoted dotted key', `"vars"."ADMIN_EMAILS" = "a@example.com"\n${GOOD}`],
+        [
+            'an environment vars table',
+            `${GOOD}\n[env.production.vars]\nADMIN_EMAILS = "a@example.com"\n`,
+        ],
+        ['a vars sub-table', `${GOOD}\n[vars."ADMIN_EMAILS"]\nlist = "a@example.com"\n`],
+        [
+            'an inline table',
+            `${GOOD}\n[env.production]\nvars = { X = "1", "ADMIN_EMAILS" = "a@example.com" }\n`,
+        ],
+    ])('should refuse ADMIN_EMAILS written as %s', (_name, toml) => {
+        expect(deployConfigProblems(toml)).toEqual([
+            expect.stringContaining('wrangler secret put ADMIN_EMAILS'),
+        ]);
+    });
+
+    it('should not mistake a comment or a string value for the ADMIN_EMAILS key', () => {
+        const toml = `${GOOD}# ADMIN_EMAILS = "set it with wrangler secret put"\nNOTE = "ADMIN_EMAILS = x"\n`;
+        expect(deployConfigProblems(toml)).toEqual([]);
+    });
 });
 
 describe('check-deploy-config.mjs', () => {
