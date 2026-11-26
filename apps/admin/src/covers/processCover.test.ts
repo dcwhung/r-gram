@@ -58,6 +58,17 @@ describe('processCover', () => {
         expect(close).toHaveBeenCalledOnce();
     });
 
+    // W-061（D50）：細過 1200 嘅來源放大到啱啱 1200（唔係照原大細出）
+    it('should enlarge a source smaller than the cover side to exactly the cover side', async () => {
+        const { tools, renders } = fakeTools({ width: 640, height: 640 });
+        const result = await processCover(SOURCE, tools, { accent: true });
+        expect(renders.map(({ crop, side }) => [crop.side, side])).toEqual([
+            [640, COVER_SIDE_PX],
+            [640, THUMB_SIDE_PX],
+        ]);
+        expect(result.upscaled).toBe(true);
+    });
+
     it('should not compute an accent for the second cover', async () => {
         const { tools, renders } = fakeTools({ width: 640, height: 640 });
         const result = await processCover(SOURCE, tools, { accent: false });
