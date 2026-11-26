@@ -395,6 +395,33 @@ describe('HomeScene track column while turning', () => {
     });
 });
 
+/* 設計稿第 19 版 ACTIONS.wheel（review W-055）：打開字母盤，唔係拎住另一隻碟 = 歌單欄重新逐行飄落 */
+describe('HomeScene track column when the dial opens', () => {
+    const PLAYING: PlaybackState = {
+        ...IDLE_PLAYBACK,
+        status: 'playing',
+        albumId: 'apollo-18',
+        trackId: 'apollo-18-01',
+    };
+    const entering = (container: HTMLElement) =>
+        container.querySelectorAll('[data-part="held-tracks"] .held-row-in').length;
+
+    it('should replay the entrance of the rows when nothing is loaded', () => {
+        const { container, rerender } = render(scene(viewOf('room')));
+        expect(screen.getByRole('list', { name: 'ROOM 的歌曲' })).toBeInTheDocument();
+        expect(entering(container)).toBe(0);
+        rerender(scene(viewOf('room', null, { scene: 'discChange' })));
+        expect(entering(container)).toBeGreaterThan(0);
+    });
+
+    it('should not replay the entrance while holding another disc', () => {
+        const { container, rerender } = render(scene(viewOf('room', null, {}, PLAYING)));
+        rerender(scene(viewOf('room', null, { scene: 'discChange' }, PLAYING)));
+        expect(screen.getByRole('list', { name: 'ROOM 的歌曲' })).toBeInTheDocument();
+        expect(entering(container)).toBe(0);
+    });
+});
+
 /* 設計稿第 19 版：由歌單欄開弧線歌單時左上資訊交叉淡入（黑字留喺暗層下面，白字淡入） */
 describe('HomeScene arc list opened from the column', () => {
     it('should cross-fade the top-left info while the rows float in', () => {
