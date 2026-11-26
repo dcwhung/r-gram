@@ -54,6 +54,25 @@ describe('createTextMeasure', () => {
         document.documentElement.style.removeProperty('--font-slab');
     });
 
+    // W-043：字體 stack 每款字讀一次 getComputedStyle（歌單欄一次過量幾十行）
+    it('should read the font stack of each family only once', () => {
+        const context = { font: '', measureText: (text: string) => ({ width: text.length }) };
+        vi.stubGlobal(
+            'OffscreenCanvas',
+            class {
+                getContext() {
+                    return context;
+                }
+            },
+        );
+        const computed = vi.spyOn(window, 'getComputedStyle');
+        const measure = createTextMeasure();
+        ['A', 'B', 'C'].forEach((text) => measure(text, font({ family: 'mixed' })));
+        measure('D', font({ family: 'slab' }));
+        expect(computed).toHaveBeenCalledTimes(2);
+        computed.mockRestore();
+    });
+
     it('should fall back to the estimate when the canvas has no 2D context', () => {
         vi.stubGlobal(
             'OffscreenCanvas',

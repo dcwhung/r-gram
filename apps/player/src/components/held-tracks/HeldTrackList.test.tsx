@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import type { HeldTrackRow, HeldTracksView } from '../../app/heldTracksView';
 import { PHONE_LAYOUT } from '../../stage/layouts';
-import { estimateTextWidth } from '../../utils/textMeasure';
+import { estimateTextWidth, type TextMeasure } from '../../utils/textMeasure';
 import { HeldTrackList } from './HeldTrackList';
 
 const ACCENT = '#c8442b';
@@ -29,14 +29,18 @@ const held = (rows: readonly HeldTrackRow[], overrides: Partial<HeldTracksView> 
 
 const LONG = Array.from({ length: 30 }, (_, index) => row(index + 1));
 
-const renderList = (view: HeldTracksView, onPlay = vi.fn()) => {
+const renderList = (
+    view: HeldTracksView,
+    onPlay = vi.fn(),
+    measure: TextMeasure = estimateTextWidth,
+) => {
     const result = render(
         <svg>
             <HeldTrackList
                 layout={PHONE_LAYOUT}
                 held={view}
                 albumTitle="ROOM"
-                measure={estimateTextWidth}
+                measure={measure}
                 onPlay={onPlay}
             />
         </svg>,
@@ -246,6 +250,21 @@ describe('HeldTrackList', () => {
             press('ArrowUp');
             expect(focused()).toBe(screen.getByRole('button', { name: name(1) }));
         });
+    });
+
+    // W-043：歌名只喺行、量字函數、闊度變先截短；捲動（滾輪、拖動）唔再量字
+    it('should not measure any title again when the column scrolls', () => {
+        const longTitle = '(Just Like) Starting Over (Live Version) Extended';
+        const rows = Array.from({ length: 41 }, (_, index) =>
+            row(index + 1, true, index % 2 === 0 ? longTitle : `歌 ${index + 1}`),
+        );
+        const measure = vi.fn(estimateTextWidth);
+        const { list } = renderList(held(rows), vi.fn(), measure);
+        const before = measure.mock.calls.length;
+        expect(before).toBeGreaterThan(0);
+        fireEvent.wheel(list(), { deltaY: pitch });
+        fireEvent.keyDown(list(), { key: 'PageDown' });
+        expect(measure.mock.calls.length - before).toBe(0);
     });
 
     // D57：拖過唔當㩒
