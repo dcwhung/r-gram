@@ -46,9 +46,7 @@ describe('arcRows', () => {
     });
 
     it('should only return the rows within the visible span, in order', () => {
-        expect(arcRows(12, 6).map(({ index }) => index)).toEqual([
-            2, 3, 4, 5, 6, 7, 8, 9, 10,
-        ]);
+        expect(arcRows(12, 6).map(({ index }) => index)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10]);
         expect(arcRows(3, 0).map(({ index }) => index)).toEqual([0, 1, 2]);
         expect(arcRows(0, 0)).toEqual([]);
     });

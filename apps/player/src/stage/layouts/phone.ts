@@ -76,6 +76,8 @@ const ARC_LIST = {
     titleChars: 8,
     // 同歌單欄一樣（設計稿互動格嘅拖動門檻）
     dragThresholdPx: 6,
+    // 第 20 版 LIST_LOOP（markW、markStroke、dot、gap、minOpacity）
+    seam: { dot: 9, gap: 8, length: 230, stroke: 5, minOpacity: 0.45 },
 } as const;
 
 /*

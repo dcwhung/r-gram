@@ -128,8 +128,9 @@ describe('ArcTrackList looping', () => {
         fireEvent.pointerMove(root, { pointerId: 2, clientY: 1000 - PITCH * 1.7 });
         fireEvent.pointerUp(root, { pointerId: 2 });
         expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
+        // 接駁位喺拖動距離入面佔一格：由第 1 首向上拖 3.2 行 = 停喺第 11 首
         fireEvent.pointerDown(root, { pointerId: 3, clientY: 1000 });
-        fireEvent.pointerMove(root, { pointerId: 3, clientY: 1000 + PITCH * 2.2 });
+        fireEvent.pointerMove(root, { pointerId: 3, clientY: 1000 + PITCH * 3.2 });
         fireEvent.pointerUp(root, { pointerId: 3 });
         expect(selected()).toHaveAccessibleName('第 11 首：歌 11');
         expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-11');
