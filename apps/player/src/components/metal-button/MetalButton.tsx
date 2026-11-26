@@ -74,6 +74,7 @@ export const MetalButton = (props: MetalButtonProps) => {
     return (
         <g
             className="metal-button"
+            data-icon={icon}
             aria-label={label}
             aria-pressed={props.pressed}
             aria-disabled={disabled}

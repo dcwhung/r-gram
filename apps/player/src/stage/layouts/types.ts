@@ -2,6 +2,8 @@
  * 幾何資料表嘅型別。版面數字係資料唔係 code：每種裝置一份表，元件只讀表。
  * 所有長度係設計單位（1080 × 1920 基準）；角度係度，0° 向右、順時針為正（y 向下）。
  */
+import type { TvLayout } from './tvTypes';
+
 export type LayoutId = 'phone';
 
 export interface Point {
@@ -293,6 +295,8 @@ export interface StageLayout {
     arc: { r: number; stepDeg: number };
     /** 弧線歌單（㩒碟面；T-037） */
     list: ArcListLayout;
+    /** MV 電視（T-060） */
+    tv: TvLayout;
     /** 淨空同感應範圍規則（Functional Spec CR-002） */
     clearance: {
         /** 掣（連光圈）同 CD */

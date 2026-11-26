@@ -515,3 +515,53 @@ describe('HomeScene disc face', () => {
         expect(part(container, 'disc-face')).toHaveFocus();
     });
 });
+
+/* T-060：電視開住時唱片機喺電視同模糊層後面：成層唔入 Tab 次序、㩒唔到（同 D95 暗層規則一樣） */
+describe('HomeScene with the MV TV', () => {
+    const tv = {
+        phase: 'open' as const,
+        title: 'apollo-18 1',
+        accent: '#c8442b',
+        glow: '#ff8a6a',
+        active: 'play' as const,
+        progress: 0,
+        timeText: '0:00',
+        failed: false,
+        video: document.createElement('video'),
+        volume: 1,
+        muted: false,
+        volumeSupported: true,
+        positionSec: 0,
+        durationSec: null,
+    };
+    const tvHandlers = {
+        onPlay: vi.fn(),
+        onPause: vi.fn(),
+        onStop: vi.fn(),
+        onVolume: vi.fn(),
+        onToggleMute: vi.fn(),
+        onSeekBy: vi.fn(),
+        onSeekTo: vi.fn(),
+    };
+
+    it('should draw the TV over a turntable that cannot be reached', () => {
+        const view = viewOf('apollo-18', null, { overlay: 'mv' });
+        const { container } = render(
+            <HomeScene
+                view={view}
+                handlers={handlers}
+                measure={estimateTextWidth}
+                tv={tv}
+                tvHandlers={tvHandlers}
+            />,
+        );
+        expect(container.querySelector('[data-part="home-layer"]')).toHaveAttribute('inert');
+        expect(screen.getByRole('group', { name: 'MV 電視' })).toBeInTheDocument();
+    });
+
+    it('should leave the turntable reachable without the TV', () => {
+        const { container } = render(scene(viewOf('apollo-18')));
+        expect(container.querySelector('[data-part="home-layer"]')).not.toHaveAttribute('inert');
+        expect(screen.queryByRole('group', { name: 'MV 電視' })).toBeNull();
+    });
+});

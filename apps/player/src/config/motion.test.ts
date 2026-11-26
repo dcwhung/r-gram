@@ -94,6 +94,33 @@ describe('motion tokens', () => {
         expect(all.every((ms) => Number.isInteger(ms) && ms > 0)).toBe(true);
     });
 
+    // T-060：設計稿「MV 電視」嘅 CSS（tvRise、antennaOut／In、crtOn、crt-white、crtOff、tvDrop、tv-veil）同 TV_CLOSE_MS
+    it('should use the TV timings of the mockup (rise, antenna, switch-on, switch-off, drop, veil)', () => {
+        expect(MOTION.scene).toMatchObject({
+            tvRiseMs: 800,
+            tvAntennaOutMs: 350,
+            tvAntennaOutDelayMs: 500,
+            tvAntennaInMs: 150,
+            crtOnDelayMs: 700,
+            crtOnMs: 220,
+            crtFlashOutMs: 200,
+            crtFlashOutDelayMs: 720,
+            crtFlashInMs: 100,
+            crtOffMs: 150,
+            tvDropDelayMs: 170,
+            tvDropMs: 450,
+            tvVeilInMs: 500,
+            tvVeilOutMs: 450,
+            tvCloseMs: 630,
+        });
+    });
+
+    it('should not put the TV away before the switch-off and the drop have finished', () => {
+        const { crtOffMs, tvDropDelayMs, tvDropMs, tvCloseMs } = MOTION.scene;
+        expect(tvDropDelayMs).toBeGreaterThanOrEqual(crtOffMs);
+        expect(tvCloseMs).toBeGreaterThanOrEqual(tvDropDelayMs + tvDropMs);
+    });
+
     // T-109：設計稿第 20 版 versionGlow（成粒版本掣一明一暗，1.4 秒一個來回）
     it('should blink the update button with the period of mockup version 20', () => {
         expect(MOTION.loop.updateBlinkMs).toBe(1400);

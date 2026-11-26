@@ -1,5 +1,6 @@
 import { DESIGN_HEIGHT, DESIGN_WIDTH } from '../fitStage';
 import { circleLeftAt } from '../geometry';
+import { PHONE_TV } from './phoneTv';
 import type { StageLayout } from './types';
 
 /*
@@ -250,5 +251,6 @@ export const PHONE_LAYOUT: StageLayout = {
     preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
     list: ARC_LIST,
+    tv: PHONE_TV,
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },
 };

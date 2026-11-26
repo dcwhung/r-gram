@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { t } from '../i18n/t';
 import { createTestPlayback } from '../playback/testing/testPlayback';
+import { createTestMv } from '../mv/testing/testMv';
 import { useHome } from './useHome';
 
 const APOLLO = (no: string) => `https://media.example/apollo-18/${no}.m4a`;
@@ -137,7 +138,12 @@ describe('useHome real playback', () => {
         const document = sampleDocument();
         const first = document.albums[0]?.tracks[0];
         if (first) first.mv = 'apollo-18/01.mp4';
-        const home = mount(document);
+        const playback = createTestPlayback({ reduceMotion: true });
+        const { mv } = createTestMv({ reduceMotion: true });
+        const { result } = renderHook(() =>
+            useHome(document, playback.controller, undefined, undefined, mv),
+        );
+        const home = { ...playback, result };
         act(() => home.result.current.handlers?.onSpindle());
         act(() => home.result.current.handlers?.onMv());
         expect(home.result.current.playback).toMatchObject({ status: 'paused', pauseReason: 'mv' });

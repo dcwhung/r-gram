@@ -70,6 +70,17 @@
     --motion-scene-crt-on: 220ms;
     --motion-scene-crt-off: 150ms;
     --motion-scene-tv-drop: 450ms;
+    /* MV 電視（T-060；設計稿「MV 電視」）：天線、開機白光、收埋前停一停、背後模糊層 */
+    --motion-scene-tv-antenna-out: 350ms;
+    --motion-scene-tv-antenna-out-delay: 500ms;
+    --motion-scene-tv-antenna-in: 150ms;
+    --motion-scene-crt-on-delay: 700ms;
+    --motion-scene-crt-flash-out: 200ms;
+    --motion-scene-crt-flash-out-delay: 720ms;
+    --motion-scene-crt-flash-in: 100ms;
+    --motion-scene-tv-drop-delay: 170ms;
+    --motion-scene-tv-veil-in: 500ms;
+    --motion-scene-tv-veil-out: 450ms;
     /* Preload（T-034；設計稿 r-gram v16） */
     --motion-scene-flag-fade: 750ms;
     --motion-scene-preload-step: 530ms;
