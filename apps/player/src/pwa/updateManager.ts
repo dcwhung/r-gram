@@ -134,9 +134,19 @@ export class UpdateManager {
         this.deps.applyUpdate();
     }
 
-    /** controllerchange 同 library 嘅 onNeedReload 會撞埋一齊：只 reload 一次；防 loop 擋咗就等下次開 app */
+    /**
+     * controllerchange 同 library 嘅 onNeedReload 會撞埋一齊：只 reload 一次。
+     * 「立即更新」只算今次（W-049）：防 loop 擋咗就還原，新版當已接管但未 reload，照規則等（播緊出提示）
+     */
     private reloadOnce(): void {
-        if (this.reloaded || !this.deps.guard.allow()) return;
+        if (this.reloaded) return;
+        this.forced = false;
+        if (!this.deps.guard.allow()) {
+            this.applied = false;
+            this.pending = 'reload';
+            this.publish();
+            return;
+        }
         this.reloaded = true;
         this.deps.guard.mark();
         this.deps.reload();
