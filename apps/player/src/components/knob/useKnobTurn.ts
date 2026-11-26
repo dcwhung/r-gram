@@ -3,8 +3,10 @@ import type { StageLayout } from '../../stage/layouts';
 import { keyTarget, type KnobTurn, moveTurn, startTurn, turnedPosition } from './knobTurn';
 
 const RAD_TO_DEG = 180 / Math.PI;
-/** 完成揀碟嘅鍵 */
-const FINISH_KEYS: readonly string[] = ['Enter', 'Escape'];
+/** 完成揀碟（留喺指住嗰隻碟）嘅鍵 */
+const FINISH_KEY = 'Enter';
+/** 取消揀碟（返去開始嗰隻碟）嘅鍵（S-154） */
+const CANCEL_KEY = 'Escape';
 
 export interface KnobTurnOptions {
     layout: StageLayout;
@@ -17,6 +19,8 @@ export interface KnobTurnOptions {
     onTurn: (position: number) => void;
     /** 完成揀碟（收埋字母盤，留喺指住嗰隻碟） */
     onEnd: () => void;
+    /** 取消揀碟（收埋字母盤，返去開始嗰隻碟） */
+    onCancel: () => void;
 }
 
 /** 旋鈕喺螢幕上嘅圓心同死區半徑（px）：由感應圈量 */
@@ -106,13 +110,27 @@ const usePointerTurn = (options: KnobTurnOptions) => {
     return { hitRef, drag, ...pointer, onLostPointerCapture: onPointerUp };
 };
 
-/** 鍵盤（US-012）：方向鍵 / Home / End 打開字母盤兼轉；Enter、Esc 或者 focus 離開 = 完成 */
-const keyboardTurn = (options: KnobTurnOptions, dragging: () => boolean) => ({
+/** Enter = 完成；Esc = 取消（拖緊都放棄埋個手勢，之後嘅 move / 放手唔理）；字母盤閂埋就唔理 */
+const finishByKey = (
+    event: KeyboardEvent,
+    options: KnobTurnOptions,
+    drag: { current: unknown },
+) => {
+    if (!options.open) return;
+    event.preventDefault();
+    if (event.key === FINISH_KEY) {
+        options.onEnd();
+        return;
+    }
+    drag.current = null;
+    options.onCancel();
+};
+
+/** 鍵盤（US-012）：方向鍵 / Home / End 打開字母盤兼轉；Enter 或者 focus 離開 = 完成；Esc = 取消（S-154） */
+const keyboardTurn = (options: KnobTurnOptions, drag: { current: unknown }) => ({
     onKeyDown: (event: KeyboardEvent) => {
-        if (FINISH_KEYS.includes(event.key)) {
-            if (!options.open) return;
-            event.preventDefault();
-            options.onEnd();
+        if (event.key === FINISH_KEY || event.key === CANCEL_KEY) {
+            finishByKey(event, options, drag);
             return;
         }
         const target = keyTarget(event.key, options.current, options.positions);
@@ -122,12 +140,12 @@ const keyboardTurn = (options: KnobTurnOptions, dragging: () => boolean) => ({
         if (target !== options.current) options.onTurn(target);
     },
     onBlur: () => {
-        if (options.open && !dragging()) options.onEnd();
+        if (options.open && drag.current === null) options.onEnd();
     },
 });
 
 export const useKnobTurn = (options: KnobTurnOptions) => {
     const { hitRef, drag, ...pointer } = usePointerTurn(options);
-    const keyboard = keyboardTurn(options, () => drag.current !== null);
+    const keyboard = keyboardTurn(options, drag);
     return { hitRef, handlers: { ...pointer, ...keyboard } };
 };

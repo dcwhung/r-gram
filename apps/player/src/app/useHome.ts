@@ -77,11 +77,15 @@ const turnTo = ({ view, dispatch }: HomeContext, position: number) => {
     if (entry) dispatch({ type: 'selectAlbum', albumId: entry.albumId });
 };
 
-/** 擰旋鈕（T-036）：㩒住打開字母盤 → 指針跟住轉 → 放手留喺嗰隻碟（D27）；♥ 一㩒去 Favourites 碟 */
+/**
+ * 擰旋鈕（T-036）：㩒住打開字母盤 → 指針跟住轉 → 放手留喺嗰隻碟（D27）；Esc 取消返去開始嗰隻碟（S-154）；
+ * ♥ 一㩒去 Favourites 碟
+ */
 const dialHandlers = (context: HomeContext) => ({
     onTurnStart: () => context.dispatch({ type: 'openDiscChange' }),
     onTurn: (position: number) => turnTo(context, position),
     onTurnEnd: () => context.dispatch({ type: 'closeDiscChange' }),
+    onTurnCancel: () => context.dispatch({ type: 'cancelDiscChange' }),
     onFavourites: () => context.dispatch({ type: 'toggleFavourites' }),
 });
 

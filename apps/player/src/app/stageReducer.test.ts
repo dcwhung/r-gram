@@ -131,12 +131,13 @@ describe('stageReducer', () => {
                 { type: 'focusTrack', trackId: 'komorebi-07' },
                 { type: 'closeList' },
             );
-            const state = [
+            const turnAndCancel: StageAction[] = [
                 { type: 'openDiscChange' },
                 { type: 'selectAlbum', albumId: 'hours' },
                 { type: 'selectAlbum', albumId: 'i' },
                 { type: 'cancelDiscChange' },
-            ].reduce(stageReducer, before);
+            ];
+            const state = turnAndCancel.reduce(stageReducer, before);
             expect(state).toEqual(before);
         });
 

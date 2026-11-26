@@ -10,8 +10,10 @@ export interface DialHandlers {
     onTurnStart: () => void;
     /** 旋鈕指住第 position 格 */
     onTurn: (position: number) => void;
-    /** 放手（或者 Enter / Esc / focus 離開）：留喺指住嗰隻碟 */
+    /** 放手（或者 Enter / focus 離開）：留喺指住嗰隻碟 */
     onTurnEnd: () => void;
+    /** Esc：取消，返去開始揀碟嗰陣嘅碟（S-154） */
+    onTurnCancel: () => void;
     /** 㩒 ♥：去 Favourites 碟；身處嗰度就返去之前嗰隻碟 */
     onFavourites: () => void;
 }
@@ -48,6 +50,7 @@ export const DialControls = ({ layout, view, handlers }: DialControlsProps) => {
                 onStart={handlers.onTurnStart}
                 onTurn={handlers.onTurn}
                 onEnd={handlers.onTurnEnd}
+                onCancel={handlers.onTurnCancel}
                 covered={view.listOpen}
             />
             <FavHeart
