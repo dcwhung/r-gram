@@ -74,6 +74,18 @@ describe('mvAudio volume (T-061)', () => {
         expect(video.volumeWrites).toEqual([]);
     });
 
+    // S-259：靜音同預備要即刻 0（唔可以 ramp，否則會漏一下聲）；開聲先用 ramp
+    it('should silence at once and only ramp when the sound comes back', () => {
+        const { audio, video } = setup();
+        audio.attach(asVideo(video));
+        audio.hold(true);
+        expect(FakeAudioContext.lastGain()?.calls.at(-1)).toEqual(['setValueAtTime', 0]);
+        audio.hold(false);
+        expect(FakeAudioContext.lastGain()?.calls.at(-1)?.[0]).toBe('setTargetAtTime');
+        audio.setMuted(true);
+        expect(FakeAudioContext.lastGain()?.calls.at(-1)).toEqual(['setValueAtTime', 0]);
+    });
+
     it('should keep the volume between 0 and 1', () => {
         const { audio, video } = setup();
         audio.attach(asVideo(video));
