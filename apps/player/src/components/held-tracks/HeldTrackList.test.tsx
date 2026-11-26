@@ -324,6 +324,21 @@ describe('HeldTrackList', () => {
         expect(onPlay).toHaveBeenCalledWith('room-03');
     });
 
+    // W-050：第二隻手指唔好取消第一隻手指嘅拖動
+    it('should keep following the first finger when a second finger touches', () => {
+        const { onPlay, rowY } = renderList(held(LONG));
+        const button = screen.getByRole('button', { name: '播放第 3 首：歌 3' });
+        fireEvent.pointerDown(button, { pointerId: 1, clientY: 600 });
+        fireEvent.pointerMove(button, { pointerId: 1, clientY: 600 - pitch * UNIT });
+        fireEvent.pointerDown(button, { pointerId: 2, clientY: 300 });
+        fireEvent.pointerUp(button, { pointerId: 2, clientY: 300 });
+        fireEvent.pointerMove(button, { pointerId: 1, clientY: 600 - pitch * 2 * UNIT });
+        fireEvent.pointerUp(button, { pointerId: 1, clientY: 600 - pitch * 2 * UNIT });
+        fireEvent.click(button);
+        expect(onPlay).not.toHaveBeenCalled();
+        expect(rowY('播放第 3 首：歌 3')).toBe(top + pitch * 0.5);
+    });
+
     it('should treat a small wobble as a tap', () => {
         const { onPlay } = renderList(held(LONG));
         const button = screen.getByRole('button', { name: '播放第 3 首：歌 3' });

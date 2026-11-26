@@ -185,6 +185,49 @@ describe('ArcTrackList', () => {
         expect(onClose).not.toHaveBeenCalled();
     });
 
+    // W-050：第二隻手指（或者手掌）唔好取消第一隻手指嘅拖動；拖完一定停喺一行
+    it('should keep the first finger dragging when a second finger touches, and snap to a row', () => {
+        const { container, selected, onFocusTrack } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.pointerDown(root, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 1.25 });
+        fireEvent.pointerDown(root, { pointerId: 2, clientY: 400 });
+        fireEvent.pointerUp(root, { pointerId: 2 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 2.25 });
+        fireEvent.pointerUp(root, { pointerId: 1 });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3');
+        expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-03');
+        const number = selected().querySelector('[data-part="arc-number"]');
+        expect(number).toHaveAttribute('y', '1196');
+    });
+
+    it('should snap to a row when the drag is cancelled or loses the pointer', () => {
+        const { container, selected, onFocusTrack } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.pointerDown(root, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 1, clientY: 1000 - PITCH * 1.4 });
+        fireEvent.lostPointerCapture(root, { pointerId: 1 });
+        expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-02');
+        fireEvent.pointerDown(root, { pointerId: 3, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 3, clientY: 1000 - PITCH * 0.8 });
+        fireEvent.pointerCancel(root, { pointerId: 3 });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3');
+        expect(onFocusTrack).toHaveBeenLastCalledWith('komorebi-03');
+    });
+
+    it('should let a new press replace one that never started dragging', () => {
+        const { container, selected } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        fireEvent.pointerDown(root, { pointerId: 1, clientY: 1000 });
+        fireEvent.pointerDown(root, { pointerId: 2, clientY: 1000 });
+        fireEvent.pointerMove(root, { pointerId: 2, clientY: 1000 - PITCH });
+        fireEvent.pointerUp(root, { pointerId: 2 });
+        expect(selected()).toHaveAccessibleName('第 2 首：歌 2');
+    });
+
     it('should treat a small movement as a tap', () => {
         const { option, onPlay } = renderList(view([row(1), row(2)]));
         const target = option('第 2 首：歌 2');
