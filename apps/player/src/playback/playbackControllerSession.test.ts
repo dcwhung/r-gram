@@ -48,6 +48,17 @@ describe('playbackController with Media Session', () => {
         expect(session.playbackState).toBe('paused');
     });
 
+    // S-240（M15）：handler 喺 controller 建立時註冊一次，唔跟每首歌重設
+    it('should register each lock-screen handler once', () => {
+        const { session, controller, element } = setup();
+        controller.start(SOURCE, 'room-01');
+        element.finish();
+        controller.next();
+        controller.release();
+        expect([...session.registrations.values()].every((count) => count === 1)).toBe(true);
+        expect(session.registrations.size).toBe(8);
+    });
+
     it('should update the metadata inside the ended handler on auto-next', () => {
         const { element, session, controller } = setup();
         controller.start(SOURCE, 'room-01');
