@@ -1,9 +1,15 @@
 /*
  * Catalog 嘅純讀取函數：場景（轉碟、歌單、左上資訊）用。唔改 document、唔 cache。
- * Favourites 碟唔喺 catalog 入面：佢係由本機收藏砌出嚟嘅虛擬專輯（`favourites/favouritesAlbum.ts`，另一個任務），
- * 所以呢度用 `FAVOURITES_ALBUM_ID` 查專輯 / 歌單會搵唔到；收藏嘅歌用 `findTrack()` 逐首搵返。
+ * Favourites 碟唔喺 catalog 入面：佢係由本機收藏砌出嚟嘅虛擬專輯（`favourites/favouritesAlbum.ts`）。
+ * 主頁用 `withFavourites()` 嘅 document：Favourites 碟排喺最尾，`findAlbum()`／`albumTracks()` 搵得到佢；
+ * `findTrack()` 先搵到真專輯（一首收藏嘅歌原本嗰隻碟）。
  */
-import type { CatalogAlbum, CatalogDocument, CatalogTrack } from '@r-gram/catalog';
+import {
+    type CatalogAlbum,
+    type CatalogDocument,
+    type CatalogTrack,
+    FAVOURITES_ALBUM_ID,
+} from '@r-gram/catalog';
 import { COVER_VARIANT, type CoverVariant, hasSecondCover } from './coverVariants';
 
 export interface TrackLocation {
@@ -14,7 +20,8 @@ export interface TrackLocation {
 const NO_TRACKS: readonly CatalogTrack[] = [];
 
 /** 轉碟刻度上真專輯嘅次序 = catalog 次序（管理端次序）；冇歌嘅專輯照列（CR-003 決定 7：冇上下架，全部專輯都顯示）。♥ 永遠喺最尾，唔喺呢度 */
-export const dialAlbums = (document: CatalogDocument): readonly CatalogAlbum[] => document.albums;
+export const dialAlbums = (document: CatalogDocument): readonly CatalogAlbum[] =>
+    document.albums.filter((album) => album.id !== FAVOURITES_ALBUM_ID);
 
 export const findAlbum = (document: CatalogDocument, albumId: string): CatalogAlbum | null =>
     document.albums.find((album) => album.id === albumId) ?? null;
