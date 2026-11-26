@@ -30,5 +30,6 @@
     - 全部 fetch 經 guard：唔係 `127.0.0.1` / `localhost` 就拒絕並計數
 - Browser（T-046 起）：用 `player-home` 嘅 harness，兩張封面嘅碟每個尺寸重新載入 16 次：記大封面、`/img/` 請求（另一張封面 + 縮圖）、本機儲存；`refreshCatalog()` 後封面不變；專輯色；得一張封面嘅碟
 - 2026-11-26（T-113）：`/tmp/…/scratchpad/qa-t038-t116/``t113.cjs`（build 指 `/test-catalog/catalog.json`：Preload 走、22 格、SW 控制下 cache 冇 test-catalog）+ 重新生成同 committed 檔 byte 一樣
+- 2026-11-26（T-070）：AC-11 `selectors`：`findTrack()` 先搵真專輯（♥ 上嘅歌搵返原本嗰隻碟）、`dialAlbums()` 唔包 Favourites 碟（♥ 由轉盤自己加）；`storageKeys` 加 `rgram.favourites.v1`。Commands 不變（gate 一次）
 - PWA gate（T-034 起）: yes，用 `player-startup` 嘅 harness（假 Worker 要 https：cache 規則同 validator 都只收 https）：第一次上網開 → 上網重新載入 → 停晒兩個 server、清 HTTP cache、離線重新載入 6 次：Cache Storage 內容（每項 status / type）、畫面封面嘅顏色同 `workerStart`、本機儲存；再開一個 context 喺圖片冇 CORS header 時睇畫面同 cache；`dist/sw.js` 嘅 cache 名同上限 = 常數。Security / Data gate: yes（外來輸入 = 網絡同本機 JSON，由 AC-2、AC-4 覆蓋）。Performance gate: no（冇 backend API 改動）
 - Out of scope：Preload 畫面同進度（`player-startup`）；返回前景重新驗證（TS:627，T-035）；Worker 端 `serve.ts` 嘅 ETag / CORS（S-045，T-026 / T-027）；validator 只收 https（B-001）；`.env.example`（S-047）；歌詞 cache 未有畫面用（歌書 T-072）；backlog B-075 ③（S-143）

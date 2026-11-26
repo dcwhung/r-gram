@@ -17,7 +17,7 @@
     - AC-13 播放 controller 接駁（T-038；Plan P3）：`App` 收 `playback`（`main.tsx` 建一個），經 `useBoot` 畀 `useHome`；`App.test.tsx` 用 `testing/testPlayback`
 - Scope files:
     - `apps/player/src/app/`：`App.tsx`、`App.test.tsx`、`stageReducer.ts`、`stageReducer.test.ts`（`TurntableShell.tsx`、`app.css` 已刪；主頁嘅其他檔屬 `player-home`，見 `plans/player-home.md`；`app/startup/**` 屬 `player-startup`）
-    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`，亦唔包 `player-startup` 嘅 `flag/**`（見 `plans/player-startup.md`），亦唔包 `player-dial` 嘅 `knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（見 `plans/player-dial.md`），亦唔包 `player-holding` 嘅 `mini-turntable/**`、`held-tracks/**`、`svgId.ts`、`tonearm/useSwapInstant*`（見 `plans/player-holding.md`），亦唔包 `player-list` 嘅 `arc-list/**`、`scroll/**`、`info-block/ListSongLines.tsx`、`SongPart.tsx`（見 `plans/player-list.md`），亦唔包 `player-pwa` 嘅 `update-button/**`、`rotate-notice/**`（見 `plans/player-pwa.md`）
+    - `apps/player/src/components/**`（連 `*.test.ts(x)`、`*.css`、`__snapshots__/`），唔包 `player-home` 嘅 `info-block/**`、`small-buttons/**`、`tonearm/armPose*`、`tonearm/useArmLeadIn*`，亦唔包 `player-startup` 嘅 `flag/**`（見 `plans/player-startup.md`），亦唔包 `player-dial` 嘅 `knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（見 `plans/player-dial.md`），亦唔包 `player-holding` 嘅 `mini-turntable/**`、`held-tracks/**`、`svgId.ts`、`tonearm/useSwapInstant*`（見 `plans/player-holding.md`），亦唔包 `player-list` 嘅 `arc-list/**`、`scroll/**`、`info-block/ListSongLines.tsx`、`SongPart.tsx`（見 `plans/player-list.md`），亦唔包 `player-pwa` 嘅 `update-button/**`、`rotate-notice/**`（見 `plans/player-pwa.md`）；`app/` 入面 `player-favourites` 嘅 `useFavourites.ts`、`favouritesView*`、`useHomeFavourites.test.ts` 亦唔包（見 `plans/player-favourites.md`）
     - `apps/player/src/stage/StageSvg.tsx`、`apps/player/src/stage/StageContext.ts`
 - Commands:
     - `npm run lint`
@@ -31,5 +31,6 @@
     - 真滑鼠㩒唱片夾行 AC-3；取樣封面角度驗 AC-4；真鍵盤事件驗 AC-5；`reducedMotion: 'reduce'` 驗 AC-6
     - console 冇 error／warning；頁面冇重覆 id、冇指去唔存在 id 嘅 `url(#…)`
 - 2026-11-26（T-038）：只係 prop 接駁；browser 由 `/tmp/…/scratchpad/qa-t038-t116/``t038.cjs` 覆蓋（一個 element、開 app 冇 `play()`）
+- 2026-11-26（T-070）：AC-14 Favourites 碟面（FS §CR-002「Favourites」碟面；設計稿 LOGO、`gVinyl`）：`DiscCover` 冇封面嘅 ♥ 碟畫黑碟 + logo（闊 0.36 R、中心 0.46 R），轉盤、碟疊、細唱片機共用；`SvgDefs`／`defIds` 加 vinyl 漸變。Browser = `/tmp/…/scratchpad/qa-t114-t070/fav.cjs` 截圖同設計稿卡並排（`shots/sbs-*.png`）
 - PWA gate: no（`vite.config.ts`、`index.html`、manifest、`package.json` 冇改；T-034 嘅 PWA 驗收喺 `player-catalog`）。Security / Data gate: no（冇外來輸入）。Performance gate: no
 - Out of scope（已知、已接受）：所有零件係同一個 SVG 畫布入面嘅 React 元件（Technical Spec 由 CR-003 同步）；`TurntableShell` 係暫時外殼（封面未接、左上係 App 名、冇旋鈕；T-035 取代）；設計稿第 16 版嘅暫停（唱針升起、唱臂留喺碟上）、歌書暫停時唔收、固定刻度弧（T-035／T-038）；backlog S-035、S-039 – S-042；高身手機多出嘅高度點對位（B-009）

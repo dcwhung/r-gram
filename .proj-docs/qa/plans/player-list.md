@@ -21,5 +21,6 @@
 - 2026-11-26（T-108）：browser check 用 `player-holding` 同一套 `qa-t108/qa.cjs`（暫停 Web Animations 取樣 `arc-row-float` 起點同 delay）
 - 2026-11-26（T-110）：browser check = `/tmp/…/scratchpad/qa-t109-t110/loop.cjs`（自己嘅斷言；1、3、9、12、30 首、灰色行、冇歌、歌單欄）+ T-108 `qa.cjs` 做回歸；1-hop 加 `utils/ring.ts`（`player-foundation`）
 - 2026-11-26（T-038）：`/tmp/…/scratchpad/qa-t038-t116/``loop.cjs` 四個 run + `t038.cjs` S1、D6
+- 2026-11-26（T-070）：AC-10 Favourites 歌單（FS US-013、D19、D97；設計稿卡「Favourites 歌單」「（未有收藏）」）：歌號 = 收藏次序、框入面嗰首喺「第 nn 首」位顯示「原本碟 · 年份」、冇音檔灰色 `aria-disabled` 同方向鍵跳過、接駁位用 ♥ 紅 `#d7263d`、冇收藏只出「尚未收藏歌曲」；Enter 一律播顯示緊嘅碟（♥ = 虛擬專輯）。Browser = `/tmp/…/scratchpad/qa-t114-t070/fav.cjs`（`disc`、`unfav`、`empty`、`regress`）
 - PWA gate: no。Security / Data gate: no（歌名經 React 文字節點）。Performance gate: no（捲動唔量字，`useArcTitles` 由單元測試鎖住）
 - Out of scope（已知、已接受）：W-052（字母盤開住㩒碟面，等用戶）；S-200（吸附冇過場）、S-201、S-206；S-215（飄落途中捲動）；真正出聲（T-038）；Favourites 歌單（T-070）

@@ -1,0 +1,23 @@
+# Test Plan — player-favourites
+
+- Chain: 播放端收藏（`apps/player`）：本機收藏 store（`rgram.favourites.v1`）、Favourites 虛擬專輯（轉盤 ♥ 位、歌單欄、弧線歌單、隊列當普通碟用）、左上心形掣、Favourites 碟嘅「N 首」同原本碟一行、播緊時取消收藏（呢個分頁或者其他分頁）嘅保留規則。任務 T-070（連 review W-067、S-252–S-257）
+- AC（L1 來源：FS v1.12 = Functional Spec US-010、US-013、D19、D58 ④、§CR-002「Favourites」「已定用詞」、D97「Favourites 歌單一樣頭尾相接」、D11、D85、D99、D109、D110；設計稿 `_mockups_/home-turntable/index.html` 卡「Favourites 碟」「Favourites 歌單」「Favourites 歌單（未有收藏）」；owner 決定 2026-11-26 (a)–(f)，見 QA 報告 `2026-11-26_22-09_qa_T-114_T-070.md`）:
+    - AC-1 心形掣（US-010）：揀咗歌先出；空心 ↔ 實心著燈色；`role="button"`、`aria-label`「收藏這首歌」、`aria-pressed`、Enter／空白鍵；感應範圍 ≥ 44pt；歌單畫面冇心形
+    - AC-2 儲存（US-010；TS `rgram.favourites.v1`）：`[{ trackId, addedAt }]`，重開 app 仍在；壞 JSON、壞項、重覆 = 寬容讀；storage 拋錯（封鎖、quota）照喺記憶體運作；其他分頁改動（`storage` 事件）跟住
+    - AC-3 Favourites 碟（US-013、§CR-002）：轉盤最尾 ♥；黑碟 + logo（轉盤、碟疊、細唱片機同一個碟面）；碟名「我的收藏」、「N 首」；強調色紅 `#d7263d`（歌號、接駁位）、著燈色 `ALBUMS.favourites.glow`（S-253）
+    - AC-4 歌單（US-013、D19、D97）：收藏次序、歌號 = 次序；冇音檔 = 灰色、`aria-disabled`、捲動跳過；被刪嘅歌唔顯示、本機照留；頭尾相接
+    - AC-5 原本碟一行（D19；owner (c)）：「碟名 · 年份」；歌單開住喺「第 nn 首」位（y 368），播緊喺下一行（y 404）
+    - AC-6 播放（US-013、D85、D99、D109、D110）：隊列跨碟、自動下一首跳過冇音檔；鎖屏 metadata 用每首歌原本嘅碟同封面（owner (f)）；播完最後一首 = D99；隱藏時壞檔跳過一次；上一首 3 秒規則
+    - AC-7 取消收藏播緊嘅歌（US-013；W-067；owner (a)(b)(d)）：store 即刻拎走；歌單／隊列留到播完、換歌或者放低隻碟（暫停、其他分頁一樣）；單曲重複一直重播；播緊時重新收藏放返原位，其他新收藏排最尾
+    - AC-8 拎住（D58 ④；owner (e)）：同一首歌喺原本碟同 ♥ = 兩隻碟；兩個方向拎住都得；冇收藏 = 「尚未收藏歌曲」、唱片夾冇反應
+- Scope files:
+    - `apps/player/src/favourites/**`（`store.ts`、`favouritesAlbum.ts` 同 `*.test.ts`）
+    - `apps/player/src/app/useFavourites.ts`、`useHomeFavourites.test.ts`、`favouritesView.ts`、`favouritesView.test.ts`
+    - `apps/player/src/components/info-block/FavouriteHeart.tsx`、`SongOrigin.tsx`、`InfoFavourites.test.tsx`
+    - 1-hop（屬其他鏈）：`useHome.ts`、`homeView.ts`、`InfoBlock.tsx`、`SongLines.tsx`、`AlbumLines.tsx`（`player-home`）；`TopGroup.tsx`、`TopInfo.tsx`、`heldTracksView.ts`、`miniView.ts`、`MiniTurntable.tsx`（`player-holding`）；`dialView.ts`、`DiscStack.tsx`、`knobShape.ts`（`player-dial`）；`listView.ts`、`ListSongLines.tsx`、`SongPart.tsx`（`player-list`）；`DiscCover.tsx`、`SvgDefs.tsx`、`defIds.ts`（`player-core`）；`playbackSource.ts`、`queue.ts`、`playbackController.ts`、`sessionSync.ts`（`player-playback`）；`selectors.ts`、`storageKeys.ts`（`player-catalog`）；`zh-Hant.ts`、`stage/layouts/*`（`player-foundation`）
+- Commands:
+    - `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
+    - Browser（未有 e2e；T-040 之後改跑 e2e）：`/tmp/…/scratchpad/qa-t114-t070/fav.cjs` + `server.mjs`（HEAD production build，`VITE_CATALOG_URL` = 本機假 Worker `https://127.0.0.1:8687`；4 張測試碟：3 秒／20 秒 tone、404、冇音檔、5 首；`/__catalog?drop=` 拎走歌）；393 × 852、1280 × 800 × normal／`reduce`；斷言喺真 `<audio>`、DOM、`localStorage`、Media Session（handler 由測試直接叫）；第二個分頁改 `localStorage` 做「其他分頁」；`visibilitychange` 模擬隱藏；非本機請求一律 abort
+    - 隨機 + 其他分頁拎走播緊嘅歌：`probe-shuffle.cjs`
+- PWA gate: no（冇改 build 設定、manifest、Service Worker）。Security / Data gate: yes（本機輸入：壞 JSON、壞項、封鎖 storage）。Performance gate: no（冇 backend）
+- Out of scope：跨裝置同步（v1 冇）；歌被同步刪除之後嘅管理端講法（`admin-sync`、`api-sync`）；iOS 真機（U-24）
