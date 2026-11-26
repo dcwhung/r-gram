@@ -6,6 +6,7 @@ export const DEF = {
     clamp: 'rg-clamp',
     ball: 'rg-ball',
     sheen: 'rg-sheen',
+    vinyl: 'rg-vinyl',
     stage: 'rg-stage',
     shadow: 'rg-shadow',
     shadowLarge: 'rg-shadow-large',

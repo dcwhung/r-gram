@@ -4,6 +4,7 @@ import type { StageLayout } from './types';
 export type {
     ArcListLayout,
     ButtonId,
+    FavouritesLogoLayout,
     HeldTracksLayout,
     InfoLayout,
     LayoutId,

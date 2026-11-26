@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import logoUrl from '../../assets/logo-full.png';
+import type { FavouritesLogoLayout } from '../../stage/layouts';
+import { DEF, ref } from '../metal/defIds';
+import { px } from '../svgNumber';
 import { DISC_ART_RADIUS as ART } from './discArt';
 
 export interface DiscCoverProps {
@@ -9,6 +13,8 @@ export interface DiscCoverProps {
     accent: string;
     /** 碟轉緊（播緊） */
     spinning: boolean;
+    /** Favourites 碟（T-070）：黑色碟 + logo，唔用封面；null／冇畀 = 封面 */
+    logo?: FavouritesLogoLayout | null;
 }
 
 /**
@@ -32,14 +38,41 @@ const CoverImage = ({ href }: { href: string }) => {
     );
 };
 
+/** Favourites 碟面（設計稿 COVERS.favourites）：黑膠 + 全個 RubberBand logo 喺碟芯正下方 */
+const FavouritesFace = ({ logo }: { logo: FavouritesLogoLayout }) => {
+    const width = ART * logo.width;
+    const height = width * logo.aspect;
+    return (
+        <g data-part="favourites-face">
+            <circle r={ART} fill={ref(DEF.vinyl)} />
+            <image
+                href={logoUrl}
+                x={px(-width / 2)}
+                y={px(ART * logo.centreY - height / 2)}
+                width={px(width)}
+                height={px(height)}
+            />
+        </g>
+    );
+};
+
 /**
  * 封面：專輯色永遠墊喺最底（冇封面、載入中、載入失敗都見到佢）→ 縮圖 → 大封面。
- * 轉動嘅動畫長駐喺呢層（disc.css）。
+ * Favourites 碟（`logo`）用自己嘅碟面。轉動嘅動畫長駐喺呢層（disc.css）。
  */
-export const DiscCover = ({ coverUrl, thumbUrl = null, accent, spinning }: DiscCoverProps) => (
-    <g data-part="cover" className="disc-cover" data-spinning={spinning}>
-        <circle data-part="cover-fill" r={ART} fill={accent} />
-        {thumbUrl && <CoverImage key="thumb" href={thumbUrl} />}
-        {coverUrl && <CoverImage key="cover" href={coverUrl} />}
-    </g>
-);
+export const DiscCover = (props: DiscCoverProps) => {
+    const { coverUrl, thumbUrl = null, accent, spinning, logo = null } = props;
+    return (
+        <g data-part="cover" className="disc-cover" data-spinning={spinning}>
+            {logo ? (
+                <FavouritesFace logo={logo} />
+            ) : (
+                <>
+                    <circle data-part="cover-fill" r={ART} fill={accent} />
+                    {thumbUrl && <CoverImage key="thumb" href={thumbUrl} />}
+                    {coverUrl && <CoverImage key="cover" href={coverUrl} />}
+                </>
+            )}
+        </g>
+    );
+};

@@ -36,6 +36,12 @@ const Gradients = () => (
             <stop offset=".47" stopColor="#fff" stopOpacity=".2" />
             <stop offset=".6" stopColor="#fff" stopOpacity="0" />
         </linearGradient>
+        {/* Favourites 碟嘅黑膠（設計稿 gVinyl；T-070） */}
+        <radialGradient id={DEF.vinyl} cx="50%" cy="50%" r="50%">
+            <stop offset="0" stopColor="#2b2b2b" />
+            <stop offset=".55" stopColor="#101010" />
+            <stop offset="1" stopColor="#1c1c1c" />
+        </radialGradient>
         <radialGradient id={DEF.stage} cx="30%" cy="12%" r="110%">
             <stop offset="0" stopColor="#ffffff" />
             <stop offset="1" stopColor="#eeefec" />

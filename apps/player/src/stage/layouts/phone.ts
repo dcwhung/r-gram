@@ -140,6 +140,8 @@ export const PHONE_LAYOUT: StageLayout = {
     disc: DISC,
     platter: { r: PLATTER_RADIUS },
     hub: { clear: 0.16, clamp: 0.118, rim: 0.972 },
+    // 設計稿 LOGO（logo-full.png 640 × 525 → 高闊比 0.8203）
+    favouritesLogo: { width: 0.36, centreY: 0.46, aspect: 0.8203 },
     arm: ARM,
     orbit: {
         r: 1000,

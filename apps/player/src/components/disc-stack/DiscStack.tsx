@@ -59,6 +59,7 @@ const StackDisc = ({ layout, entry, offset, open, spinning }: StackDiscProps) =>
                 coverUrl={current ? entry.coverUrl : null}
                 thumbUrl={entry.thumbUrl}
                 accent={entry.accent}
+                logo={entry.face === 'favourites' ? layout.favouritesLogo : null}
                 spinning={current && spinning}
             />
             <path

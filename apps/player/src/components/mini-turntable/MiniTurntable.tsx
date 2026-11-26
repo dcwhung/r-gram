@@ -55,6 +55,7 @@ const Machine = ({ layout, mini }: MachineProps) => {
                     coverUrl={mini.coverUrl}
                     thumbUrl={mini.thumbUrl}
                     accent={mini.accent}
+                    logo={mini.face === 'favourites' ? layout.favouritesLogo : null}
                     spinning={mini.spinning}
                 />
             </g>

@@ -195,6 +195,13 @@ export interface ArcListLayout {
     seam: { dot: number; gap: number; length: number; stroke: number; minOpacity: number };
 }
 
+/** 設計稿 LOGO：RubberBand logo（圓形標誌 + 字樣）喺碟芯正下方，闊度細到主頁碟右邊出界都見到成個 */
+export interface FavouritesLogoLayout {
+    width: number;
+    centreY: number;
+    aspect: number;
+}
+
 export interface StageLayout {
     id: LayoutId;
     /** 主頁嘅碟（圓心、半徑） */
@@ -203,6 +210,8 @@ export interface StageLayout {
     platter: { r: number };
     /** 碟芯（以碟半徑做 1）：透明膠圈外徑、碟孔（= 唱片夾）、銀邊內徑 */
     hub: { clear: number; clamp: number; rim: number };
+    /** Favourites 碟面嘅 logo（以碟半徑做 1）：闊度、中心喺碟芯下面幾遠、圖嘅高 ÷ 闊（T-070） */
+    favouritesLogo: FavouritesLogoLayout;
     /** 唱臂：軸心、長度、底座半徑、泊位同落針角度；`bend` = 針頭殼向邊一邊彎（−1：臂向右伸時向上，即係向碟心） */
     arm: Point & {
         length: number;
