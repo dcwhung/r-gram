@@ -18,7 +18,7 @@ const sha256Hex = async (bytes: Uint8Array): Promise<string> =>
 export const imageNameOf = async (bytes: Uint8Array, format: ImageFormat): Promise<string> =>
     `${(await sha256Hex(bytes)).slice(0, IMAGE_HASH_HEX_CHARS)}.${format.extension}`;
 
-/** r-gram-catalog 入面嘅 key */
+/** rb-discography-catalog 入面嘅 key */
 export const imageKeyOf = (name: string): string => `${IMAGE_KEY_PREFIX}${name}`;
 
 /** 合規嘅圖檔名 → 格式；唔係 `<hash>.<已知副檔名>` 就 undefined */

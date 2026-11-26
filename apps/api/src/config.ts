@@ -99,13 +99,13 @@ export type ErrorCode = (typeof ERROR_CODE)[keyof typeof ERROR_CODE];
 /** 刪除（ID 守衛）同清走歌詞嘅確認：只有 `?force=1` 先當確認咗 */
 export const FORCE_CONFIRMED = '1';
 
-/** r-gram-catalog 入面歌詞 JSON 嘅 prefix（Technical Spec「R2 key layout」） */
+/** rb-discography-catalog 入面歌詞 JSON 嘅 prefix（Technical Spec「R2 key layout」） */
 export const LYRICS_KEY_PREFIX = 'catalog/v1/lyrics/';
 /** 歌詞檔名：內容 sha256 嘅頭 16 個 hex + `.json`（同封面圖一樣用 hash 檔名） */
 export const LYRICS_HASH_HEX_CHARS = 16;
 export const JSON_CONTENT_TYPE = 'application/json';
 
-/** r-gram-catalog 入面封面圖嘅 prefix（Technical Spec「R2 key layout」）；公開網址 /catalog/v1/img/<name> */
+/** rb-discography-catalog 入面封面圖嘅 prefix（Technical Spec「R2 key layout」）；公開網址 /catalog/v1/img/<name> */
 export const IMAGE_KEY_PREFIX = 'catalog/v1/img/';
 /** 圖檔名：內容 sha256 嘅頭 16 個 hex + 副檔名（Technical Spec「assets」） */
 export const IMAGE_HASH_HEX_CHARS = 16;

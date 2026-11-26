@@ -43,7 +43,7 @@ const putCover = async (body: unknown, id = ALBUM_ID, bindings = env) => {
     return { status: response.status, body: await json<Loose>(response) };
 };
 
-/** 唔經 API-050 放一張圖落 r-gram-catalog（`registered` = 連 assets 都登記） */
+/** 唔經 API-050 放一張圖落 rb-discography-catalog（`registered` = 連 assets 都登記） */
 const placeImage = async (name: string, bytes: Uint8Array, registered = true) => {
     await env.CATALOG.put(imageKeyOf(name), bytes);
     if (registered) await insertAsset(name);
