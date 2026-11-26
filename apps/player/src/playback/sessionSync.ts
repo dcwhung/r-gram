@@ -21,10 +21,11 @@ export class SessionSync {
         const track = source?.tracks.find((candidate) => candidate.id === trackId);
         if (!source || !track) return;
         this.lastDuration = null;
+        // Favourites 碟（T-070）：鎖屏顯示首歌原本嗰隻碟同佢嘅封面
         this.port?.setNowPlaying({
             title: track.title,
-            album: source.albumTitle,
-            artwork: source.artwork,
+            album: track.album?.title ?? source.albumTitle,
+            artwork: track.album?.artwork ?? source.artwork,
         });
     }
 

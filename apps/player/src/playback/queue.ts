@@ -3,7 +3,7 @@
  * 只計播得嘅歌（有音檔，D11）：叫嘅一方傳入嘅 `trackIds` 已經係播得嘅歌、碟嘅次序。
  * 引擎嘅 `ended` handler 會同步叫 `nextTrack()`，所以呢度一定要同步、唔可以讀 React state。
  * 隨機（US-014）：喺而家隻碟入面，一輪之內唔重覆；播完一輪再洗牌（新一輪第一首唔會係啱啱播完嗰首）。
- * Favourites 碟（T-070）一樣用：佢只係另一串 `trackIds`。
+ * Favourites 碟（T-070）一樣用：佢只係另一串 `trackIds`（收藏有變就 `refreshQueue`）。
  */
 import type { PlayMode } from './playModes';
 
@@ -73,6 +73,17 @@ export const withMode = (
     currentId: string | null,
     random: Random,
 ): Queue => createQueue(queue.trackIds, mode, currentId, random);
+
+/**
+ * 載入嘅碟換咗歌單（T-070：Favourites 碟播緊時收藏有變）：唔重新開始。順序同重覆 = 新歌單；
+ * 隨機 = 今輪照舊（拎走冇咗嘅歌），新加嘅歌洗牌後排喺今輪最尾
+ */
+export const refreshQueue = (queue: Queue, trackIds: readonly string[], random: Random): Queue => {
+    if (queue.mode !== 'shuffle') return { ...queue, trackIds, order: trackIds };
+    const kept = queue.order.filter((id) => trackIds.includes(id));
+    const added = trackIds.filter((id) => !queue.order.includes(id));
+    return { ...queue, trackIds, order: [...kept, ...shuffle(added, random)] };
+};
 
 /** 已經係最後一首時嘅下一首：順序 = 冇；隨機 = 新一輪；重覆 = 返第一首 */
 const afterLast = (queue: Queue, last: string, random: Random): QueueMove => {

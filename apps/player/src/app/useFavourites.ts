@@ -5,13 +5,16 @@
  * 但首歌喺播（或者暫停、載入失敗）期間照留喺 Favourites 碟原本嘅位置；播完、換歌、放低隻碟先消失。
  */
 import { type CatalogDocument, FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
-import { useMemo, useState, useSyncExternalStore } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import type { CoverVariants } from '../catalog/coverVariants';
 import { withFavourites, withKept } from '../favourites/favouritesAlbum';
 import {
     createBrowserFavourites,
     type FavouriteEntry,
     type FavouritesStore,
 } from '../favourites/store';
+import type { PlaybackController } from '../playback/playbackController';
+import { playbackSource } from '../playback/playbackSource';
 import type { PlaybackState } from '../playback/playbackState';
 
 export interface Favourites {
@@ -55,4 +58,21 @@ export const useFavourites = (
         if (removed && loadedFromFavourites(playback, trackId)) setKept(removed);
     };
     return { document, ids, toggle };
+};
+
+/**
+ * Favourites 碟播緊（或者暫停、播完）期間收藏有變（加歌、播完咗嘅取消收藏歌拎走、其他分頁改咗）：
+ * 將新歌單交畀 controller，之後嘅自動下一首跟住（隨機嘅今輪照舊）。真專輯唔受影響
+ */
+export const useFavouritesQueue = (
+    player: PlaybackController,
+    loadedAlbumId: string | null,
+    document: CatalogDocument | null,
+    covers: CoverVariants,
+): void => {
+    useEffect(() => {
+        if (!document || loadedAlbumId !== FAVOURITES_ALBUM_ID) return;
+        const source = playbackSource(document, FAVOURITES_ALBUM_ID, covers);
+        if (source) player.refresh(source);
+    }, [player, loadedAlbumId, document, covers]);
 };

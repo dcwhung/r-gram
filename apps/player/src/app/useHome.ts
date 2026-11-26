@@ -12,7 +12,7 @@ import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { isHolding, loadedAlbumOf } from './holding';
 import { endedWaitRuns, useEndedRelease } from './useEndedRelease';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
-import { type Favourites, useFavourites } from './useFavourites';
+import { type Favourites, useFavourites, useFavouritesQueue } from './useFavourites';
 import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from './stageReducer';
 import type { HomeHandlers } from './Turntable';
 
@@ -236,25 +236,20 @@ export const useHome = (
 ): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
     const { player, playback, mode, audible } = usePlayer(controller);
-    const holding = isHolding(stage, loadedAlbumOf(playback));
-    useEndedRelease(endedWaitRuns(playback, stage, holding), player.release);
+    const loaded = loadedAlbumOf(playback);
+    useEndedRelease(endedWaitRuns(playback, stage, isHolding(stage, loaded)), player.release);
     const favourites = useFavourites(catalog, playback, favouritesStore);
     const covers = useCoverVariants(catalog, random);
+    useFavouritesQueue(player, loaded, favourites.document, covers);
     usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
     const finishPreload = useCallback(() => {
         const first = catalog ? dialAlbums(catalog)[0] : undefined;
         if (first) dispatch({ type: 'preloadDone', albumId: first.id });
     }, [catalog]);
-    const document = favourites.document;
+    const { document } = favourites;
     if (!document) return { stage, playback, covers, view: null, handlers: null, finishPreload };
     const view = homeView(document, stage, playback, covers, mode, audible, favourites.ids);
     const context = { catalog: document, stage, playback, view, covers, dispatch, player };
-    return {
-        stage,
-        playback,
-        covers,
-        view,
-        handlers: handlersFor({ ...context, favourites }),
-        finishPreload,
-    };
+    const handlers = handlersFor({ ...context, favourites });
+    return { stage, playback, covers, view, handlers, finishPreload };
 };
