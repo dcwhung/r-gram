@@ -123,6 +123,8 @@ export const showLive = (
     if (!gl) return showStill(canvas, scene, scale);
     const renderer = liveRendererFor(gl, scene, scale);
     if (renderer) return wave(canvas, renderer, onEvent);
+    // 起到一半失敗：放低成個 context，佢已經開咗嘅 program、buffer、texture 一齊釋放（S-256）
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
     onEvent('gl-failed');
     return noop;
 };

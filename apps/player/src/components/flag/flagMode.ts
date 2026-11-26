@@ -6,10 +6,10 @@
  */
 export type FlagMode = 'live' | 'still';
 
-export type FlagEvent = 'gl-failed' | 'context-lost' | 'context-restored';
+export type FlagEvent = 'gl-failed' | 'context-lost';
 
 export const initialFlagMode = (reducedMotion: boolean): FlagMode =>
     reducedMotion ? 'still' : 'live';
 
-export const nextFlagMode = (mode: FlagMode, event: FlagEvent): FlagMode =>
-    event === 'context-restored' ? mode : 'still';
+/** 兩個事件都係換做靜止一格（唔聽 context 返嚟：Preload 只係幾秒，S-256） */
+export const nextFlagMode = (_mode: FlagMode, _event: FlagEvent): FlagMode => 'still';
