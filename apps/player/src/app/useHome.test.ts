@@ -176,10 +176,35 @@ describe('useHome holding another disc', () => {
 
     it('should list the held disc under its title, longer while the dial is open', () => {
         const result = holdRoom();
-        expect(result.current.view?.heldTracks).toMatchObject({ albumId: 'room', dialOpen: false });
+        expect(result.current.view?.trackColumn).toMatchObject({ albumId: 'room', dialOpen: false });
         expect(result.current.handlers).not.toHaveProperty('onPlayHeldTrack');
         act(() => result.current.handlers?.onTurnStart());
-        expect(result.current.view?.heldTracks).toMatchObject({ dialOpen: true });
+        expect(result.current.view?.trackColumn).toMatchObject({ dialOpen: true });
+    });
+});
+
+/* 設計稿第 19 版 showsColumn()（B-086）：未揀歌就有歌單欄；揀咗歌就冇；弧線歌單開住時收起，收返就出返 */
+describe('useHome track column', () => {
+    it('should show the column of the first disc right after Preload', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        expect(result.current.view?.trackColumn).toMatchObject({ albumId: 'apollo-18' });
+    });
+
+    it('should hide the column in the arc list and bring it back when closed without choosing', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        act(() => result.current.handlers?.onOpenList());
+        expect(result.current.view?.trackColumn).toBeNull();
+        act(() => result.current.handlers?.onCloseList());
+        expect(result.current.view?.trackColumn).toMatchObject({ albumId: 'apollo-18' });
+    });
+
+    it('should hide the column once a track of the disc is chosen', () => {
+        const { result } = renderHook(() => useHome(sampleDocument()));
+        act(() => result.current.handlers?.onOpenList());
+        act(() => result.current.handlers?.onPlayListTrack('apollo-18-01'));
+        expect(result.current.view?.trackColumn).toBeNull();
+        act(() => result.current.handlers?.onTurnStart());
+        expect(result.current.view?.trackColumn).toMatchObject({ dialOpen: true });
     });
 });
 

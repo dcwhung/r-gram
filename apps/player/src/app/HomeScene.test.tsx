@@ -296,6 +296,13 @@ describe('HomeScene holding another disc', () => {
         expect(part(container, 'held-scrim')).toHaveAttribute('data-hidden', 'false');
     });
 
+    // B-086：開 app 冇歌（未揀歌）都有歌單欄同半透明層
+    it('should list the disc on screen under its title when nothing is loaded', () => {
+        const { container } = render(scene(viewOf('room')));
+        expect(screen.getByRole('list', { name: 'ROOM 的歌曲' })).toBeInTheDocument();
+        expect(part(container, 'held-scrim')).toHaveAttribute('data-hidden', 'false');
+    });
+
     it('should have no track column and a hidden scrim on the loaded disc', () => {
         const { container } = render(scene(viewOf('apollo-18', null, {}, PLAYING)));
         expect(screen.queryByRole('list')).toBeNull();
