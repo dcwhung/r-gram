@@ -84,6 +84,18 @@ export const mediaWith = (
     return { bindings: { ...env, MEDIA: bucket }, calls };
 };
 
+/** 媒體 bucket 嘅寫入記錄（T-106）：每次 put 嘅 key；calls 記低每個 method 叫過幾多次 */
+export const recordedMedia = () => {
+    const puts: string[] = [];
+    const { bindings, calls } = mediaWith({
+        put: (args, original) => {
+            puts.push(String(args[0]));
+            return original(...args);
+        },
+    });
+    return { bindings, puts, calls };
+};
+
 export const tracksOf = async (albumId = ALBUM_ID) =>
     (
         await env.DB.prepare(
