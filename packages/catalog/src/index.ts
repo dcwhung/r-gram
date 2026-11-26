@@ -1,5 +1,5 @@
 /*
- * @r-gram/catalog public API：內容資料嘅純邏輯（catalog 型別同驗證、LRC、歌曲文字、`info.txt`、資料夾名、檢查結果、掃描配對、字母盤標記、顏色、初始資料）。
+ * @r-gram/catalog public API：內容資料嘅純邏輯（catalog 型別同驗證、LRC、歌曲文字、`info.txt`、資料夾名、檢查結果、掃描配對、字母盤標記、顏色、參考資料轉 catalog）。
  * 唔掂 DOM、唔用 Vite / Worker API；播放端、管理端、Backend 共用，保證「管理端驗得過 = 播放端讀得到」。
  */
 export { formatAlbumInfo } from './album-info/formatAlbumInfo';
@@ -78,12 +78,6 @@ export {
     type TrackCredits,
 } from './schema/types';
 export { matchCredits, type CreditMatchResult, type MatchedCredits } from './seed/matchCredits';
-export {
-    planAlbumSeed,
-    type AlbumSeedPlan,
-    type ExistingAlbum,
-    type OrdinalTaken,
-} from './seed/planAlbumSeed';
 export { seedToCatalog, type SeedCatalogOptions } from './seed/seedToCatalog';
 export type {
     SeedAlbum,

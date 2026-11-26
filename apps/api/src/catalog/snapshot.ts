@@ -1,18 +1,16 @@
 /*
- * 生成 catalog 要讀嘅 D1 資料：全部專輯（管理端次序）同全部歌（歌號次序）連歌詞檔名。
+ * 生成 catalog 要讀嘅 D1 資料：全部專輯同全部歌（歌號次序）連歌詞檔名。專輯次序由 buildDocument 按 albumOrder() 排。
  * 兩句喺同一個 batch（一個 transaction）讀：專輯同歌係同一刻嘅資料，唔會一半新一半舊。
- * 參考欄（歌詞參考連結、備註、YouTube）、folder 同來源 ETag 唔入 catalog，唔讀
+ * folder、來源 ETag、info_etag、檢查結果、text_key 係管理用，唔入 catalog，唔讀
  */
 import { CREDIT_FIELDS, type ReleaseCategory } from '@r-gram/catalog';
 
 export interface AlbumSnapshot {
     id: string;
     title: string;
-    wheel_key: string;
     year: number | null;
     category: ReleaseCategory;
     category_no: number;
-    label: string;
     accent: string;
     cover: string | null;
     thumb: string | null;
@@ -26,7 +24,6 @@ export interface TrackSnapshot extends Record<(typeof CREDIT_FIELDS)[number], st
     album_id: string;
     no: number;
     title: string;
-    subtitle: string | null;
     audio_key: string | null;
     mv_key: string | null;
     json_name: string | null;
@@ -38,13 +35,11 @@ export interface CatalogSnapshot {
 }
 
 const ALBUMS_SQL = `
-    SELECT id, title, wheel_key, year, category, category_no, label, accent,
-        cover, thumb, cover2, thumb2
-    FROM albums
-    ORDER BY sort_order, id`;
+    SELECT id, title, year, category, category_no, accent, cover, thumb, cover2, thumb2
+    FROM albums`;
 
 const TRACKS_SQL = `
-    SELECT t.id, t.album_id, t."no", t.title, t.subtitle,
+    SELECT t.id, t.album_id, t."no", t.title,
         ${CREDIT_FIELDS.map((field) => `t.${field}`).join(', ')},
         t.audio_key, t.mv_key, l.json_name
     FROM tracks t

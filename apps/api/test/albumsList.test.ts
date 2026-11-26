@@ -3,6 +3,7 @@
  * CR-007（Technical Spec「API 一覽嘅變化」）：唯讀；次序固定（albumOrder）；字母盤標記由碟名計；
  * 每張碟有檢查結果（列表係數目，專輯頁係逐項）；冇唱片公司、預期資料夾名；歌冇副題、手動指定、參考欄
  */
+import { checksOf } from '../src/albums/rows';
 import { zhHant } from '../src/i18n/zh-Hant';
 import {
     api,
@@ -99,9 +100,11 @@ describe('GET /api/albums', () => {
         expect((await list()).albums[0]).toMatchObject({ wheelKey: 'F' });
     });
 
-    it('should count unreadable stored checks as none', async () => {
-        await insertAlbum('c', 1, { checks: '{"not":"an array"}' });
-        expect((await list()).albums[0]).toMatchObject({ checkCount: 0 });
+    // D1 嘅 CHECK 已經擋住唔係 JSON array 嘅值；讀嘅一方照樣唔信
+    it('should read unreadable stored checks as none', () => {
+        expect(checksOf({ checks: '{"not":"an array"}' })).toEqual([]);
+        expect(checksOf({ checks: 'not json' })).toEqual([]);
+        expect(checksOf({ checks: JSON.stringify(CHECKS) })).toEqual(CHECKS);
     });
 
     // D80（第 4 版四個錶）：歌曲已有音檔、歌詞、MV；專輯已有封面；加總數做分母

@@ -1,5 +1,5 @@
 /*
- * 用指定歌號新增一首歌（API-020、掃描建立歌曲 API-031 共用；Functional Spec D60、D61）：
+ * 用指定歌號新增一首歌（掃描建立歌曲 API-031；同步 T-105 重用；Functional Spec D61）：
  * id 先試 `<albumId>-<NN>`（trackIdFor），已經有人用（舊歌改過歌號）先用隨機 id，最多 RANDOM_ID_ATTEMPTS 次
  */
 import { trackIdFor, type SongText } from '@r-gram/catalog';

@@ -4,12 +4,11 @@
  * 亦可以按 `code` / `details[].reason` 用自己嘅語言檔砌字（code 同 reason 係穩定介面，message 唔係）。
  * - auth：登入流程嘅三個頁
  * - errors：守門（401、403）同通用 404 / 500 嘅 message
- * - albums：專輯 API（T-022）錯誤回應嘅 message 同每個欄位錯誤（details[].reason）嘅 message；
- *   `{name}` 係參數，由 fillMessage() 填入
+ * - albums：專輯 API（T-022；CR-007 之後唯讀）錯誤回應嘅 message；`{name}` 係參數，由 fillMessage() 填入
  * - tracks：歌曲 API（T-023）：同上，另加歌曲文字逐行錯誤（reason = packages/catalog 嘅錯誤碼）同唔擋儲存嘅提示
  * - assets：封面上載（API-050）同公開圖（API-071）嘅錯誤（T-024）
  * - catalog：生成 catalog（API-061）同公開內容（API-070、API-072）嘅錯誤（T-026）
- * - scan：掃描（API-030、API-031、API-032；T-025）嘅錯誤、檔案原因同套用逐項結果
+ * - scan：掃描（API-030、API-031；T-025）嘅錯誤、檔案原因同套用逐項結果
  */
 export const zhHant = {
     appName: 'R Gram 管理端',
@@ -46,47 +45,9 @@ export const zhHant = {
         },
     },
     albums: {
-        /** error.message（按情況，唔係按 code：CONFLICT 有兩個情況） */
+        /** error.message（CR-007：唯讀，只有 404） */
         errors: {
-            invalid: '資料有誤，請修正後再儲存。',
             notFound: '找不到指定的專輯。',
-            stale: '專輯資料已被其他操作更新，請重新載入後再修改。',
-            idTaken: '此專輯 ID 已被使用。',
-            orderChanged: '專輯列表已變更，請重新載入後再排序。',
-            idRemoved:
-                '刪除後，播放端會即時移除此專輯，聽眾本機對此專輯的收藏及續播亦會失效。確認後請再次刪除。',
-        },
-        /** details[].message：key = details[].reason */
-        reasons: {
-            REQUIRED: '必須填寫。',
-            NOT_AN_OBJECT: '內容必須為 JSON 物件。',
-            NOT_EDITABLE: '此欄位不可修改。',
-            /** `{max}` = UNKNOWN_FIELDS_MAX（errors.ts 填入） */
-            TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
-            /** `{max}` = ALBUM_ID_MAX_CHARS（errors.ts 填入） */
-            INVALID_ID:
-                '只可使用小寫英文字母、數字及單個連字號（首尾不可為連字號），不可為保留字，最多 {max} 個字元。',
-            INVALID_TEXT: '必須為文字，且不可包含換行、控制字元或不可見的格式字元。',
-            TOO_LONG: '字數超出上限。',
-            INVALID_WHEEL_KEY:
-                '必須為一至兩個字，前後不可有空白，亦不可包含控制字元或不可見的格式字元。',
-            /** `{min}`、`{max}` = YEAR_MIN、YEAR_MAX（errors.ts 填入；CR-006：專輯只有年份） */
-            INVALID_YEAR: '年份必須為 {min} 至 {max} 的整數。',
-            INVALID_COLOUR: '顏色必須為 #rrggbb 格式。',
-            INVALID_FOLDER:
-                '資料夾名稱不可為空白或「.」，不可包含「..」，不可以「_」開頭（保留給非專輯資料夾），亦不可包含斜線、反斜線、?、#、%、換行、控制字元或不可見的格式字元。',
-            /** `{list}` = RELEASE_CATEGORIES（errors.ts 填入） */
-            INVALID_CATEGORY: '發行類別必須為以下其中一個：{list}。',
-            /** `{max}` = CATEGORY_NO_MAX（errors.ts 填入） */
-            INVALID_ORDINAL: '序號必須為 1 至 {max} 的整數。',
-            ORDINAL_TAKEN: '同一發行類別內已有專輯使用此序號，請改用其他序號。',
-            UNKNOWN_ASSET: '找不到此圖片，請重新上載。',
-            /** CR-005（D55）：第二張封面同佢嘅縮圖要一齊設定、一齊移除 */
-            UNPAIRED_COVER2: '第二張封面與其縮圖必須同時設定或同時移除。',
-            /** CR-005（D55）：冇第一張封面唔可以有第二張；移除第一張之前要先移除第二張，或者同一次移除兩張 */
-            COVER2_WITHOUT_COVER:
-                '必須先有第一張封面才可設定第二張封面；如要移除第一張封面，請先移除第二張封面，或同時移除兩張。',
-            INVALID_LIST: '必須為不重複的專輯 ID 列表。',
         },
     },
     tracks: {
@@ -94,12 +55,7 @@ export const zhHant = {
         errors: {
             invalid: '資料有誤，請修正後再儲存。',
             notFound: '找不到指定的歌曲。',
-            albumNotFound: '找不到指定的專輯。',
             stale: '歌曲資料已被其他操作更新，請重新載入後再修改。',
-            /** 409 CONFLICT：同一張碟已有歌用呢個歌號（CR-006，Functional Spec D60） */
-            numberTaken: '歌號已被使用，請改用其他歌號。',
-            idRemoved:
-                '刪除後，播放端會即時移除此歌曲，聽眾本機對此歌曲的收藏及續播亦會失效。確認後請再次刪除。',
             lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
             /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
             tooLarge: '歌曲文字超出 {max} KB 的上限。',
@@ -112,18 +68,6 @@ export const zhHant = {
             /** `{max}` = UNKNOWN_FIELDS_MAX */
             TOO_MANY_UNKNOWN_FIELDS: '無法識別的欄位過多，只列出前 {max} 個。',
             NOT_TEXT: '必須為文字。',
-            INVALID_TEXT: '必須為文字，且不可包含換行、控制字元或不可見的格式字元。',
-            /** `{max}` = NOTE_MAX_CHARS */
-            TOO_LONG: '字數超出上限（最多 {max} 個字）。',
-            INVALID_URL: '必須為以 https:// 開頭的有效網址。',
-            INVALID_MEDIA_KEY:
-                '檔案路徑不可為空白、不可以「/」開頭、不可包含「..」、控制字元或不可見的格式字元，長度亦有上限。',
-            MEDIA_NOT_FOUND: '媒體庫中找不到此檔案。',
-            /** `{min}`、`{max}` = TRACK_NO_MIN、TRACK_NO_MAX（CR-006：歌號跟檔名，可以跳號） */
-            INVALID_NUMBER: '歌號必須為 {min} 至 {max} 的整數。',
-            NUMBER_TAKEN: '同一張專輯內已有歌曲使用此歌號，請改用其他歌號。',
-            /** `{max}` = TRACK_NO_MAX：冇指定歌號時用「最大歌號 + 1」，已經到上限 */
-            NUMBER_EXHAUSTED: '自動編號已超出上限 {max}，請自行指定歌號。',
             /** 以下係歌曲文字（path = text）逐行嘅錯誤；`{max}` 由 tracks/errors.ts 按 packages/catalog 嘅上限填入 */
             TOO_LARGE: '歌曲文字超出大小上限。',
             TOO_MANY_LINES: '歌曲文字最多 {max} 行。',
@@ -199,8 +143,6 @@ export const zhHant = {
             NOT_IN_ALBUM: '此歌曲不屬於這張專輯。',
             WRONG_FILE: '檔案類別或歌號與此項目不符。',
             DUPLICATE_ITEM: '同一首歌或同一個歌號在此類項目中重複出現。',
-            INVALID_PREFIX:
-                '路徑必須為空白或以「/」結尾的資料夾路徑，不可以「/」開頭，不可包含「..」，第一層亦不可以「_」開頭。',
             NO_AUDIO: '此歌號在資料夾內沒有音檔，因此不會匯入。',
             AUDIO_CONFLICT: '此歌號有多於一個音檔，請先只保留一個，才可建立歌曲。',
             NO_FIRST_COVER: '沒有第一張封面，因此不會匯入第二張封面。',

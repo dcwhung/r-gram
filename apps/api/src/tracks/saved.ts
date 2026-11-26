@@ -1,4 +1,4 @@
-/* API-020 / API-041 嘅成功回應，同 D1 欄 → formatSongText() 嘅輸入 */
+/* API-041 嘅成功回應，同 D1 欄 → formatSongText() 嘅輸入 */
 import {
     CREDIT_FIELDS,
     formatSongText,

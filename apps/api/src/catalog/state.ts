@@ -35,7 +35,7 @@ export interface LiveCatalog {
     trackCount: number;
 }
 
-/** 邊個、幾時嘗試生成（updated_by：admin email 或者 seed） */
+/** 邊個、幾時嘗試生成（updated_by：admin email） */
 export interface Attempt {
     updatedAt: string;
     actor: string;

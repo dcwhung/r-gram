@@ -69,7 +69,6 @@ const checkTrack = (
         claim(issues, numbers, track.no, `${path}.no`);
     }
     issues.text(track.title, `${path}.title`);
-    issues.text(track.subtitle, `${path}.subtitle`, { nullable: true });
     checkCredits(issues, track.credits, `${path}.credits`);
     (['audio', 'mv', 'lyrics'] as const).forEach((field) =>
         issues.text(track[field], `${path}.${field}`, { nullable: true }),
@@ -100,13 +99,13 @@ const checkSecondCover = (issues: Issues, album: Fields, path: string): void => 
     if (hasCover2) issues.check(isPresent(album.cover), `${path}.cover2`, 'COVER2_WITHOUT_COVER');
 };
 
+/** CR-007：舊 document 嘅 `label`、`subtitle` 唔再睇（播放端本機嘅舊副本照樣有效） */
 const checkAlbumFields = (issues: Issues, album: Fields, path: string): void => {
     issues.text(album.title, `${path}.title`);
     issues.check(isWheelKey(album.wheelKey), `${path}.wheelKey`, 'INVALID_WHEEL_KEY');
     // CR-006（D63）：只有年份；舊 document 嘅 releaseDate、type 唔再睇
     issues.check(album.year === null || isAlbumYear(album.year), `${path}.year`, 'INVALID_NUMBER');
     checkCategory(issues, album, path);
-    issues.text(album.label, `${path}.label`, { allowEmpty: true });
     const validAccent = typeof album.accent === 'string' && ACCENT.test(album.accent);
     issues.check(validAccent, `${path}.accent`, 'INVALID_COLOUR');
     issues.text(album.cover, `${path}.cover`, { nullable: true });

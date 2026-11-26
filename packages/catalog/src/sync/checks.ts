@@ -34,6 +34,9 @@ export const CHECK_LEVELS = {
 } as const;
 
 export type CheckCode = keyof typeof CHECK_LEVELS;
+
+/** 每張碟記低嘅檢查結果上限（Technical Spec `albums.checks`）；同步寫入時截短（T-105） */
+export const CHECKS_MAX = 100;
 export type CheckLevel = (typeof CHECK_LEVELS)[CheckCode];
 
 export interface Check {

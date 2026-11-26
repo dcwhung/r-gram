@@ -1,10 +1,11 @@
 /*
- * API-010 嘅讀取：每張專輯嘅完整度（一條 GROUP BY，Technical Spec「性能考量 → D1」）、
- * 全站統計（FR-114；項目照 Functional Spec D35 嘅建議，等管理端設計稿第 2 版確認）、catalog 生成狀態
- *（同寫入回應嘅 `catalog` 同一個形狀，backlog B-046 ②；未生成過係 null）
+ * API-010 嘅讀取：每張專輯嘅完整度（一條 GROUP BY，Technical Spec「性能考量 → D1」）同檢查結果數目、
+ * 全站統計（FR-114；CR-007 D80：管理端設計稿第 4 版四個錶 + 兩個總數做分母）、catalog 生成狀態
+ *（同寫入回應嘅 `catalog` 同一個形狀，backlog B-046 ②；未生成過係 null）。
+ * 次序固定（CR-007 D69）：albumOrder()（類別 → 序號 → id），同 catalog 一樣
  */
 import { readCatalogStatus } from '../catalog/state';
-import { ALBUM_COLUMNS, toAlbum, type AlbumRow } from './rows';
+import { ALBUM_COLUMNS, byAlbumOrder, checksOf, toAlbum, type AlbumRow } from './rows';
 
 interface OverviewRow extends AlbumRow {
     track_count: number;
@@ -28,11 +29,11 @@ const OVERVIEW_SQL = `
     FROM albums a
     LEFT JOIN tracks t ON t.album_id = a.id
     LEFT JOIN lyrics l ON l.track_id = t.id
-    GROUP BY a.id
-    ORDER BY a.sort_order, a.id`;
+    GROUP BY a.id`;
 
 const toListItem = (row: OverviewRow) => ({
     ...toAlbum(row),
+    checkCount: checksOf(row).length,
     completeness: {
         tracks: row.track_count,
         audio: row.audio_count,
@@ -46,7 +47,7 @@ type ListItem = ReturnType<typeof toListItem>;
 const sum = (items: readonly ListItem[], pick: (item: ListItem) => number) =>
     items.reduce((total, item) => total + pick(item), 0);
 
-/** D35：全站專輯數、歌曲數；有音檔 / 歌詞 / MV 嘅歌數；有封面嘅專輯數 */
+/** D35、D80：全站專輯數、歌曲數（連冇音檔嘅灰色行）；有音檔 / 歌詞 / MV 嘅歌數；有封面嘅專輯數 */
 export const siteStats = (items: readonly ListItem[]) => ({
     albums: items.length,
     tracks: sum(items, (item) => item.completeness.tracks),
@@ -58,6 +59,6 @@ export const siteStats = (items: readonly ListItem[]) => ({
 
 export const albumOverview = async (db: D1Database) => {
     const rows = await db.prepare(OVERVIEW_SQL).all<OverviewRow>();
-    const albums = rows.results.map(toListItem);
+    const albums = rows.results.sort(byAlbumOrder).map(toListItem);
     return { albums, stats: siteStats(albums), catalog: await readCatalogStatus(db) };
 };

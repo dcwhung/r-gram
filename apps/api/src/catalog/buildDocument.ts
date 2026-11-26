@@ -1,7 +1,9 @@
 /*
  * D1 資料 → catalog 文件（Technical Spec API-070；packages/catalog 嘅 CatalogDocument）。
  * - 全部專輯同歌（CR-003：冇上下架）；冇歌嘅專輯照出（D39）；冇音檔嘅歌照出，audio = null（D11）
- * - 空字串 / 空白轉 null（validator 唔收空字串；label 例外，backlog B-005）
+ * - 空字串 / 空白轉 null（validator 唔收空字串，backlog B-005）
+ * - CR-007（Technical Spec「內容檔」）：冇 label、subtitle；wheelKey = wheelKeyFor(碟名)；專輯次序 = albumOrder()；
+ *   冇音檔嘅歌（灰色行）照出，佢嘅 mv、lyrics、credits 一律 null（D54：冇音檔唔匯入文字同 MV）
  * - CR-006（Functional Spec D63、D44）：專輯只有年份（直接輸入嘅值），冇發行日期、冇自由文字類型
  * - audio / mv 係媒體 bucket（rb-discography）嘅 key 原文，cover / thumb / lyrics 係檔名：播放端用 mediaUrl(base, key) 逐段 encode
  * - CR-005（D55）：第二張封面 cover2 / thumb2 一律出（冇 = null，同第一張一樣嘅寫法；validator 亦收冇呢兩個欄嘅舊 document）
@@ -10,11 +12,13 @@
 import {
     CATALOG_VERSION,
     CREDIT_FIELDS,
+    wheelKeyFor,
     type CatalogAlbum,
     type CatalogDocument,
     type CatalogTrack,
     type TrackCredits,
 } from '@r-gram/catalog';
+import { byAlbumOrder } from '../albums/rows';
 import { IMAGE_PUBLIC_PATH, LYRICS_PUBLIC_PATH } from '../config';
 import type { Env } from '../env';
 import type { AlbumSnapshot, CatalogSnapshot, TrackSnapshot } from './snapshot';
@@ -41,25 +45,23 @@ const creditsOf = (track: TrackSnapshot): TrackCredits | null => {
     return CREDIT_FIELDS.some((field) => credits[field] !== null) ? credits : null;
 };
 
-const toTrack = (track: TrackSnapshot): CatalogTrack => ({
-    id: track.id,
-    no: track.no,
-    title: track.title,
-    subtitle: orNull(track.subtitle),
-    credits: creditsOf(track),
-    audio: orNull(track.audio_key),
-    mv: orNull(track.mv_key),
-    lyrics: orNull(track.json_name),
-});
+const GREY_ROW = { credits: null, mv: null, lyrics: null } as const;
+
+const toTrack = (track: TrackSnapshot): CatalogTrack => {
+    const audio = orNull(track.audio_key);
+    const ids = { id: track.id, no: track.no, title: track.title };
+    if (audio === null) return { ...ids, ...GREY_ROW, audio };
+    const media = { mv: orNull(track.mv_key), lyrics: orNull(track.json_name) };
+    return { ...ids, credits: creditsOf(track), audio, ...media };
+};
 
 const toAlbum = (album: AlbumSnapshot, tracks: readonly TrackSnapshot[]): CatalogAlbum => ({
     id: album.id,
     title: album.title,
-    wheelKey: album.wheel_key,
+    wheelKey: wheelKeyFor(album.title),
     year: album.year,
     category: album.category,
     categoryNo: album.category_no,
-    label: album.label,
     accent: album.accent,
     cover: orNull(album.cover),
     thumb: orNull(album.thumb),
@@ -82,7 +84,9 @@ export const buildContent = (snapshot: CatalogSnapshot, bases: Bases): CatalogCo
     return {
         version: CATALOG_VERSION,
         ...bases,
-        albums: snapshot.albums.map((album) => toAlbum(album, grouped.get(album.id) ?? [])),
+        albums: [...snapshot.albums]
+            .sort(byAlbumOrder)
+            .map((album) => toAlbum(album, grouped.get(album.id) ?? [])),
     };
 };
 

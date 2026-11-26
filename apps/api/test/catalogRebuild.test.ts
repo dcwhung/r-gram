@@ -287,7 +287,7 @@ describe('rebuildCatalog: writing and state', () => {
         const second = await rebuild();
         expect(second).toMatchObject({ ok: true, unchanged: false });
         expect(second.hash).not.toBe(first.hash);
-        expect((await liveDocument())?.albums[0]?.title).toBe('Beaming 2');
+        expect((await liveDocument())?.albums[1]?.title).toBe('Beaming 2');
     });
 
     it('should drop a deleted album from the document', async () => {

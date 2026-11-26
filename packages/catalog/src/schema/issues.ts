@@ -38,14 +38,9 @@ export class Issues {
         return condition;
     }
 
-    /** 字串；`nullable` 時容許 null；`allowEmpty` 時容許空字串 */
-    text(
-        value: unknown,
-        path: string,
-        options: { nullable?: boolean; allowEmpty?: boolean } = {},
-    ): void {
+    /** 非空字串；`nullable` 時容許 null（CR-007 之前 `label` 要嘅「容許空字串」已經冇用） */
+    text(value: unknown, path: string, options: { nullable?: boolean } = {}): void {
         if (value === null && options.nullable) return;
-        const valid = options.allowEmpty ? typeof value === 'string' : isNonEmptyString(value);
-        this.check(valid, path, 'INVALID_STRING');
+        this.check(isNonEmptyString(value), path, 'INVALID_STRING');
     }
 }
