@@ -29,6 +29,18 @@ const dragMove = (drag: DragState, event: PointerEvent<SVGGElement>, spec: DragS
     return units;
 };
 
+/** useRef 嘅值（傳畀 hook 用） */
+type Ref<T> = { current: T };
+
+/** 㩒落：已經拖緊（捉住咗 pointer，一定收到鬆手）先唔理；未拖過嘅舊 press 可能喺元件外面鬆咗手，由新嘅取代 */
+const usePress =
+    (drag: Ref<DragState | null>, dragged: Ref<boolean>) =>
+    ({ pointerId, clientY }: PointerEvent<SVGGElement>) => {
+        if (drag.current?.moved) return;
+        drag.current = { pointerId, startY: clientY, lastY: clientY, moved: false };
+        dragged.current = false;
+    };
+
 /** `scrollBy(units)`：捲幾多設計單位；`onDragEnd`：拖完（真係拖過）鬆手（例如吸附） */
 export const useDragScroll = (
     spec: DragSpec,
@@ -37,7 +49,7 @@ export const useDragScroll = (
 ) => {
     const drag = useRef<DragState | null>(null);
     const dragged = useRef(false);
-    /** 只有拖緊嗰隻手指先結束到拖動 */
+    const onPointerDown = usePress(drag, dragged);
     const end = ({ pointerId }: PointerEvent<SVGGElement>) => {
         if (drag.current?.pointerId !== pointerId) return;
         dragged.current = drag.current.moved;
@@ -45,12 +57,7 @@ export const useDragScroll = (
         if (dragged.current) onDragEnd?.();
     };
     return {
-        onPointerDown: ({ pointerId, clientY }: PointerEvent<SVGGElement>) => {
-            // 已經拖緊（捉住咗 pointer，一定收到鬆手）先唔理；未拖過嘅舊 press 可能喺元件外面鬆咗手，由新嘅取代
-            if (drag.current?.moved) return;
-            drag.current = { pointerId, startY: clientY, lastY: clientY, moved: false };
-            dragged.current = false;
-        },
+        onPointerDown,
         onPointerMove: (event: PointerEvent<SVGGElement>) => {
             if (drag.current?.pointerId !== event.pointerId) return;
             const units = dragMove(drag.current, event, spec);
