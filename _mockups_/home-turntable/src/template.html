@@ -70,6 +70,8 @@ svg.stage {
     user-select: none; -webkit-user-select: none;
 }
 svg.stage.square { aspect-ratio: 1; }
+.update-grid svg.stage { aspect-ratio: 1080 / 560; }
+.update-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-bottom: 40px; }
 svg.modes { display: block; width: 100%; max-width: 820px; height: auto; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--line); }
 svg.stage [data-act] { cursor: pointer; }
 /* 互動格：狀態改變時只改各組嘅 transform / opacity，由 transition 做動畫（時長沿用 v16：Wheel 0.5s、唱臂 0.65s） */
@@ -157,6 +159,8 @@ tr:last-child td { border-bottom: 0; }
 @keyframes inkToPaper { from { fill: #111; } }
 @keyframes panelRowIn { from { transform: translate(170px, -62px); opacity: 0; } to { transform: translate(0, 0); opacity: 1; } }
 @keyframes veilOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes versionGlow { 0%, 100% { opacity: 1; } 50% { opacity: .12; } }
+svg.demo .version-glow, svg.live .version-glow { animation: versionGlow 1.4s ease-in-out infinite; }
 @keyframes crtOn { 0% { transform: scale(1, .012); opacity: 0; } 6% { opacity: 1; } 30% { transform: scale(1, .012); } 100% { transform: scale(1, 1); } }
 @keyframes crtOff { 0% { transform: scale(1, 1); } 45% { transform: scale(1, .012); } 82% { transform: scale(.012, .012); opacity: 1; } 100% { transform: scale(.012, .012); opacity: 0; } }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -169,6 +173,7 @@ tr:last-child td { border-bottom: 0; }
 <body>
 <div class="wrap">
     <h1>R Gram 播放端場景</h1>
+    <p class="lede"><b>第 20 版（等你確認）：有新版本嘅提示。</b>唔再另外出一粒「已有新版本／立即更新」；右上角版本號變成一粒鋁色膠囊掣（同三粒細掣同一款），橙黃光暈一明一暗，㩒 = 重新載入更新；永遠喺暗層下面。另外：手機打橫時畫面唔跟住轉，app 自己將畫面轉返直向（唔再出「請將裝置轉為直向」）。</p>
     <p class="lede"><b>第 19 版（2026-11-26 用戶逐點定案）：揀碟同歌單。</b>① 歌單欄（碟名下面嗰欄）純睇：行唔㩒得，只可以捲。未揀歌（開 app 冇歌、揀完碟鬆手、手上拎住另一隻碟）或者字母盤開住就出；揀咗歌就收。② 揀歌一律㩒碟面開弧線歌單：歌單欄收起，歌名飄落弧線；㩒暗位收返，歌單欄出返。③ 唱片夾一定有 play：未揀歌時㩒 = 播呢隻碟第一首。④ 字母盤開住 = 冇細掣，鬆手 = 有細掣；有細唱片機或者未鬆手 = 冇唱臂。⑤ 歌單欄由右上逐行飄落；快擰途中唔顯示，停定先出；鬆手時底部縮短讓位畀三粒細掣（唱臂可以疊喺歌單上面）。⑥ 細唱片機旁邊嘅字推上，長歌名先縮字再「…」；播完會寫「已播完」、唱針離開碟。⑦ 旋鈕要㩒住一陣或者開始擰先開；弧線歌單嘅行唔㩒得。</p>
     <p class="lede"><b>第 18 版（已確認）。</b>① 字母盤改用實際資料：21 隻碟 + ♥ = 22 格，次序按類型（專輯、迷你專輯、精選、現場、原聲、單曲）再按編號；因為多過 17 隻碟，由第一日起就係「每 3 個出一個字母，其餘用細點」。② 左上歌名太長：先縮字（44 → 最細 32）；最細字都放唔落就斷做兩行，歌號同時間嗰行位置不變；兩行都放唔落先用「…」。③ 播緊時揀碟（模擬真實情況：唱片機照播，人行開去拎第二隻碟睇，揀啱先放入機播）：一擰旋鈕，唱臂、左下三粒細掣同左上歌名淡出，隻碟停轉，聲照播；擰到另一隻碟，左上碟名跟住變，唱片機縮去右上角照播（碟照轉），旁邊寫住播緊邊首。碟名下面即刻列出嗰隻碟嘅歌單（冇黑色層：黑字，字級比「播放中」大一級，隻碟左邊蓋一層半透明嘅底色；歌多可以上下捲）。鬆手喺另一隻碟 = 手上拎住嗰隻碟：冇轉盤、冇唱臂；㩒歌單其中一行 = 放入唱片機播嗰首（原本首歌先停）；㩒右上角細唱片機 = 返去播緊嗰隻碟。轉返播緊嗰隻碟鬆手，唱臂、細掣同歌名淡入返、碟再轉。</p>
     <p class="lede">第 17 版（已確認）。① 歌詞冇時間標記：成份歌詞一次過顯示，直身一欄、冇框線、全部行一樣；太長嘅行自動斷行，放唔晒就上下捲。下面「試排版」可以貼歌詞即刻睇。② 㩒 play：唱針由上方（泊位）升高住轉到碟上面，再放低，之後碟先開始轉；暫停後再播只係放低。喺互動格由歌單揀歌播就睇到。③ 碟多時（多過 17 隻）字母盤保持簡約：每幾個先出一個字母（最多約 9 個），其餘用細點；揀中嗰個永遠放大粗體顯示（見下面「刻度格數」）。</p>
@@ -178,6 +183,15 @@ tr:last-child td { border-bottom: 0; }
     <div class="bar" role="group" aria-label="預覽設定">
         <label class="chk"><input type="checkbox" id="showHit"> 感應範圍（44pt）</label>
         <label class="chk"><input type="checkbox" id="showGap"> 淨空（CD 16、轉盤 40、螺絲 120）</label>
+    </div>
+
+    <h2 style="margin-top:0">有新版本：版本號變成閃動嘅掣（第 20 版，等你確認）</h2>
+    <p class="lede">用緊 app 期間有新版本：唔再出另外一粒「已有新版本／立即更新」提示，改為右上角嘅版本號變成一粒掣：同三粒細掣一樣係拉絲鋁，膠囊形，外面一圈橙黃光暈一明一暗。㩒落去 = 重新載入並更新（播緊嘅歌會停）。唔㩒都得：下次重新開 app 會自動更新。感應範圍 44pt；開咗「減少動態效果」就唔閃，光暈常亮。粒掣永遠喺暗層下面：歌單、歌書、MV 開住時跟住變暗，㩒唔到。下面只影畫面頂部。</p>
+    <div class="grid update-grid">
+        <article class="card"><h3>主頁（播緊歌）</h3><p>鋁色膠囊，橙黃光暈一明一暗</p><svg class="stage demo" id="updateDemoA" viewBox="0 0 1080 560" role="img" aria-label="版本掣：主頁"></svg></article>
+        <article class="card"><h3>拎住另一隻碟時</h3><p>掣喺細唱片機上面，唔會疊住</p><svg class="stage demo" id="updateDemoB" viewBox="0 0 1080 560" role="img" aria-label="版本掣同細唱片機"></svg></article>
+        <article class="card"><h3>歌單開住時</h3><p>喺暗層下面：跟住變暗，㩒唔到；收返歌單先㩒得</p><svg class="stage demo" id="updateDemoC" viewBox="0 0 1080 560" role="img" aria-label="版本掣喺暗層下面"></svg></article>
+        <article class="card"><h3>字母盤開住時</h3><p>照樣顯示，照樣㩒得</p><svg class="stage demo" id="updateDemoD" viewBox="0 0 1080 560" role="img" aria-label="版本掣：揀碟中"></svg></article>
     </div>
 
     <h2 style="margin-top:0">歌單欄飄落（等你確認）</h2>
@@ -551,6 +565,43 @@ tr:last-child td { border-bottom: 0; }
     const esc = (text) => String(text).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
     const SLAB = `'RB Slab', Rockwell, 'Rockwell Nova', serif`;
     const SLAB_LIGHT = `'RB Slab Light', Rockwell, serif`;
+    /* 版本號（右上）。第 20 版：有新版本時版本號變成掣，㩒 = 重新載入更新（用戶 2026-11-26：唔要另外一粒提示）。
+       掣同三粒細掣一樣係拉絲鋁，不過係膠囊形；外面一圈橙黃光暈一明一暗。
+       掣畫喺唱片機嗰層（updateButton），永遠喺暗層下面：歌單／歌書開住時跟住變暗，㩒唔到 */
+    const VERSION = { x: 1008, y: 118, size: 22, spacing: 3, text: 'v0.1.0' };
+    const UPDATE_PILL = { size: 26, charW: 0.4, padX: 28, h: 64, right: 990, midDy: -9, bevel: 5, ringGap: 7, ringWidth: 4, glow: '#ffae1a', glowBlur: 12, hit: 122 };
+    const updatePillBox = () => {
+        const P = UPDATE_PILL;
+        const textW = [...VERSION.text].length * (P.size * P.charW + VERSION.spacing); // 幼身 slab 數字比 textWidth() 估嘅窄
+        const w = P.padX * 2 + textW;
+        return { x: P.right - w, y: VERSION.y + P.midDy - P.h / 2, w, h: P.h, mid: VERSION.y + P.midDy, textX: P.right - P.padX - textW / 2 };
+    };
+    const pillRect = ({ x, y, w, h }, grow, attrs) =>
+        `<rect x="${n(x - grow)}" y="${n(y - grow)}" width="${n(w + grow * 2)}" height="${n(h + grow * 2)}" rx="${n(h / 2 + grow)}" ${attrs}/>`;
+    const updateButton = (st) => {
+        if (!st.update) return '';
+        const P = UPDATE_PILL;
+        const box = updatePillBox();
+        const ring = P.ringGap + P.ringWidth / 2;
+        const covered = Boolean(st.list || st.booklet || st.mv); // 暗層開住：㩒唔到
+        const glow =
+            `<g class="version-glow">${pillRect(box, ring, `fill="none" stroke="${P.glow}" stroke-width="${P.glowBlur}" opacity=".85" filter="url(#fGlow)"`)}` +
+            `${pillRect(box, ring, `fill="none" stroke="${P.glow}" stroke-width="${P.ringWidth}"`)}</g>`;
+        const body =
+            pillRect({ ...box, x: box.x + 4, y: box.y + 7 }, 0, 'fill="#000" opacity=".3" filter="url(#fShadow)"') +
+            pillRect(box, 0, 'fill="url(#gBrush)"') +
+            pillRect(box, 0, 'fill="url(#gDome)"') +
+            pillRect(box, -P.bevel / 2, `fill="none" stroke="url(#gBevel)" stroke-width="${P.bevel}"`) +
+            pillRect(box, 0, 'fill="none" stroke="#5f5f5f" stroke-opacity=".5" stroke-width="1.5"') +
+            `<text x="${n(box.textX)}" y="${VERSION.y}" text-anchor="middle" font-family="${SLAB}" font-size="${P.size}" fill="${ICON_COLOR}" letter-spacing="${VERSION.spacing}">${VERSION.text}</text>`;
+        const hitW = Math.max(box.w, P.hit) + (W - P.right);
+        const hit = covered ? '' : `<rect data-hit="update" x="${n(W - hitW)}" y="${n(box.mid - P.hit / 2)}" width="${n(hitW)}" height="${P.hit}" fill="transparent"/>`;
+        return `<g data-update="button" role="button" aria-label="已有新版本，立即更新並重新載入"${covered ? ' pointer-events="none"' : ''}>${glow}${body}${hit}</g>`;
+    };
+    const versionMark = (st, dark) =>
+        st.update
+            ? '' // 有新版本：版本號喺 updateButton() 嗰粒掣入面
+            : `<text x="${VERSION.x}" y="${VERSION.y}" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="${VERSION.size}" fill="${dark ? '#8f8c85' : '#8a8a8a'}" letter-spacing="${VERSION.spacing}">${VERSION.text}</text>`;
     const CJK = `'Noto Sans HK', 'PingFang HK', 'Microsoft JhengHei', 'Noto Sans CJK TC', sans-serif`;
     const isLatin = (text) => /^[\x20-\x7e]+$/.test(text);
     const selectedIndex = (st) => WHEEL_ROW.findIndex((entry) => entry.album === st.album);
@@ -1031,7 +1082,7 @@ tr:last-child td { border-bottom: 0; }
             : `<text x="70" y="188" font-family="${CJK}" font-weight="900" font-size="80" fill="${ink}" letter-spacing="4">${title}</text>`;
         out += `<text x="74" y="244" font-family="${MIXED}" font-size="${SUB_SIZE}" fill="${soft}" letter-spacing="${SUB_SPACING}">${sub}</text>`;
         out += `<path d="M${n(lineX)} 234H${n(lineX + 98)}" stroke="${accent}" stroke-width="3.5" stroke-linecap="round"/>`;
-        out += `<text x="1008" y="118" text-anchor="end" font-family="${SLAB_LIGHT}" font-size="22" fill="${dark ? '#8f8c85' : '#8a8a8a'}" letter-spacing="3">v0.1.0</text>`;
+        out += versionMark(st, dark);
         const album = out; // 以上係碟名、年份、版本號；以下係歌名嗰部分（揀碟時淡出）
         out = '';
         const songX = SONG_FIT.x;
@@ -1766,6 +1817,7 @@ tr:last-child td { border-bottom: 0; }
             `<g data-anim="platter" style="opacity: ${away ? 0 : 1}">${platter()}</g>`,
             discs(st, fid),
             `<g data-anim="scrim" style="opacity: ${showsColumn(st) ? 1 : 0}" pointer-events="none">${listScrim(fid)}${screws()}</g>`, // 螺絲喺淡出層上面再畫一次，唔好俾佢遮淡
+            updateButton(st),
             dialRing(st),
             knob(st),
             favHeart(st),
@@ -2081,8 +2133,17 @@ tr:last-child td { border-bottom: 0; }
     new IntersectionObserver(([entry]) => { if (entry.isIntersecting) startPanelDemo(); else clearInterval(panelDemoTimer); }, { threshold: 0.3 }).observe(panelDemo);
     document.getElementById('panelReplay').addEventListener('click', startPanelDemo);
     if (reducedMotion()) document.getElementById('panelDemoNote').textContent = '你部機開咗「減少動態效果」：下面「可以㩒嘅主頁」同正式 app 會即時出現，冇呢個過場；呢格照播畀你睇。';
+    /* 第 20 版：版本掣示範（只影畫面頂部；永遠閃，畀人睇效果） */
+    const UPDATE_DEMOS = [
+        ['updateDemoA', { album: 'komorebi', song: true, booklet: false, wheel: 0, update: true }],
+        ['updateDemoB', { album: 'juntos', song: false, wheel: 0, away: true, loaded: 'komorebi', loadedTitle: TRACKS.komorebi.rows[0][0], update: true }],
+        ['updateDemoC', { album: 'komorebi', song: true, list: true, wheel: 0, update: true }],
+        ['updateDemoD', { album: 'komorebi', song: false, booklet: false, wheel: 1, update: true }],
+    ];
+    const renderUpdateDemos = () => UPDATE_DEMOS.forEach(([id, st]) => { document.getElementById(id).innerHTML = scene(st, id); });
     buildLathe();
     render();
+    renderUpdateDemos();
     playPanelDemo();
 })();
 </script>
