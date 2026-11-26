@@ -319,6 +319,111 @@ describe('Knob', () => {
             expect(pointer()).not.toHaveClass('knob-move--jump');
         });
 
+        // W-060：擰（拖動）係主要手勢：拖過 ♥ 嗰一步指針跳，下一步照舊有過場；倒轉一樣
+        it('should jump the pointer for the dragged step across the seam only', () => {
+            const knobAt = (current: number) => (
+                <svg>
+                    <Knob
+                        layout={LAYOUT}
+                        positions={POSITIONS}
+                        current={current}
+                        open
+                        accent="#c8442b"
+                        glow="#ffd0c0"
+                        valueText="KOMOREBI"
+                        {...handlers()}
+                    />
+                </svg>
+            );
+            const { container, rerender } = render(knobAt(POSITIONS - 1));
+            const hit = container.querySelector('[data-part="knob-hit"]') as Element;
+            hit.getBoundingClientRect = () =>
+                ({
+                    left: CENTRE.x - RADIUS_PX,
+                    top: CENTRE.y - RADIUS_PX,
+                    width: RADIUS_PX * 2,
+                    height: RADIUS_PX * 2,
+                }) as DOMRect;
+            const knob = screen.getByRole('slider');
+            const jumps = () =>
+                container
+                    .querySelector('[data-part="knob-pointer"]')
+                    ?.classList.contains('knob-move--jump');
+            // 由 ♥ 開始：一格 = 第一隻碟（跳）、兩格 = 第二隻、返一格 = 第一隻、返到起點 = ♥（跳）、再返 = ♥ 前面
+            const steps: readonly [number, number, boolean][] = [
+                [STEP_DEG, 0, true],
+                [STEP_DEG * 2, 1, false],
+                [STEP_DEG, 0, false],
+                [0, POSITIONS - 1, true],
+                [-STEP_DEG, POSITIONS - 2, false],
+            ];
+            fireEvent.pointerDown(knob, at(0));
+            steps.forEach(([deg, current, jump]) => {
+                fireEvent.pointerMove(knob, at(deg));
+                rerender(knobAt(current));
+                expect({ current, jump: jumps() }).toEqual({ current, jump });
+            });
+            fireEvent.pointerUp(knob, at(-STEP_DEG));
+        });
+
+        /*
+         * S-218：`jump` 淨係講啱啱嗰一步。Esc 取消如果行最短路返去要跨過 ♥ 同第一隻碟之間，都係跳（唔會轉成個刻度弧）；
+         * Enter 唔係一步（指針唔郁），之後唔係旋鈕嘅改動（例如㩒 ♥ 掣）唔當跳
+         */
+        describe('after finishing or cancelling', () => {
+            const knobAt = (current: number, open: boolean) => (
+                <svg>
+                    <Knob
+                        layout={LAYOUT}
+                        positions={POSITIONS}
+                        current={current}
+                        open={open}
+                        accent="#c8442b"
+                        glow="#ffd0c0"
+                        valueText="KOMOREBI"
+                        {...handlers()}
+                    />
+                </svg>
+            );
+            const setUp = (current: number) => {
+                const view = render(knobAt(current, true));
+                const knob = screen.getByRole('slider');
+                const jumps = () =>
+                    view.container
+                        .querySelector('[data-part="knob-pointer"]')
+                        ?.classList.contains('knob-move--jump');
+                /** 撳一個鍵，外面跟住將 current / open 改成 next */
+                const press = (key: string, current: number, open = true) => {
+                    fireEvent.keyDown(knob, { key });
+                    view.rerender(knobAt(current, open));
+                    return jumps();
+                };
+                return { press, jumps, rerender: view.rerender };
+            };
+
+            it('should jump back across the seam when a turn past ♥ is cancelled', () => {
+                const { press } = setUp(0);
+                expect(press('ArrowLeft', POSITIONS - 1)).toBe(true);
+                expect(press('ArrowLeft', POSITIONS - 2)).toBe(false);
+                expect(press('Escape', 0, false)).toBe(true);
+            });
+
+            it('should move back smoothly when the cancelled turn did not cross the seam', () => {
+                const { press } = setUp(5);
+                expect(press('ArrowRight', 6)).toBe(false);
+                expect(press('ArrowRight', 7)).toBe(false);
+                expect(press('Escape', 5, false)).toBe(false);
+            });
+
+            it('should drop the jump on Enter and not jump for a change from elsewhere', () => {
+                const { press, jumps, rerender } = setUp(POSITIONS - 1);
+                expect(press('ArrowRight', 0)).toBe(true);
+                expect(press('Enter', 0, false)).toBe(false);
+                rerender(knobAt(POSITIONS - 1, false));
+                expect(jumps()).toBe(false);
+            });
+        });
+
         it('should not reopen an open dial', () => {
             const { knob, spies } = renderKnob({ open: true });
             fireEvent.keyDown(knob, { key: 'End' });
