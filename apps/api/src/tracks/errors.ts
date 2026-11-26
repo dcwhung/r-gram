@@ -27,12 +27,14 @@ const SITUATIONS: Record<TrackSituation, ErrorKind> = {
     stale: { status: HTTP_STATUS.conflict, code: ERROR_CODE.stale },
     lyricsRemoved: { status: HTTP_STATUS.conflict, code: ERROR_CODE.lyricsRemoved },
     tooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
+    fileTooLarge: { status: HTTP_STATUS.conflict, code: ERROR_CODE.fileTooLarge },
     noAudio: { status: HTTP_STATUS.conflict, code: ERROR_CODE.noAudio },
     textConflict: { status: HTTP_STATUS.conflict, code: ERROR_CODE.textConflict },
 };
 
 const ERROR_PARAMS: Partial<Record<TrackSituation, MessageParams>> = {
     tooLarge: { max: SONG_TEXT_MAX_BYTES / BYTES_PER_KB },
+    fileTooLarge: { max: SONG_TEXT_MAX_BYTES / BYTES_PER_KB },
 };
 
 /** 句子入面嘅數字跟常數（packages/catalog 嘅上限同管理端共用），唔喺語言檔寫死 */

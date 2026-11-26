@@ -18,11 +18,13 @@ const SITUATIONS: Record<AlbumSituation, ErrorKind> = {
     invalid: { status: HTTP_STATUS.badRequest, code: ERROR_CODE.validation },
     stale: { status: HTTP_STATUS.conflict, code: ERROR_CODE.stale },
     tooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
+    fileTooLarge: { status: HTTP_STATUS.conflict, code: ERROR_CODE.fileTooLarge },
     noFirstCover: { status: HTTP_STATUS.conflict, code: ERROR_CODE.noFirstCover },
 };
 
 const ERROR_PARAMS: Partial<Record<AlbumSituation, MessageParams>> = {
     tooLarge: { maxBytes: INFO_TEXT_MAX_BYTES, maxLines: INFO_TEXT_MAX_LINES },
+    fileTooLarge: { maxBytes: INFO_TEXT_MAX_BYTES },
 };
 const REASON_PARAMS: Partial<Record<AlbumReason, MessageParams>> = {
     TOO_MANY_UNKNOWN_FIELDS: { max: UNKNOWN_FIELDS_MAX },

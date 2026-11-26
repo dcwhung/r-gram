@@ -3,7 +3,8 @@
  * 歌曲文字框讀寫媒體 bucket 嘅 `NN ….txt`（揀邊個檔：packages/catalog songTextTarget()，同同步一樣）。
  * - 讀：`{ trackId, key, etag, text, problem }`；冇檔 = `{ key: null, etag: null, text: 歌名 }`；幾個檔而冇 D1 嗰個 = 409 TEXT_CONFLICT
  * - 寫：body `{ text, etag }`（400）→ parseSongText()（逐行 400；太大 413）→ 歌（404）→ 資料夾過 resolveAlbumFolder()
- *  （同 API-034；id 唔係呢張碟 = 409 FOLDER_MISMATCH）→ 冇音檔 409 NO_AUDIO → 衝突 409 TEXT_CONFLICT → 會清走現有歌詞而冇 ?force=1 → 409 LYRICS_REMOVED（D30）
+ *  （同 API-034；id 唔係呢張碟 = 409 FOLDER_MISMATCH）→ 冇音檔 409 NO_AUDIO → 衝突 409 TEXT_CONFLICT →
+ *   已有嘅檔大過上限 409 FILE_TOO_LARGE（S-181）→ 會清走現有歌詞而冇 ?force=1 → 409 LYRICS_REMOVED（D30）
  *   → putMediaText()（已有 = 嗰個檔；冇 = `NN 歌名.txt`；版本唔啱 = 409 STALE）→ 同步呢個資料夾（runFolderSync，
  *   由呢首歌起；credit、歌詞、歌詞 JSON 由同步照 `.txt` 寫）→ `{ trackId, key, etag, text, track, checks, hints, sync }`。
  *   任何一步擋住都乜都唔寫；寫咗檔而同步出錯 = 500，下次同步會補返
@@ -91,6 +92,9 @@ const refusal = (
     const { target, listing } = located;
     if (!target.audio) return trackError(c, 'noAudio');
     if (target.conflict) return trackError(c, 'textConflict');
+    // S-181：已有嘅檔大過上限 = 文字框冇顯示過內容，唔覆蓋（要喺電腦改細再上載）
+    if (target.file && target.file.bytes > SONG_TEXT_MAX_BYTES)
+        return trackError(c, 'fileTooLarge');
     // list 唔齊又搵唔到檔：唔知會唔會開多一個 `.txt`
     if (!target.file && listing.truncated) return trackError(c, 'stale');
     if (row.json_name === null || body.read.song.lyrics || isConfirmed(c)) return null;

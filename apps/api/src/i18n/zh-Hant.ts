@@ -53,6 +53,9 @@ export const zhHant = {
             stale: '檔案已在其他地方更改，請重新載入。',
             /** 413 TOO_LARGE：`{maxBytes}`、`{maxLines}` = INFO_TEXT_MAX_BYTES、INFO_TEXT_MAX_LINES */
             tooLarge: 'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限。',
+            /** 409 FILE_TOO_LARGE（review S-181）：媒體庫嘅檔太大，文字框冇顯示，唔覆蓋；`{maxBytes}` 同上 */
+            fileTooLarge:
+                '媒體庫中的 info.txt 超出 {maxBytes} 位元組的上限，未有儲存。請在電腦上把檔案縮小後重新上載，再掃描媒體庫。',
             /** 409 NO_FIRST_COVER（API-017）：D1 CHECK 唔准冇第一張先有第二張 */
             noFirstCover: '這張專輯還沒有第一張封面，不能設定第二張封面。',
         },
@@ -81,6 +84,9 @@ export const zhHant = {
             lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
             /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
             tooLarge: '歌曲文字超出 {max} KB 的上限。',
+            /** 409 FILE_TOO_LARGE（review S-181）：媒體庫嘅檔太大，文字框冇顯示，唔覆蓋；`{max}` 同上 */
+            fileTooLarge:
+                '媒體庫中的歌曲文字檔超出 {max} KB 的上限，未有儲存。請在電腦上把檔案縮小後重新上載，再掃描媒體庫。',
             /** 409 NO_AUDIO（D54：冇音檔嘅歌唔匯入歌曲文字） */
             noAudio: '這首歌沒有音檔，不能儲存歌曲文字。',
             /** 409 TEXT_CONFLICT：同一個歌號有幾個歌曲文字檔，唔知寫邊個 */

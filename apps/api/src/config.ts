@@ -76,6 +76,11 @@ export const ERROR_CODE = {
     invalidFolder: 'INVALID_FOLDER',
     /** 同步：另一個資料夾都用緊呢個專輯 id（Functional Spec D67；API-034） */
     duplicateAlbumId: 'DUPLICATE_ALBUM_ID',
+    /**
+     * 寫返媒體 bucket：bucket 入面嘅 `info.txt`／歌曲文字檔大過上限（文字框冇顯示過內容），唔覆蓋（review S-181）；
+     * 要喺電腦改細再上載
+     */
+    fileTooLarge: 'FILE_TOO_LARGE',
     /** 寫返媒體 bucket：D1 記住嘅資料夾嘅 id 唔係呢張碟（人手改過 D1；T-106 API-019、041，review S-184） */
     folderMismatch: 'FOLDER_MISMATCH',
     /** 歌曲文字：呢首歌冇音檔（Functional Spec D54；T-106 API-041 用） */
