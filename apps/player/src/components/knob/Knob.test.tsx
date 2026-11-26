@@ -415,6 +415,74 @@ describe('Knob', () => {
                 expect(press('Escape', 5, false)).toBe(false);
             });
 
+            /** 連撳 `key` 由 from 一格一格去到 to（外面每次跟住改 current），回傳每一步有冇跳 */
+            const pressTo = (
+                press: (key: string, current: number) => boolean | undefined,
+                key: string,
+                from: number,
+                to: number,
+            ) => {
+                const step = key === 'ArrowRight' ? 1 : -1;
+                const jumps: (boolean | undefined)[] = [];
+                for (let at = from; at !== to;) {
+                    at = (at + step + POSITIONS) % POSITIONS;
+                    jumps.push(press(key, at));
+                }
+                return jumps;
+            };
+
+            // 用戶 2026-11-26「改成滑返去」：長途轉但從來冇過 ♥，Esc = 指針沿刻度掃返去（唔跳）
+            it('should sweep back after a long turn that never crossed ♥', () => {
+                const { press } = setUp(2);
+                expect(pressTo(press, 'ArrowRight', 2, 17).some(Boolean)).toBe(false);
+                expect(press('Escape', 2, false)).toBe(false);
+            });
+
+            // 過 ♥ 再倒返轉頭（淨係過咗 0 次）：都係掃返去
+            it('should sweep back when the turn crossed ♥ and came back again', () => {
+                const { press } = setUp(2);
+                expect(pressTo(press, 'ArrowLeft', 2, POSITIONS - 1)).toEqual([false, false, true]);
+                expect(press('ArrowRight', 0)).toBe(true);
+                pressTo(press, 'ArrowRight', 0, 17);
+                expect(press('Escape', 2, false)).toBe(false);
+            });
+
+            // 拖動一樣：一個手勢由第 2 格擰去第 17 格（冇過 ♥）再 Esc = 掃返去；擰過 ♥ 再 Esc = 跳
+            it.each([
+                [2, 15, 17, false],
+                [POSITIONS - 2, 2, 0, true],
+            ])(
+                'should decide the cancel by the laps of a drag (from %d, %d steps)',
+                (from, steps, to, jump) => {
+                    const view = render(knobAt(from, true));
+                    const hit = view.container.querySelector('[data-part="knob-hit"]') as Element;
+                    hit.getBoundingClientRect = () =>
+                        ({
+                            left: CENTRE.x - RADIUS_PX,
+                            top: CENTRE.y - RADIUS_PX,
+                            width: RADIUS_PX * 2,
+                            height: RADIUS_PX * 2,
+                        }) as DOMRect;
+                    const knob = screen.getByRole('slider');
+                    fireEvent.pointerDown(knob, at(0));
+                    for (let step = 1; step <= steps; step += 1) {
+                        fireEvent.pointerMove(knob, at(STEP_DEG * step));
+                        view.rerender(knobAt((from + step) % POSITIONS, true));
+                    }
+                    expect(Number(knob.getAttribute('aria-valuenow'))).toBe(to);
+                    fireEvent.keyDown(knob, { key: 'Escape' });
+                    view.rerender(knobAt(from, false));
+                    const pointer = view.container.querySelector('[data-part="knob-pointer"]');
+                    expect(pointer?.classList.contains('knob-move--jump')).toBe(jump);
+                },
+            );
+
+            it('should jump back when the turn went past ♥ to the first disc', () => {
+                const { press } = setUp(POSITIONS - 2);
+                expect(pressTo(press, 'ArrowRight', POSITIONS - 2, 0)).toEqual([false, true]);
+                expect(press('Escape', POSITIONS - 2, false)).toBe(true);
+            });
+
             it('should drop the jump on Enter and not jump for a change from elsewhere', () => {
                 const { press, jumps, rerender } = setUp(POSITIONS - 1);
                 expect(press('ArrowRight', 0)).toBe(true);
