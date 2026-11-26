@@ -224,6 +224,9 @@ describe('D1 constraints (0001_init)', () => {
             info_etag: null,
         });
         await expect(insertAlbum('beaming', { checks: 'not json' })).rejects.toThrow(/CHECK/);
+        // S-159：JSON 但唔係 array 都唔收
+        await expect(insertAlbum('beaming', { checks: '{"a":1}' })).rejects.toThrow(/CHECK/);
+        await expect(insertAlbum('beaming', { checks: '"[]"' })).rejects.toThrow(/CHECK/);
         await insertAlbum('beaming', { checks: '[{"code":"NO_INFO"}]', info_etag: '"e1"' });
         expect(await count('albums')).toBe(2);
     });

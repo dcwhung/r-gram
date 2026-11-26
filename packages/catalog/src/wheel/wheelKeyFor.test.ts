@@ -27,6 +27,18 @@ describe('wheelKeyFor', () => {
         expect(wheelKeyFor('18 Songs')).toBe('1');
     });
 
+    // S-156：有啲字轉大楷之後變幾個字（ﬃ → FFI、ß → SS、ΐ → 3 個 code point）；validator 只收 2 個字
+    it.each([
+        ['ﬃ Records', 'F'],
+        ['ßtraße', 'S'],
+        ['ΐ', 'Ι'],
+        ['𝒜lpha', '𝒜'],
+    ])('should keep the key of %j to one character (%j)', (title, expected) => {
+        const key = wheelKeyFor(title);
+        expect(key).toBe(expected);
+        expect([...key]).toHaveLength(1);
+    });
+
     it.each(['', '   ', '…?!'])('should fall back when %j has no letter or digit', (title) => {
         expect(wheelKeyFor(title)).toBe(WHEEL_KEY_FALLBACK);
     });

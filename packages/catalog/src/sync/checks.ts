@@ -18,6 +18,8 @@ export const CHECK_LEVELS = {
     INFO_BAD_YEAR: 'warning',
     INFO_NO_TITLE: 'warning',
     INFO_TOO_LONG: 'warning',
+    /** 資料夾有兩個 `info.txt`（唔分大細楷，例如 `Info.txt` 同 `info.txt`）：用 list 排第一嗰個（D68） */
+    INFO_CONFLICT: 'warning',
     AUDIO_NOT_LISTED: 'error',
     FILE_WITHOUT_TRACK: 'warning',
     NO_AUDIO: 'warning',

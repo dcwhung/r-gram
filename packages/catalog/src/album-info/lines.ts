@@ -4,6 +4,7 @@
  */
 import { isTrackNo } from '../schema/ids';
 import { isAlbumYear } from '../schema/year';
+import { withoutHiddenCharacters } from '../text/hiddenCharacters';
 
 export type InfoField = 'title' | 'year' | 'tracks';
 
@@ -27,8 +28,11 @@ export const INFO_COLON = '：';
 
 const DIGIT = '[0-9０-９]';
 const LABEL_LINE = new RegExp(`^(${[...INFO_LABELS.keys()].join('|')})\\s*(?:[：:](.*))?$`, 'u');
-/** 歌號 1–3 位，之後一定要有分隔（`.`、`、`、`)`、冒號，半形全形都得）或者空白，再係歌名 */
-const TRACK_LINE = new RegExp(`^(${DIGIT}{1,3})(?:\\s*[.．、､)）:：]|\\s)\\s*(.+)$`, 'u');
+/**
+ * 歌號 1–3 位，之後一定要有分隔（`.`、`、`、`)`、冒號，半形全形都得；S-161：`-`、`–`、`—` 亦得，
+ * 例如 `01 - 歌名`）或者空白，再係歌名
+ */
+const TRACK_LINE = new RegExp(`^(${DIGIT}{1,3})(?:\\s*[.．、､)）:：\\-–—]|\\s)\\s*(.+)$`, 'u');
 /** 開頭四位數字，後面唔可以再係數字（`2026年`、`2026-11-27` 得；`20261` 唔得） */
 const LEADING_YEAR = new RegExp(`^(${DIGIT}{4})(?!${DIGIT})`, 'u');
 
@@ -46,12 +50,15 @@ export const readInfoLabel = (line: string): { field: InfoField; value: string }
     return { field, value: (value ?? '').trim() };
 };
 
-/** 曲目行；歌號唔喺 1–999 或者冇歌名 → null */
+/** 歌名、碟名：去走睇唔到嘅字元（S-158）再 trim；淨係得呢啲字 = 空 */
+export const cleanTitle = (value: string): string => withoutHiddenCharacters(value).trim();
+
+/** 曲目行；歌號唔喺 1–999 或者冇歌名（包括淨係睇唔到嘅字元）→ null */
 export const readTrackLine = (line: string): { no: number; title: string } | null => {
     const match = TRACK_LINE.exec(line);
     if (!match) return null;
     const no = Number(toAsciiDigits(match[1] ?? ''));
-    const title = (match[2] ?? '').trim();
+    const title = cleanTitle(match[2] ?? '');
     return isTrackNo(no) && title !== '' ? { no, title } : null;
 };
 

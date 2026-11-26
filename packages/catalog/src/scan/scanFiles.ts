@@ -1,6 +1,6 @@
 /*
  * 掃描：資料夾入面嘅檔按類別同歌號分組（純函數）。同一個歌號同一類有多過一個檔 = 衝突，唔自動揀。
- * 音檔做錨（Functional Spec D54；CR-006 定案）：資料夾有音檔（`.m4a`／`.mp3`）嘅歌號，或者資料庫入面手動指定咗音檔嘅歌
+ * 音檔做錨（Functional Spec D54）：同步（sync/planFolderSync）用分組揀每首歌嘅音檔、MV、`.txt`
  */
 import {
     classifyFile,

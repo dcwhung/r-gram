@@ -13,16 +13,30 @@ import type { Context } from 'hono';
 import type { AppEnv } from '../app';
 import type { Env } from '../env';
 import { lyricsKey } from './songText';
-import { isLyricsFileUsed } from './store';
+import { usedLyricsFiles } from './store';
+
+/**
+ * T-105：確認刪幾張碟可以一次過放出幾千個檔，所以唔逐個檔查同刪（每個請求嘅操作有上限）：
+ * D1 一句最多查 D1_PARAMS_MAX 個檔名，R2 一次最多刪 R2_DELETE_MAX 個 key
+ */
+const D1_PARAMS_MAX = 100;
+const R2_DELETE_MAX = 1000;
+
+const chunksOf = <T>(items: readonly T[], size: number): T[][] =>
+    Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
+        items.slice(index * size, (index + 1) * size),
+    );
 
 export const dropUnusedLyrics = async (
     env: Pick<Env, 'DB' | 'CATALOG'>,
     names: readonly (string | null | undefined)[],
 ): Promise<void> => {
     const candidates = [...new Set(names)].filter((name): name is string => Boolean(name));
-    for (const name of candidates) {
-        if (!(await isLyricsFileUsed(env.DB, name))) await env.CATALOG.delete(lyricsKey(name));
-    }
+    const used = new Set<string>();
+    for (const chunk of chunksOf(candidates, D1_PARAMS_MAX))
+        (await usedLyricsFiles(env.DB, chunk)).forEach((name) => used.add(name));
+    const unused = candidates.filter((name) => !used.has(name)).map(lyricsKey);
+    for (const keys of chunksOf(unused, R2_DELETE_MAX)) await env.CATALOG.delete(keys);
 };
 
 type LyricsNames = readonly (string | null | undefined)[];

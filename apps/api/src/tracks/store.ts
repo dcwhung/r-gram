@@ -3,7 +3,7 @@
  * 並發：
  * - 改單一首歌用 `WHERE updated_at = If-Match` 一句完成；歌詞嘅寫入同一個 batch（transaction），
  *   用 `changes() > 0` 跟住上一句：歌冇改到，歌詞都唔會郁
- * - 同碟撞號由 D1 UNIQUE (album_id, no) 擋，寫入一方按 isNumberTaken() 判斷（掃描建立歌曲；同步 T-105 重用）
+ * - 同碟撞號由 D1 UNIQUE (album_id, no) 擋，寫入一方按 isNumberTaken() 判斷（同步建立歌曲，T-105）
  * CR-007（D71）：冇副題、手動指定、參考欄；人手新增、改、刪歌（API-020、021、022）拎走
  */
 import { CREDIT_FIELDS, type SongText } from '@r-gram/catalog';
@@ -33,18 +33,27 @@ export const findTrackText = (db: D1Database, id: string) =>
         .bind(id)
         .first<TrackTextRow>();
 
-/** 冇其他歌嘅歌詞用緊呢個檔（同一段歌詞 = 同一個 hash 檔名） */
-export const isLyricsFileUsed = async (db: D1Database, jsonName: string) =>
-    (await db
-        .prepare('SELECT 1 FROM lyrics WHERE json_name = ? LIMIT 1')
-        .bind(jsonName)
-        .first()) !== null;
+/** `names` 入面仲有歌用緊嘅檔（同一段歌詞 = 同一個 hash 檔名）；`names` 最多 100 個（D1 每句參數上限） */
+export const usedLyricsFiles = async (db: D1Database, names: readonly string[]) =>
+    (
+        await db
+            .prepare(
+                `SELECT DISTINCT json_name FROM lyrics WHERE json_name IN (${names.map(() => '?').join(', ')})`,
+            )
+            .bind(...names)
+            .all<{ json_name: string }>()
+    ).results.map(({ json_name }) => json_name);
 
 const creditValues = (song: SongText) =>
     CREDIT_FIELDS.map((field) => song.credits?.[field] ?? null);
 
-/** 上一句有寫到先寫歌詞（冇歌詞就刪走嗰行） */
-const lyricsWrite = (db: D1Database, trackId: string, lyrics: StoredLyrics | null, at: string) =>
+/** 上一句有寫到先寫歌詞（冇歌詞就刪走嗰行）；同步（sync/trackStore.ts）都用 */
+export const lyricsWrite = (
+    db: D1Database,
+    trackId: string,
+    lyrics: StoredLyrics | null,
+    at: string,
+) =>
     lyrics
         ? db
               .prepare(
@@ -86,20 +95,27 @@ export const isNumberTaken = (error: unknown): boolean => violates(error, NUMBER
 /** 歌 id 已經有人用（PK） */
 export const isIdTaken = (error: unknown): boolean => violates(error, ID_COLUMN);
 
-/** 新歌連埋嘅檔（掃描建立歌曲，CR-006 FR-126） */
+/** 新歌連埋嘅檔（同步建立歌曲，T-105） */
 export interface TrackFiles {
     audioKey: string | null;
     mvKey: string | null;
-    /** 套用咗嘅 `.txt` 嘅 ETag（Technical Spec「tracks.text_source_etag」） */
+    /** 嗰首歌嘅 `.txt` key（內容有錯都記，文字框要開得返） */
+    textKey: string | null;
+    /** 匯入咗嘅 `.txt` 嘅 ETag（Technical Spec「tracks.text_source_etag」） */
     textSourceEtag: string | null;
 }
 
-export const NO_FILES: TrackFiles = { audioKey: null, mvKey: null, textSourceEtag: null };
+export const NO_FILES: TrackFiles = {
+    audioKey: null,
+    mvKey: null,
+    textKey: null,
+    textSourceEtag: null,
+};
 
 const INSERT_SQL = `
     INSERT INTO tracks (id, album_id, "no", title, composer, lyricist, arranger,
-        producer, audio_key, mv_key, text_source_etag, created_at, updated_at)
-    SELECT ?1, a.id, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?12
+        producer, audio_key, mv_key, text_source_etag, text_key, created_at, updated_at)
+    SELECT ?1, a.id, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?13
     FROM albums a WHERE a.id = ?2
     RETURNING ${TRACK_RETURNING}`;
 
@@ -109,7 +125,7 @@ interface TrackIds {
     no: number;
 }
 
-/** 掃描建立歌曲（同步 T-105 重用）：新增一首歌；冇呢張碟 → null。id 或者歌號撞咗會 throw（isIdTaken / isNumberTaken） */
+/** 同步建立歌曲（T-105）：新增一首歌；冇呢張碟 → null。id 或者歌號撞咗會 throw（isIdTaken / isNumberTaken） */
 export const insertTrack = async (
     db: D1Database,
     ids: TrackIds,
@@ -118,12 +134,11 @@ export const insertTrack = async (
     files: TrackFiles = NO_FILES,
 ): Promise<TrackRow | null> => {
     const now = new Date().toISOString();
-    const { audioKey, mvKey, textSourceEtag } = files;
+    const { audioKey, mvKey, textKey, textSourceEtag } = files;
     const { id, albumId, no } = ids;
     const songValues = [song.title, ...creditValues(song)];
-    const insert = db
-        .prepare(INSERT_SQL)
-        .bind(id, albumId, no, ...songValues, audioKey, mvKey, textSourceEtag, now);
+    const fileValues = [audioKey, mvKey, textSourceEtag, textKey];
+    const insert = db.prepare(INSERT_SQL).bind(id, albumId, no, ...songValues, ...fileValues, now);
     const statements = lyrics ? [insert, lyricsWrite(db, id, lyrics, now)] : [insert];
     const [inserted] = await db.batch<TrackRow>(statements);
     const row = inserted?.results[0];
@@ -132,7 +147,7 @@ export const insertTrack = async (
 
 /**
  * API-041：歌名、credit + 歌詞一個 batch；If-Match 過時或者冇呢首歌 → null。
- * `textSourceEtag`：掃描套用（API-031）先畀，一齊記低；人手儲存唔改佢（bucket 嗰個檔冇再改，掃描唔會再建議）
+ * `textSourceEtag`：畀咗就一齊記低；API-041 人手儲存唔改佢（T-106 改為寫返 bucket 再同步）
  */
 export const saveSongText = async (
     db: D1Database,

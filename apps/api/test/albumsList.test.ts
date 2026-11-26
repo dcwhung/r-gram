@@ -85,14 +85,15 @@ describe('GET /api/albums', () => {
             expect(first, key).not.toHaveProperty(key);
     });
 
-    // D69：類別（RELEASE_CATEGORIES 次序）→ 序號 → id
+    // D69：類別（RELEASE_CATEGORIES 次序）→ 序號 → id。W-039：id 嘅字母次序同預期次序相反，
+    // 唔排（D1 GROUP BY 按 id 出）就一定 fail
     it('should order by category, then number, then id', async () => {
-        await insertAlbum('z', 0, { category: 'single', category_no: 1 });
-        await insertAlbum('y', 0, { category: 'ep', category_no: 1 });
-        await insertAlbum('x', 0, { category: 'album', category_no: 10 });
-        await insertAlbum('m', 0, { category: 'album', category_no: 2 });
-        await insertAlbum('l', 0, { category: 'album', category_no: 2, folder: 'album-02-l' });
-        expect((await list()).albums.map((album) => album.id)).toEqual(['l', 'm', 'x', 'y', 'z']);
+        await insertAlbum('a', 0, { category: 'single', category_no: 1 });
+        await insertAlbum('b', 0, { category: 'ep', category_no: 1 });
+        await insertAlbum('c', 0, { category: 'album', category_no: 10 });
+        await insertAlbum('e', 0, { category: 'album', category_no: 2 });
+        await insertAlbum('d', 0, { category: 'album', category_no: 2 });
+        expect((await list()).albums.map((album) => album.id)).toEqual(['d', 'e', 'c', 'b', 'a']);
     });
 
     it('should work out the wheel key from the title', async () => {

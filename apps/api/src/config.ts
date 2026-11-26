@@ -70,9 +70,13 @@ export const ERROR_CODE = {
     invalidDocument: 'INVALID_DOCUMENT',
     /** catalog.json 寫唔到 R2（API-061） */
     catalogWriteFailed: 'CATALOG_WRITE_FAILED',
-    /** 掃描：媒體 bucket 冇呢張專輯嘅資料夾，或者入面冇檔（API-030） */
+    /** 同步：媒體 bucket 冇呢個資料夾，或者入面冇檔（API-034） */
     folderEmpty: 'FOLDER_EMPTY',
-    /** 掃描套用：呢個歌號而家冇音檔（Functional Spec D54；API-031 逐項結果） */
+    /** 同步：資料夾名唔啱 `<類別>-<NN>-<id>`，或者係 `_` 開頭嘅保留資料夾（API-034） */
+    invalidFolder: 'INVALID_FOLDER',
+    /** 同步：另一個資料夾都用緊呢個專輯 id（Functional Spec D67；API-034） */
+    duplicateAlbumId: 'DUPLICATE_ALBUM_ID',
+    /** 歌曲文字：呢首歌冇音檔（Functional Spec D54；T-106 API-041 用） */
     noAudio: 'NO_AUDIO',
     internal: 'INTERNAL',
 } as const;
@@ -133,23 +137,21 @@ export const NO_REFERRER = 'no-referrer';
 export const NO_SNIFF = 'nosniff';
 
 /**
- * 掃描（T-025；Technical Spec「CR-004 → 掃描嘅設計 → 限制同風險」、R-016）：Worker 每個請求對 Cloudflare 服務
- *（R2、D1 binding）嘅操作有上限（Cloudflare 文件：每個請求最多 1000 個；外部 subrequest 免費計劃 50 個）。
- * 一次預覽：list（每 1000 個檔一次）+ 最多呢個數嘅 `.txt` 讀取 + 手動指定檔案嘅 head（只限呢張碟）+ 幾句 D1。
- * 原聲大碟 41 首，第一次掃描一次過讀得晒；超過就分批（預覽回 more / nextFrom）
+ * 同步（T-105；Technical Spec「CR-007 → 同步嘅設計 → 每個請求嘅操作上限」、R-016）：Worker 每個請求對 Cloudflare 服務
+ *（R2、D1 binding）嘅操作有上限（假設 1000 個；部署前對官方文件，backlog B-074 ④）。
+ * 一次 API-034 最多處理呢個數嘅「有嘢做」嘅歌（要寫 D1 或者要讀 `.txt`）；每首最多：讀 `.txt` 1 + 歌詞 JSON put 1 +
+ * D1 batch 1（id 撞咗再試最多 3）+ 生成 catalog 之後清舊歌詞檔 2 ≈ 5 → 500；加 list 兩次（各 ≤ SCAN_LIST_PAGES_MAX 頁）、
+ * `info.txt` 1、D1 讀 2、專輯寫 2、生成 catalog 約 5，最多約 525。原聲大碟 41 首一次過做得晒；
+ * 超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔，唔計 D1 寫入）
  */
-export const SCAN_TEXT_READS_MAX = 100;
+export const SYNC_TRACKS_MAX = 100;
 /**
  * 媒體 bucket 一次 list 最多讀幾頁（每頁最多 1000 個，一頁 = 一個 R2 操作；review S-136）：
- * 一張碟嘅資料夾幾十個檔，一頁就夠；到咗上限就停，回應講明（listTruncated / truncated），唔會一直讀落去
+ * 一張碟嘅資料夾幾十個檔、bucket 第一層幾十個資料夾，一頁就夠；到咗上限就停，回應講明（truncated），唔會一直讀落去
  */
 export const SCAN_LIST_PAGES_MAX = 5;
 /**
- * 預覽時手動指定喺其他資料夾嘅檔最多 head 幾個（review S-136）；超過嘅唔檢查，列喺 manualUnchecked
+ * 一次 API-035 最多確認幾多項（Technical Spec SYNC_REMOVALS_MAX）：每項最多 list 一個資料夾（≤ SCAN_LIST_PAGES_MAX 頁，
+ * 同一張碟只 list 一次）+ `info.txt` 1 + D1 2–3 + 清歌詞檔；最差約 50 ×（5 + 1 + 3）+ 第一層 list 5 + 生成 catalog ≈ 460
  */
-export const SCAN_MANUAL_HEADS_MAX = 50;
-/**
- * 一次套用每一類（create、songTexts、media、clearAudio）最多幾多項：create / songTexts 每項約 4 個操作
- *（讀 .txt、寫歌詞檔、D1 batch、清舊歌詞檔），四類加埋最多約 500 個，留位畀 list 同生成 catalog
- */
-export const SCAN_APPLY_MAX_ITEMS = 50;
+export const SYNC_REMOVALS_MAX = 50;

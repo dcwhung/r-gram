@@ -1,6 +1,13 @@
 import { TITLE_MAX_CHARS } from '../song-text/limits';
+import { songLines } from '../song-text/lines';
 import { INFO_TEXT_MAX_BYTES, INFO_TEXT_MAX_LINES } from './limits';
 import { parseAlbumInfo } from './parseAlbumInfo';
+
+// W-038：睇 parser 有冇喺拆行之前先擋走太長嘅文字（行為照舊，只係包住真函數）
+vi.mock('../song-text/lines', async (original) => {
+    const actual = await original<typeof import('../song-text/lines')>();
+    return { ...actual, songLines: vi.fn(actual.songLines) };
+});
 
 /** 用戶嘅真實 `info.txt`（album-11-komorebi；Functional Spec §CR-007 決定 2） */
 const KOMOREBI = [
@@ -124,6 +131,19 @@ describe('parseAlbumInfo', () => {
             const title = '名'.repeat(TITLE_MAX_CHARS);
             expect(parseAlbumInfo(`唱片名稱：${title}`).title).toBe(title);
         });
+
+        // S-158：控制字元、零寬字元、bidi 控制字元睇唔到，唔可以入碟名
+        it('should drop control, zero-width and bidi-control characters from the title', () => {
+            expect(parseAlbumInfo('唱片名稱：Ko\u200bmo\u0007re\u2066bi\u2069').title).toBe(
+                'Komorebi',
+            );
+        });
+
+        it('should treat a title of only hidden characters as no title', () => {
+            const info = parseAlbumInfo('唱片名稱：\u200b\u202e\ufeff');
+            expect(info.title).toBeNull();
+            expect(info.checks).toEqual([{ level: 'warning', code: 'INFO_NO_TITLE', params: {} }]);
+        });
     });
 
     describe('track lines', () => {
@@ -143,6 +163,11 @@ describe('parseAlbumInfo', () => {
             ['  12 .  歌名  ', 12],
             ['１２. 歌名', 12],
             ['999. 歌名', 999],
+            // S-161（main session 決定，等用戶確認）：歌號之後嘅 `-`、`–`、`—` 都係分隔
+            ['01 - 歌名', 1],
+            ['1-歌名', 1],
+            ['2 – 歌名', 2],
+            ['3—歌名', 3],
         ])('should read %j as track %i', (line, no) => {
             const info = parseAlbumInfo(`唱片名稱：A\n${line}`);
             expect(info.tracks).toEqual([{ no, title: '歌名', line: 2 }]);
@@ -153,6 +178,11 @@ describe('parseAlbumInfo', () => {
             '1歌名',
             '0. 歌名',
             '1000. 歌名',
+            // S-159：歌號最多三位，四位數字（連補零）唔係歌號
+            '0001. 歌名',
+            '1234 歌名',
+            // `曲目：` 有值唔係標頭，亦唔係曲目行
+            '曲目：1. 歌名',
             '1. ',
             '1.',
             'A. 歌名',
@@ -163,6 +193,26 @@ describe('parseAlbumInfo', () => {
             expect(info.tracks).toEqual([]);
             expect(info.checks).toEqual([
                 { level: 'warning', code: 'INFO_UNKNOWN_LINE', line: 2, params: {} },
+            ]);
+        });
+
+        it('should drop hidden characters from a track title', () => {
+            const info = parseAlbumInfo('唱片名稱：A\n1. \u200e歌\u200d名\u202c');
+            expect(info.tracks).toEqual([{ no: 1, title: '歌名', line: 2 }]);
+        });
+
+        it('should skip a track whose title is only hidden characters', () => {
+            const info = parseAlbumInfo('唱片名稱：A\n1. \u200b\u2060');
+            expect(info.tracks).toEqual([]);
+            expect(info.checks).toEqual([
+                { level: 'warning', code: 'INFO_UNKNOWN_LINE', line: 2, params: {} },
+            ]);
+        });
+
+        it('should accept a track title of exactly the limit', () => {
+            const title = '歌'.repeat(TITLE_MAX_CHARS);
+            expect(parseAlbumInfo(`唱片名稱：A\n1. ${title}`).tracks).toEqual([
+                { no: 1, title, line: 2 },
             ]);
         });
 
@@ -236,17 +286,45 @@ describe('parseAlbumInfo', () => {
             });
         });
 
+        it('should accept exactly the byte limit and refuse one byte more', () => {
+            expect(parseAlbumInfo('x'.repeat(INFO_TEXT_MAX_BYTES)).usable).toBe(true);
+            expect(parseAlbumInfo('x'.repeat(INFO_TEXT_MAX_BYTES + 1)).usable).toBe(false);
+        });
+
+        // 每個中文字 3 byte：字數少過上限，byte 數多過上限
+        it('should count UTF-8 bytes, not characters', () => {
+            const text = '歌'.repeat(6000);
+            expect(text.length).toBeLessThan(INFO_TEXT_MAX_BYTES);
+            expect(codes(text)).toEqual(['INFO_TOO_LARGE']);
+        });
+
+        it('should refuse an overlong text before splitting it into lines', () => {
+            vi.mocked(songLines).mockClear();
+            expect(parseAlbumInfo('\n'.repeat(INFO_TEXT_MAX_BYTES + 1)).usable).toBe(false);
+            expect(songLines).not.toHaveBeenCalled();
+        });
+
         it('should be unusable when it has more lines than the limit', () => {
-            const info = parseAlbumInfo('1. 歌\n'.repeat(INFO_TEXT_MAX_LINES));
+            const info = parseAlbumInfo('1. 歌\n'.repeat(INFO_TEXT_MAX_LINES + 1));
             expect(info.usable).toBe(false);
             expect(info.tracks).toEqual([]);
-            expect(codes('\n'.repeat(INFO_TEXT_MAX_LINES))).toEqual(['INFO_TOO_LARGE']);
+            expect(codes(`${'\n'.repeat(INFO_TEXT_MAX_LINES)}x`)).toEqual(['INFO_TOO_LARGE']);
         });
 
         it('should accept exactly the line limit', () => {
             const text = `唱片名稱：A${'\n'.repeat(INFO_TEXT_MAX_LINES - 1)}`;
             expect(parseAlbumInfo(text).usable).toBe(true);
         });
+
+        // S-160：數有內容嘅行；檔尾嘅換行唔會多出一行（formatAlbumInfo 一定喺檔尾加換行）
+        it.each(['\n', '\r\n', '\r'])(
+            'should accept the line limit followed by a final %j',
+            (lineBreak) => {
+                const text = `x${lineBreak}`.repeat(INFO_TEXT_MAX_LINES);
+                expect(parseAlbumInfo(text).usable).toBe(true);
+                expect(parseAlbumInfo(`${text}x`).usable).toBe(false);
+            },
+        );
 
         it('should report an empty file as having no title', () => {
             expect(parseAlbumInfo('')).toEqual({

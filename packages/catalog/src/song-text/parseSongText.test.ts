@@ -104,6 +104,20 @@ describe('parseSongText', () => {
             expect(codes(' \n\t\n')).toEqual([{ line: 1, code: 'TITLE_REQUIRED' }]);
         });
 
+        // S-158：同 info.txt 一樣，歌名去走睇唔到嘅字元
+        it('should drop control, zero-width and bidi-control characters from the title', () => {
+            expect(parseSongText('一早\u200b地下\u202e鐵\u0008\n曲：阿正').title).toBe(
+                '一早地下鐵',
+            );
+        });
+
+        it('should require a title when the first line is only hidden characters', () => {
+            const result = parseSongText('\u200b\u2066\n曲：阿正');
+            expect(result.title).toBe('');
+            expect(codes('\u200b\u2066\n曲：阿正')).toEqual([{ line: 1, code: 'TITLE_REQUIRED' }]);
+            expect(result.credits).toEqual({ ...NO_CREDITS, composer: '阿正' });
+        });
+
         it('should not take a timed line as the title, but still read it as lyrics', () => {
             const result = parseSongText('[00:01.00]第一句\n[00:02.00]第二句');
             expect(result.errors).toEqual([

@@ -9,7 +9,7 @@ import { toTrack, type TrackRow } from './rows';
 import type { ReadSong, StoredLyrics } from './songText';
 import type { TrackTextRow } from './store';
 
-/** formatSongText() 要嘅 D1 欄（tracks + lyrics.source）；掃描（media/state.ts）亦用 */
+/** formatSongText() 要嘅 D1 欄（tracks + lyrics.source） */
 export type SongTextColumns = Pick<
     TrackTextRow,
     'title' | 'source' | (typeof CREDIT_FIELDS)[number]

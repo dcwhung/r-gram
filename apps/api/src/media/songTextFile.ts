@@ -1,9 +1,16 @@
 /*
- * 讀媒體 bucket 嘅歌曲文字檔（`NN 名.txt`；Technical Spec「掃描嘅設計 → 歌曲文字」）：
+ * 讀媒體 bucket 嘅歌曲文字檔（`NN 名.txt`；Technical Spec「同步嘅設計」）：
  * 大過 SONG_TEXT_MAX_BYTES 唔讀（TOO_LARGE，同 API-041 一樣嘅上限）→ UTF-8 解碼（唔係 UTF-8 = BAD_ENCODING；
- * BOM 由解碼器去走，CRLF 由 parseSongText() 正規化）→ parseSongText()。錯誤逐行列出（檔案層面 = 第 0 行）
+ * BOM 由解碼器去走，CRLF 由 parseSongText() 正規化）→ parseSongText()。錯誤逐行列出（檔案層面 = 第 0 行）；
+ * 唔擋嘅提示（`副題：` 行，D72）一齊回
  */
-import { parseSongText, SONG_TEXT_MAX_BYTES, songOf, type SongText } from '@r-gram/catalog';
+import {
+    parseSongText,
+    SONG_TEXT_MAX_BYTES,
+    songOf,
+    type SongText,
+    type SongTextHint,
+} from '@r-gram/catalog';
 import { textError, type TextError } from './errors';
 
 /** 檔案層面嘅錯誤嘅行號 */
@@ -15,7 +22,7 @@ export interface TextFileRef {
 }
 
 /** `etag` = 讀到嗰個版本（檔已經唔喺度 = null） */
-export type TextRead = { etag: string | null } & (
+export type TextRead = { etag: string | null; hints: SongTextHint[] } & (
     { song: SongText; errors: [] } | { song: null; errors: TextError[] }
 );
 
@@ -23,15 +30,24 @@ const failed = (etag: string | null, reason: TextError['reason']): TextRead => (
     etag,
     song: null,
     errors: [textError(FILE_LINE, reason)],
+    hints: [],
 });
 
-/** ignoreBOM: false = 解碼時去走開頭嘅 BOM */
-const decode = (buffer: ArrayBuffer): string | undefined => {
+/** ignoreBOM: false = 解碼時去走開頭嘅 BOM；唔係 UTF-8 → undefined */
+export const decodeUtf8 = (buffer: ArrayBuffer): string | undefined => {
     try {
         return new TextDecoder('utf-8', { fatal: true, ignoreBOM: false }).decode(buffer);
     } catch {
         return undefined;
     }
+};
+
+const parsed = (etag: string, text: string): TextRead => {
+    const result = parseSongText(text);
+    const { errors, hints } = result;
+    if (errors.length === 0) return { etag, song: songOf(result), errors: [], hints };
+    const listed = errors.map(({ line, code }) => textError(line, code));
+    return { etag, song: null, errors: listed, hints };
 };
 
 export const readSongTextFile = async (bucket: R2Bucket, file: TextFileRef): Promise<TextRead> => {
@@ -43,11 +59,7 @@ export const readSongTextFile = async (bucket: R2Bucket, file: TextFileRef): Pro
         await object.body.cancel();
         return failed(object.httpEtag, 'TOO_LARGE');
     }
-    const text = decode(await object.arrayBuffer());
+    const text = decodeUtf8(await object.arrayBuffer());
     if (text === undefined) return failed(object.httpEtag, 'BAD_ENCODING');
-    const result = parseSongText(text);
-    const { errors } = result;
-    if (errors.length === 0) return { etag: object.httpEtag, song: songOf(result), errors: [] };
-    const listed = errors.map(({ line, code }) => textError(line, code));
-    return { etag: object.httpEtag, song: null, errors: listed };
+    return parsed(object.httpEtag, text);
 };

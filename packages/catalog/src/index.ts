@@ -26,25 +26,7 @@ export {
     type NumberedKind,
     type UnmatchedReason,
 } from './scan/classifyFile';
-export { planScan } from './scan/planScan';
 export type { ScanFile } from './scan/scanFiles';
-export type {
-    CoverSource,
-    FileChange,
-    MatchedMedia,
-    MediaKind,
-    NewTrackPlan,
-    ScanAlbumState,
-    ScanConflict,
-    ScanInput,
-    ScanPlan,
-    ScanTrackState,
-    SkippedFile,
-    SkipReason,
-    TextCandidate,
-    TextSource,
-} from './scan/scanTypes';
-export { songTextChange, type SongTextComparison, type TextChange } from './scan/songTextChange';
 export { titleFromFileName } from './scan/titleFromFileName';
 export {
     FAVOURITES_ALBUM_ID,
@@ -107,6 +89,33 @@ export type {
     SongTextHintCode,
     SongTextResult,
 } from './song-text/types';
-export { CHECK_LEVELS, checkOf, type Check, type CheckCode, type CheckLevel } from './sync/checks';
+export {
+    CHECK_LEVELS,
+    checkOf,
+    CHECKS_MAX,
+    type Check,
+    type CheckCode,
+    type CheckLevel,
+} from './sync/checks';
+export { planFolderSync } from './sync/planFolderSync';
+export {
+    carriedChecks,
+    sortChecks,
+    textChecks,
+    type TextCheckInput,
+    type TextReadSummary,
+} from './sync/textChecks';
 export { titleKey } from './sync/titleKey';
+export type {
+    CoverJob,
+    FolderPlan,
+    PendingRemoval,
+    PlannedTrack,
+    RemovalKind,
+    SyncAlbumState,
+    SyncInfo,
+    SyncInput,
+    SyncTrackState,
+    TextSource as SyncTextSource,
+} from './sync/types';
 export { WHEEL_KEY_FALLBACK, wheelKeyFor } from './wheel/wheelKeyFor';
