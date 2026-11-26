@@ -10,6 +10,12 @@ describe('arcScroll', () => {
             expect(snapIndex(1.6, [0, 1, 3], 4)).toBe(1);
         });
 
+        // S-204：啱啱喺兩行中間：停喺前面嗰行
+        it('should snap to the earlier row when the offset is exactly between two rows', () => {
+            expect(snapIndex(1.5, [0, 1, 2, 3], 4)).toBe(1);
+            expect(snapIndex(2, [0, 1, 3], 4)).toBe(1);
+        });
+
         it('should snap to the nearest row when no row can play, within the list', () => {
             expect(snapIndex(1.6, [], 3)).toBe(2);
             expect(snapIndex(-3, [], 3)).toBe(0);

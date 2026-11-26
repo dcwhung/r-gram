@@ -28,6 +28,13 @@ describe('isPhoneLandscape (Functional Spec US-015, FR-018)', () => {
         ).toBe(false);
     });
 
+    // S-204：短邊啱啱係上限都當手機
+    it('should be true when the short side is exactly the phone limit', () => {
+        expect(isPhoneLandscape(touch(PHONE_MAX_SHORT_SIDE_PX * 2, PHONE_MAX_SHORT_SIDE_PX))).toBe(
+            true,
+        );
+    });
+
     it('should be false for a small desktop window with a mouse', () => {
         expect(isPhoneLandscape({ width: 852, height: 393, coarsePointer: false })).toBe(false);
     });

@@ -297,7 +297,7 @@ describe('ArcTrackList', () => {
         expect(shown.getAttribute('d')).toContain('a112 112 0 1 0 224 0');
     });
 
-    // 全部都未有音檔：照可以捲（停喺最近一行），但冇嘢播
+    // 全部都未有音檔：滾輪同方向鍵一樣逐行捲（S-204），但冇嘢播
     it('should still scroll a disc where nothing can play, and play nothing', () => {
         const silent = [row(1, false), row(2, false), row(3, false)];
         const { container, listbox, selected, onPlay } = renderList(view(silent, 0));
@@ -306,7 +306,11 @@ describe('ArcTrackList', () => {
         fireEvent.wheel(root, { deltaY: 1, deltaMode: 1 });
         expect(selected()).toHaveAccessibleName('第 2 首：歌 2（未有音檔）');
         fireEvent.keyDown(listbox(), { key: 'ArrowDown' });
-        expect(selected()).toHaveAccessibleName('第 2 首：歌 2（未有音檔）');
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3（未有音檔）');
+        fireEvent.keyDown(listbox(), { key: 'Home' });
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1（未有音檔）');
+        fireEvent.keyDown(listbox(), { key: 'End' });
+        expect(selected()).toHaveAccessibleName('第 3 首：歌 3（未有音檔）');
         fireEvent.keyDown(listbox(), { key: 'Enter' });
         expect(onPlay).not.toHaveBeenCalled();
     });
