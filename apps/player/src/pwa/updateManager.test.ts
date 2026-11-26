@@ -27,6 +27,9 @@ const setup = (overrides: Partial<UpdateManagerDeps> = {}) => {
         blockReloads: () => {
             reloadAllowed = false;
         },
+        allowReloads: () => {
+            reloadAllowed = true;
+        },
     };
 };
 
@@ -156,6 +159,32 @@ describe('UpdateManager: reloading', () => {
         manager.handleNeedRefresh();
         manager.handleControllerChange();
         expect(deps.reload).not.toHaveBeenCalled();
+    });
+
+    it('should not keep "apply now" after the reload was blocked (W-049)', () => {
+        const { deps, manager, blockReloads, allowReloads } = setup();
+        manager.setPlaying(true);
+        manager.handleNeedRefresh();
+        blockReloads();
+        manager.applyNow();
+        manager.handleControllerChange();
+        expect(deps.reload).not.toHaveBeenCalled();
+        allowReloads();
+        manager.handleControllerChange();
+        expect(deps.reload).not.toHaveBeenCalled();
+        expect(manager.getSnapshot()).toBe('waiting');
+    });
+
+    it('should handle a later version by the rules after a blocked reload (W-049)', () => {
+        const { deps, manager, blockReloads, allowReloads } = setup();
+        blockReloads();
+        manager.handleNeedRefresh();
+        manager.handleControllerChange();
+        allowReloads();
+        manager.setPlaying(true);
+        manager.handleNeedRefresh();
+        expect(deps.applyUpdate).toHaveBeenCalledTimes(1);
+        expect(manager.getSnapshot()).toBe('waiting');
     });
 
     it('should hold a takeover by another tab until playback stops', () => {
