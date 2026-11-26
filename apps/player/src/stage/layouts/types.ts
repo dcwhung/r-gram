@@ -140,6 +140,24 @@ export interface HeldTracksLayout {
     dragThresholdPx: number;
 }
 
+/**
+ * 弧線歌單（設計稿第 18 版 LIST、listLayer()、focusFrame()、dimLayer()；T-037）。弧線半徑同每行角度喺 `arc`。
+ * 揀中嗰行（框入面）字級 `focusSize`，其他 `restSize`；歌號字級 = 行字級 × `number.scale`，歌名喺歌號後面
+ * 歌號字級 × `number.gapEm` + `number.pad`。框高 `frame.height`、左邊圓頭前面留 `frame.gap`、線粗 `frame.stroke`
+ *（CSS px，唔跟縮放）。越遠越淡：(1 − |k| ÷ `visible`)^`fade.power`，唔係揀中 × `fade.rest`，未有音檔 × `fade.off`，
+ * 最淡 `fade.min`；|k| > `visible` 唔畫。暗層黑色 `veil`。歌名放唔落 `titleChars` 個（揀中字級）全形字就「…」
+ */
+export interface ArcListLayout {
+    focusSize: number;
+    restSize: number;
+    number: { scale: number; gapEm: number; pad: number };
+    frame: { height: number; gap: number; stroke: number };
+    visible: number;
+    fade: { power: number; rest: number; off: number; min: number };
+    veil: number;
+    titleChars: number;
+}
+
 export interface StageLayout {
     id: LayoutId;
     /** 主頁嘅碟（圓心、半徑） */
@@ -226,6 +244,8 @@ export interface StageLayout {
     preload: PreloadLayout;
     /** 歌單同歌書：沿住同碟同心嘅弧線排 */
     arc: { r: number; stepDeg: number };
+    /** 弧線歌單（㩒碟面；T-037） */
+    list: ArcListLayout;
     /** 淨空同感應範圍規則（Functional Spec CR-002） */
     clearance: {
         /** 掣（連光圈）同 CD */

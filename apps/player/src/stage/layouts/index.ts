@@ -2,6 +2,7 @@ import { PHONE_LAYOUT } from './phone';
 import type { StageLayout } from './types';
 
 export type {
+    ArcListLayout,
     ButtonId,
     HeldTracksLayout,
     InfoLayout,

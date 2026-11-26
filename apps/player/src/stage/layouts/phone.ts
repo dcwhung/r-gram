@@ -61,6 +61,22 @@ const HELD_TRACKS = {
 } as const;
 
 /*
+ * 弧線歌單（T-037）照設計稿第 18 版 LIST（focus、rest、number、frame、visible）；listLayer()、focusFrame()、dimLayer()
+ * 入面寫死嘅數變成有名常數：歌名 x = 歌號 x + 歌號字級 × 1.25 + 18；框左邊圓頭前面 6、線粗 3；淡出指數 1.5、
+ * 其他行 × 0.62、未有音檔 × 0.5、最淡 0.06；暗層 0.8。歌名約 8 個中文字（設計稿表格、Functional Spec D23）
+ */
+const ARC_LIST = {
+    focusSize: 42,
+    restSize: 32,
+    number: { scale: 0.72, gapEm: 1.25, pad: 18 },
+    frame: { height: 88, gap: 6, stroke: 3 },
+    visible: 4.3,
+    fade: { power: 1.5, rest: 0.62, off: 0.5, min: 0.06 },
+    veil: 0.8,
+    titleChars: 8,
+} as const;
+
+/*
  * Preload（T-034）。布料照 _mockups_/r-gram/src/anim.js（v16）嘅 FLAG；logo、進度線同文字照第 18 版 preloadCard()。
  * v16 logo 平放時中心 x = 838 − 240 = 598、闊 640；第 18 版靜止畫面係 540、闊 560：
  * 用第 18 版嘅位同闊度，保留 v16 嘅 58 單位偏移（摺皺會將 logo 拉向旗杆，飄起嚟先喺中間）。
@@ -205,5 +221,6 @@ export const PHONE_LAYOUT: StageLayout = {
     heldTracks: HELD_TRACKS,
     preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
+    list: ARC_LIST,
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },
 };
