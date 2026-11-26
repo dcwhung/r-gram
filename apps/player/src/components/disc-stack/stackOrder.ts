@@ -24,7 +24,9 @@ export const stackOffset = (index: number, current: number, count: number): numb
 /**
  * 畫邊幾隻碟、畫喺邊（由底到頂）：見到嘅範圍（shown）前後各加 EDGE 隻。前面嗰隻只得一個「前面」位，
  * 所以啱啱出咗去（前面第二隻）嘅碟用圈尾嗰個位當佢（碟多過範圍先有）。
- * 碟多過範圍時，轉一格留低嘅碟先後唔變（React 唔使搬佢哋喺 DOM 嘅位，CSS 過場唔會斷）
+ * 碟多過範圍時，轉一格留低嘅碟先後唔變（React 唔使搬佢哋喺 DOM 嘅位，CSS 過場唔會斷）。
+ * 已接受嘅限制（S-217）：條目 ≤ 5 時範圍包住成個圈，前面嗰隻一步之後換去後面，React 要搬佢，佢嘅過場會斷；
+ * ≥ 7 冇呢個問題（真 catalog 22 個）。DiscStack.test.tsx「small catalogues」鎖住呢條界線
  */
 export const stackSlots = (
     count: number,

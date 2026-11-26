@@ -28,20 +28,20 @@ const renderStack = (props: { current?: number; open?: boolean; spinning?: boole
         </svg>,
     ).container;
 
-const stackAt = (current: number) => (
+const stackAt = (current: number, entries: readonly DialEntry[] = ENTRIES) => (
     <svg>
-        <DiscStack layout={LAYOUT} entries={ENTRIES} current={current} open spinning={false}>
+        <DiscStack layout={LAYOUT} entries={entries} current={current} open spinning={false}>
             <g data-part="slot" />
         </DiscStack>
     </svg>
 );
 
 /** 由 current = from 轉去 to：有邊隻碟嘅元素俾拎走再插返（React 搬佢喺 DOM 嘅位置，CSS 過場會冇咗） */
-const reinsertedDiscs = (from: number, to: number) => {
-    const { container, rerender } = render(stackAt(from));
+const reinsertedDiscs = (from: number, to: number, entries: readonly DialEntry[] = ENTRIES) => {
+    const { container, rerender } = render(stackAt(from, entries));
     const observer = new MutationObserver(() => {});
     observer.observe(container, { childList: true, subtree: true });
-    rerender(stackAt(to));
+    rerender(stackAt(to, entries));
     const records = observer.takeRecords();
     observer.disconnect();
     const discsIn = (pick: (record: MutationRecord) => NodeList) =>
@@ -140,5 +140,34 @@ describe('DiscStack', () => {
         const other = renderStack().querySelector('[data-album="g"]');
         expect(other).toHaveAttribute('pointer-events', 'none');
         expect(other).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    /*
+     * S-217（已接受嘅限制，stackOrder.ts）：條目（連 ♥）≤ 5 時畫嘅範圍包住成個圈，前面嗰隻（−1，見到）一步之後
+     * 變去後面（+3），排喺最尾 → React 搬佢喺 DOM 嘅位，佢嘅過場冇咗（即刻消失，唔係邊滑邊淡）。
+     * ≥ 7 時永遠唔使搬（真 catalog 22 個）。呢個測試寫低呢條界線：改咗次序規則要留意
+     */
+    describe('small catalogues (accepted limit)', () => {
+        const entriesOf = (count: number) => ENTRIES.slice(0, count);
+        const movedOnSomeStep = (count: number) =>
+            entriesOf(count).some((_, current) =>
+                [1, -1].some(
+                    (step) =>
+                        reinsertedDiscs(current, (current + step + count) % count, entriesOf(count))
+                            .length > 0,
+                ),
+            );
+
+        it('should move the disc in front to the back of the DOM with five entries or fewer', () => {
+            const count = 5;
+            expect(reinsertedDiscs(0, 1, entriesOf(count))).toEqual([
+                entriesOf(count)[count - 1]?.albumId,
+            ]);
+            expect(movedOnSomeStep(4)).toBe(true);
+        });
+
+        it.each([7, 8, 10])('should never move a disc node with %d entries', (count) => {
+            expect(movedOnSomeStep(count)).toBe(false);
+        });
     });
 });
