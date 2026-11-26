@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import type { UpdateStatus } from '../pwa/updateManager';
@@ -73,6 +73,22 @@ describe('App and the update manager', () => {
         await renderHome(port);
         set('waiting');
         expect(screen.getByRole('status')).toHaveTextContent('已有新版本');
+    });
+
+    // S-199：歌單開住時 Tab 兜圈都要去得到更新提示嘅掣（喺舞台外面）
+    it('should let Tab reach the update button while the list is open', async () => {
+        const { port, set } = fakePort();
+        await renderHome(port);
+        await userEvent.click(screen.getByRole('button', { name: '開啟歌單' }));
+        set('waiting');
+        const apply = screen.getByRole('button', { name: '立即更新並重新載入' });
+        const visited = Array.from({ length: 6 }, () => {
+            fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Tab' });
+            return document.activeElement;
+        });
+        expect(visited).toContain(apply);
+        fireEvent.keyDown(apply, { key: 'Tab' });
+        expect(screen.getByTestId('stage')).toContainElement(document.activeElement as HTMLElement);
     });
 
     it('should run without an update manager (tests, browsers without service workers)', async () => {
