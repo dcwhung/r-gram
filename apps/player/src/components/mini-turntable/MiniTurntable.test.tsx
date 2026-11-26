@@ -37,7 +37,7 @@ const renderMini = (view: MiniView = mini(), onPress = vi.fn()) => {
 describe('MiniTurntable', () => {
     it('should be one button named after going back to the playing disc', () => {
         const { onPress } = renderMini();
-        const button = screen.getByRole('button', { name: '返回播放中的唱片' });
+        const button = screen.getByRole('button', { name: '返回播放中的唱片：我永遠記得' });
         expect(button).toHaveAttribute('tabindex', '0');
         fireEvent.click(button);
         fireEvent.keyDown(button, { key: 'Enter' });
@@ -45,6 +45,22 @@ describe('MiniTurntable', () => {
     });
 
     // W-045：4 個中文字喺 36 號（144）放得落 162 闊；設計稿嘅例子「我永遠記得」5 個字（180）會縮到 32
+    // S-175：掣嘅名講埋入面係邊首歌、播緊定暫停；歌名唔截短
+    it('should name the button with the full title and whether it is paused', () => {
+        const title = '(Just Like) Starting Over';
+        renderMini(mini({ title }));
+        expect(
+            screen.getByRole('button', { name: `返回播放中的唱片：${title}` }),
+        ).toBeInTheDocument();
+    });
+
+    it('should name the button as going back to the paused disc while paused', () => {
+        renderMini(mini({ paused: true, spinning: false }));
+        expect(
+            screen.getByRole('button', { name: '返回已暫停的唱片：我永遠記得' }),
+        ).toBeInTheDocument();
+    });
+
     it('should say it is playing and show the song title, right-aligned left of the disc', () => {
         const { part } = renderMini(mini({ title: '永遠記得' }));
         expect(part('mini-label')).toHaveTextContent('播放中');

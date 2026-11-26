@@ -181,14 +181,14 @@ describe('HomeScene holding another disc', () => {
 
     it('should go back to the loaded disc when the mini turntable is pressed', () => {
         render(scene(holding()));
-        fireEvent.click(screen.getByRole('button', { name: '返回播放中的唱片' }));
+        fireEvent.click(screen.getByRole('button', { name: '返回播放中的唱片：apollo-18 1' }));
         expect(handlers.onReturnToLoaded).toHaveBeenCalled();
     });
 
     // 瀏覽器實測（T-048）：㩒完細唱片機佢就淡出、離開 Tab 次序：focus 交畀唱片夾（同 S-074 一樣），唔好留喺睇唔到嘅掣
     it('should hand the focus to the clamp after the mini turntable is pressed', () => {
         const { container } = render(scene(holding()));
-        const mini = screen.getByRole('button', { name: '返回播放中的唱片' });
+        const mini = screen.getByRole('button', { name: '返回播放中的唱片：apollo-18 1' });
         mini.focus();
         fireEvent.keyDown(mini, { key: 'Enter' });
         expect(document.activeElement).toBe(container.querySelector('.spindle'));
