@@ -96,7 +96,7 @@ export const nextTrack = (
 };
 
 /**
- * 上一首（鎖屏）：永遠去上一首（T-011 報告 Q4「播咗 3 秒先由頭」未答，照現有設計）。
+ * 次序上嘅上一首（純函數，唔睇播咗幾耐）。「播咗超過 3 秒 = 由頭」（D110）喺 controller 嘅 `previous()`。
  * 第一首之前：重覆兩個模式兜去最後一首；順序同隨機（今輪開頭）= 冇
  */
 export const previousTrack = (queue: Queue, currentId: string): string | null => {
