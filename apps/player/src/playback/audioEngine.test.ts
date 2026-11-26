@@ -264,6 +264,15 @@ describe('audioEngine errors and stalls', () => {
         expect(element.plays).toHaveLength(1);
     });
 
+    // S-243：MEDIA_ERR_ABORTED = 下載被中止（換 src、stop）；唔係檔案問題，唔報錯、唔重試
+    it('should ignore an aborted fetch', () => {
+        const { element, engine, types } = setup();
+        engine.playNow(ONE);
+        element.fail('aborted');
+        expect(types()).toEqual(['playing']);
+        expect(element.plays).toHaveLength(1);
+    });
+
     it('should retry a network error at the same position, then give up', () => {
         const { element, engine, events } = setup();
         engine.playNow(ONE);

@@ -7,7 +7,7 @@
 /** `play()` 點樣回應：auto = 有數據即刻出聲；hold = 等測試 `resolvePlay()`；blocked = 瀏覽器唔准 */
 export type FakePlayMode = 'auto' | 'hold' | 'blocked';
 
-const MEDIA_ERR = { network: 2, decode: 3, unsupported: 4 } as const;
+const MEDIA_ERR = { aborted: 1, network: 2, decode: 3, unsupported: 4 } as const;
 
 export type FakeMediaError = keyof typeof MEDIA_ERR;
 
