@@ -156,11 +156,18 @@ describe('Tv seek knob', () => {
         expect(on.onSeekBy.mock.calls.map(([sec]) => sec)).toEqual([10, 10, -10, -10]);
     });
 
-    it('should go to the start with Home and near the end with End', () => {
+    // S-263：End 唔跳到最尾（播完 = 電視即刻收埋），跳到尾之前一格
+    it('should go to the start with Home and one step before the end with End', () => {
         const { seek, on } = renderKnobs();
         fireEvent.keyDown(seek, { key: 'Home' });
         fireEvent.keyDown(seek, { key: 'End' });
-        expect(on.onSeekTo.mock.calls.map(([sec]) => sec)).toEqual([0, 200]);
+        expect(on.onSeekTo.mock.calls.map(([sec]) => sec)).toEqual([0, 190]);
+    });
+
+    it('should not go before the start with End on a very short MV', () => {
+        const { seek, on } = renderKnobs(view({ durationSec: 4 }));
+        fireEvent.keyDown(seek, { key: 'End' });
+        expect(on.onSeekTo).toHaveBeenCalledWith(0);
     });
 
     // 第二粒向右扭快轉、向左扭倒轉（§CR-002「MV 電視」）
