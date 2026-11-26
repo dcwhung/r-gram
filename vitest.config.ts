@@ -6,6 +6,7 @@ export default defineConfig({
     test: {
         projects: [
             'apps/player',
+            'apps/admin',
             'packages/catalog',
             'apps/api',
             // repo 根 scripts/（CI 用嘅 shell script）：喺 Node 入面對臨時 git repo 真係跑一次

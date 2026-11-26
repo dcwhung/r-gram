@@ -1,3 +1,4 @@
+// @vitest-environment node
 /*
  * 介面文字要經 `t()`（Functional Spec FR-037）：src 入面（語言檔同測試除外）嘅字串、template、JSX 文字唔可以有中文字。
  * 用 TypeScript parser 行語法樹，註解唔計
