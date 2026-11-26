@@ -103,3 +103,42 @@ describe('search engines (Functional Spec FR-011)', () => {
         expect(denied('/index.html')).toBe(false);
     });
 });
+
+// T-010 spike 頁（用完即棄）：Service Worker 唔可以將佢換成 app，亦唔可以 precache 佢。
+// import 放喺 describe 入面：唔掂檔頭（icon 任務同時改緊上面）
+describe('spike page (T-010)', () => {
+    const spikePage = () => import('./spikePage');
+    const denied = (path: string) => NAVIGATE_FALLBACK_DENYLIST.some((rule) => rule.test(path));
+
+    it('should keep the spike page out of the navigation fallback, with or without a query', async () => {
+        const { SPIKE_PAGE } = await spikePage();
+        expect(SPIKE_PAGE).toBe('spike.html');
+        expect(denied('/spike.html')).toBe(true);
+        expect(denied('/spike.html?media=http%3A%2F%2F127.0.0.1%3A8123%2F')).toBe(true);
+        expect(denied('/spike')).toBe(true);
+    });
+
+    it('should still serve the app shell for the app itself', () => {
+        expect(denied('/')).toBe(false);
+        expect(denied('/index.html')).toBe(false);
+        expect(denied('/spikes')).toBe(false);
+    });
+
+    it('should ignore the spike page and its own assets when building the precache list', async () => {
+        const { matchesGlob } = await import('node:path');
+        const { SPIKE_ASSETS_DIR, SPIKE_PRECACHE_IGNORES } = await spikePage();
+        const ignored = (file: string) =>
+            SPIKE_PRECACHE_IGNORES.some((pattern) => matchesGlob(file, pattern));
+        expect(ignored('spike.html')).toBe(true);
+        expect(ignored(`${SPIKE_ASSETS_DIR}/spike-Ab12.js`)).toBe(true);
+        expect(ignored(`${SPIKE_ASSETS_DIR}/logo-full-Cd34.png`)).toBe(true);
+        expect(ignored('index.html')).toBe(false);
+        expect(ignored('assets/index-Ef56.js')).toBe(false);
+    });
+
+    it('should pass those patterns to Workbox and build the spike after the app', () => {
+        const config = readText('vite.config.ts');
+        expect(config).toContain('globIgnores: [...SPIKE_PRECACHE_IGNORES]');
+        expect(config).toContain('spikeBuild()');
+    });
+});
