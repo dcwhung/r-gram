@@ -93,11 +93,12 @@ export const zhHant = {
     rotate: {
         notice: '請將裝置轉為直向',
     },
-    /** 播緊歌／MV 時有新版（T-039；Functional Spec D14：停咗會自動更新，呢個提示畀聽眾揀即刻更新） */
+    /**
+     * 用緊 app 時有新版（T-039、T-109；Functional Spec D14：下次開 app 會自動更新）：右上版本號變成掣。
+     * available：讀屏聽到嘅通知；applyLabel：版本掣嘅完整名，講明會重新載入（播放會停）
+     */
     update: {
         available: '已有新版本',
-        apply: '立即更新',
-        /** 掣嘅完整名：講明會重新載入（播放會停） */
-        applyLabel: '立即更新並重新載入',
+        applyLabel: '已有新版本，立即更新並重新載入',
     },
 } as const;

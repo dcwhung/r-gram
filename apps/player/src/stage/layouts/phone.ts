@@ -40,6 +40,20 @@ const MINI = {
 const MINI_TITLE_GAP = 20;
 
 /*
+ * 有新版本時右上版本號變成嘅掣（T-109）照設計稿第 20 版 UPDATE_PILL。設計稿用 charW 估字闊；
+ * app 量真字（components/update-button），所以冇 charW。感應範圍高 122（44pt），向右伸到畫面邊
+ */
+const UPDATE_BUTTON = {
+    size: 26,
+    padX: 26,
+    h: 58,
+    right: 1034,
+    midDy: -9,
+    stroke: 3,
+    hit: 122,
+} as const;
+
+/*
  * 碟名下面嘅歌單欄（T-049、B-086）照設計稿第 19 版 TRACKLIST、PANEL_FLOAT。trackPanel() 入面寫死嘅數變成有名常數：
  * 位置條最短 60、每行透明感應範圍闊 right + 20；拖動門檻 6 px 嚟自互動格嘅 pointermove
  */
@@ -222,6 +236,7 @@ export const PHONE_LAYOUT: StageLayout = {
         // 歌單開住（設計稿 infoParts() st.list）：框入面嗰首嘅歌號，slab 32、喺歌名第一行基線上面 2
         listNumber: { x: 74, size: 32, lift: 2 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
+        update: UPDATE_BUTTON,
     },
     miniTurntable: MINI,
     heldTracks: HELD_TRACKS,

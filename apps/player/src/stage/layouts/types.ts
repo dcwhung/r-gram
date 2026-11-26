@@ -64,6 +64,22 @@ export interface InfoLayout {
     listNumber: { x: number; size: number; lift: number };
     /** 右上版本號（靠右對齊：x 係右邊） */
     version: TextLine;
+    /** 有新版本時版本號變成嘅掣（T-109） */
+    update: UpdateButtonLayout;
+}
+
+/**
+ * 版本掣（設計稿第 20 版 UPDATE_PILL）：字級、字同框嘅左右距離、膠囊高、膠囊右邊、膠囊中線比版本號基線高幾多、
+ * 框線粗、感應範圍高（同時係最細闊；向右伸到畫面邊）。字距同基線跟版本號
+ */
+export interface UpdateButtonLayout {
+    size: number;
+    padX: number;
+    h: number;
+    right: number;
+    midDy: number;
+    stroke: number;
+    hit: number;
 }
 
 /**

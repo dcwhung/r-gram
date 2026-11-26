@@ -1,7 +1,7 @@
 import { PreloadScreen } from '../components/flag/PreloadScreen';
 import { RotateNotice } from '../components/rotate-notice/RotateNotice';
-import { UpdatePrompt } from '../components/update-prompt/UpdatePrompt';
-import { NO_UPDATES, type UpdatePort, useLaunchEnd } from '../pwa/useUpdates';
+import { UpdateNotice } from '../components/update-button/UpdateNotice';
+import { NO_UPDATES, type UpdatePort, useLaunchEnd, useUpdateStatus } from '../pwa/useUpdates';
 import { Stage } from '../stage/Stage';
 import { usePhoneLandscape } from '../stage/usePhoneLandscape';
 import { backdropFor, useStageBackdrop } from '../stage/useStageBackdrop';
@@ -20,7 +20,8 @@ interface AppProps {
 /**
  * 舞台 + 場景：Preload（旗幟、真實載入進度，T-034）→ 主頁。Preload 淡出期間主頁已經喺下面。
  * 歌單、轉碟、歌書、MV 喺之後嘅任務加畫面。
- * PWA（T-039、S-197）：Preload 期間搵到新版就自動換；主頁出咗之後有新版只出更新提示；手機打橫用「請打直」蓋住舞台。
+ * PWA（T-039、S-197、T-109）：Preload 期間搵到新版就自動換；主頁出咗之後有新版，右上版本號變成更新掣
+ *（另外有讀屏通知）；手機打橫用「請打直」蓋住舞台。
  */
 export const App = ({ startup, updates = NO_UPDATES }: AppProps) => {
     const { home, preload } = useBoot(startup);
@@ -31,16 +32,23 @@ export const App = ({ startup, updates = NO_UPDATES }: AppProps) => {
     const landscape = usePhoneLandscape();
     const { view, handlers } = home;
     useLaunchEnd(updates, home.stage.scene !== 'preload');
+    // D95：Preload 期間（連旗淡出中）唔出版本掣、唔通知；旗完全淡走先出
+    const waiting = useUpdateStatus(updates) === 'waiting' && preload.exit === 'gone';
     return (
         <>
             <Stage covered={landscape}>
                 {home.stage.scene !== 'preload' && view && handlers ? (
-                    <HomeScene view={view} handlers={handlers} measure={measure} />
+                    <HomeScene
+                        view={view}
+                        handlers={handlers}
+                        measure={measure}
+                        update={waiting ? { onApply: updates.applyNow } : null}
+                    />
                 ) : null}
                 {preload.exit === 'gone' ? null : <PreloadScreen status={preload} />}
             </Stage>
-            {/* 打橫時唔顯示提示（唔好蓋住「請打直」） */}
-            <UpdatePrompt port={updates} covered={landscape} />
+            {/* 打橫時舞台蓋住，唔通知（唔好打斷「請打直」） */}
+            <UpdateNotice waiting={waiting && !landscape} />
             {landscape ? <RotateNotice /> : null}
         </>
     );

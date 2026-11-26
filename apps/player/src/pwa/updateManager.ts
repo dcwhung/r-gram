@@ -6,7 +6,7 @@ import type { ReloadGuard } from './reloadGuard';
  * - 開 app（Preload 期間）搵到新版：即刻 SKIP_WAITING → controllerchange → reload 一次（sessionStorage 防 loop），
  *   聽眾未郁過任何嘢
  * - 用緊 app（Preload 之後）：唔會自己換、唔會自己 reload（播緊、暫停、閒置、返前景都一樣），只係出提示
- *（UpdatePrompt「已有新版本／立即更新」）；聽眾㩒「立即更新」先換
+ *（T-109：右上版本號變成一明一暗嘅版本掣，components/update-button）；聽眾㩒版本掣先換
  * 所有副作用（SW、時間、reload）由外面注入，方便測試。
  */
 
@@ -36,7 +36,7 @@ export class UpdateManager {
     private pending: 'refresh' | 'reload' | undefined;
     /** 已經發咗 SKIP_WAITING：接管之後要 reload */
     private applied = false;
-    /** 聽眾㩒咗「立即更新」：自己揀嘅 reload，唔使防 loop */
+    /** 聽眾㩒咗版本掣（立即更新）：自己揀嘅 reload，唔使防 loop */
     private chosen = false;
     private reloaded = false;
     /** 仲喺開 app（Preload）：呢段時間先會自動換版 */
@@ -104,7 +104,7 @@ export class UpdateManager {
         this.publish();
     };
 
-    /** 更新提示嘅「立即更新」：聽眾自己揀換版（會打斷播放） */
+    /** 㩒版本掣（立即更新）：聽眾自己揀換版（會打斷播放） */
     applyNow = (): void => {
         if (this.pending === undefined) return;
         this.chosen = true;

@@ -2,6 +2,7 @@
  * 動畫時長 token（毫秒）。元件唔可以寫死毫秒數。
  * - feedback：㩒落去嘅即時回饋，全部 ≤ 300ms（團隊規則）
  * - scene：場景過場，用戶已接受超過 300ms（Functional Spec D1）；數值以設計稿第 15 版做準（CR-002「過場動畫」）
+ * - loop：不停重覆嘅提示（例如版本掣一明一暗）
  * - input：輸入嘅時間規則（例如㩒住幾耐），唔係動畫，冇 CSS 變數
  * styles/tokens.css 有同名嘅 CSS 變數；motion.test.ts 鎖住數值。
  */
@@ -79,6 +80,11 @@ export const MOTION = {
         /** 進度線同百分比喺開場之後幾耐先淡入、淡入用幾耐 */
         preloadBarDelayMs: 200,
         preloadBarInMs: 300,
+    },
+    /** 不停重覆嘅提示（減少動態效果時唔郁，CSS 處理） */
+    loop: {
+        /** 有新版本：成粒版本掣一明一暗一個來回（設計稿第 20 版 versionGlow，T-109） */
+        updateBlinkMs: 1400,
     },
     /** 輸入規則（唔係動畫）：減少動態效果都一樣 */
     input: {

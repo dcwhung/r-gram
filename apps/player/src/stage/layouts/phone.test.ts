@@ -99,6 +99,19 @@ describe('PHONE_LAYOUT', () => {
         expect(info.version).toEqual({ x: 1008, y: 118, size: 22, spacing: 3 });
     });
 
+    // T-109：有新版本時版本號變成掣（設計稿第 20 版 UPDATE_PILL；charW 係設計稿估字闊用，app 量真字）
+    it('should carry the update button of mockup version 20', () => {
+        expect(PHONE_LAYOUT.info.update).toEqual({
+            size: 26,
+            padX: 26,
+            h: 58,
+            right: 1034,
+            midDy: -9,
+            stroke: 3,
+            hit: 122,
+        });
+    });
+
     // 碟名右邊留返同左邊一樣嘅位（T-035）；歌名連心形停喺唱臂底座 36 之外（第 18 版 SONG_FIT.right）
     it('should keep the title within the right margin and the song line clear of the tonearm base', () => {
         const { info, arm } = PHONE_LAYOUT;
