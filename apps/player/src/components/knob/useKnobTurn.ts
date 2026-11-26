@@ -1,21 +1,8 @@
-import {
-    type KeyboardEvent,
-    type PointerEvent,
-    type RefObject,
-    useEffect,
-    useRef,
-    useState,
-} from 'react';
+import { type KeyboardEvent, type PointerEvent, type RefObject, useEffect, useRef } from 'react';
 import { MOTION } from '../../config/motion';
 import type { StageLayout } from '../../stage/layouts';
-import {
-    crossesSeam,
-    keyTarget,
-    type KnobTurn,
-    moveTurn,
-    startTurn,
-    turnedPosition,
-} from './knobTurn';
+import { keyTarget, type KnobTurn, moveTurn, startTurn, turnedPosition } from './knobTurn';
+import { type SeamJump, useSeamJump } from './useSeamJump';
 
 const RAD_TO_DEG = 180 / Math.PI;
 /** 完成揀碟（留喺指住嗰隻碟）嘅鍵 */
@@ -240,23 +227,36 @@ const keyboardTurn = (
     },
 });
 
-/**
- * 頭尾相接（第 20 版）：擰過 ♥ 去第一隻碟（或者倒轉）時指針由刻度尾跳返刻度頭，唔好轉成個刻度弧返去。
- * `jump` = 啱啱嗰一步跨過咗（Home / End 唔計）；字母盤閂埋就冇
- */
-const useSeamJump = (options: KnobTurnOptions) => {
-    const [jump, setJump] = useState(false);
-    const turn = (position: number, mayJump: boolean) => {
-        setJump(mayJump && crossesSeam(options.current, position, options.positions));
+/** 將開始、每一步、完成同取消都話畀 useSeamJump 知（指針跨過 ♥ 同第一隻碟之間就跳，S-218） */
+const withSeamJump = (options: KnobTurnOptions, seam: SeamJump): KnobTurnOptions => ({
+    ...options,
+    onStart: () => {
+        seam.start();
+        options.onStart();
+    },
+    onTurn: (position) => {
+        seam.turn(position, true);
         options.onTurn(position);
-    };
-    return { jump: jump && options.open, turn };
-};
+    },
+    onEnd: () => {
+        seam.finish();
+        options.onEnd();
+    },
+    onCancel: () => {
+        seam.cancel();
+        options.onCancel();
+    },
+});
 
 export const useKnobTurn = (options: KnobTurnOptions) => {
-    const { jump, turn } = useSeamJump(options);
-    const turning = { ...options, onTurn: (position: number) => turn(position, true) };
-    const { hitRef, drag, hold, ...pointer } = usePointerTurn(turning);
-    const keyboard = keyboardTurn(options, drag, hold.cancel, turn);
-    return { hitRef, jump, handlers: { ...pointer, ...keyboard } };
+    const seam = useSeamJump(options.current, options.positions);
+    const tracked = withSeamJump(options, seam);
+    const { hitRef, drag, hold, ...pointer } = usePointerTurn(tracked);
+    /** 鍵盤嘅一步：Home / End 照轉，但唔當跳 */
+    const turn = (position: number, mayJump: boolean) => {
+        seam.turn(position, mayJump);
+        options.onTurn(position);
+    };
+    const keyboard = keyboardTurn(tracked, drag, hold.cancel, turn);
+    return { hitRef, jump: seam.jump, handlers: { ...pointer, ...keyboard } };
 };
