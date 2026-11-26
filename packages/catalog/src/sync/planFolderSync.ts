@@ -49,5 +49,6 @@ export const planFolderSync = (input: SyncInput): FolderPlan => {
         coverJobs: covers.jobs,
         checks: sortChecks(checks),
         infoSettled: list.infoUsable && !input.truncated && gone.length === 0,
+        infoUsed: list.mode === 'info',
     };
 };

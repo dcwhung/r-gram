@@ -6,7 +6,7 @@
 import type { ImageSize } from './invalidImage';
 import { parseJpeg } from './jpeg';
 import { parsePng, PNG_SIGNATURE } from './png';
-import { parseWebp } from './webp';
+import { parseWebp, readWebpSize } from './webp';
 
 export interface ImageFormat {
     contentType: string;
@@ -16,6 +16,11 @@ export interface ImageFormat {
     magic: readonly (number | null)[];
     /** 成個檔嘅結構檢查 + 闊高；唔合規 throw InvalidImageError */
     parse: (bytes: Uint8Array) => ImageSize;
+    /**
+     * 只由檔頭一段讀闊高（S-186，API-017；圖已經過 parse）：PNG、WebP 嘅闊高喺頭幾十 bytes；
+     * JPEG 要行到 SOF，前面嘅 segment 唔夠就 throw（截短）
+     */
+    size: (bytes: Uint8Array) => ImageSize;
 }
 
 const ANY = null;
@@ -30,9 +35,22 @@ export const IMAGE_FORMATS: readonly ImageFormat[] = [
         extension: 'webp',
         magic: [...ascii('RIFF'), ...RIFF_SIZE, ...ascii('WEBP')],
         parse: parseWebp,
+        size: readWebpSize,
     },
-    { contentType: 'image/jpeg', extension: 'jpg', magic: JPEG_MAGIC, parse: parseJpeg },
-    { contentType: 'image/png', extension: 'png', magic: PNG_SIGNATURE, parse: parsePng },
+    {
+        contentType: 'image/jpeg',
+        extension: 'jpg',
+        magic: JPEG_MAGIC,
+        parse: parseJpeg,
+        size: parseJpeg,
+    },
+    {
+        contentType: 'image/png',
+        extension: 'png',
+        magic: PNG_SIGNATURE,
+        parse: parsePng,
+        size: parsePng,
+    },
 ];
 
 const matchesMagic = ({ magic }: ImageFormat, bytes: Uint8Array): boolean =>

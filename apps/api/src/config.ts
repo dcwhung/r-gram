@@ -76,6 +76,15 @@ export const ERROR_CODE = {
     invalidFolder: 'INVALID_FOLDER',
     /** 同步：另一個資料夾都用緊呢個專輯 id（Functional Spec D67；API-034） */
     duplicateAlbumId: 'DUPLICATE_ALBUM_ID',
+    /**
+     * 寫返媒體 bucket：bucket 入面嘅 `info.txt`／歌曲文字檔大過上限（文字框冇顯示過內容），唔覆蓋（review S-181）；
+     * 要喺電腦改細再上載
+     */
+    fileTooLarge: 'FILE_TOO_LARGE',
+    /** 歌曲文字：歌號已經唔喺曲目表（`info.txt` 冇咗呢首，待確認移除），唔寫（T-106 API-041，review S-183） */
+    trackNotListed: 'TRACK_NOT_LISTED',
+    /** 寫返媒體 bucket：D1 記住嘅資料夾嘅 id 唔係呢張碟（人手改過 D1；T-106 API-019、041，review S-184） */
+    folderMismatch: 'FOLDER_MISMATCH',
     /** 歌曲文字：呢首歌冇音檔（Functional Spec D54；T-106 API-041 用） */
     noAudio: 'NO_AUDIO',
     /** 歌曲文字：同一個歌號有幾個 `.txt`，而 D1 連住嗰個唔喺度（T-106 API-040、041） */
@@ -104,6 +113,14 @@ const BYTES_PER_MB = 1024 * 1024;
 export const IMAGE_MAX_MB = 2;
 /** 上載圖大細上限（Technical Spec「安全設計 → 上載」IMAGE_MAX_BYTES） */
 export const IMAGE_MAX_BYTES = IMAGE_MAX_MB * BYTES_PER_MB;
+/**
+ * API-017 讀圖嘅頭幾多 bytes（R2 range get，review S-186）：PNG 嘅 IHDR 喺頭 33 bytes、WebP 第一個 chunk 喺頭 30 bytes，
+ * 一定夠；JPEG 嘅 SOF 喺 APPn（EXIF、ICC 每段最多 64 KB，可以幾段）之後，固定長度保證唔到：頭唔夠而個檔更長就再讀成個檔，
+ * 上限係 IMAGE_MAX_BYTES（assets 嘅圖全部經 API-050 上載）。管理端 canvas 出嘅 JPEG 冇大 metadata，一次就夠
+ */
+export const IMAGE_HEADER_BYTES = 64 * 1024;
+/** API-017 body 字元上限（未 parse 就擋）：sourceKey 最長 1024，其餘欄好短 */
+export const COVER_BODY_MAX_CHARS = 8 * 1024;
 /** 封面兩個尺寸（正方形，Technical Spec「albums」、「性能 → 圖片」）：揀中嘅碟 / 縮圖 */
 export const COVER_SIDE_PX = 1200;
 export const THUMB_SIDE_PX = 320;
@@ -147,7 +164,12 @@ export const NO_SNIFF = 'nosniff';
  * list 第一層 ≤ SCAN_LIST_PAGES_MAX + findAlbum ≤ 1 + list 資料夾 ≤ SCAN_LIST_PAGES_MAX + D1 狀態 1 + `info.txt` 1 +
  * 專輯 1 + 每首（讀 `.txt` 1 + 歌詞 JSON put 1 + D1 1）× 100 + finishAlbum 1 + 生成 catalog 約 5 + 清歌詞 2 ≈ 320；
  * 極端情況（每首 id 撞晒、insertNumbered 試 4 次又 STALE 要即刻清檔）約 830，都喺假設嘅 1000 之內。
- * 原聲大碟 41 首一次過做得晒；超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔）
+ * 原聲大碟 41 首一次過做得晒；超過就分批（回 more / nextFrom）。取代 Technical Spec 寫嘅 SCAN_TEXT_READS_MAX（只計讀檔）。
+ * 寫返媒體 bucket（T-106，review S-188）：API-019 `info.txt` = findAlbum 1 + 第一層 list ≤ SCAN_LIST_PAGES_MAX +
+ * findAlbum ≤ 1 + 資料夾 list ≤ SCAN_LIST_PAGES_MAX + put 1 + 上面嘅同步（約 320，極端約 830）≈ 335，極端約 845；
+ * API-041 歌曲文字一樣，另加讀 `info.txt` 1（曲目表，S-183）+ trackOf 1 ≈ 337，極端約 847：100 首嘅碟都喺 1000 之內，
+ * 但只剩約 15% 空位。API-017 封面結果 = findAlbum 1 + assets 1 + 讀圖頭 2（JPEG 頭唔夠再讀 1–2，S-186）+ head 1 +
+ * UPDATE 1（寫唔到再讀 1，S-187）+ 生成 catalog 約 5 ≈ 11，極端約 14
  */
 export const SYNC_TRACKS_MAX = 100;
 /**

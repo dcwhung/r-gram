@@ -53,6 +53,11 @@ export const zhHant = {
             stale: '檔案已在其他地方更改，請重新載入。',
             /** 413 TOO_LARGE：`{maxBytes}`、`{maxLines}` = INFO_TEXT_MAX_BYTES、INFO_TEXT_MAX_LINES */
             tooLarge: 'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限。',
+            /** 409 FILE_TOO_LARGE（review S-181）：媒體庫嘅檔太大，文字框冇顯示，唔覆蓋；`{maxBytes}` 同上 */
+            fileTooLarge:
+                '媒體庫中的 info.txt 超出 {maxBytes} 位元組的上限，未有儲存。請在電腦上把檔案縮小後重新上載，再掃描媒體庫。',
+            /** 413 TOO_LARGE（API-017，review S-186）：body 超出上限，未有處理 */
+            bodyTooLarge: '提交的內容超出大小上限。',
             /** 409 NO_FIRST_COVER（API-017）：D1 CHECK 唔准冇第一張先有第二張 */
             noFirstCover: '這張專輯還沒有第一張封面，不能設定第二張封面。',
         },
@@ -81,10 +86,16 @@ export const zhHant = {
             lyricsRemoved: '儲存後會清除這首歌現有的歌詞，確定要繼續嗎？確認後請再次儲存。',
             /** `{max}` = SONG_TEXT_MAX_BYTES 嘅 KB 數 */
             tooLarge: '歌曲文字超出 {max} KB 的上限。',
+            /** 409 FILE_TOO_LARGE（review S-181）：媒體庫嘅檔太大，文字框冇顯示，唔覆蓋；`{max}` 同上 */
+            fileTooLarge:
+                '媒體庫中的歌曲文字檔超出 {max} KB 的上限，未有儲存。請在電腦上把檔案縮小後重新上載，再掃描媒體庫。',
             /** 409 NO_AUDIO（D54：冇音檔嘅歌唔匯入歌曲文字） */
             noAudio: '這首歌沒有音檔，不能儲存歌曲文字。',
             /** 409 TEXT_CONFLICT：同一個歌號有幾個歌曲文字檔，唔知寫邊個 */
             textConflict: '這首歌有多於一個歌曲文字檔，請先在媒體庫只保留一個。',
+            /** 409 TRACK_NOT_LISTED（review S-183）：歌號已經唔喺 `info.txt`，等緊確認移除 */
+            trackNotListed:
+                '這首歌已不在 info.txt 的曲目表內，正等待確認移除，因此不能儲存歌曲文字。',
         },
         /** details[].message：key = details[].reason */
         reasons: {
@@ -155,6 +166,8 @@ export const zhHant = {
             folderEmpty: '媒體庫中找不到此資料夾，或資料夾內沒有檔案。',
             /** 409 DUPLICATE_ALBUM_ID */
             duplicateAlbumId: '另一個資料夾亦使用相同的專輯 id，請只保留一個資料夾後再掃描。',
+            /** 409 FOLDER_MISMATCH（API-019、041；review S-184）：D1 記錄的資料夾屬於另一個專輯 id */
+            folderMismatch: '此專輯記錄的資料夾屬於另一張專輯，未有儲存，請重新掃描媒體庫。',
         },
         /** details[].message：key = details[].reason */
         reasons: {

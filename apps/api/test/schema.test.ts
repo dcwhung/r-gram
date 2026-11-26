@@ -135,6 +135,7 @@ describe('D1 schema (0001_init)', () => {
             'cover2_source_etag TEXT',
             'folder TEXT NOT NULL',
             'info_etag TEXT',
+            'info_used INTEGER NOT NULL DEFAULT 0',
             "checks TEXT NOT NULL DEFAULT '[]'",
             'created_at TEXT NOT NULL',
             'updated_at TEXT NOT NULL',
@@ -228,6 +229,17 @@ describe('D1 constraints (0001_init)', () => {
         await expect(insertAlbum('beaming', { checks: '{"a":1}' })).rejects.toThrow(/CHECK/);
         await expect(insertAlbum('beaming', { checks: '"[]"' })).rejects.toThrow(/CHECK/);
         await insertAlbum('beaming', { checks: '[{"code":"NO_INFO"}]', info_etag: '"e1"' });
+        expect(await count('albums')).toBe(2);
+    });
+
+    // W-046：「用過 info.txt」嘅標記，同 info_etag 分開；只係 0 / 1
+    it('should mark info.txt as not used by default and accept only 0 or 1', async () => {
+        await insertAlbum('apollo-18');
+        expect(await env.DB.prepare('SELECT info_used FROM albums').first()).toEqual({
+            info_used: 0,
+        });
+        await expect(insertAlbum('beaming', { info_used: 2 })).rejects.toThrow(/CHECK/);
+        await insertAlbum('beaming', { info_used: 1 });
         expect(await count('albums')).toBe(2);
     });
 

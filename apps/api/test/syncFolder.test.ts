@@ -12,6 +12,7 @@ import {
     FOLDER,
     KOMOREBI_INFO,
     TEXT_05,
+    confirmRemovals,
     deleteMedia,
     mediaKey,
     mediaWith,
@@ -351,6 +352,49 @@ describe('POST /api/sync/folders/:folder: checks', () => {
         expect(codesOf(body)).toEqual([['INFO_BAD_ENCODING', undefined]]);
         expect(await tracksOf()).toEqual(before);
         expect((await syncFolder()).body.pendingRemovals).toEqual([]);
+    });
+
+    // W-046（review probe）：第一次同步有一首失敗 → info_etag 冇記；之後 info.txt 唔係 UTF-8 都唔可以
+    // 改碟名、列移除，確認移除要 STALE
+    it('should keep the album when info.txt becomes unusable after a first scan that did not complete', async () => {
+        await putKomorebi();
+        const { bindings } = mediaWith({
+            get: (args, original) => {
+                if (String(args[0]).endsWith('05 太平門.txt')) throw new Error('R2 unavailable');
+                return original(...args);
+            },
+        });
+        const first = await syncFolder(FOLDER, '', bindings);
+        expect(first.body.failed.map(({ no }: Loose) => no)).toEqual([5]);
+        expect(await albumRow(ALBUM_ID)).toMatchObject({ info_etag: null, info_used: 1 });
+        const before = await tracksOf();
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const { body } = await syncFolder();
+        expect(body.album).toMatchObject({ title: 'Komorebi', year: 2026 });
+        expect(body.pendingRemovals).toEqual([]);
+        expect(codesOf(body)).toContainEqual(['INFO_BAD_ENCODING', undefined]);
+        expect(await albumRow(ALBUM_ID)).toMatchObject({ title: 'Komorebi', year: 2026 });
+        const items = ['komorebi-02', 'komorebi-04'].map((trackId) => ({
+            kind: 'track',
+            albumId: ALBUM_ID,
+            trackId,
+        }));
+        const { body: confirmed } = await confirmRemovals(items);
+        expect(confirmed.results.map(({ code }: Loose) => code)).toEqual(['STALE', 'STALE']);
+        expect(await tracksOf()).toEqual(before);
+    });
+
+    it('should mark info.txt as used only while the folder has a usable one', async () => {
+        await putKomorebi();
+        await syncFolder();
+        expect((await albumRow(ALBUM_ID))?.info_used).toBe(1);
+        await deleteMedia('info.txt');
+        await syncFolder();
+        expect(await albumRow(ALBUM_ID)).toMatchObject({ title: ALBUM_ID, info_used: 0 });
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const { body } = await syncFolder();
+        expect(body.album).toMatchObject({ title: ALBUM_ID, year: null });
+        expect((await albumRow(ALBUM_ID))?.info_used).toBe(0);
     });
 
     it('should keep the album as it was when info.txt cannot be read', async () => {

@@ -9,7 +9,7 @@ import {
     ALBUM_ID,
     FOLDER,
     confirmRemovals,
-    mediaWith,
+    endlessList,
     putKomorebi,
     deleteMedia,
     KOMOREBI_INFO,
@@ -20,18 +20,6 @@ import {
 
 /** 遠多過任何合理上限：到咗就當無限 loop */
 const RUNAWAY_CALLS = 100;
-
-/** 第一頁係真嘅，之後每頁都話「仲有」（永遠讀唔完） */
-const endlessList = () =>
-    mediaWith({
-        list: async (args, original) => {
-            const [options] = args as [R2ListOptions | undefined];
-            if (options?.cursor)
-                return { objects: [], delimitedPrefixes: [], truncated: true, cursor: 'next' };
-            const page = (await original(options)) as R2Objects;
-            return { ...page, truncated: true, cursor: 'next' };
-        },
-    });
 
 describe('sync limits: listing pages', () => {
     it('should stop the bucket listing at the page limit and list no missing album', async () => {

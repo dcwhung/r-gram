@@ -20,6 +20,8 @@ export interface AlbumRow {
     cover2_source_etag: string | null;
     folder: string;
     info_etag: string | null;
+    /** 1 = 碟名、年份、曲目表由用得嘅 `info.txt` 嚟（review W-046） */
+    info_used: number;
     checks: string;
     updated_at: string;
 }
@@ -27,7 +29,7 @@ export interface AlbumRow {
 export const ALBUM_COLUMNS = [
     'id, title, year, category, category_no, accent',
     'cover, cover_source_etag, thumb, cover2, thumb2, cover2_source_etag',
-    'folder, info_etag, checks, updated_at',
+    'folder, info_etag, info_used, checks, updated_at',
 ].join(', ');
 
 /** 排次序要嘅三個欄（albums 行、catalog snapshot 都有） */
@@ -71,8 +73,8 @@ export const toAlbum = (row: AlbumRow) => ({
     cover2SourceEtag: row.cover2_source_etag,
     // CR-007（D67）：實際嘅資料夾名 = 專輯身份
     folder: row.folder,
-    // 管理端「專輯頁（未有 info.txt）」用（D80）
-    hasInfo: row.info_etag !== null,
+    // 管理端「專輯頁（未有 info.txt）」用（D80）；W-046：跟 info_used，唔跟只喺完整同步先記嘅 info_etag
+    hasInfo: row.info_used === 1,
     updatedAt: row.updated_at,
 });
 

@@ -23,7 +23,10 @@ CREATE TABLE assets (
 --   accent：第一張封面抽出嘅色；冇封面 = 中性灰
 --   cover / thumb、cover2 / thumb2：同步嘅封面處理結果（API-017）；冇第一張唔可以有第二張（CHECK）
 --   cover_source_etag、cover2_source_etag：處理過嘅封面來源檔（cover.jpg｜png、cover2.jpg｜png）嘅 R2 ETag
---   info_etag：上次讀到嘅 info.txt 嘅 R2 httpEtag；NULL = 資料夾冇 info.txt
+--   info_etag：上次完整套用咗嘅 info.txt 嘅 R2 httpEtag（同 ETag = 下次唔再讀）；NULL = 未完整套用過或者資料夾冇 info.txt
+--   info_used：1 = 碟名、年份、曲目表由一個用得嘅 info.txt 嚟（同步一套用就設，唔使成個同步完成）；
+--       0 = 資料夾冇 info.txt（或者從來冇用得嘅），用音檔歌號。之後 info.txt 用唔到時，1 = 照用 D1 嘅碟同曲目、
+--       唔列移除（S-164、review W-046）
 --   checks：最近一次同步呢個資料夾嘅檢查結果（JSON array，packages/catalog Check；最多 CHECKS_MAX 條）
 --   字母盤標記同轉盤次序唔儲存：生成時由 wheelKeyFor(title) 同 albumOrder() 計（D69）
 --   updated_at 兼做 If-Match
@@ -49,6 +52,7 @@ CREATE TABLE albums (
     cover2_source_etag TEXT,
     folder TEXT NOT NULL UNIQUE,
     info_etag TEXT,
+    info_used INTEGER NOT NULL DEFAULT 0 CHECK (info_used IN (0, 1)),
     checks TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(checks) AND json_type(checks) = 'array'),
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL

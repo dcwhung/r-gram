@@ -1,6 +1,6 @@
 /* WebP 檔頭 parser（移植自 903-player，S-795 嘅結構檢查照留） */
 import { InvalidImageError } from '../src/assets/invalidImage';
-import { parseWebp } from '../src/assets/webp';
+import { parseWebp, readWebpSize } from '../src/assets/webp';
 import {
     chunk,
     riffOf,
@@ -93,5 +93,27 @@ describe('parseWebp', () => {
 
     it('should reject an image chunk shorter than its bitstream header', () => {
         expect(() => parseWebp(riffOf([chunk('VP8 ', [0x30, 0x01, 0x00])]))).toThrow(/truncated/);
+    });
+});
+
+// S-186：API-017 只讀檔頭（R2 range get）；圖已經喺 API-050 過咗 parseWebp
+describe('readWebpSize', () => {
+    /** RIFF header 12 + chunk header 8 + 最長嘅最少 payload 10 */
+    const HEAD_BYTES = 30;
+    const IMAGE_DATA = new Array<number>(5000).fill(0);
+
+    it('should read the dimensions from the first bytes of each kind of WebP', () => {
+        const long = riffOf([chunk('VP8L', [...vp8lPayload(1200, 800), ...IMAGE_DATA])]);
+        expect(() => parseWebp(long.subarray(0, HEAD_BYTES))).toThrow(InvalidImageError);
+        for (const bytes of [long, webpVp8(1200, 800), webpVp8x(1200, 800)])
+            expect(readWebpSize(bytes.subarray(0, HEAD_BYTES))).toEqual({
+                width: 1200,
+                height: 800,
+            });
+    });
+
+    it('should refuse bytes that are not WebP or too short for the first chunk', () => {
+        expect(() => readWebpSize(textBytes('RIFF0000WAVEfmt 0000'))).toThrow(InvalidImageError);
+        expect(() => readWebpSize(webpVp8(1200, 1200).subarray(0, 24))).toThrow(InvalidImageError);
     });
 });

@@ -84,6 +84,24 @@ export const mediaWith = (
     return { bindings: { ...env, MEDIA: bucket }, calls };
 };
 
+/**
+ * 第一頁係真嘅，之後每頁都話「仲有」（永遠讀唔完）。`puts`：有畀就記低每次 put 嘅 key（T-106 寫入守門）
+ */
+export const endlessList = (puts?: string[]) =>
+    mediaWith({
+        list: async (args, original) => {
+            const [options] = args as [R2ListOptions | undefined];
+            if (options?.cursor)
+                return { objects: [], delimitedPrefixes: [], truncated: true, cursor: 'next' };
+            const page = (await original(options)) as R2Objects;
+            return { ...page, truncated: true, cursor: 'next' };
+        },
+        put: (args, original) => {
+            puts?.push(String(args[0]));
+            return original(...args);
+        },
+    });
+
 /** 媒體 bucket 嘅寫入記錄（T-106）：每次 put 嘅 key；calls 記低每個 method 叫過幾多次 */
 export const recordedMedia = () => {
     const puts: string[] = [];

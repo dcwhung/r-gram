@@ -1,6 +1,7 @@
 /*
  * 文字框讀媒體 bucket 嘅文字檔（T-106；API-018 `info.txt`、API-040 歌曲文字）：成個檔畀管理端改。
- * 大過上限 = 唔讀（text null，problem TOO_LARGE：存唔到，要喺電腦改細）；唔係 UTF-8 = 照解碼（認唔到嘅 byte 變 U+FFFD，
+ * 大過上限 = 唔讀（text null，problem TOO_LARGE）：管理員冇見過內容，儲存（API-019、041）一律 409 FILE_TOO_LARGE、
+ * 乜都唔寫，要喺電腦改細再上載（review S-181）；唔係 UTF-8 = 照解碼（認唔到嘅 byte 變 U+FFFD，
  * problem BAD_ENCODING：管理員改好再存 = 寫返 UTF-8）。開頭嘅 BOM 唔畀文字框
  */
 import { decodeUtf8 } from './songTextFile';

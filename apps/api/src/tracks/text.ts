@@ -2,10 +2,13 @@
  * API-040 GET、API-041 PUT /api/tracks/:id/text（T-106；Technical Spec「寫返媒體 bucket」；Functional Spec D72、D75、FR-129）：
  * 歌曲文字框讀寫媒體 bucket 嘅 `NN ….txt`（揀邊個檔：packages/catalog songTextTarget()，同同步一樣）。
  * - 讀：`{ trackId, key, etag, text, problem }`；冇檔 = `{ key: null, etag: null, text: 歌名 }`；幾個檔而冇 D1 嗰個 = 409 TEXT_CONFLICT
- * - 寫：body `{ text, etag }`（400）→ parseSongText()（逐行 400；太大 413）→ 歌（404）→ 資料夾過 resolveFolder()
- *  （同 API-034）→ 冇音檔 409 NO_AUDIO → 衝突 409 TEXT_CONFLICT → 會清走現有歌詞而冇 ?force=1 → 409 LYRICS_REMOVED（D30）
+ * - 寫：body `{ text, etag }`（400）→ parseSongText()（逐行 400；太大 413）→ 歌（404）→ 資料夾過 resolveAlbumFolder()
+ *  （同 API-034；id 唔係呢張碟 = 409 FOLDER_MISMATCH）→ 冇音檔 409 NO_AUDIO → 衝突 409 TEXT_CONFLICT →
+ *   已有嘅檔大過上限 409 FILE_TOO_LARGE（S-181）→ 歌號唔喺曲目表（待確認移除）409 TRACK_NOT_LISTED（S-183）→
+ *   會清走現有歌詞而冇 ?force=1 → 409 LYRICS_REMOVED（D30）
  *   → putMediaText()（已有 = 嗰個檔；冇 = `NN 歌名.txt`；版本唔啱 = 409 STALE）→ 同步呢個資料夾（runFolderSync，
- *   由呢首歌起；credit、歌詞、歌詞 JSON 由同步照 `.txt` 寫）→ `{ trackId, key, etag, text, track, checks, hints, sync }`。
+ *   由呢首歌起；credit、歌詞、歌詞 JSON 由同步照 `.txt` 寫）→ `{ trackId, key, etag, text, track, checks, hints, sync }`；
+ *   `sync` = API-034 嘅回應加 `skippedBefore`（前面嘅歌今次冇同步，要再掃描；S-182）。
  *   任何一步擋住都乜都唔寫；寫咗檔而同步出錯 = 500，下次同步會補返
  */
 import {
@@ -13,6 +16,7 @@ import {
     parseAlbumFolder,
     SONG_TEXT_MAX_BYTES,
     songTextTarget,
+    TRACK_NO_MIN,
     type ScanFile,
     type SongTextTarget,
 } from '@r-gram/catalog';
@@ -24,7 +28,8 @@ import { readMediaText } from '../media/readText';
 import { readTextRequest } from '../media/textBody';
 import { normalizeText, putMediaText } from '../media/writeText';
 import { syncError } from '../sync/errors';
-import { resolveFolder, type FolderTarget } from '../sync/folderTarget';
+import { resolveAlbumFolder, type FolderTarget } from '../sync/folderTarget';
+import { listedNumbersOf } from '../sync/removalContext';
 import { runFolderSync } from '../sync/syncFolder';
 import { trackError, trackValidationError } from './errors';
 import { trackOf } from './rows';
@@ -81,18 +86,38 @@ const songBodyOf = async (c: Context<AppEnv>): Promise<SongBody | Response> => {
     return { text, etag: body.etag, read };
 };
 
-/** 寫之前嘅檢查；冇問題 = null */
-const refusal = (
+/** 寫之前對檔嘅檢查；冇問題 = null */
+const fileRefusal = (
     c: Context<AppEnv>,
-    row: TrackTextRow,
-    located: { target: SongTextTarget; listing: FolderListing },
-    body: SongBody,
+    target: SongTextTarget,
+    listing: FolderListing,
 ): Response | null => {
-    const { target, listing } = located;
     if (!target.audio) return trackError(c, 'noAudio');
     if (target.conflict) return trackError(c, 'textConflict');
+    // S-181：已有嘅檔大過上限 = 文字框冇顯示過內容，唔覆蓋（要喺電腦改細再上載）
+    if (target.file && target.file.bytes > SONG_TEXT_MAX_BYTES)
+        return trackError(c, 'fileTooLarge');
     // list 唔齊又搵唔到檔：唔知會唔會開多一個 `.txt`
     if (!target.file && listing.truncated) return trackError(c, 'stale');
+    return null;
+};
+
+/** 曲目表嘅歌號；null = 唔知（`info.txt` 用唔到而之前用過：同步照用 D1 嘅歌） */
+type Listed = ReadonlySet<number> | null;
+
+/** S-183：歌號唔喺而家嘅曲目表（待確認移除）= 唔寫；曲目表唔知 = 照用 D1 嘅，寫得 */
+const listRefusal = (c: Context<AppEnv>, row: TrackTextRow, listed: Listed): Response | null =>
+    listed === null || listed.has(row.no) ? null : trackError(c, 'trackNotListed');
+
+/**
+ * S-182：同步由呢首歌起，曲目表有細過佢嘅歌號 = 前面嘅歌今次冇同步（管理端提示要再掃描）；
+ * 曲目表唔知 = 呢首唔係最細可能嘅歌號就當有
+ */
+const skipsEarlier = (no: number, listed: Listed): boolean =>
+    listed ? [...listed].some((other) => other < no) : no > TRACK_NO_MIN;
+
+/** 會清走現有歌詞而冇 ?force=1（D30） */
+const lyricsRefusal = (c: Context<AppEnv>, row: TrackTextRow, body: SongBody): Response | null => {
     if (row.json_name === null || body.read.song.lyrics || isConfirmed(c)) return null;
     const details = [{ type: 'lyrics', trackId: row.id, lineCount: row.line_count }];
     return trackError(c, 'lyricsRemoved', details);
@@ -102,28 +127,47 @@ const syncedResponse = async (
     c: Context<AppEnv>,
     row: TrackTextRow,
     folder: FolderTarget,
-    written: { key: string; etag: string; body: SongBody },
+    written: { key: string; etag: string; body: SongBody; skippedBefore: boolean },
 ) => {
     const result = await runFolderSync(c, folder, row.no);
     if (result === 'folderEmpty') return syncError(c, result);
-    const { key, etag, body } = written;
+    const { key, etag, body, skippedBefore } = written;
     const track = await trackOf(c.env.DB, row.id);
     const checks = result.checks.filter(({ no }) => no === row.no);
     const reply = { trackId: row.id, key, etag, text: body.text, track, checks };
-    return c.json({ ...reply, hints: body.read.hints, sync: result });
+    return c.json({ ...reply, hints: body.read.hints, sync: { ...result, skippedBefore } });
+};
+
+interface Located {
+    folder: FolderTarget;
+    listing: FolderListing;
+    target: SongTextTarget;
+    listed: Listed;
+}
+
+/** 資料夾（過 resolveAlbumFolder）→ list → 要寫嘅檔同曲目表；唔得 = 錯誤回應 */
+const locate = async (c: Context<AppEnv>, row: TrackTextRow): Promise<Located | Response> => {
+    const folder = await resolveAlbumFolder(c.env, row.folder, row.album_id);
+    if (typeof folder === 'string') return syncError(c, folder);
+    const listing = await listFolder(c.env.MEDIA, folder.folder);
+    const listed = await listedNumbersOf(c.env.MEDIA, listing.files, row.info_used === 1);
+    return { folder, listing, target: targetOf(row, listing.files), listed };
 };
 
 const writeAndSync = async (c: Context<AppEnv>, row: TrackTextRow, body: SongBody) => {
-    const folder = await resolveFolder(c.env, row.folder);
-    if (typeof folder === 'string') return syncError(c, folder);
-    const listing = await listFolder(c.env.MEDIA, folder.folder);
-    const target = targetOf(row, listing.files);
-    const refused = refusal(c, row, { target, listing }, body);
+    const located = await locate(c, row);
+    if (located instanceof Response) return located;
+    const { folder, listing, target, listed } = located;
+    const refused =
+        fileRefusal(c, target, listing) ??
+        listRefusal(c, row, listed) ??
+        lyricsRefusal(c, row, body);
     if (refused) return refused;
     const media = { kind: 'text' as const, folder: folder.folder, key: target.key, no: row.no };
     const etag = await putMediaText(c.env.MEDIA, media, body.text, body.etag);
     if (etag === null) return trackError(c, 'stale');
-    return syncedResponse(c, row, folder, { key: target.key, etag, body });
+    const skippedBefore = skipsEarlier(row.no, listed);
+    return syncedResponse(c, row, folder, { key: target.key, etag, body, skippedBefore });
 };
 
 export const putTrackText = async (c: Context<AppEnv>) => {

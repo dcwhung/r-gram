@@ -142,7 +142,8 @@ export const runFolderSync = async (
     if (planned === 'folderEmpty') return planned;
     const { state, info, plan, truncated } = planned;
     const db = c.env.DB;
-    const albumWritten = await ensureAlbum(db, state.album, target, plan.album);
+    const fields = { ...plan.album, infoUsed: plan.infoUsed };
+    const albumWritten = await ensureAlbum(db, state.album, target, fields);
     const tracks = { planned: plan.tracks, stored: state.tracks };
     const outcome = await syncTracks(c, target.id, tracks, from);
     const checks = checksOf(target, plan, state, outcome);

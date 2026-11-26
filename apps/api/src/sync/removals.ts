@@ -49,7 +49,7 @@ const removeTrack: Handler = async (c, context, item) => {
     const track = await trackOf(c, item);
     if (!track) return failedItem('NOT_FOUND');
     if ((await context.folder(track.folder)).truncated) return failedItem('STALE');
-    const listed = await context.listedNumbers(track.folder, track.info_etag !== null);
+    const listed = await context.listedNumbers(track.folder, track.info_used === 1);
     if (!listed) return failedItem('STALE');
     if (listed.has(track.no)) return failedItem('STILL_PRESENT');
     await deleteTrack(c.env.DB, track.id);

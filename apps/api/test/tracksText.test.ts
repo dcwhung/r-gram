@@ -11,7 +11,9 @@ import { api, json } from './albumFixtures';
 import { liveDocument } from './catalogFixtures';
 import {
     ALBUM_ID,
+    KOMOREBI_INFO,
     TEXT_05,
+    endlessList,
     mediaKey,
     putKomorebi,
     putMedia,
@@ -149,6 +151,39 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         ]);
     });
 
+    // W-048（mutant N32）：回應嘅 checks 只有呢首歌嘅；成個資料夾嘅喺 sync.checks
+    it('should answer with the checks of this track only', async () => {
+        await putMedia('03 搲撈HK.txt', '搲撈HK\n曲：甲\n\n[00:01.00]一\n第二句');
+        await syncFolder();
+        const { body } = await save05(TEXT_05.replace('太平門', '太平門（現場）'));
+        expect(body.checks.map(({ code, no }: Loose) => [code, no])).toEqual([
+            ['TITLE_MISMATCH', 5],
+        ]);
+        expect(body.sync.checks.map(({ no }: Loose) => no)).toEqual(expect.arrayContaining([3, 5]));
+    });
+
+    // W-048（mutant N33）：同步由呢首歌嘅歌號起，前面嘅歌唔郁（要再掃描，S-182）
+    it('should sync from the number of the track', async () => {
+        await putMedia('01 下一位參賽者.txt', SONG);
+        const { status, body } = await save05(TEXT_05.replace('第二句', '改過的第二句'));
+        expect(status).toBe(200);
+        expect(body.sync.updated.map(({ no }: Loose) => no)).toEqual([5]);
+        expect((await tracksOf())[0]).toMatchObject({ text_key: null, composer: null });
+    });
+
+    // S-182（review probe P2）：由呢首歌起同步 = 前面嘅歌冇做；回應講明，管理端提示要再掃描
+    it('should say when tracks before this one were not synced', async () => {
+        await putMedia('01 下一位參賽者.txt', SONG);
+        const later = await save05(TEXT_05.replace('第二句', '改過的第二句'));
+        expect(later.body.sync).toMatchObject({ more: false, skippedBefore: true });
+        const first = await putText('komorebi-01', {
+            text: SONG,
+            etag: await etagOf(mediaKey('01 下一位參賽者.txt')),
+        });
+        expect(first.status).toBe(200);
+        expect(first.body.sync.skippedBefore).toBe(false);
+    });
+
     it('should store UTF-8 without BOM and with LF only', async () => {
         await save05(`\uFEFF${TEXT_05.replaceAll('\n', '\r\n')}`);
         expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
@@ -203,6 +238,33 @@ describe('PUT /api/tracks/:id/text: checks before writing', () => {
         expect(status).toBe(409);
         expect(body.error.code).toBe('NO_AUDIO');
         expect(puts).toEqual([]);
+    });
+
+    // S-183（review probe P7）：歌號已經唔喺 info.txt（待確認移除）嘅歌唔寫
+    it('should answer 409 TRACK_NOT_LISTED for a track info.txt no longer lists', async () => {
+        await putMedia('info.txt', KOMOREBI_INFO.replace('5. 太平門', ''));
+        const synced = await syncFolder();
+        expect(synced.body.pendingRemovals).toContainEqual(
+            expect.objectContaining({ kind: 'track', trackId: 'komorebi-05' }),
+        );
+        const { puts, bindings } = recordedMedia();
+        const text = TEXT_05.replace('第二句', '改過的第二句');
+        const { status, body } = await putText(
+            'komorebi-05',
+            { text, etag: await etagOf() },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error).toMatchObject({ code: 'TRACK_NOT_LISTED', message: expect.any(String) });
+        expect(puts).toEqual([]);
+        expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
+    });
+
+    it('should still save a listed track while info.txt cannot be used', async () => {
+        await putMedia('info.txt', new Uint8Array([0xff, 0xfe, 0x41]));
+        const { status } = await save05(TEXT_05.replace('第二句', '改過的第二句'));
+        expect(status).toBe(200);
     });
 
     it('should list every song-text error by line and write nothing', async () => {
@@ -275,6 +337,30 @@ describe('PUT /api/tracks/:id/text: versions', () => {
         expect(await mediaText(TEXT_05_KEY)).toBe(`${TEXT_05}\n[00:09.00]別處改的`);
     });
 
+    // S-181（review probe P1）
+    it('should answer 409 FILE_TOO_LARGE and keep a file too large to show', async () => {
+        const large = 'x'.repeat(SONG_TEXT_MAX_BYTES + 1);
+        await putMedia('05 太平門.txt', large);
+        const read = await getText('komorebi-05');
+        expect(read.body).toMatchObject({ text: null, problem: 'TOO_LARGE' });
+        const { puts, bindings } = recordedMedia();
+        for (const etag of [read.body.etag, null]) {
+            const { status, body } = await putText(
+                'komorebi-05',
+                { text: TEXT_05, etag },
+                '?force=1',
+                bindings,
+            );
+            expect(status).toBe(409);
+            expect(body.error).toMatchObject({
+                code: 'FILE_TOO_LARGE',
+                message: expect.stringContaining('電腦'),
+            });
+        }
+        expect(puts).toEqual([]);
+        expect(await mediaText(TEXT_05_KEY)).toBe(large);
+    });
+
     it('should not create a file over one that appeared since it was read', async () => {
         const { status } = await putText('komorebi-05', { text: TEXT_05, etag: null });
         expect(status).toBe(409);
@@ -323,6 +409,22 @@ describe('PUT /api/tracks/:id/text: only the song text file of the track is writ
         expect(puts).toEqual([]);
     });
 
+    // S-184（review probe P6）
+    it('should answer 409 FOLDER_MISMATCH when the stored folder belongs to another album', async () => {
+        await putMedia('01 下一位參賽者.m4a', 'a', 'album-12-other');
+        await env.DB.prepare("UPDATE albums SET folder = 'album-12-other'").run();
+        const { puts, bindings } = recordedMedia();
+        const { status, body } = await putText(
+            'komorebi-01',
+            { text: SONG, etag: null },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('FOLDER_MISMATCH');
+        expect(puts).toEqual([]);
+    });
+
     it('should not write when two song text files have the number', async () => {
         await putMedia('01 a.txt', 'a');
         await putMedia('01 b.txt', 'b');
@@ -335,6 +437,21 @@ describe('PUT /api/tracks/:id/text: only the song text file of the track is writ
         );
         expect(status).toBe(409);
         expect(body.error.code).toBe('TEXT_CONFLICT');
+        expect(puts).toEqual([]);
+    });
+
+    // W-048（mutant N13）：list 唔齊又搵唔到 `.txt` = 唔知會唔會開多一個
+    it('should answer 409 STALE and write nothing when the listing is cut short without a file', async () => {
+        const puts: string[] = [];
+        const { bindings } = endlessList(puts);
+        const { status, body } = await putText(
+            'komorebi-01',
+            { text: SONG, etag: null },
+            '',
+            bindings,
+        );
+        expect(status).toBe(409);
+        expect(body.error.code).toBe('STALE');
         expect(puts).toEqual([]);
     });
 

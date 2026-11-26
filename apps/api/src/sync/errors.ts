@@ -18,6 +18,7 @@ const SITUATIONS: Record<SyncSituation, ErrorKind> = {
     invalidFolder: { status: HTTP_STATUS.badRequest, code: ERROR_CODE.invalidFolder },
     folderEmpty: { status: HTTP_STATUS.notFound, code: ERROR_CODE.folderEmpty },
     duplicateAlbumId: { status: HTTP_STATUS.conflict, code: ERROR_CODE.duplicateAlbumId },
+    folderMismatch: { status: HTTP_STATUS.conflict, code: ERROR_CODE.folderMismatch },
 };
 
 const REASON_PARAMS: Partial<Record<SyncReason, MessageParams>> = {

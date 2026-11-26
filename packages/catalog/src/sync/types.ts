@@ -24,7 +24,11 @@ export interface SyncTrackState {
 export interface SyncAlbumState {
     title: string;
     year: number | null;
-    infoEtag: string | null;
+    /**
+     * 碟名、年份、曲目表由一個用得嘅 `info.txt` 嚟（albums.info_used；review W-046）。
+     * 唔用 info_etag：佢只喺完整同步先記，第一次同步有一首失敗就一直係 NULL
+     */
+    infoUsed: boolean;
     coverSourceEtag: string | null;
     cover2SourceEtag: string | null;
     hasCover: boolean;
@@ -116,4 +120,9 @@ export interface FolderPlan {
      * 唔記 = 下次再讀（待確認移除嘅歌下次照列出）
      */
     infoSettled: boolean;
+    /**
+     * 同步之後 albums.info_used：曲目表由 `info.txt`（讀到用得、冇變，或者用唔到但之前用過）= true；
+     * 冇 `info.txt`，或者用唔到而從來冇用過 = false。同專輯一齊寫，唔等成個同步完成
+     */
+    infoUsed: boolean;
 }

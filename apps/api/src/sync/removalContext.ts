@@ -45,9 +45,10 @@ const audioNumbers = (files: readonly ScanFile[]): Set<number> =>
     );
 
 /**
- * 曲目表；null = 唔知（`info.txt` 有但用唔到，而呢張碟之前用過 `info.txt`：同步沿用 D1 嘅曲目，S-164）
+ * 曲目表；null = 唔知（`info.txt` 有但用唔到，而呢張碟之前用過 `info.txt`：同步沿用 D1 嘅曲目，S-164）。
+ * API-041 寫歌曲文字之前都用（S-183：歌號唔喺曲目表 = 待確認移除，唔寫）
  */
-const numbersOf = async (
+export const listedNumbersOf = async (
     bucket: R2Bucket,
     files: readonly ScanFile[],
     hadInfo: boolean,
@@ -74,7 +75,8 @@ export const removalContext = (env: Pick<Env, 'MEDIA'>): RemovalContext => {
     const numbers = new Map<string, Promise<Set<number> | null>>();
     const listedNumbers = (name: string, hadInfo: boolean) => {
         const hit =
-            numbers.get(name) ?? folder(name).then((l) => numbersOf(env.MEDIA, l.files, hadInfo));
+            numbers.get(name) ??
+            folder(name).then((l) => listedNumbersOf(env.MEDIA, l.files, hadInfo));
         numbers.set(name, hit);
         return hit;
     };
