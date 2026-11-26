@@ -158,4 +158,24 @@ describe('PHONE_LAYOUT', () => {
         expect(failure.retry.y + failure.retry.hit / 2).toBeLessThan(name.y - name.size);
         expect(failure.message.y).toBeLessThan(failure.retry.y - failure.retry.hit / 2);
     });
+
+    /*
+     * T-037：設計稿第 18 版 LIST = { r: 556, step: 9.2, focus: 42, rest: 32, number: 0.72, frame: 88, visible: 4.3 }；
+     * listLayer()、focusFrame()、dimLayer() 寫死嘅數：歌名喺歌號後面 numberSize × 1.25 + 18；框左邊圓頭前面留 6、
+     * 線粗 3；越遠越淡 = (1 − |k| ÷ visible)^1.5，唔係揀中嗰行 × 0.62，未有音檔再 × 0.5，最淡 0.06；暗層 80% 黑。
+     * 歌名約 8 個中文字（以揀中嗰行嘅字級計，設計稿表格「歌名最多約 8 個中文字」）
+     */
+    it('should carry the arc track list of the mockup', () => {
+        expect(PHONE_LAYOUT.arc).toEqual({ r: 556, stepDeg: 9.2 });
+        expect(PHONE_LAYOUT.list).toEqual({
+            focusSize: 42,
+            restSize: 32,
+            number: { scale: 0.72, gapEm: 1.25, pad: 18 },
+            frame: { height: 88, gap: 6, stroke: 3 },
+            visible: 4.3,
+            fade: { power: 1.5, rest: 0.62, off: 0.5, min: 0.06 },
+            veil: 0.8,
+            titleChars: 8,
+        });
+    });
 });
