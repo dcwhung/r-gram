@@ -54,6 +54,10 @@ describe('session guard', () => {
             ['GET', '/api/sync'],
             ['POST', '/api/sync/folders/album-01-apollo-18'],
             ['POST', '/api/sync/removals'],
+            // T-106 寫返媒體 bucket（API-018、API-019）同封面結果（API-017）
+            ['GET', '/api/albums/x/info'],
+            ['PUT', '/api/albums/x/info'],
+            ['PUT', '/api/albums/x/cover'],
         ];
         for (const [method, path] of routes) {
             const response = await call(path, { method, headers: { origin: ORIGIN } });
