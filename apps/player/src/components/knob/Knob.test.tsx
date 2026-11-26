@@ -319,6 +319,53 @@ describe('Knob', () => {
             expect(pointer()).not.toHaveClass('knob-move--jump');
         });
 
+        // W-060：擰（拖動）係主要手勢：拖過 ♥ 嗰一步指針跳，下一步照舊有過場；倒轉一樣
+        it('should jump the pointer for the dragged step across the seam only', () => {
+            const knobAt = (current: number) => (
+                <svg>
+                    <Knob
+                        layout={LAYOUT}
+                        positions={POSITIONS}
+                        current={current}
+                        open
+                        accent="#c8442b"
+                        glow="#ffd0c0"
+                        valueText="KOMOREBI"
+                        {...handlers()}
+                    />
+                </svg>
+            );
+            const { container, rerender } = render(knobAt(POSITIONS - 1));
+            const hit = container.querySelector('[data-part="knob-hit"]') as Element;
+            hit.getBoundingClientRect = () =>
+                ({
+                    left: CENTRE.x - RADIUS_PX,
+                    top: CENTRE.y - RADIUS_PX,
+                    width: RADIUS_PX * 2,
+                    height: RADIUS_PX * 2,
+                }) as DOMRect;
+            const knob = screen.getByRole('slider');
+            const jumps = () =>
+                container
+                    .querySelector('[data-part="knob-pointer"]')
+                    ?.classList.contains('knob-move--jump');
+            // 由 ♥ 開始：一格 = 第一隻碟（跳）、兩格 = 第二隻、返一格 = 第一隻、返到起點 = ♥（跳）、再返 = ♥ 前面
+            const steps: readonly [number, number, boolean][] = [
+                [STEP_DEG, 0, true],
+                [STEP_DEG * 2, 1, false],
+                [STEP_DEG, 0, false],
+                [0, POSITIONS - 1, true],
+                [-STEP_DEG, POSITIONS - 2, false],
+            ];
+            fireEvent.pointerDown(knob, at(0));
+            steps.forEach(([deg, current, jump]) => {
+                fireEvent.pointerMove(knob, at(deg));
+                rerender(knobAt(current));
+                expect({ current, jump: jumps() }).toEqual({ current, jump });
+            });
+            fireEvent.pointerUp(knob, at(-STEP_DEG));
+        });
+
         it('should not reopen an open dial', () => {
             const { knob, spies } = renderKnob({ open: true });
             fireEvent.keyDown(knob, { key: 'End' });
