@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { PHONE_LAYOUT as LAYOUT } from '../../stage/layouts';
 import { Knob } from './Knob';
 
@@ -63,12 +63,11 @@ describe('Knob', () => {
     });
 
     it('should glow only while the dial is open', () => {
-        const closed = renderKnob().container.querySelector('[data-part="knob-glow"]');
-        expect(closed).toHaveAttribute('data-on', 'false');
-        const open = renderKnob({ open: true }).container.querySelectorAll(
-            '[data-part="knob-glow"]',
-        );
-        expect(open[1]).toHaveAttribute('data-on', 'true');
+        const glowOf = (open: boolean) =>
+            renderKnob({ open }).container.querySelector('[data-part="knob-glow"]');
+        expect(glowOf(false)).toHaveAttribute('data-on', 'false');
+        cleanup();
+        expect(glowOf(true)).toHaveAttribute('data-on', 'true');
     });
 
     describe('dragging', () => {

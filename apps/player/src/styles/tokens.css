@@ -17,6 +17,11 @@
     --color-version: #8a8a8a;
     /* 歌單壓暗咗嘅舞台（--color-stage 上面疊 80% 黑）：安全區外面用 */
     --color-stage-dimmed: #313130;
+    /* 字母盤（設計稿第 18 版 dialRing()、DIAL_DOT） */
+    --color-dial-plate: #fbfbf9;
+    --color-dial-rim: #a8a8a4;
+    --color-dial-letter: #3d3d3a;
+    --color-dial-dot: #8f8f8b;
     /* 專輯色同著燈色：由而家隻碟決定，元件喺舞台上面覆寫 */
     --color-accent: #6e6e6e;
     --color-glow: #eceef2;

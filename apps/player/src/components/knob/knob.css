@@ -1,0 +1,51 @@
+/*
+ * 旋鈕、指針、♥（設計稿第 18 版 knob()、favHeart()）。位置同角度寫喺 inline transform，CSS 只負責過場：
+ * 指針轉動同 ♥ 滑出去字母盤用 discChange（0.5 秒），光圈淡入淡出用 chromeFade。減少動態效果時冇過場。
+ */
+.knob {
+    cursor: grab;
+    outline: none;
+    /* 拖動係旋鈕自己嘅手勢，唔好俾瀏覽器當捲動（Technical Spec 實現注意事項 13） */
+    touch-action: none;
+}
+
+.knob:active {
+    cursor: grabbing;
+}
+
+/* 鍵盤 focus：喺感應圈畫一個圈（同金屬掣一樣） */
+.knob:focus-visible [data-part='knob-hit'] {
+    stroke: var(--color-ink);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}
+
+.knob-glow {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.knob-glow[data-on='true'] {
+    opacity: 1;
+}
+
+.fav-heart {
+    cursor: pointer;
+    outline: none;
+}
+
+.fav-heart:focus-visible [data-part='heart-hit'] rect {
+    stroke: var(--color-ink);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .knob-move {
+        transition: transform var(--motion-scene-disc-change) cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .knob-glow {
+        transition: opacity var(--motion-scene-chrome-fade) ease;
+    }
+}

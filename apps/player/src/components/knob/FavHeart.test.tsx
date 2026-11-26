@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { px } from '../svgNumber';
 import { heartHitPoint, heartPoint } from '../../stage/geometry';
 import { PHONE_LAYOUT as LAYOUT } from '../../stage/layouts';
 import { FavHeart } from './FavHeart';
@@ -38,21 +39,18 @@ describe('FavHeart', () => {
     });
 
     it('should sit just outside the scale while closed and on the dial while open', () => {
-        const closed = renderHeart().container.querySelector('[data-part="heart-glyph"]');
-        const { x, y } = heartPoint(LAYOUT, 0);
-        expect(translateOf(closed)).toContain(`translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`);
-        const open = renderHeart({ open: true }).container.querySelectorAll(
-            '[data-part="heart-glyph"]',
-        )[1];
+        const glyphAt = (open: boolean) =>
+            translateOf(renderHeart({ open }).container.querySelector('[data-part="heart-glyph"]'));
+        const near = heartPoint(LAYOUT, 0);
+        expect(glyphAt(false)).toContain(`translate(${px(near.x)}px, ${px(near.y)}px)`);
+        cleanup();
         const far = heartPoint(LAYOUT, 1);
-        expect(translateOf(open ?? null)).toContain(
-            `translate(${far.x.toFixed(1)}px, ${far.y.toFixed(1)}px)`,
-        );
+        expect(glyphAt(true)).toContain(`translate(${px(far.x)}px, ${px(far.y)}px)`);
     });
 
     it('should keep its touch area just off the knob while closed', () => {
         const hit = renderHeart().container.querySelector('[data-part="heart-hit"]');
         const { x, y } = heartHitPoint(LAYOUT, 0);
-        expect(translateOf(hit)).toContain(`translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`);
+        expect(translateOf(hit)).toContain(`translate(${px(x)}px, ${px(y)}px)`);
     });
 });

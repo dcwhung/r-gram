@@ -1,13 +1,12 @@
 import type { CatalogAlbum, CatalogTrack } from '@r-gram/catalog';
 import type { InfoLayout } from '../../stage/layouts';
 import { fitText } from '../../utils/fitText';
+import { isLatin } from '../../utils/isLatin';
 import type { TextFont, TextMeasure } from '../../utils/textMeasure';
 import { px } from '../svgNumber';
 import './infoBlock.css';
 import { SongLines } from './SongLines';
 
-/** 設計稿 isLatin()：全部係 ASCII 可見字元就用 slab，否則用 Noto Sans HK */
-const LATIN_ONLY = /^[\x20-\x7e]+$/;
 const LATIN_WEIGHT = 400;
 const CJK_TITLE_WEIGHT = 900;
 const YEAR_WEIGHT = 400;
@@ -26,7 +25,8 @@ type AlbumProps = Pick<InfoBlockProps, 'info' | 'accent' | 'measure'> & { album:
 
 /** 碟名：放唔落就縮字（FR-036、D23） */
 const AlbumTitle = ({ info, album, measure }: Omit<AlbumProps, 'accent'>) => {
-    const latin = LATIN_ONLY.test(album.title);
+    // 設計稿 isLatin()：全部係英文數字就用 slab，否則用 Noto Sans HK
+    const latin = isLatin(album.title);
     const face = latin ? info.title.latin : info.title.cjk;
     const font = (size: number): TextFont => ({
         family: latin ? 'slab' : 'cjk',

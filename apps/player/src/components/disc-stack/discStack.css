@@ -1,0 +1,15 @@
+/*
+ * 轉盤上面嘅碟（設計稿第 18 版 discs()）：位置、大細同透明度寫喺 inline style，CSS 只負責過場：
+ * 沿弧線滑入用 discChange（0.5 秒），淡入淡出同白紗用 chromeFade。減少動態效果時冇過場，即時到位。
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .stack-disc {
+        transition:
+            transform var(--motion-scene-disc-change) cubic-bezier(0.4, 0, 0.2, 1),
+            opacity var(--motion-scene-chrome-fade) ease;
+    }
+
+    .stack-veil {
+        transition: opacity var(--motion-scene-chrome-fade) ease;
+    }
+}
