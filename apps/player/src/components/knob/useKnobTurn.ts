@@ -1,4 +1,5 @@
-import { type KeyboardEvent, type PointerEvent, useRef } from 'react';
+import { type KeyboardEvent, type PointerEvent, type RefObject, useEffect, useRef } from 'react';
+import { MOTION } from '../../config/motion';
 import type { StageLayout } from '../../stage/layouts';
 import { keyTarget, type KnobTurn, moveTurn, startTurn, turnedPosition } from './knobTurn';
 
@@ -59,6 +60,11 @@ interface Drag {
     turn: KnobTurn;
     /** 上一次報咗邊格（冇變就唔再報） */
     reported: number;
+    /** 㩒落嘅位置（CSS px）：郁過 turnThresholdPx 就當開始擰 */
+    startX: number;
+    startY: number;
+    /** 字母盤開咗未（S-152：㩒住夠時間或者開始擰先開） */
+    opened: boolean;
 }
 
 /** 滑鼠左掣；手指同筆㩒落都係呢個值 */
@@ -75,39 +81,106 @@ const dragTo = (drag: Drag, event: PointerEvent, options: KnobTurnOptions) => {
 };
 
 /** 㩒落：主掣、而且未有手勢先開始；記低 pointerId，攞 pointer capture */
-const grab = (event: PointerEvent<SVGGElement>, hit: Element | null, options: KnobTurnOptions) => {
+const grab = (
+    event: PointerEvent<SVGGElement>,
+    hit: Element | null,
+    options: KnobTurnOptions,
+): Drag | null => {
     if (event.button !== PRIMARY_BUTTON) return null;
     const knob = measure(hit, options.layout.knob.turnDeadZone);
     if (!knob) return null;
     event.currentTarget.setPointerCapture?.(event.pointerId);
     const turn = moveTurn(startTurn(options.current), angleOf(knob, event), limitsOf(options));
-    return { pointerId: event.pointerId, knob, turn, reported: options.current };
+    const { clientX: startX, clientY: startY } = event;
+    return {
+        pointerId: event.pointerId,
+        knob,
+        turn,
+        reported: options.current,
+        startX,
+        startY,
+        opened: false,
+    };
+};
+
+/** 未開字母盤時郁咗幾遠先當開始擰 */
+const startsTurning = (drag: Drag, event: PointerEvent, options: KnobTurnOptions) =>
+    Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) >=
+    options.layout.knob.turnThresholdPx;
+
+/** 㩒住夠 dialHoldMs 嘅計時；unmount 時取消（S-152） */
+const useHoldTimer = () => {
+    const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const cancel = () => clearTimeout(timer.current);
+    const start = (onHeld: () => void) => {
+        cancel();
+        timer.current = setTimeout(onHeld, MOTION.input.dialHoldMs);
+    };
+    useEffect(() => () => clearTimeout(timer.current), []);
+    return { start, cancel };
+};
+
+/** 最新嘅 options：計時器嘅 callback 喺之前嗰次 render 砌，要讀最新嘅 onStart */
+const useLatest = <T>(value: T): RefObject<T> => {
+    const latest = useRef(value);
+    useEffect(() => {
+        latest.current = value;
+    });
+    return latest;
+};
+
+type DragRef = RefObject<Drag | null>;
+
+/** 開字母盤（只開一次） */
+const openDial = (drag: DragRef, latest: RefObject<KnobTurnOptions>) => {
+    if (!drag.current || drag.current.opened) return;
+    drag.current.opened = true;
+    latest.current.onStart();
+};
+
+/** 拖緊時郁：未開就要郁過門檻先開（即刻），開咗就轉 */
+const moveDrag = (drag: DragRef, latest: RefObject<KnobTurnOptions>, event: PointerEvent) => {
+    const current = drag.current;
+    if (!current || current.pointerId !== event.pointerId) return false;
+    if (!current.opened && !startsTurning(current, event, latest.current)) return false;
+    openDial(drag, latest);
+    dragTo(current, event, latest.current);
+    return true;
 };
 
 /**
- * 擰旋鈕嘅手勢（Functional Spec CR-002「轉碟」：拖住大旋鈕打圈）：㩒住 = 打開字母盤；pointer 圍住旋鈕轉 =
- * 指針跟住轉，吸附去最近一格（knobTurn.ts）；放手 = 揀咗。pointer capture：手指離開旋鈕都照轉；
- * 冇咗 capture（例如系統搶咗手勢）當放手。只跟㩒落嗰個 pointer（S-150）。
+ * 擰旋鈕嘅手勢（Functional Spec CR-002「轉碟」：拖住大旋鈕打圈）：㩒住 dialHoldMs 或者郁過 turnThresholdPx
+ * 先打開字母盤（S-152：輕點冇反應）；pointer 圍住旋鈕轉 = 指針跟住轉，吸附去最近一格（knobTurn.ts）；
+ * 放手 = 揀咗。pointer capture：手指離開旋鈕都照轉；冇咗 capture（例如系統搶咗手勢）當放手。
+ * 只跟㩒落嗰個 pointer（S-150）。未開就放手、取消、離開 = 乜都唔做。
  */
 const usePointerTurn = (options: KnobTurnOptions) => {
     const hitRef = useRef<SVGCircleElement>(null);
     const drag = useRef<Drag | null>(null);
+    const latest = useLatest(options);
+    const hold = useHoldTimer();
     const ours = (event: PointerEvent) => drag.current?.pointerId === event.pointerId;
     const onPointerDown = (event: PointerEvent<SVGGElement>) => {
         if (drag.current) return;
         drag.current = grab(event, hitRef.current, options);
-        if (drag.current) options.onStart();
+        if (drag.current) hold.start(() => openDial(drag, latest));
     };
     const onPointerUp = (event: PointerEvent) => {
         if (!ours(event)) return;
+        hold.cancel();
+        const opened = drag.current?.opened ?? false;
         drag.current = null;
-        options.onEnd();
+        if (opened) options.onEnd();
     };
     const onPointerMove = (event: PointerEvent) => {
-        if (drag.current && ours(event)) dragTo(drag.current, event, options);
+        if (moveDrag(drag, latest, event)) hold.cancel();
+    };
+    // 有 capture 時離開只會喺放手之後先嚟；冇 capture 而又未開：當放棄
+    const onPointerLeave = (event: PointerEvent) => {
+        if (ours(event) && !drag.current?.opened) onPointerUp(event);
     };
     const pointer = { onPointerDown, onPointerMove, onPointerUp, onPointerCancel: onPointerUp };
-    return { hitRef, drag, ...pointer, onLostPointerCapture: onPointerUp };
+    return { hitRef, drag, hold, ...pointer, onPointerLeave, onLostPointerCapture: onPointerUp };
 };
 
 /** Enter = 完成；Esc = 取消（拖緊都放棄埋個手勢，之後嘅 move / 放手唔理）；字母盤閂埋就唔理 */
@@ -115,6 +188,7 @@ const finishByKey = (
     event: KeyboardEvent,
     options: KnobTurnOptions,
     drag: { current: unknown },
+    cancelHold: () => void,
 ) => {
     if (!options.open) return;
     event.preventDefault();
@@ -123,14 +197,19 @@ const finishByKey = (
         return;
     }
     drag.current = null;
+    cancelHold();
     options.onCancel();
 };
 
 /** 鍵盤（US-012）：方向鍵 / Home / End 打開字母盤兼轉；Enter 或者 focus 離開 = 完成；Esc = 取消（S-154） */
-const keyboardTurn = (options: KnobTurnOptions, drag: { current: unknown }) => ({
+const keyboardTurn = (
+    options: KnobTurnOptions,
+    drag: { current: unknown },
+    cancelHold: () => void,
+) => ({
     onKeyDown: (event: KeyboardEvent) => {
         if (event.key === FINISH_KEY || event.key === CANCEL_KEY) {
-            finishByKey(event, options, drag);
+            finishByKey(event, options, drag, cancelHold);
             return;
         }
         const target = keyTarget(event.key, options.current, options.positions);
@@ -145,7 +224,7 @@ const keyboardTurn = (options: KnobTurnOptions, drag: { current: unknown }) => (
 });
 
 export const useKnobTurn = (options: KnobTurnOptions) => {
-    const { hitRef, drag, ...pointer } = usePointerTurn(options);
-    const keyboard = keyboardTurn(options, drag);
+    const { hitRef, drag, hold, ...pointer } = usePointerTurn(options);
+    const keyboard = keyboardTurn(options, drag, hold.cancel);
     return { hitRef, handlers: { ...pointer, ...keyboard } };
 };

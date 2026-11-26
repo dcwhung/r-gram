@@ -202,9 +202,10 @@ export interface StageLayout {
     };
     /**
      * 轉碟旋鈕；`heartHitGap` = ♥ 嘅感應方格離旋鈕邊幾遠（方格由旋鈕邊向外伸，唔同旋鈕重疊）；
-     * `turnDeadZone` = 拖動時 pointer 離旋鈕中心少過幾多（× 感應半徑）唔計角度（太近中心，角度會亂跳）
+     * `turnDeadZone` = 拖動時 pointer 離旋鈕中心少過幾多（× 感應半徑）唔計角度（太近中心，角度會亂跳）；
+     * `turnThresholdPx` = 未㩒夠時間，pointer 郁過幾多 CSS px 就當開始擰（即刻開字母盤，S-152）
      */
-    knob: Point & { r: number; heartHitGap: number; turnDeadZone: number };
+    knob: Point & { r: number; heartHitGap: number; turnDeadZone: number; turnThresholdPx: number };
     /** 刻度弧：固定由 fromDeg 去到 toDeg；每張專輯一格平均分佈，最尾一格（toDeg）係 ♥ */
     scale: {
         fromDeg: number;

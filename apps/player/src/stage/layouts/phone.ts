@@ -152,6 +152,8 @@ export const PHONE_LAYOUT: StageLayout = {
         heartHitGap: 10,
         // 設計稿冇（佢用㩒一下開關）：真機拖動嘅死區，T-036 定
         turnDeadZone: 0.3,
+        // S-152：未㩒夠時間就開始擰，郁過幾多 CSS px 即刻開字母盤（同歌單拖動門檻一樣，設計稿互動格嘅 6）
+        turnThresholdPx: 6,
     },
     scale: {
         fromDeg: 185,
