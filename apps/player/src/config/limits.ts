@@ -37,3 +37,11 @@ export const FONT_LOAD_TIMEOUT_MS = 3000;
  * 慢網絡唔好令用戶對住旗幟等，攞唔到主頁照開（碟面先用專輯色，圖到咗再出）。
  */
 export const COVER_PRELOAD_TIMEOUT_MS = 5000;
+
+/*
+ * 播放卡住（T-011 報告 §2.3「卡住」）：想播而冇出聲／等數據幾耐先算。唔係動畫，所以唔入 motion.ts。
+ * 數值由報告定：4 秒通知、8 秒（前景）重新載入，每首最多重試 2 次，之後當載入失敗。
+ */
+export const STALL_NOTICE_MS = 4000;
+export const STALL_RETRY_MS = 8000;
+export const STALL_MAX_RETRIES = 2;

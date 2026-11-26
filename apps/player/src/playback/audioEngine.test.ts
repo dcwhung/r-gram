@@ -99,6 +99,8 @@ describe('audioEngine cue and land (T-011 §2.4)', () => {
         expect(events).toEqual([{ type: 'paused', trackId: 'one', requested: true }]);
         element.resolvePlay();
         expect(events).toHaveLength(1);
+        // 數據已經到咗：再 play() 即刻出聲
+        element.playMode = 'auto';
         engine.play();
         expect(events.at(-1)).toEqual({ type: 'playing', trackId: 'one' });
     });
