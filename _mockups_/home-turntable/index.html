@@ -195,7 +195,7 @@ tr:last-child td { border-bottom: 0; }
         <li>㩒歌單其中一行：隻碟放入唱片機，落針播嗰首，細唱片機消失。</li>
         <li>或者㩒右上角細唱片機：放低隻碟，返去播緊嗰隻碟。</li>
     </ol>
-    <p class="lede"><b>新（等你確認）：揀碟就出歌單。</b>只要字母盤開住（揀緊碟），有冇歌播緊都會喺碟名下面出嗰隻碟嘅歌單；一開字母盤就出而家隻碟嘅，轉去另一隻就換。冇歌播緊時鬆手，歌單收返，返主頁（㩒碟面開弧線歌單揀歌）。</p>
+    <p class="lede"><b>新（等你確認）：揀碟就出歌單。</b>只要字母盤開住（揀緊碟），有冇歌播緊都會喺碟名下面出嗰隻碟嘅歌單；一開字母盤就出而家隻碟嘅，轉去另一隻就換。冇歌播緊時鬆手：歌單留住（同拎住另一隻碟一樣，只係右上角冇細唱片機），㩒一行就落針播嗰首；呢個畫面冇唱臂同三粒細掣（歌單佔咗佢哋嘅位），開始播先出返。試法：未播任何歌之前，㩒大旋鈕 → 㩒旁邊嘅碟 → 再㩒大旋鈕（鬆手）→ 㩒歌單其中一行。</p>
     <p class="lede"><b>新（等你確認）：歌單欄飄落。</b>歌單欄每次出現或者換碟（上面第 2、3 步），唔再一下子出現：歌名由右上一行一行飄落自己嘅位置。每轉去一隻碟都播一次。</p>
     <p class="lede"><b>另一個效果（暫時留低，等你睇埋先定）：轉碟途中㩒碟面 = 開嗰隻碟嘅弧線歌單，歌名由左上飄落弧線。</b>試法：做完上面第 3 步（字母盤開住、擰咗去另一隻碟），唔好鬆手，直接㩒隻碟嘅碟面：字母盤收起，暗層淡入，歌名由碟名下面逐行飄落去弧線，白色框線由唱片夾伸出。第 4 步（鬆咗手、手上拎住隻碟）㩒碟面都一樣。冇歌播緊時轉碟再㩒碟面：歌名由左上淡入飄落。㩒暗位收返；㩒唱片夾播框入面嗰首。</p>
     <div class="hero">
@@ -907,7 +907,7 @@ tr:last-child td { border-bottom: 0; }
     let panelSeq = 0;
     const trackPanel = (st) => {
         // 揀緊碟（字母盤開住）就出嗰隻碟嘅歌單，有冇歌播緊都一樣（用戶 2026-11-26：轉碟 = 揀碟，揀碟自然要出歌單）；鬆手之後只有拎住另一隻碟先留低
-        if (!(st.away || st.wheel > 0) || st.list || st.mv) return '';
+        if (!(st.away || st.hand || st.wheel > 0) || st.list || st.mv) return '';
         const { rows, top, room, hidden } = panelMetrics(st);
         const { accent } = ALBUMS[st.album];
         const pitch = trackPitch();
@@ -1727,13 +1727,14 @@ tr:last-child td { border-bottom: 0; }
         const fade = homeOpacity(st);
         // 第 18 版：手上拎住另一隻碟（away）——冇轉盤、冇唱臂、冇細掣；唱片機縮咗去右上角
         const away = Boolean(st.away);
-        const machineFade = away ? 0 : fade;
+        const inHand = away || Boolean(st.hand); // 隻碟拎喺手（未入機）：歌單欄佔咗唱臂泊位同三粒細掣嘅位，所以兩樣都唔顯示，開始播先出返
+        const machineFade = inHand ? 0 : fade;
         const turntable = [
             `<rect width="${W}" height="${H}" fill="url(#gStage)"/>`,
             screws(),
             `<g data-anim="platter" style="opacity: ${away ? 0 : 1}">${platter()}</g>`,
             discs(st, fid),
-            `<g data-anim="scrim" style="opacity: ${(away || st.wheel > 0) && !st.list ? 1 : 0}" pointer-events="none">${listScrim(fid)}${screws()}</g>`, // 螺絲喺淡出層上面再畫一次，唔好俾佢遮淡
+            `<g data-anim="scrim" style="opacity: ${(inHand || st.wheel > 0) && !st.list ? 1 : 0}" pointer-events="none">${listScrim(fid)}${screws()}</g>`, // 螺絲喺淡出層上面再畫一次，唔好俾佢遮淡
             dialRing(st),
             knob(st),
             favHeart(st),
@@ -1811,6 +1812,7 @@ tr:last-child td { border-bottom: 0; }
             ...live,
             ...(away ? { song: false, paused: false, parked: false } : {}),
             away,
+            hand: !live.song && Boolean(live.handed), // 冇歌載入而揀過碟：隻碟拎喺手，歌單留喺碟名下面（用戶 2026-11-26）
             loaded: live.song ? live.songAlbum : null,
             loadedPaused: live.paused,
             loadedTitle: live.songTitle,
@@ -1913,6 +1915,7 @@ tr:last-child td { border-bottom: 0; }
             if (live.list || live.mv) return;
             live.wheel = live.wheel > 0.5 ? 0 : 1;
             live.booklet = false;
+            if (live.wheel === 1 && !live.song) live.handed = true; // 冇歌載入時揀碟：鬆手之後隻碟拎喺手，歌單留住
             if (live.wheel === 1 && !liveView().away) { // 一打開字母盤就出而家隻碟嘅歌單（飄落）
                 Object.assign(live, { listScroll: 0, panelFresh: !reducedMotion() });
                 requestAnimationFrame(() => { live.panelFresh = false; });
@@ -1927,14 +1930,15 @@ tr:last-child td { border-bottom: 0; }
         },
         list: () => {
             if (live.list || live.mv || live.swapping) return;
-            if (atHome() && !liveView().away) { Object.assign(live, { list: true, booklet: false, listFloat: false, listFocus: null }); return; }
+            if (atHome() && !liveView().away && !liveView().hand) { Object.assign(live, { list: true, booklet: false, listFloat: false, listFocus: null }); return; }
             openListFloating(); // 轉碟途中（字母盤開住）或者手上拎住另一隻碟：歌名由左上飄落弧線
         },
         // 㩒歌單板其中一行 = 將手上隻碟放入唱片機，播嗰首（原本首歌停）
         playrow: (target) => {
-            if (!liveView().away || live.wheel > 0) return;
+            const view = liveView();
+            if (!(view.away || view.hand) || live.wheel > 0) return;
             const i = Number(target.dataset.i);
-            Object.assign(live, { song: true, paused: false, parked: false, songAlbum: live.album, songTitle: TRACKS[live.album].rows[i][0], songNo: i + 1, listScroll: 0 });
+            Object.assign(live, { handed: false, song: true, paused: false, parked: false, songAlbum: live.album, songTitle: TRACKS[live.album].rows[i][0], songNo: i + 1, listScroll: 0 });
             startArmIn();
         },
         // 㩒右上角細唱片機：放低手上隻碟，返去播緊嗰隻碟
