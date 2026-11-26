@@ -7,7 +7,8 @@
 <title>R Gram App Icon</title>
 <!--
     R Gram — app icon 設計稿（手機主畫面 icon 同瀏覽器 favicon）
-    第 2 版（2026-11-26，等用戶喺 C 同 D 之間揀）：方案 C 同 D 嘅碟放正中、同一大細，唱臂同底座縮細；頁頂加並排比較。
+    第 3 版（2026-11-26，等用戶喺 C 同 D 之間揀）：C 同 D 嘅碟放大（標誌大細不變），左下加一粒旋鈕。
+    第 2 版（2026-11-26）：方案 C 同 D 嘅碟放正中、同一大細，唱臂同底座縮細；頁頂加並排比較。
     第 1 版（2026-11-26）：五個方案（A 至 D 用 RubberBand 標誌，E 唔用），每個連細尺寸簡化版、
     iOS 遮罩、Android maskable 安全範圍、淺色同深色桌布。
     靜態設計稿，唔係 app code。接入 app（manifest、index.html）係 T-039，唔喺呢度做。
@@ -107,7 +108,7 @@ ul.plain li { margin-bottom: 4px; }
 <body>
 <div class="wrap">
     <h1>R Gram App Icon</h1>
-    <p class="lede"><b>第 2 版（等你喺 C 同 D 之間揀）。</b>你話 C 同 D 都得，所以今版將兩個嘅碟放喺面板正中、用同一大細（面板闊度約 59%），唱臂同底座縮細；兩個只差面板同碟嘅顏色。A、B、E 冇改，留喺下面做參考。手機主畫面 icon 同瀏覽器 favicon。全部照你嘅概念圖：由正上方睇落去嘅唱片機——圓角正方形嘅拉絲鋁面板、四角螺絲、中間一隻碟、右上角唱臂底座、唱臂中段屈一屈、唱針落喺碟嘅右下。</p>
+    <p class="lede"><b>第 3 版（等你喺 C 同 D 之間揀）。</b>C 同 D：碟喺面板正中、同一大細，今版放大到面板闊度約 64%，標誌大細不變；左下加咗一粒旋鈕（播放端揀碟嗰粒嘅畫法），位置同右上嘅唱臂底座對稱。兩個只差面板同碟嘅顏色。A、B、E 冇改，留喺下面做參考。手機主畫面 icon 同瀏覽器 favicon。全部照你嘅概念圖：由正上方睇落去嘅唱片機——圓角正方形嘅拉絲鋁面板、四角螺絲、中間一隻碟、右上角唱臂底座、唱臂中段屈一屈、唱針落喺碟嘅右下。</p>
     <p class="lede">五個方案只喺取捨上唔同。畫法（車床拉絲面、螺絲、碟、銀邊、唱片夾、唱臂、陰影）全部係播放端設計稿第 18 版已有嘅嘢，冇加新風格。Icon 入面冇文字（除咗標誌本身個 R）。</p>
 
     <div class="notice" role="note">
@@ -117,7 +118,7 @@ ul.plain li { margin-bottom: 4px; }
     </div>
 
     <h2 id="compare-title">C 同 D 並排比較</h2>
-    <p class="lede">碟嘅位置、大細同唱臂完全一樣，只差顏色。</p>
+    <p class="lede">碟嘅位置、大細、唱臂同旋鈕完全一樣，只差顏色。</p>
     <div class="compare" id="compare"></div>
 
     <ul class="toc" id="toc" aria-label="方案"></ul>
@@ -177,7 +178,12 @@ ul.plain li { margin-bottom: 4px; }
        disc.tip：唱針落喺碟上面邊度（角度由碟心向右計，順時針；at = 離碟心幾多個半徑）
        arm.knee：唱臂由底座直落到幾多（佔底座到唱針嘅垂直距離）先屈 */
     // 第 2 版：方案 C 同 D 嘅碟放喺面板正中、同一大細；唱臂同底座縮細，留喺碟同右上螺絲之間
-    const CENTRED_DISC = { x: CENTRE, y: CENTRE, r: 300, hub: false, platter: false, mark: 'emblem', markScale: 0.7, markY: 0, tip: { deg: 33, at: 0.8 } };
+    // 第 3 版：碟放大（300 → 330），標誌大細不變（圓圈半徑照舊 210）；左下加一粒旋鈕，位置同右上嘅唱臂底座對稱
+    const CENTRED_DISC_R = 330;
+    const CENTRED_MARK_R = 210;
+    const CENTRED_DISC = { x: CENTRE, y: CENTRE, r: CENTRED_DISC_R, hub: false, platter: false, mark: 'emblem', markScale: CENTRED_MARK_R / CENTRED_DISC_R, markY: 0, tip: { deg: 33, at: 0.82 } };
+    const CORNER_KNOB = { x: 184, y: 840, r: 62 };
+    const KNOB_POINTER = { deg: -52, color: '#d7263d' }; // 指針方向；顏色係 Favourites 碟嘅 accent
     const SLIM_ARM = { x: 840, y: 184, base: 62, tube: 24, knee: 0.5, head: { l: 84, w: 54 } };
     const VARIANTS = {
         A: {
@@ -200,6 +206,7 @@ ul.plain li { margin-bottom: 4px; }
             panel: 'dark',
             disc: { ...CENTRED_DISC, face: 'silver' },
             arm: SLIM_ARM,
+            knob: CORNER_KNOB,
         },
         D: {
             title: '黑碟',
@@ -207,6 +214,7 @@ ul.plain li { margin-bottom: 4px; }
             panel: 'light',
             disc: { ...CENTRED_DISC, face: 'black' },
             arm: SLIM_ARM,
+            knob: CORNER_KNOB,
         },
         E: {
             title: '唔用官方標誌',
@@ -219,18 +227,18 @@ ul.plain li { margin-bottom: 4px; }
 
     /* ---------- 精細度：細尺寸減細節、加粗 ----------
        texture 拉絲紋同模糊陰影｜screw 螺絲半徑（0 = 冇）｜disc 碟放大倍數｜mark 標誌放大倍數
-       tube / head / base 唱臂各部分放大倍數｜weight 配重｜core 唱臂有冇淺色芯（最細嗰個淨係一條深色線）｜edge 面板邊線闊度 */
+       tube / head / base 唱臂各部分放大倍數｜weight 配重｜core 唱臂有冇淺色芯（最細嗰個淨係一條深色線）｜knob 旋鈕放大倍數｜edge 面板邊線闊度 */
     const DETAILS = {
-        full: { label: '完整版', texture: true, screw: 27, disc: 1, mark: 1, tube: 1, head: 1, base: 1, weight: true, core: true, edge: 10 },
-        mid: { label: '中版', texture: true, screw: 34, disc: 1.06, mark: 1.03, tube: 1.35, head: 1.2, base: 1.05, weight: true, core: true, edge: 14 },
-        small: { label: '簡化版', texture: false, screw: 38, disc: 1.14, mark: 1.04, tube: 1.9, head: 1.45, base: 1.12, weight: false, core: true, edge: 24 },
-        tiny: { label: '最簡版', texture: false, screw: 0, disc: 1.22, mark: 1.04, tube: 2.7, head: 1.9, base: 1.2, weight: false, core: false, edge: 44 },
+        full: { label: '完整版', texture: true, screw: 27, disc: 1, mark: 1, tube: 1, head: 1, base: 1, weight: true, core: true, knob: 1, edge: 10 },
+        mid: { label: '中版', texture: true, screw: 34, disc: 1.06, mark: 1.03, tube: 1.35, head: 1.2, base: 1.05, weight: true, core: true, knob: 1.05, edge: 14 },
+        small: { label: '簡化版', texture: false, screw: 38, disc: 1.14, mark: 1.04, tube: 1.9, head: 1.45, base: 1.12, weight: false, core: true, knob: 1.1, edge: 24 },
+        tiny: { label: '最簡版', texture: false, screw: 0, disc: 1.22, mark: 1.04, tube: 2.7, head: 1.9, base: 1.2, weight: false, core: false, knob: 0.9, edge: 44 },
     };
     const DETAIL_NOTE = {
         full: '全部細節',
         mid: '螺絲同唱臂加粗少少，碟大少少',
-        small: '冇拉絲紋、冇陰影、冇配重；螺絲、標誌、唱臂加粗；碟放大',
-        tiny: '冇螺絲；剩返面板、碟、標誌、一條粗唱臂連底座同唱頭',
+        small: '冇拉絲紋、冇陰影、冇配重；螺絲、標誌、唱臂加粗；碟放大；旋鈕剩一個圓同指針',
+        tiny: '冇螺絲；剩返面板、碟、標誌、一條粗唱臂連底座同唱頭；旋鈕剩一點',
     };
     /** 每個尺寸用邊個精細度同形狀 */
     const PLAN = [
@@ -490,6 +498,30 @@ ul.plain li { margin-bottom: 4px; }
         return `${out}${metal(arm.x, arm.y, cap, { rot: 60, bevel: 0.14, withShadow: false })}<circle cx="${arm.x}" cy="${arm.y}" r="${n(arm.base * 0.1)}" fill="#3d3d3d"/>`;
     };
 
+    /* ---------- 旋鈕（播放端 knob：滾花邊、車床面、指針；冇刻度） ---------- */
+    const KNOB_REF = 76; // 播放端旋鈕半徑：線闊按呢個比例縮放
+    const knob = (v, d) => {
+        if (!v.knob) return '';
+        const { x, y } = v.knob;
+        const r = v.knob.r * d.knob;
+        const k = r / KNOB_REF;
+        const flat = FLAT[v.panel];
+        const top = r - 11 * k;
+        const pointer = (from, width, color) =>
+            `<path d="M${n(top * from)} 0H${n(top - 9 * k)}" stroke="${color}" stroke-width="${n(width)}" stroke-linecap="round" transform="translate(${x} ${y}) rotate(${KNOB_POINTER.deg})"/>`;
+        if (!d.texture) {
+            const body = `<circle cx="${x}" cy="${y}" r="${n(r)}" fill="${flat.metal}" stroke="${flat.metalEdge}" stroke-width="${n(r * 0.16)}"/>`;
+            return d.core ? body + pointer(0.1, r * 0.26, flat.metalEdge) : body;
+        }
+        return (
+            shadow(x, y, r, { dx: 7, dy: 13, opacity: 0.36 }) +
+            `<circle cx="${x}" cy="${y}" r="${n(r)}" fill="url(#gCyl)" stroke="#5f5f5f" stroke-width="1.2"/>` +
+            `<circle cx="${x}" cy="${y}" r="${n(r - 5 * k)}" fill="none" stroke="#6b6b6b" stroke-opacity=".7" stroke-width="${n(9 * k)}" stroke-dasharray="${n(3 * k)} ${n(4.2 * k)}"/>` +
+            metal(x, y, top, { rot: 24, bevel: 0.07, withShadow: false }) +
+            pointer(0.42, 8 * k, KNOB_POINTER.color)
+        );
+    };
+
     /* ---------- 成個 icon ---------- */
     let serial = 0;
     /** shape：rounded（透明圓角）｜square（鋪滿，iOS）｜maskable（鋪滿，碟同唱臂縮入安全圓） */
@@ -499,7 +531,7 @@ ul.plain li { margin-bottom: 4px; }
         serial += 1;
         const uid = `i${serial}`;
         const scale = shape === 'maskable' ? MASKABLE_SCALE : 1;
-        const content = `<g transform="translate(${CENTRE} ${CENTRE}) scale(${scale}) translate(${-CENTRE} ${-CENTRE})">${discGroup(v, d, uid)}${tonearm(v, d)}</g>`;
+        const content = `<g transform="translate(${CENTRE} ${CENTRE}) scale(${scale}) translate(${-CENTRE} ${-CENTRE})">${discGroup(v, d, uid)}${knob(v, d)}${tonearm(v, d)}</g>`;
         return (
             `<clipPath id="${uid}-clip"><rect ${panelShape(shape)}/></clipPath>` +
             `<g clip-path="url(#${uid}-clip)">${panel(v.panel, shape, d)}${screws(shape, d, FLAT[v.panel])}${content}</g>`
