@@ -163,6 +163,11 @@ describe('parseAlbumInfo', () => {
             ['  12 .  歌名  ', 12],
             ['１２. 歌名', 12],
             ['999. 歌名', 999],
+            // S-161（main session 決定，等用戶確認）：歌號之後嘅 `-`、`–`、`—` 都係分隔
+            ['01 - 歌名', 1],
+            ['1-歌名', 1],
+            ['2 – 歌名', 2],
+            ['3—歌名', 3],
         ])('should read %j as track %i', (line, no) => {
             const info = parseAlbumInfo(`唱片名稱：A\n${line}`);
             expect(info.tracks).toEqual([{ no, title: '歌名', line: 2 }]);

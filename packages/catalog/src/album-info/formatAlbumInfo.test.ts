@@ -68,6 +68,7 @@ describe('formatAlbumInfo', () => {
                     tracks: [
                         { no: 1, title: '12:00 Midnight' },
                         { no: 999, title: '1. 再來' },
+                        { no: 7, title: '- 開頭係分隔符號' },
                     ],
                 },
             ],
