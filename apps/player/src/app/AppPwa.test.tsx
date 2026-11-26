@@ -156,4 +156,22 @@ describe('App on a phone turned sideways', () => {
         set('waiting');
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
     });
+
+    // S-221（mutant M20）：打橫時唔通知（唔好打斷「請打直」）；打返直先講
+    it('should keep the screen-reader notice quiet while the phone is sideways', async () => {
+        setViewport(393, 852);
+        const { port, set } = fakePort();
+        await renderHome(port);
+        const turn = (width: number, height: number) =>
+            act(() => {
+                setViewport(width, height);
+                window.dispatchEvent(new Event('resize'));
+            });
+        turn(852, 393);
+        set('waiting');
+        expect(screen.getByRole('alert')).toHaveTextContent('請將裝置轉為直向');
+        expect(screen.getByRole('status')).toBeEmptyDOMElement();
+        turn(393, 852);
+        expect(screen.getByRole('status')).toHaveTextContent('已有新版本');
+    });
 });
