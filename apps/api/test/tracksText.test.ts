@@ -171,6 +171,19 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         expect((await tracksOf())[0]).toMatchObject({ text_key: null, composer: null });
     });
 
+    // S-182（review probe P2）：由呢首歌起同步 = 前面嘅歌冇做；回應講明，管理端提示要再掃描
+    it('should say when tracks before this one were not synced', async () => {
+        await putMedia('01 下一位參賽者.txt', SONG);
+        const later = await save05(TEXT_05.replace('第二句', '改過的第二句'));
+        expect(later.body.sync).toMatchObject({ more: false, skippedBefore: true });
+        const first = await putText('komorebi-01', {
+            text: SONG,
+            etag: await etagOf(mediaKey('01 下一位參賽者.txt')),
+        });
+        expect(first.status).toBe(200);
+        expect(first.body.sync.skippedBefore).toBe(false);
+    });
+
     it('should store UTF-8 without BOM and with LF only', async () => {
         await save05(`\uFEFF${TEXT_05.replaceAll('\n', '\r\n')}`);
         expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
