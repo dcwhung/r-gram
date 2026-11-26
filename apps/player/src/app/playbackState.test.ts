@@ -1,3 +1,4 @@
+import { loadedAlbumOf } from './holding';
 import { IDLE_PLAYBACK, playbackReducer, type PlaybackState } from './playbackState';
 
 const playing: PlaybackState = {
@@ -32,6 +33,14 @@ describe('playbackReducer (state only until T-038)', () => {
             status: 'paused',
             pauseReason: 'mv',
         });
+    });
+
+    // B-086 ⑥：播完（status ended，觸發係 T-038）：載入嘅碟仍然喺唱片機；暫停、MV 唔改佢
+    it('should keep an ended song loaded and ignore pauses', () => {
+        const ended: PlaybackState = { ...playing, status: 'ended' };
+        expect(loadedAlbumOf(ended)).toBe('room');
+        expect(playbackReducer(ended, { type: 'pauseFor', reason: 'mv' })).toBe(ended);
+        expect(playbackReducer(ended, { type: 'toggle' })).toBe(ended);
     });
 
     it('should return the same state when nothing is loaded', () => {

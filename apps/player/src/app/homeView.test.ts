@@ -260,6 +260,21 @@ describe('homeView mini turntable', () => {
         makeAlbum('room', ['room/01.m4a']),
     ]);
     const holdingRoom = home({ viewAlbumId: 'room' });
+
+    /*
+     * 設計稿第 19 版 miniTurntable()（B-086 ⑥）：拎住另一隻碟時播緊嗰隻碟播完：細唱片機留低，寫「已播完」，
+     * 唱針離開碟（泊位），碟唔轉；歌單欄唔收。「播完」嘅觸發係 T-038
+     */
+    it('should keep the mini turntable with the needle parked once the loaded song ended', () => {
+        const ended = playback({ status: 'ended' });
+        expect(mini(holdingRoom, ended)).toMatchObject({
+            shown: true,
+            ended: true,
+            armPose: 'parked',
+            spinning: false,
+        });
+        expect(homeView(document, holdingRoom, ended).trackColumn).not.toBeNull();
+    });
     const mini = (stage: StageState, state: PlaybackState) =>
         homeView(document, stage, state, new Map([['apollo-18', COVER_VARIANT.SECOND]])).mini;
 
