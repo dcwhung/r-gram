@@ -7,6 +7,7 @@ import {
     withSecondCover,
 } from '../catalog/testing/catalogFixtures';
 import { testPlayback } from '../playback/testing/testPlayback';
+import { createTestMv } from '../mv/testing/testMv';
 import { useHome } from './useHome';
 
 /** `apollo-18` 第 1 首有 MV */
@@ -23,7 +24,10 @@ const press = (home: { current: ReturnType<typeof useHome> }, name: 'onSpindle' 
 describe('useHome', () => {
     // S-073：電視開住時唱片夾喺電視後面（T-060）：就算有人叫到 onSpindle 都唔反應
     it('should ignore the clamp while the MV is open', () => {
-        const { result } = renderHook(() => useHome(catalogWithMv(), testPlayback()));
+        const { mv } = createTestMv({ reduceMotion: true });
+        const { result } = renderHook(() =>
+            useHome(catalogWithMv(), testPlayback(), undefined, undefined, mv),
+        );
         press(result, 'onSpindle');
         press(result, 'onMv');
         const before = { stage: result.current.stage, playback: result.current.playback };

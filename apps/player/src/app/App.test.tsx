@@ -8,6 +8,8 @@ import { MOTION } from '../config/motion';
 import { installFakeFonts, removeFakeFonts } from '../utils/testing/fakeFonts';
 import { App } from './App';
 import { testPlayback } from '../playback/testing/testPlayback';
+import type { MvController } from '../mv/mvController';
+import { createTestMv } from '../mv/testing/testMv';
 import type { StartupDeps } from './startup/startupDeps';
 
 const stubReducedMotion = (reduce: boolean) =>
@@ -42,9 +44,9 @@ const { preloadStepMs, preloadHoldMs, flagFadeMs } = MOTION.scene;
 const PRELOAD_STEPS = [preloadStepMs + preloadHoldMs, flagFadeMs];
 
 /** 開 app，等 Preload 行完（減少動態效果：冇停留、冇淡出；fake timers：行晒 Preload 嘅時間線） */
-const renderHome = async (catalog: CatalogDocument = sampleDocument()) => {
+const renderHome = async (catalog: CatalogDocument = sampleDocument(), mv?: MvController) => {
     const { container } = render(
-        <App playback={testPlayback()} startup={instantStartup(catalog)} />,
+        <App playback={testPlayback()} startup={instantStartup(catalog)} mv={mv} />,
     );
     await flush();
     if (vi.isFakeTimers()) {
@@ -237,14 +239,15 @@ describe('App home scene', () => {
         expect(booklet).toHaveAttribute('aria-pressed', 'false');
     });
 
-    // MV 電視係 T-060：開 MV 時停播、唱臂返泊位；收返之後要㩒先續播，再播重新落針
+    // MV 電視（T-060）：開 MV 時停播、唱臂返泊位；㩒 ■ 收返之後要㩒先續播，再播重新落針（C8）
     it('should park the arm for the MV and keep it parked after the MV until play is pressed', async () => {
-        const { button, armLook } = await renderHome(catalogWithMv());
+        const tv = createTestMv({ reduceMotion: true });
+        const { button, armLook } = await renderHome(catalogWithMv(), tv.mv);
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('播放'));
         await userEvent.click(button('觀看 MV'));
         expect(armLook()).toEqual(PARKED);
-        await userEvent.click(button('觀看 MV'));
+        await userEvent.click(button('關閉電視'));
         expect(armLook()).toEqual(PARKED);
         await userEvent.click(button('播放'));
         expect(armLook()).toEqual(PLAYING);
@@ -252,12 +255,13 @@ describe('App home scene', () => {
 
     // S-073：電視開住時唱片夾㩒唔到：讀屏要講「已停用」，唔可以係一粒冇反應嘅「播放」掣
     it('should disable the clamp while the MV is open', async () => {
-        const { button, armLook } = await renderHome(catalogWithMv());
+        const tv = createTestMv({ reduceMotion: true });
+        const { button, armLook } = await renderHome(catalogWithMv(), tv.mv);
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('播放'));
         await userEvent.click(button('觀看 MV'));
         expect(button('播放')).toHaveAttribute('aria-disabled', 'true');
-        await userEvent.click(button('觀看 MV'));
+        await userEvent.click(button('關閉電視'));
         expect(button('播放')).not.toHaveAttribute('aria-disabled');
         await userEvent.click(button('播放'));
         expect(armLook()).toEqual(PLAYING);
