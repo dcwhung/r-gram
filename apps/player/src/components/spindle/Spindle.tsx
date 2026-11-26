@@ -31,6 +31,11 @@ interface SpindleProps {
     accent: string;
     /** 停用：㩒唔到但 focus 得到（讀屏講「已停用」），例如電視開住時（唱片夾喺電視後面） */
     disabled?: boolean;
+    /**
+     * 唔係掣：照畫，但㩒唔到、唔入 Tab 次序、讀屏唔讀。拎住另一隻碟時（冇轉盤，T-048；
+     * 設計稿照畫唱片夾，但 Functional Spec D52：唔開弧線歌單）
+     */
+    inert?: boolean;
     onPress: () => void;
     /** 收返歌單之後 focus 返呢度（S-074） */
     ref?: Ref<SVGGElement>;
@@ -41,7 +46,7 @@ const Face = ({
     mode,
     progress,
     accent,
-}: { r: number } & Omit<SpindleProps, 'layout' | 'disabled' | 'onPress' | 'ref'>) => (
+}: { r: number } & Omit<SpindleProps, 'layout' | 'disabled' | 'inert' | 'onPress' | 'ref'>) => (
     <>
         <Clamp r={r} />
         {mode === 'list' && (
@@ -69,7 +74,7 @@ const Face = ({
  *（Functional Spec CR-002「唱片夾同碟」；設計稿 spindle()）。
  */
 export const Spindle = (props: SpindleProps) => {
-    const { layout, mode, progress, accent, disabled = false, onPress, ref } = props;
+    const { layout, mode, progress, accent, disabled = false, inert = false, onPress, ref } = props;
     const { disc, hub } = layout;
     const r = disc.r * hub.clamp;
     return (
@@ -79,7 +84,8 @@ export const Spindle = (props: SpindleProps) => {
             aria-label={t(LABEL[mode])}
             // 平時唔出呢個屬性（同設計稿移植嘅 markup 一致）
             aria-disabled={disabled || undefined}
-            {...pressable(onPress, disabled)}
+            aria-hidden={inert || undefined}
+            {...pressable(onPress, disabled || inert, !inert)}
         >
             <circle
                 data-part="hit"

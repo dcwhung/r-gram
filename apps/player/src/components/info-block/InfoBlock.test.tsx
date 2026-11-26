@@ -233,3 +233,25 @@ describe('InfoBlock while choosing a disc', () => {
         expect(part('song-fade')).not.toHaveAttribute('aria-hidden');
     });
 });
+
+/* T-048：拎住另一隻碟時碟名闊度收窄到細唱片機左邊（Technical Spec「碟名闊度上限」；同一個 fit，只換闊度） */
+describe('InfoBlock while holding another disc', () => {
+    const sizeOf = (title: string, held: boolean) =>
+        Number(
+            renderInfo({ album: album({ title }), held })('album-title')?.getAttribute('font-size'),
+        );
+    const widthAt = (title: string, size: number, spacing: number) =>
+        estimateTextWidth(title, { family: 'slab', size, weight: 400, spacing });
+
+    it('should shrink a title that only fits the full width', () => {
+        const title = 'WE ARE RUBBERBAND';
+        expect(sizeOf(title, false)).toBe(88);
+        const held = sizeOf(title, true);
+        expect(held).toBeLessThan(88);
+        expect(widthAt(title, held, 1)).toBeLessThanOrEqual(790 - 70);
+    });
+
+    it('should keep a short title at full size', () => {
+        expect(sizeOf('ROOM', true)).toBe(88);
+    });
+});

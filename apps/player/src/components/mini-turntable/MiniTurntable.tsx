@@ -1,0 +1,125 @@
+import type { MiniView } from '../../app/miniView';
+import { t } from '../../i18n/t';
+import { miniHitBox, miniLabelX, miniScale } from '../../stage/geometry';
+import type { StageLayout } from '../../stage/layouts';
+import { fitText } from '../../utils/fitText';
+import type { TextMeasure } from '../../utils/textMeasure';
+import { ChromeFade } from '../chrome-fade/ChromeFade';
+import { Disc } from '../disc/Disc';
+import { Platter } from '../platter/Platter';
+import { pressable } from '../pressable';
+import { Clamp } from '../spindle/Clamp';
+import { px, ratio } from '../svgNumber';
+import { Tonearm } from '../tonearm/Tonearm';
+import './miniTurntable.css';
+
+const TITLE_WEIGHT = 700;
+
+interface MiniTurntableProps {
+    layout: StageLayout;
+    mini: MiniView;
+    /** 量文字闊度（歌名放唔落就縮字） */
+    measure: TextMeasure;
+    /** 㩒：放低拎住嘅碟，返去載入嘅碟 */
+    onPress: () => void;
+}
+
+type MachineProps = Pick<MiniTurntableProps, 'layout' | 'mini'>;
+
+/** 同大唱片機一樣嘅零件（轉盤、碟、唱片夾、唱臂），以設計單位畫，再成組縮細搬去右上角 */
+const Machine = ({ layout, mini }: MachineProps) => {
+    const { disc, hub, platter, arm, miniTurntable: centre } = layout;
+    const k = miniScale(layout);
+    const at = `translate(${disc.x} ${disc.y})`;
+    return (
+        <g
+            data-part="mini-machine"
+            transform={`translate(${px(centre.x - disc.x * k)} ${px(centre.y - disc.y * k)}) scale(${ratio(k)})`}
+        >
+            <Platter disc={disc} platter={platter} />
+            <g transform={at}>
+                <Disc
+                    r={disc.r}
+                    hub={hub}
+                    coverUrl={mini.coverUrl}
+                    thumbUrl={mini.thumbUrl}
+                    accent={mini.accent}
+                    spinning={mini.spinning}
+                />
+            </g>
+            <g transform={at}>
+                <Clamp r={disc.r * hub.clamp} />
+            </g>
+            {/* 細唱片機出現時唱臂已經喺位，之後只跟播放狀態（冇開場） */}
+            <Tonearm arm={arm} pose={mini.armPose} instant glow={mini.glow} />
+        </g>
+    );
+};
+
+type CaptionProps = MachineProps & Pick<MiniTurntableProps, 'measure'>;
+
+/** 兩行字靠右對齊喺碟左邊：「播放中」／「已暫停」，下面係歌名（放唔落就縮字，再唔得先「…」） */
+const Caption = ({ layout, mini, measure }: CaptionProps) => {
+    const { miniTurntable: shape, info } = layout;
+    const x = miniLabelX(layout);
+    const fitted = fitText(mini.title, {
+        size: shape.title.size,
+        minSize: shape.title.minSize,
+        maxWidth: x - info.title.x,
+        measure: (text, size) =>
+            measure(text, { family: 'cjk', size, weight: TITLE_WEIGHT, spacing: 0 }),
+    });
+    return (
+        <>
+            <text
+                data-part="mini-label"
+                className="mini-label"
+                x={x}
+                y={shape.y - shape.label.rise}
+                textAnchor="end"
+                fontSize={shape.label.size}
+                letterSpacing={shape.label.spacing}
+            >
+                {t(mini.paused ? 'miniTurntable.paused' : 'miniTurntable.playing')}
+            </text>
+            <text
+                data-part="mini-title"
+                className="mini-title"
+                x={x}
+                y={shape.y + shape.title.drop}
+                textAnchor="end"
+                fontSize={fitted.size}
+            >
+                {fitted.text}
+            </text>
+        </>
+    );
+};
+
+/**
+ * 右上角細唱片機（設計稿第 18 版 miniTurntable()；Functional Spec FR-043、D58）：拎住另一隻碟時照播載入嘅碟。
+ * 成組（連兩行字）係一粒掣，㩒 = 返去載入嘅碟。唔顯示時淡出（chromeFade），唔接受 pointer、唔入 Tab 次序。
+ */
+export const MiniTurntable = ({ layout, mini, measure, onPress }: MiniTurntableProps) => {
+    const box = miniHitBox(layout);
+    return (
+        <ChromeFade part="mini-turntable" hidden={!mini.shown}>
+            <g
+                data-part="mini-button"
+                aria-label={t('miniTurntable.back')}
+                {...pressable(onPress, !mini.shown, mini.shown)}
+            >
+                <rect
+                    data-part="mini-hit"
+                    x={box.left}
+                    y={box.top}
+                    width={box.right - box.left}
+                    height={box.bottom - box.top}
+                    fill="transparent"
+                />
+                <Machine layout={layout} mini={mini} />
+                <Caption layout={layout} mini={mini} measure={measure} />
+            </g>
+        </ChromeFade>
+    );
+};

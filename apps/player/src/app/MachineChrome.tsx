@@ -11,20 +11,22 @@ interface MachineChromeProps {
     view: HomeView;
     handlers: Pick<HomeHandlers, 'onBooklet' | 'onMv' | 'onMode'>;
     leadIn: ArmLeadIn;
+    /** 唱臂即時到位（淡出咗，或者啱啱換咗碟） */
+    instant: boolean;
 }
 
 /**
  * 唱臂同三粒細掣：揀碟期間（同拎住另一隻碟時）淡出（Functional Spec D52）。淡出咗就唔接受 pointer、
  * 細掣離開 Tab 次序；唱臂喺淡出期間姿勢變咗就即時到位（淡入返嗰陣已經喺新位，唔行開場）。
  */
-export const MachineChrome = ({ layout, view, handlers, leadIn }: MachineChromeProps) => (
+export const MachineChrome = ({ layout, view, handlers, leadIn, instant }: MachineChromeProps) => (
     <>
         <ChromeFade part="chrome-arm" hidden={view.chromeHidden}>
             <Tonearm
                 arm={layout.arm}
                 pose={view.armPose}
                 leadIn={leadIn}
-                instant={view.chromeHidden}
+                instant={instant}
                 glow={view.glow}
             />
         </ChromeFade>

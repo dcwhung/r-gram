@@ -5,6 +5,7 @@ export type {
     ButtonId,
     InfoLayout,
     LayoutId,
+    MiniTurntableLayout,
     Point,
     PreloadLayout,
     StageLayout,

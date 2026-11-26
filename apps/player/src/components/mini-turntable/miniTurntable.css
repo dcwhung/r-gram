@@ -1,0 +1,11 @@
+/* 細唱片機兩行字（設計稿第 18 版 miniTurntable()）：「播放中」灰色細字、歌名粗體黑字；位置同字級喺幾何表 */
+.mini-label {
+    fill: var(--color-info-faint);
+    font-family: var(--font-cjk);
+}
+
+.mini-title {
+    fill: var(--color-ink);
+    font-family: var(--font-cjk);
+    font-weight: 700;
+}

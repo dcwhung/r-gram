@@ -22,6 +22,21 @@ const ARM = { x: 900, y: 330, length: 640, base: 92, parkDeg: 176, playDeg: 99, 
 const INFO_X = 70;
 const SONG_ARM_GAP = 36;
 const TITLE_MIN_SIZE = 48;
+/*
+ * 細唱片機（T-048）照設計稿第 18 版 MINI 同 miniTurntable()：「播放中」y − 18、歌名 y + 30。
+ * 拎住另一隻碟時碟名停喺細唱片機左邊 MINI_TITLE_GAP 之外（設計稿 info()：MINI.x − MINI.r − 20）。
+ * 歌名最細縮到同「播放中」一樣大（設計稿冇畫長歌名，T-048 定）
+ */
+const MINI = {
+    x: 930,
+    y: 322,
+    r: 120,
+    labelGap: 28,
+    hitPad: 300,
+    label: { size: 24, rise: 18, spacing: 4 },
+    title: { size: 36, drop: 30, minSize: 24 },
+} as const;
+const MINI_TITLE_GAP = 20;
 
 /*
  * Preload（T-034）。布料照 _mockups_/r-gram/src/anim.js（v16）嘅 FLAG；logo、進度線同文字照第 18 版 preloadCard()。
@@ -136,6 +151,7 @@ export const PHONE_LAYOUT: StageLayout = {
             cjk: { y: 188, size: 80, spacing: 4 },
             minSize: TITLE_MIN_SIZE,
             maxRight: DESIGN_WIDTH - INFO_X,
+            rightWhenHeld: MINI.x - MINI.r - MINI_TITLE_GAP,
         },
         year: { x: 74, y: 244, size: 29, spacing: 6 },
         rule: { gap: 22, y: 234, length: 98, width: 3.5 },
@@ -163,6 +179,7 @@ export const PHONE_LAYOUT: StageLayout = {
         track: { x: 74, y: 368, size: 22, spacing: 3 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },
     },
+    miniTurntable: MINI,
     preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },

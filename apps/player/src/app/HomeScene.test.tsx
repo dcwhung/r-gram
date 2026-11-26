@@ -17,6 +17,7 @@ const handlers = {
     onTurnEnd: vi.fn(),
     onTurnCancel: vi.fn(),
     onFavourites: vi.fn(),
+    onReturnToLoaded: vi.fn(),
 };
 
 const viewOf = (
@@ -148,5 +149,104 @@ describe('HomeScene choosing a disc', () => {
     it('should keep the spindle above the list veil while the list is open', () => {
         const { container } = render(scene(viewOf('room', null, { scene: 'list' })));
         expect(part(container, 'list-veil')?.nextElementSibling).toHaveClass('spindle');
+    });
+});
+
+/* T-048：播緊時拎住另一隻碟（Functional Spec FR-043、D52；設計稿第 18 版「播緊時，手上拎住另一隻碟」） */
+describe('HomeScene holding another disc', () => {
+    const PLAYING: PlaybackState = {
+        ...IDLE_PLAYBACK,
+        status: 'playing',
+        albumId: 'apollo-18',
+        trackId: 'apollo-18-01',
+    };
+    const PAUSED: PlaybackState = { ...PLAYING, status: 'paused', pauseReason: 'user' };
+    const holding = (playback: PlaybackState = PLAYING) => viewOf('room', null, {}, playback);
+    /** 大唱片機嘅唱臂入面（細唱片機都有自己支唱臂） */
+    const bigArm = (container: HTMLElement, name: string) =>
+        container.querySelector(`[data-part="chrome-arm"] [data-part="${name}"]`);
+    const part = (container: HTMLElement, name: string) =>
+        container.querySelector(`[data-part="${name}"]`);
+
+    it('should hide the big platter, tonearm and small buttons and show the mini turntable', () => {
+        const { container } = render(scene(holding()));
+        expect(part(container, 'platter-fade')).toHaveAttribute('data-hidden', 'true');
+        expect(part(container, 'chrome-arm')).toHaveAttribute('data-hidden', 'true');
+        expect(part(container, 'chrome-buttons')).toHaveAttribute('data-hidden', 'true');
+        expect(part(container, 'mini-turntable')).toHaveAttribute('data-hidden', 'false');
+        expect(part(container, 'mini-label')).toHaveTextContent('播放中');
+        expect(part(container, 'mini-title')).toHaveTextContent('apollo-18 1');
+    });
+
+    it('should go back to the loaded disc when the mini turntable is pressed', () => {
+        render(scene(holding()));
+        fireEvent.click(screen.getByRole('button', { name: '返回播放中的唱片' }));
+        expect(handlers.onReturnToLoaded).toHaveBeenCalled();
+    });
+
+    // 瀏覽器實測（T-048）：㩒完細唱片機佢就淡出、離開 Tab 次序：focus 交畀唱片夾（同 S-074 一樣），唔好留喺睇唔到嘅掣
+    it('should hand the focus to the clamp after the mini turntable is pressed', () => {
+        const { container } = render(scene(holding()));
+        const mini = screen.getByRole('button', { name: '返回播放中的唱片' });
+        mini.focus();
+        fireEvent.keyDown(mini, { key: 'Enter' });
+        expect(document.activeElement).toBe(container.querySelector('.spindle'));
+    });
+
+    it('should say paused on the mini turntable while the song is paused', () => {
+        const { container } = render(scene(holding(PAUSED)));
+        expect(part(container, 'mini-label')).toHaveTextContent('已暫停');
+    });
+
+    // 拎住嘅碟冇轉盤：唱片夾照畫（設計稿），但唔係掣、讀屏唔讀、Tab 唔到
+    it('should take the clamp of the held disc out of the Tab order', () => {
+        const { container } = render(scene(holding()));
+        const spindle = container.querySelector('.spindle');
+        expect(spindle).toHaveAttribute('tabindex', '-1');
+        expect(spindle).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    it('should keep the platter and hide the mini turntable on the loaded disc', () => {
+        const { container } = render(scene(viewOf('apollo-18', null, {}, PLAYING)));
+        expect(part(container, 'platter-fade')).toHaveAttribute('data-hidden', 'false');
+        expect(part(container, 'mini-turntable')).toHaveAttribute('data-hidden', 'true');
+        expect(container.querySelector('.spindle')).toHaveAttribute('tabindex', '0');
+    });
+
+    it('should have no mini turntable when no song is loaded', () => {
+        const { container } = render(scene(viewOf('room')));
+        expect(part(container, 'mini-turntable')).toBeNull();
+        expect(part(container, 'platter-fade')).toHaveAttribute('data-hidden', 'false');
+    });
+
+    it('should narrow the album title to the left of the mini turntable', () => {
+        const long = (view: ReturnType<typeof viewOf>) =>
+            view.album ? { ...view, album: { ...view.album, title: 'WE ARE RUBBERBAND' } } : view;
+        const sizeOf = (view: ReturnType<typeof viewOf>) => {
+            const { container, unmount } = render(scene(long(view)));
+            const size = Number(part(container, 'album-title')?.getAttribute('font-size'));
+            unmount();
+            return size;
+        };
+        expect(sizeOf(viewOf('room'))).toBe(88);
+        expect(sizeOf(holding())).toBeLessThan(88);
+    });
+
+    // FR-040：返去載入嘅碟唔行開場：唱臂即時喺落針位（小燈著），之後淡入
+    it('should put the tonearm straight on the loaded disc when going back, with no lead-in', () => {
+        const { container, rerender } = render(scene(holding()));
+        rerender(scene(viewOf('apollo-18', null, {}, PLAYING)));
+        expect(part(container, 'chrome-arm')).toHaveAttribute('data-hidden', 'false');
+        expect(part(container, 'arm')).toHaveAttribute('data-instant', 'true');
+        expect(bigArm(container, 'led-glow')).not.toBeNull();
+    });
+
+    // T-049 會行呢條路：拎住嘅碟放入唱片機（載入嘅碟變咗）= 由泊位行完整開場
+    it('should still run the full lead-in when the held disc becomes the loaded one', () => {
+        const { container, rerender } = render(scene(holding()));
+        const started: PlaybackState = { ...PLAYING, albumId: 'room', trackId: 'room-01' };
+        rerender(scene(viewOf('room', null, {}, started)));
+        expect(part(container, 'arm')).not.toHaveAttribute('data-instant');
+        expect(bigArm(container, 'led-glow')).toBeNull();
     });
 });

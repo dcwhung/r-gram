@@ -26,6 +26,8 @@ export interface InfoLayout {
         cjk: { y: number; size: number; spacing: number };
         minSize: number;
         maxRight: number;
+        /** 拎住另一隻碟時（細唱片機喺右上角）碟名最遠去到邊（T-048） */
+        rightWhenHeld: number;
     };
     year: TextLine;
     /** 年份後面嘅專輯色橫線：離年份幾遠、高度、長度、線粗 */
@@ -98,6 +100,19 @@ export interface PreloadLayout {
         message: TextLine;
         retry: TextLine & { width: number; height: number; stroke: number; hit: number };
     };
+}
+
+/**
+ * 右上角細唱片機（設計稿第 18 版 MINI、miniTurntable()；T-048）：碟心同半徑（成部唱片機按 r ÷ 轉盤半徑縮細）；
+ * 兩行字靠右對齊喺碟左邊 `labelGap`：「播放中」喺圓心上面 `rise`、歌名喺圓心下面 `drop`；
+ * 感應範圍 = 碟（2r × 2r）再向左伸 `hitPad`，連埋兩行字。歌名放唔落就縮字，最細 `minSize`，再唔得先「…」
+ */
+export interface MiniTurntableLayout extends Point {
+    r: number;
+    labelGap: number;
+    hitPad: number;
+    label: { size: number; rise: number; spacing: number };
+    title: { size: number; drop: number; minSize: number };
 }
 
 export interface StageLayout {
@@ -178,6 +193,8 @@ export interface StageLayout {
     screws: { points: readonly Point[]; zoneIndex: number };
     /** 左上資訊、右上版本號（貼頂組） */
     info: InfoLayout;
+    /** 拎住另一隻碟時右上角嘅細唱片機（貼頂組） */
+    miniTurntable: MiniTurntableLayout;
     /** Preload 旗幟畫面 */
     preload: PreloadLayout;
     /** 歌單同歌書：沿住同碟同心嘅弧線排 */
