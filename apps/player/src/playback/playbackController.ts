@@ -6,6 +6,7 @@
  * 冇 DOM、冇元件；D99 嘅 3 秒要睇畫面，喺 `app/useEndedRelease`。
  */
 import { leadInMs } from '../components/tonearm/armPose';
+import { PREVIOUS_RESTART_S } from '../config/limits';
 import { prefersReducedMotion } from '../utils/motion';
 import type { AudioEngine, EngineErrorReason, EngineEvent, EngineTrack } from './audioEngine';
 import { createMediaSession, type MediaSessionPort } from './mediaSession';
@@ -68,8 +69,9 @@ export interface PlaybackController {
     /** 放低隻碟（D99）：停、放開音檔，冇歌載入 */
     release(): void;
     cycleMode(): void;
-    /** 鎖屏下一首／上一首：即刻換、冇開場；冇就唔做嘢 */
+    /** 鎖屏下一首：即刻換、冇開場；冇就唔做嘢 */
     next(): void;
+    /** 鎖屏上一首：播咗超過 3 秒 = 由頭（D110）；否則即刻換上一首 */
     previous(): void;
     seek(positionSec: number): void;
     /** 載入嘅碟（播完 3 秒內 `playFirst` 用） */
@@ -218,10 +220,20 @@ class Controller implements PlaybackController {
         this.skipTo(move.trackId);
     }
 
+    /**
+     * Functional Spec D110：播緊或者暫停緊，而播咗超過 PREVIOUS_RESTART_S（或者冇上一首）= 同一首由頭，
+     * 唔換歌；否則上一首。播完、載入失敗時冇位置可言，照去上一首
+     */
     previous(): void {
-        const { trackId } = this.playback;
-        if (!trackId || this.playback.status === 'idle') return;
-        this.skipTo(previousTrack(this.queue, trackId));
+        const { trackId, status } = this.playback;
+        if (!trackId || status === 'idle') return;
+        const previousId = previousTrack(this.queue, trackId);
+        const loaded = status === 'playing' || status === 'paused';
+        if (loaded && (this.engine.positionSec > PREVIOUS_RESTART_S || !previousId)) {
+            this.seek(0);
+            return;
+        }
+        this.skipTo(previousId);
     }
 
     /** 鎖屏拖進度：即刻報返新位置（時間顯示跟 element 嘅 timeupdate） */

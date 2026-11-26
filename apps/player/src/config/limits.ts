@@ -45,3 +45,9 @@ export const COVER_PRELOAD_TIMEOUT_MS = 5000;
 export const STALL_NOTICE_MS = 4000;
 export const STALL_RETRY_MS = 8000;
 export const STALL_MAX_RETRIES = 2;
+
+/**
+ * 「上一首」（鎖屏）：播咗超過幾多秒就由頭播嗰首，唔換歌（Functional Spec D110，同 iPhone 音樂 app 一樣；
+ * Plan T-038 P6）。正好呢個數或者以下 = 上一首
+ */
+export const PREVIOUS_RESTART_S = 3;
