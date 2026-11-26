@@ -113,6 +113,14 @@ const BYTES_PER_MB = 1024 * 1024;
 export const IMAGE_MAX_MB = 2;
 /** 上載圖大細上限（Technical Spec「安全設計 → 上載」IMAGE_MAX_BYTES） */
 export const IMAGE_MAX_BYTES = IMAGE_MAX_MB * BYTES_PER_MB;
+/**
+ * API-017 讀圖嘅頭幾多 bytes（R2 range get，review S-186）：PNG 嘅 IHDR 喺頭 33 bytes、WebP 第一個 chunk 喺頭 30 bytes，
+ * 一定夠；JPEG 嘅 SOF 喺 APPn（EXIF、ICC 每段最多 64 KB，可以幾段）之後，固定長度保證唔到：頭唔夠而個檔更長就再讀成個檔，
+ * 上限係 IMAGE_MAX_BYTES（assets 嘅圖全部經 API-050 上載）。管理端 canvas 出嘅 JPEG 冇大 metadata，一次就夠
+ */
+export const IMAGE_HEADER_BYTES = 64 * 1024;
+/** API-017 body 字元上限（未 parse 就擋）：sourceKey 最長 1024，其餘欄好短 */
+export const COVER_BODY_MAX_CHARS = 8 * 1024;
 /** 封面兩個尺寸（正方形，Technical Spec「albums」、「性能 → 圖片」）：揀中嘅碟 / 縮圖 */
 export const COVER_SIDE_PX = 1200;
 export const THUMB_SIDE_PX = 320;

@@ -19,6 +19,7 @@ const SITUATIONS: Record<AlbumSituation, ErrorKind> = {
     stale: { status: HTTP_STATUS.conflict, code: ERROR_CODE.stale },
     tooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
     fileTooLarge: { status: HTTP_STATUS.conflict, code: ERROR_CODE.fileTooLarge },
+    bodyTooLarge: { status: HTTP_STATUS.payloadTooLarge, code: ERROR_CODE.tooLarge },
     noFirstCover: { status: HTTP_STATUS.conflict, code: ERROR_CODE.noFirstCover },
 };
 

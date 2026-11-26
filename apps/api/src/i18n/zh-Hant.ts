@@ -56,6 +56,8 @@ export const zhHant = {
             /** 409 FILE_TOO_LARGE（review S-181）：媒體庫嘅檔太大，文字框冇顯示，唔覆蓋；`{maxBytes}` 同上 */
             fileTooLarge:
                 '媒體庫中的 info.txt 超出 {maxBytes} 位元組的上限，未有儲存。請在電腦上把檔案縮小後重新上載，再掃描媒體庫。',
+            /** 413 TOO_LARGE（API-017，review S-186）：body 超出上限，未有處理 */
+            bodyTooLarge: '提交的內容超出大小上限。',
             /** 409 NO_FIRST_COVER（API-017）：D1 CHECK 唔准冇第一張先有第二張 */
             noFirstCover: '這張專輯還沒有第一張封面，不能設定第二張封面。',
         },
