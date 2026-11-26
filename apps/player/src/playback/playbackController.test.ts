@@ -8,6 +8,7 @@ import {
 import { PLAY_MODE_STORAGE_KEY } from '../config/storageKeys';
 import { createAudioEngine } from './audioEngine';
 import { createPlaybackController, type PlaybackSource } from './playbackController';
+import { createQueue, nextTrack } from './queue';
 import { asAudio, FakeAudioElement } from './testing/fakeAudioElement';
 
 const LEAD_IN_MS = leadInMs(false);
@@ -431,6 +432,43 @@ describe('playbackController hidden auto-next failure (D109)', () => {
         element.finish();
         element.fail('unsupported');
         expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
+    });
+});
+
+/** 六首：隨機一輪夠長，新一輪同舊一輪嘅次序先分得出（S-246） */
+const SIX: PlaybackSource = {
+    albumId: 'six',
+    albumTitle: 'SIX',
+    tracks: [1, 2, 3, 4, 5, 6].map((no) => ({
+        id: `six-0${no}`,
+        title: `Six ${no}`,
+        url: `https://media.example/six/0${no}.m4a`,
+    })),
+    artwork: [],
+};
+
+/* S-246（N17）：D109 跳歌要推進隊列（隨機一輪尾跳去新一輪，之後照新一輪嘅次序） */
+describe('playbackController D109 skip advances the queue', () => {
+    it('should continue in the new shuffle round after skipping past the end of a round', () => {
+        const SHUFFLE = JSON.stringify({ shuffle: true, repeat: 'off' });
+        const ids = SIX.tracks.map((track) => track.id);
+        const zero = () => 0;
+        // controller 用同一個 random（() => 0）：用隊列純函數推算預期次序
+        const round = createQueue(ids, 'shuffle', ids[0] ?? '', zero);
+        const last = round.order[ids.length - 1] ?? '';
+        const skip = nextTrack(round, last, 'auto', zero);
+        const after = nextTrack(skip.queue, skip.trackId ?? '', 'auto', zero).trackId;
+        const { element, controller, state } = setup({ hidden: true, stored: SHUFFLE });
+        controller.start(SIX, ids[0] ?? '');
+        for (let step = 1; step < ids.length - 1; step += 1) element.finish();
+        element.playMode = 'hold';
+        element.finish();
+        expect(state().trackId).toBe(last);
+        element.fail('unsupported');
+        expect(state().trackId).toBe(skip.trackId);
+        element.resolvePlay();
+        element.finish();
+        expect(state().trackId).toBe(after);
     });
 });
 
