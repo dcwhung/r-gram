@@ -69,4 +69,25 @@ describe('Stage', () => {
         });
         expect(unitOf(screen.getByTestId('stage'))).toBeCloseTo(430 / 1080, 4);
     });
+
+    it('should be reachable by assistive technology by default', () => {
+        setViewport(393, 852);
+        render(<Stage>content</Stage>);
+        const stage = screen.getByTestId('stage');
+        expect(stage).not.toHaveAttribute('aria-hidden');
+        expect(stage).not.toHaveAttribute('inert');
+    });
+
+    it('should hide itself from assistive technology and focus while covered', () => {
+        setViewport(852, 393);
+        render(
+            <Stage covered>
+                <button type="button">inside</button>
+            </Stage>,
+        );
+        const stage = screen.getByTestId('stage');
+        expect(stage).toHaveAttribute('aria-hidden', 'true');
+        expect(stage).toHaveAttribute('inert');
+        expect(screen.queryByRole('button')).toBeNull();
+    });
 });

@@ -12,7 +12,13 @@ const CSS_PRECISION = 4;
  * - `--stage-extra`：畫面比 9:16 高出幾多單位（底部對齊嘅元件用）
  * 舞台只佔安全區入面嘅位（狀態列、動態島、底部指示條以外），所以元件唔使理安全區。
  */
-export const Stage = ({ children }: { children: ReactNode }) => {
+interface StageProps {
+    children: ReactNode;
+    /** 有全畫面嘅嘢蓋住（「請打直」，T-039）：讀屏同 Tab 都唔入舞台 */
+    covered?: boolean;
+}
+
+export const Stage = ({ children, covered = false }: StageProps) => {
     const fit = useStageFit();
     const style = {
         '--u': `${fit.unit.toFixed(CSS_PRECISION)}px`,
@@ -24,7 +30,13 @@ export const Stage = ({ children }: { children: ReactNode }) => {
     } as CSSProperties;
     return (
         <StageContext.Provider value={fit}>
-            <div className="stage" data-testid="stage" style={style}>
+            <div
+                className="stage"
+                data-testid="stage"
+                style={style}
+                inert={covered}
+                aria-hidden={covered || undefined}
+            >
                 {children}
             </div>
         </StageContext.Provider>

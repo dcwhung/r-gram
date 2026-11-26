@@ -89,7 +89,15 @@ export const zhHant = {
         one: '單曲重複',
         shuffle: '隨機播放',
     },
+    /** 手機打橫時嘅畫面（T-039；Functional Spec US-015「請打直」） */
     rotate: {
         notice: '請將裝置轉為直向',
+    },
+    /** 播緊歌／MV 時有新版（T-039；Functional Spec D14：停咗會自動更新，呢個提示畀聽眾揀即刻更新） */
+    update: {
+        available: '已有新版本',
+        apply: '立即更新',
+        /** 掣嘅完整名：講明會重新載入（播放會停） */
+        applyLabel: '立即更新並重新載入',
     },
 } as const;

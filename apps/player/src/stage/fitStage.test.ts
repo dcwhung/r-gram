@@ -85,3 +85,34 @@ describe('fitStage with safe-area insets', () => {
         expect(fitStage(393, 852, { top: 500, bottom: 500 })).toEqual(fitStage(393, 852));
     });
 });
+
+/** T-039：高身手機（Functional Spec US-011「畫面固定」；CR-003 決定 1）連典型安全區 */
+describe('fitStage on tall phones', () => {
+    const TALL_PHONES = [
+        { width: 390, height: 844, insets: { top: 47, bottom: 34 } },
+        { width: 393, height: 852, insets: { top: 59, bottom: 34 } },
+        { width: 360, height: 800, insets: { top: 24, bottom: 0 } },
+    ];
+
+    it.each(TALL_PHONES)(
+        'should fill the width and stay inside the safe area at $width × $height',
+        ({ width, height, insets }) => {
+            const stage = fitStage(width, height, insets);
+            expect(stage.offsetX).toBe(0);
+            expect(stage.unit * DESIGN_WIDTH).toBeCloseTo(width);
+            expect(stage.offsetY).toBe(insets.top);
+            expect(stage.offsetY + stage.heightUnits * stage.unit).toBeCloseTo(
+                height - insets.bottom,
+            );
+        },
+    );
+
+    it.each(TALL_PHONES)(
+        'should keep the whole design height and only add room in the middle at $width × $height',
+        ({ width, height, insets }) => {
+            const stage = fitStage(width, height, insets);
+            expect(stage.extraUnits).toBeGreaterThan(0);
+            expect(stage.heightUnits).toBeCloseTo(DESIGN_HEIGHT + stage.extraUnits);
+        },
+    );
+});

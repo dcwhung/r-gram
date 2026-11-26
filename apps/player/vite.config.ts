@@ -6,6 +6,7 @@ import { loadEnv, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { zhHant } from './src/i18n/zh-Hant';
 import { catalogCaching } from './src/pwa/catalogCaching';
+import { appManifest, iconLinks, NAVIGATE_FALLBACK_DENYLIST } from './src/pwa/manifest';
 import { remoteFontCaching, remoteFontUrl, withRemoteFont } from './src/styles/fontSource';
 
 // package.json 係版本嘅唯一來源；build 時注入，唔使 runtime fetch
@@ -34,11 +35,14 @@ const HTML_PLACEHOLDERS: Readonly<Record<string, string>> = {
 };
 const injectAppText = (): Plugin => ({
     name: 'inject-app-text',
-    transformIndexHtml: (html) =>
-        Object.entries(HTML_PLACEHOLDERS).reduce(
+    transformIndexHtml: (html) => ({
+        html: Object.entries(HTML_PLACEHOLDERS).reduce(
             (text, [placeholder, value]) => text.replaceAll(placeholder, escapeHtml(value)),
             html,
         ),
+        // favicon 同 iOS 主畫面 icon：路徑只喺 src/pwa/manifest.ts 寫一次（T-039）
+        tags: iconLinks().map((attrs) => ({ tag: 'link', attrs, injectTo: 'head' as const })),
+    }),
 });
 
 /** slab 字體嘅 @font-face 喺呢個檔（main.tsx 直接 import，所以 transform 睇得到） */
@@ -63,9 +67,6 @@ const remoteFont = (value: string | undefined): Plugin => ({
             : null,
 });
 
-/** 啟動畫面同狀態列嘅底色：Preload 旗幟畫面係黑底（styles/tokens.css --color-flag-bg 同值） */
-const LAUNCH_COLOR = '#0a0a0a';
-
 export default defineConfig(({ mode }) => {
     // build 變數（.env.example）：喺 config 入面用嘅要自己讀（import.meta.env 只係 app code 先有）
     const fontUrl = loadEnv(mode, APP_DIR, 'VITE_').VITE_FONT_URL;
@@ -79,22 +80,15 @@ export default defineConfig(({ mode }) => {
             VitePWA({
                 // prompt：新 Service Worker 裝好後喺 waiting 等，由 pwa/updateManager 揀冇播歌嘅時候先換（T-039）
                 registerType: 'prompt',
-                manifest: {
-                    name: APP_NAME,
-                    short_name: APP_NAME,
-                    description: APP_DESCRIPTION,
-                    lang: 'zh-Hant',
-                    display: 'standalone',
-                    orientation: 'portrait',
-                    background_color: LAUNCH_COLOR,
-                    theme_color: LAUNCH_COLOR,
-                    // icon 喺 T-039 加
-                    icons: [],
-                },
+                // public/icons 嘅 png 已經由 globPatterns precache：唔使 plugin 再加一次（唔係就重複兩份）
+                includeManifestIcons: false,
+                manifest: appManifest({ name: APP_NAME, description: APP_DESCRIPTION }),
                 workbox: {
                     globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
                     skipWaiting: false,
                     clientsClaim: true,
+                    // 真檔（robots.txt，backlog B-021）唔可以畀導航 fallback 換成 index.html
+                    navigateFallbackDenylist: [...NAVIGATE_FALLBACK_DENYLIST],
                     // 隨 app 嘅 Rokkitt（woff2）由 globPatterns precache；遠端字體、catalog 圖片同歌詞由呢度留低
                     runtimeCaching: [...remoteFontCaching(fontUrl), ...catalogCaching()],
                 },

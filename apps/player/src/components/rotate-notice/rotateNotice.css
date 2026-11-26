@@ -1,0 +1,50 @@
+/*
+ * 「請打直」（T-039 proposal）：舞台底色、墨色線條畫同文字，置中。蓋住成個 viewport（連安全區）。
+ * 只係淡入（回饋類時長）；減少動態效果時直接出現。
+ */
+.rotate-notice {
+    --rotate-notice-drawing: 96px;
+    --rotate-notice-stroke: 3;
+    --rotate-notice-gap: 16px;
+    --rotate-notice-font: 18px;
+
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--rotate-notice-gap);
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+        env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    background: var(--color-stage);
+    color: var(--color-ink);
+    font-family: var(--font-mixed);
+    animation: rotate-notice-in var(--motion-feedback-fade) ease-out both;
+}
+
+.rotate-notice__drawing {
+    width: var(--rotate-notice-drawing);
+    height: var(--rotate-notice-drawing);
+    color: var(--color-icon);
+    stroke-width: var(--rotate-notice-stroke);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.rotate-notice__text {
+    margin: 0;
+    font-size: var(--rotate-notice-font);
+}
+
+@keyframes rotate-notice-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .rotate-notice {
+        animation: none;
+    }
+}
