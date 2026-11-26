@@ -16,6 +16,8 @@ export interface RemovalTrack {
     text_key: string | null;
     updated_at: string;
     folder: string;
+    /** 專輯嘅 info_etag：NULL = 從來冇完整用過 `info.txt`（S-164） */
+    info_etag: string | null;
     json_name: string | null;
 }
 
@@ -23,7 +25,7 @@ export const findRemovalTrack = (db: D1Database, id: string) =>
     db
         .prepare(
             `SELECT t.id, t.album_id, t."no", t.audio_key, t.mv_key, t.text_key, t.updated_at,
-                 a.folder, l.json_name
+                 a.folder, a.info_etag, l.json_name
              FROM tracks t JOIN albums a ON a.id = t.album_id
              LEFT JOIN lyrics l ON l.track_id = t.id
              WHERE t.id = ?`,

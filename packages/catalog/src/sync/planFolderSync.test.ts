@@ -205,12 +205,12 @@ describe('planFolderSync', () => {
             },
         };
         const tracks = [
-            track(1, { title: '下一位參賽者', audioKey: key('01 a.m4a') }),
+            track(1, { title: '下一位參賽者', audioKey: key('01 下一位參賽者.m4a') }),
             track(2, { title: '跟住去邊度' }),
         ];
 
         it('should keep the stored title, year and track list and list no track for removal', () => {
-            const files = [file('info.txt', '"bad"'), file('01 a.m4a'), file('03 c.m4a')];
+            const files = [file('info.txt', '"bad"'), file('01 下一位參賽者.m4a'), file('03 c.m4a')];
             const stored = album({ title: 'K', year: 1999, checks: [] });
             const result = plan({ files, info: badEncoding, tracks, album: stored });
             expect(result.album).toEqual({ title: 'K', year: 1999 });
@@ -235,7 +235,7 @@ describe('planFolderSync', () => {
         });
 
         it('should fall back to the audio files when no info.txt was ever used', () => {
-            const files = [file('01 a.m4a'), file('03 c.m4a')];
+            const files = [file('01 下一位參賽者.m4a'), file('03 c.m4a')];
             const never = album({ infoEtag: null });
             const result = plan({ files, info: badEncoding, tracks, album: never });
             expect(result.tracks.map(({ no }) => no)).toEqual([1, 3]);

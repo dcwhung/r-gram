@@ -11,8 +11,8 @@ import { infoFileOf, readInfoText } from './infoFile';
 export interface RemovalContext {
     root: () => Promise<BucketFolders>;
     folder: (name: string) => Promise<FolderListing>;
-    /** 呢個資料夾而家嘅曲目表（歌號） */
-    listedNumbers: (name: string) => Promise<Set<number>>;
+    /** 呢個資料夾而家嘅曲目表（歌號）；null = 唔知（S-164）。`hadInfo` = 專輯之前用過 `info.txt` */
+    listedNumbers: (name: string, hadInfo: boolean) => Promise<Set<number> | null>;
 }
 
 /** 呢個資料夾有冇某類（音檔、MV、`.txt` 用歌號；封面用類別）嘅檔 */
@@ -30,9 +30,17 @@ const audioNumbers = (files: readonly ScanFile[]): Set<number> =>
         }),
     );
 
-const numbersOf = async (bucket: R2Bucket, files: readonly ScanFile[]): Promise<Set<number>> => {
+/**
+ * 曲目表；null = 唔知（`info.txt` 有但用唔到，而呢張碟之前用過 `info.txt`：同步沿用 D1 嘅曲目，S-164）
+ */
+const numbersOf = async (
+    bucket: R2Bucket,
+    files: readonly ScanFile[],
+    hadInfo: boolean,
+): Promise<Set<number> | null> => {
     const file = infoFileOf(files);
     const read = file ? await readInfoText(bucket, file) : null;
+    if (read && !read.info.usable && hadInfo) return null;
     if (!read?.info.usable) return audioNumbers(files);
     return new Set(read.info.tracks.map(({ no }) => no));
 };
@@ -49,6 +57,12 @@ const cached = <T>(load: (name: string) => Promise<T>) => {
 export const removalContext = (env: Pick<Env, 'MEDIA'>): RemovalContext => {
     let root: Promise<BucketFolders> | undefined;
     const folder = cached((name) => listFolder(env.MEDIA, name));
-    const listedNumbers = cached(async (name) => numbersOf(env.MEDIA, (await folder(name)).files));
+    const numbers = new Map<string, Promise<Set<number> | null>>();
+    const listedNumbers = (name: string, hadInfo: boolean) => {
+        const hit =
+            numbers.get(name) ?? folder(name).then((l) => numbersOf(env.MEDIA, l.files, hadInfo));
+        numbers.set(name, hit);
+        return hit;
+    };
     return { root: () => (root ??= listAlbumFolders(env.MEDIA)), folder, listedNumbers };
 };

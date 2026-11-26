@@ -169,9 +169,11 @@ export const zhHant = {
             DUPLICATE_ORDINAL: '資料夾「{other}」的類別及序號與此專輯相同，次序會按 id 排列。',
             NO_INFO: '找不到 info.txt，唱片名稱暫用「{title}」。',
             INFO_CONFLICT: '資料夾內有多於一個 info.txt，此檔不會使用。',
-            INFO_BAD_ENCODING: 'info.txt 必須為 UTF-8 編碼，暫時當作沒有 info.txt。',
+            /** S-164：用唔到嘅 `info.txt` 唔改專輯（之前用過嘅話），所以句子唔講「當作沒有」 */
+            INFO_BAD_ENCODING: 'info.txt 必須為 UTF-8 編碼，此檔未有使用，請修正後再掃描。',
             INFO_TOO_LARGE:
-                'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限，暫時當作沒有 info.txt。',
+                'info.txt 超出 {maxBytes} 位元組或 {maxLines} 行的上限，此檔未有使用，請修正後再掃描。',
+            INFO_UNREADABLE: '未能讀取 info.txt，此檔未有使用，下次掃描會再試。',
             INFO_UNKNOWN_LINE: 'info.txt 第 {line} 行無法識別，已略過。',
             INFO_DUPLICATE_LABEL: 'info.txt 第 {line} 行：此標籤已出現過，已略過。',
             INFO_DUPLICATE_NUMBER: 'info.txt 第 {line} 行：第 {no} 首重複出現，已略過。',

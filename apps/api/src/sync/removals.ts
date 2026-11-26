@@ -49,8 +49,9 @@ const removeTrack: Handler = async (c, context, item) => {
     const track = await trackOf(c, item);
     if (!track) return failedItem('NOT_FOUND');
     if ((await context.folder(track.folder)).truncated) return failedItem('STALE');
-    if ((await context.listedNumbers(track.folder)).has(track.no))
-        return failedItem('STILL_PRESENT');
+    const listed = await context.listedNumbers(track.folder, track.info_etag !== null);
+    if (!listed) return failedItem('STALE');
+    if (listed.has(track.no)) return failedItem('STILL_PRESENT');
     await deleteTrack(c.env.DB, track.id);
     dropLyricsLater(c, [track.json_name]);
     return DONE;
