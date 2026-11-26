@@ -53,6 +53,16 @@ describe('motion tokens', () => {
         );
     });
 
+    // 設計稿第 19 版 PANEL_FLOAT：歌單欄逐行飄落 460ms、每行遲 60ms、成欄最多攤開 560ms；停定 140ms 先出
+    it('should use the track column entrance of mockup version 19', () => {
+        expect(MOTION.scene).toMatchObject({
+            columnRowInMs: 460,
+            columnRowStaggerMs: 60,
+            columnRowSpreadMs: 560,
+        });
+        expect(MOTION.input.columnSettleMs).toBe(140);
+    });
+
     // S-152（B-083 ①）：㩒住旋鈕幾耐先開字母盤（輸入規則，減少動態效果都一樣）
     it('should open the dial after a short hold', () => {
         expect(MOTION.input.dialHoldMs).toBe(180);

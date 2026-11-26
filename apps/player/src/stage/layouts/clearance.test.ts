@@ -155,11 +155,14 @@ describe.each(LAYOUTS.map((layout) => [layout.id, layout] as const))('layout %s'
             expect(heldColumnBottom(layout, true)).toBeLessThanOrEqual(knob.y - dial.outer);
         });
 
-        it('should end the longer column above the knob scale and the ♥ square', () => {
+        // B-086 ⑤：鬆手（有細掣）欄底縮短，讓位畀三粒細掣（第一粒嘅感應範圍）
+        it('should end the released column above the small buttons and shorter than the open one', () => {
             const bottom = heldColumnBottom(layout, false);
+            const topButton = Math.min(...layout.buttons.items.map((item) => item.y));
+            expect(bottom).toBeLessThanOrEqual(topButton - hitSizeUnits(layout) / 2);
+            expect(bottom).toBeLessThan(heldColumnBottom(layout, true));
             expect(bottom).toBeLessThanOrEqual(knob.y - scale.long);
             expect(bottom).toBeLessThanOrEqual(heartHitPoint(layout).y - hitSizeUnits(layout) / 2);
-            expect(bottom).toBeGreaterThan(heldColumnBottom(layout, true));
         });
 
         it('should start the column below the year line of the album title', () => {

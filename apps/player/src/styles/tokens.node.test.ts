@@ -50,6 +50,7 @@ describe('tokens.css', () => {
         ['--motion-scene-dial-key-fade', MOTION.scene.dialKeyFadeMs],
         ['--motion-scene-dial-plate-fade', MOTION.scene.dialPlateFadeMs],
         ['--motion-scene-chrome-fade', MOTION.scene.chromeFadeMs],
+        ['--motion-scene-column-row-in', MOTION.scene.columnRowInMs],
         ['--motion-scene-disc-rotation', MOTION.scene.discRotationMs],
         ['--motion-scene-tonearm', MOTION.scene.tonearmMs],
         ['--motion-scene-needle-drop', MOTION.scene.needleDropMs],

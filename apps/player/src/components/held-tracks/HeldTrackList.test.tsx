@@ -262,3 +262,72 @@ describe('HeldTrackList', () => {
         expect(open.room()).toBe(PHONE_LAYOUT.heldTracks.bottomOpen - top);
     });
 });
+
+/*
+ * 設計稿第 19 版 PANEL_FLOAT（B-086 ④⑤）：字母盤開住時歌單欄出現 = 每行由右上逐行飄落（CSS 動畫，delay 由
+ * 元件計）；捲動唔會再播。鬆手 = 欄底縮短，讓出嚟嗰幾行原地淡出（減少動態效果時冇）
+ */
+describe('HeldTrackList motion', () => {
+    const delays = (container: HTMLElement) =>
+        [...container.querySelectorAll<SVGGElement>('.held-row-in')].map((row) =>
+            row.style.getPropertyValue('--enter-delay'),
+        );
+    const listOf = (view: TrackColumnView) => (
+        <svg>
+            <HeldTrackList
+                layout={PHONE_LAYOUT}
+                held={view}
+                albumTitle="ROOM"
+                measure={estimateTextWidth}
+            />
+        </svg>
+    );
+    afterEach(() => vi.unstubAllGlobals());
+
+    it('should float each row in, top first, when the column appears with the dial open', () => {
+        const { container } = render(listOf(held([row(1), row(2), row(3)], { dialOpen: true })));
+        expect(delays(container)).toEqual(['0ms', '60ms', '120ms']);
+        const column = container.querySelector<SVGGElement>('[data-part="held-tracks"]');
+        expect(column?.style.getPropertyValue('--enter-dx')).toBe('170px');
+        expect(column?.style.getPropertyValue('--enter-dy')).toBe('-62px');
+    });
+
+    it('should not float the rows in when the column appears with the dial closed', () => {
+        const { container } = render(listOf(held([row(1), row(2)])));
+        expect(delays(container)).toEqual([]);
+    });
+
+    it('should keep the same entrance when the column scrolls', () => {
+        const { container } = render(listOf(held(LONG, { dialOpen: true })));
+        const before = delays(container);
+        fireEvent.wheel(screen.getByRole('list'), { deltaY: pitch * 3 });
+        expect(delays(container)).toEqual(before);
+        expect(before.length).toBeLessThan(LONG.length);
+    });
+
+    it('should fade out the rows given up when the dial is released', () => {
+        const { container, rerender } = render(listOf(held(LONG, { dialOpen: true })));
+        rerender(listOf(held(LONG)));
+        const ghosts = container.querySelector('[data-part="held-ghosts"]');
+        expect(ghosts).not.toBeNull();
+        expect(ghosts).toHaveAttribute('aria-hidden', 'true');
+        const { bottomIdle, bottomOpen, fade } = PHONE_LAYOUT.heldTracks;
+        const ys = [...(ghosts?.querySelectorAll('[data-part="held-title"]') ?? [])].map((text) =>
+            Number(text.getAttribute('y')),
+        );
+        expect(ys.length).toBeGreaterThan(0);
+        expect(ys.every((y) => y > bottomIdle - fade && y <= bottomOpen)).toBe(true);
+        if (ghosts) fireEvent.animationEnd(ghosts);
+        expect(container.querySelector('[data-part="held-ghosts"]')).toBeNull();
+    });
+
+    it('should not fade anything out on release when motion is reduced', () => {
+        vi.stubGlobal(
+            'matchMedia',
+            vi.fn(() => ({ matches: true })),
+        );
+        const { container, rerender } = render(listOf(held(LONG, { dialOpen: true })));
+        rerender(listOf(held(LONG)));
+        expect(container.querySelector('[data-part="held-ghosts"]')).toBeNull();
+    });
+});

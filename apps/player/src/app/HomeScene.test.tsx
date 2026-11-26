@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { MOTION } from '../config/motion';
 import { useState } from 'react';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import { estimateTextWidth } from '../utils/textMeasure';
@@ -367,6 +368,22 @@ describe('HomeScene holding another disc', () => {
 });
 
 /* T-037：主頁㩒碟面打開弧線歌單（Functional Spec FR-005（第 18 版）、US-004；設計稿「碟面：打開歌單」） */
+/* B-086 ④：快擰途中唔顯示歌單欄；停定 settle 毫秒先出 */
+describe('HomeScene track column while turning', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('should hide the column while turning and show it once the dial rests', () => {
+        const turning = (albumId: string) => viewOf(albumId, null, { scene: 'discChange' });
+        const { rerender } = render(scene(turning('apollo-18')));
+        expect(screen.getByRole('list')).toBeInTheDocument();
+        rerender(scene(turning('room')));
+        expect(screen.queryByRole('list')).toBeNull();
+        act(() => vi.advanceTimersByTime(MOTION.input.columnSettleMs));
+        expect(screen.getByRole('list', { name: 'ROOM 的歌曲' })).toBeInTheDocument();
+    });
+});
+
 describe('HomeScene disc face', () => {
     const PLAYING: PlaybackState = {
         ...IDLE_PLAYBACK,
