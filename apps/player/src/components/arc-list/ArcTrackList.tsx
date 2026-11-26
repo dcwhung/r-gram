@@ -24,7 +24,7 @@ interface ArcTrackListProps {
     onClose: () => void;
     /** 捲到停低：框入面換咗另一首 */
     onFocusTrack: (trackId: string) => void;
-    /** 㩒一行、Enter：播嗰首 */
+    /** Enter／空白鍵：播框入面嗰首（行唔㩒得，W-051） */
     onPlay: (trackId: string) => void;
 }
 
@@ -41,13 +41,11 @@ const useStable = <A extends unknown[]>(callback: (...args: A) => void) => {
 };
 
 type ListboxProps = Pick<ArcTrackListProps, 'layout' | 'list' | 'albumTitle' | 'measure'> &
-    Pick<ArcScroll, 'offset' | 'active' | 'onKeyDown'> & {
-        onPlay: (trackId: string) => void;
-    };
+    Pick<ArcScroll, 'offset' | 'active' | 'onKeyDown'>;
 
 /** 見到嘅行（|k| ≤ visible）；捲動位置冇變就用返同一組位置（行唔使 re-render） */
 const Listbox = (props: ListboxProps) => {
-    const { layout, list, albumTitle, measure, offset, active, onPlay } = props;
+    const { layout, list, albumTitle, measure, offset, active } = props;
     const id = useSvgId('arc-list');
     const shown = useArcTitles(list.rows, layout, measure);
     const spec = useMemo(() => arcRowSpec(layout), [layout]);
@@ -84,7 +82,6 @@ const Listbox = (props: ListboxProps) => {
                         selected={pose.index === active}
                         list={layout.list}
                         hitRight={hitRight}
-                        onPlay={onPlay}
                     />
                 );
             })}
@@ -95,7 +92,7 @@ const Listbox = (props: ListboxProps) => {
 /**
  * 弧線歌單（設計稿第 18 版「歌單（㩒碟面）」「歌單（專輯未有歌）」listLayer()；Functional Spec US-004、D23、D25、D39）：
  * 暗層（中間留唱片夾個窿）→ 白色框線 → 沿碟弧線排嘅歌名。框入面係揀中嗰首，㩒唱片夾（play）播佢；
- * 㩒一行直接播嗰首；㩒暗位或者 Esc 收返。拖動、滾輪、鍵盤沿弧線捲（useArcScroll）。
+ * 行唔㩒得（W-051）：㩒行冇反應；㩒行以外嘅暗位或者 Esc 收返。拖動、滾輪、鍵盤沿弧線捲（useArcScroll）。
  * 喺貼頂組（螺絲上面、左上資訊下面），內容用碟嘅座標（貼底，加返多出嚟嘅高度）。
  */
 export const ArcTrackList = (props: ArcTrackListProps) => {
@@ -128,13 +125,7 @@ export const ArcTrackList = (props: ArcTrackListProps) => {
                 {list.rows.length === 0 ? (
                     <ArcEmpty layout={layout} text={list.emptyText} />
                 ) : (
-                    <Listbox
-                        {...props}
-                        offset={offset}
-                        active={active}
-                        onKeyDown={onKeyDown}
-                        onPlay={onPlay}
-                    />
+                    <Listbox {...props} offset={offset} active={active} onKeyDown={onKeyDown} />
                 )}
             </g>
         </g>
