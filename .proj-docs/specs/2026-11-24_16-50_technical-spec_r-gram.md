@@ -1,10 +1,10 @@
 # Technical Spec：R Gram（播放端 PWA + 內容管理 Backend）
 
-**版本**：v1.7
-**日期**：2026-11-26 10:30（v1.6：2026-11-25 21:10；v1.5：2026-11-25 19:36；v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
-**作者**：Architect Agent（v1.2–v1.7：Project Manager Agent 跟 CR-003 至 CR-007 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
-**關聯 Functional Spec**：v1.9（v1.9 = CR-007：媒體 bucket 係唯一資料來源、`info.txt`、管理端 = 同步 + 文字框；v1.8 = CR-006：掃描係主要資料來源、初始資料只入專輯、歌號跟檔名、只有年份；v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：**v1.7**（CR-007）。跟 Functional Spec v1.9 更新（見「CR-007 對技術設計嘅影響」）：媒體 bucket 係唯一來源，D1 係索引；專輯由資料夾名（`parseAlbumFolder()`）同 `info.txt`（`parseAlbumInfo()`）；曲目由 `info.txt`，冇音檔 = 灰色；`albums` 刪 `label`、`wheel_key`、`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`；內容檔刪 `label`、`subtitle`；全 bucket 同步（API-033、034、035）、封面結果（API-017）、寫返 bucket（API-018、019、040、041）；取消 API-011、013、014、015、020、021、022、024、030、031、032、043；初始資料 seed 拎走；已完成 code 嘅保留／改寫／拎走清單連任務 T-103–T-106。標 🅰️ 嘅對應 Functional Spec D66–D81 嘅 PM 建議，照建議做。今次冇改 code。**以下係 v1.6（CR-006）嘅狀態**（入面掃描、seed、歌號 API 嘅設計已由 CR-007 取代）：跟 Functional Spec v1.8 更新（見「CR-006 對技術設計嘅影響」）：掃描建立歌曲（API-030 加 `newTracks`、`audioMissing`；API-031 加 `create`、`clearAudio`）；歌號 = 檔名歌號、可以跳號，刪歌唔重編，API-023 取消，API-020 要 `no`、API-021 可以改 `no`；歌 id 建立時 `<albumId>-<NN>`、之後不變；`albums.release_date`、`albums.type` 刪走，`year` 直接輸入（API-011、API-013、內容檔）；seed（T-027）只入專輯；`.mp3`、手動指定音檔、`cover2.png` 定案；字體檔 `_fonts/lubalin-graph-book.otf`。列出已完成 code 要改嘅檔（新任務 T-101、T-102；T-025、T-027 改範圍）。標 🅰️ 嘅對應 Functional Spec D60–D62、D64、D65 同 D63 細項：PM 建議，照建議做。今次冇改 code。**以下係 v1.5（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）嘅狀態**：加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
+**版本**：v1.8
+**日期**：2026-11-26 11:40（v1.7：2026-11-26 10:30；v1.6：2026-11-25 21:10；v1.5：2026-11-25 19:36；v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
+**作者**：Architect Agent（v1.2–v1.8：Project Manager Agent 跟 CR-003 至 CR-008 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
+**關聯 Functional Spec**：v1.10（v1.10 = CR-008：揀碟同歌單欄（播放端設計稿第 19 版）、旋鈕、弧線歌單、更新、logo；v1.9 = CR-007：媒體 bucket 係唯一資料來源、`info.txt`、管理端 = 同步 + 文字框；v1.8 = CR-006：掃描係主要資料來源、初始資料只入專輯、歌號跟檔名、只有年份；v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
+**狀態**：**v1.8**（CR-008）。跟 Functional Spec v1.10 更新（見「CR-008 對技術設計嘅影響」）：播放端揀碟嘅顯示規則（`showsColumn`、`trackChosen`、細掣、唱臂、細唱片機；場景 × 載入／拎住 × 字母盤表）；拎走 `playHeldTrack`、`startHeld`、歌單欄行嘅 focus 同 D57 例外；反轉「拎住嘅碟唔開弧線歌單」同「字母盤開住㩒碟面入歌單」；唱片夾 `playFirst`；`heldTracks.bottomIdle` 取代 `bottomHeld`；歌單欄飄落同飄落弧線嘅 motion token；淨空規則改寫；更新規則（取代實現注意事項 12）。另外「實作對齊」：`breakAt()`（B-070）、旋鈕 `slider`（B-077 ②）、S-173／S-174／S-176（B-080）、API-017／018／019／040／041 嘅回應、錯誤碼同操作數（B-081 ④）。只影響 `apps/player`（T-108）；Backend 只係文件回寫。今次冇改 code。**以下係 v1.7（CR-007）嘅狀態**：跟 Functional Spec v1.9 更新（見「CR-007 對技術設計嘅影響」）：媒體 bucket 係唯一來源，D1 係索引；專輯由資料夾名（`parseAlbumFolder()`）同 `info.txt`（`parseAlbumInfo()`）；曲目由 `info.txt`，冇音檔 = 灰色；`albums` 刪 `label`、`wheel_key`、`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`；內容檔刪 `label`、`subtitle`；全 bucket 同步（API-033、034、035）、封面結果（API-017）、寫返 bucket（API-018、019、040、041）；取消 API-011、013、014、015、020、021、022、024、030、031、032、043；初始資料 seed 拎走；已完成 code 嘅保留／改寫／拎走清單連任務 T-103–T-106。標 🅰️ 嘅對應 Functional Spec D66–D81 嘅 PM 建議，照建議做。今次冇改 code。**以下係 v1.6（CR-006）嘅狀態**（入面掃描、seed、歌號 API 嘅設計已由 CR-007 取代）：跟 Functional Spec v1.8 更新（見「CR-006 對技術設計嘅影響」）：掃描建立歌曲（API-030 加 `newTracks`、`audioMissing`；API-031 加 `create`、`clearAudio`）；歌號 = 檔名歌號、可以跳號，刪歌唔重編，API-023 取消，API-020 要 `no`、API-021 可以改 `no`；歌 id 建立時 `<albumId>-<NN>`、之後不變；`albums.release_date`、`albums.type` 刪走，`year` 直接輸入（API-011、API-013、內容檔）；seed（T-027）只入專輯；`.mp3`、手動指定音檔、`cover2.png` 定案；字體檔 `_fonts/lubalin-graph-book.otf`。列出已完成 code 要改嘅檔（新任務 T-101、T-102；T-025、T-027 改範圍）。標 🅰️ 嘅對應 Functional Spec D60–D62、D64、D65 同 D63 細項：PM 建議，照建議做。今次冇改 code。**以下係 v1.5（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）嘅狀態**：加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -142,7 +142,7 @@ src/
 
 | 狀態 | 值 |
 | --- | --- |
-| `scene` | `preload` → `home` ⇄ `discChange`；`home` ⇄ `list`；`discChange` → `list`（Functional Spec D27：轉碟中㩒碟面直接入歌單）。⚠️ CR-002 / CR-003 同步 T-032 嘅實作；之前寫 `home ⇄ wheel → list → home` |
+| `scene` | `preload` → `home` ⇄ `discChange`；`home` ⇄ `list`；~~`discChange` → `list`（Functional Spec D27：轉碟中㩒碟面直接入歌單）~~ ⚠️ CR-008（D84）：字母盤開住時㩒碟面唔做嘢，`discChange → list` 拎走（T-108）。⚠️ CR-002 / CR-003 同步 T-032 嘅實作；之前寫 `home ⇄ wheel → list → home` |
 | `overlay` | `null`｜`mv`｜`booklet`（只喺 `scene = home` 有；兩個互斥）。暫停 / 繼續係播放 store 嘅事，唔改 `overlay`：歌書開住時暫停，歌書留住（⚠️ CR-003 決定 5） |
 | `viewAlbumId` | 畫面顯示緊嘅碟（可以同播緊嘅碟唔同，Functional Spec D13）。⚠️ CR-005 第 18 版：= 旋鈕指住／手上拎住嘅碟（「顯示嘅碟」）；「載入嘅碟」係播放 store 嘅 `albumId`；兩個唔同就係 `holding`（見「補充：播放端設計稿第 18 版確認嘅技術設計」） |
 | `previousAlbumId` | 去 Favourites 碟之前嗰隻真專輯：再㩒 ♥ 返去（⚠️ CR-003 同步：T-032 已做） |
@@ -199,9 +199,9 @@ src/
 | CD | SVG `<g>`：封面用 evenodd `clipPath` 挖走碟孔，銀邊同膠圈係 SVG 圖形；以設計稿嘅畫圖半徑 500 畫，再由外層 `scale(r / 500)` 放大 | 轉動用 CSS animation，長駐喺封面，暫停只切換 `animation-play-state`（停喺原位）。同一個 SVG 入面保證唔到獨立合成層：真機預覽（Implementation Plan R-005）要量轉碟時嘅 fps。換碟時以專輯 id 做 `key`，新封面先會由 0° 開始 |
 | 唱臂 | SVG `<g>`，CSS `rotate` | 時長用 scene token；三個姿勢（泊位 / 落針 / 升針，CR-003 決定 11）；由泊位開始播有兩段開場（轉入 650ms → 放低 160ms，第 17 版；見上面「唱針開場」） |
 | 金屬面 / 掣 / 旋鈕 / 螺絲 / 轉盤 / 唱片夾 | SVG gradient 同 filter，集中喺一個共用 `<defs>`（`components/metal/SvgDefs.tsx`；id 同引用共用 `defIds.ts` 嘅常數） | 光圈用 CSS；感應範圍係零件上面一個透明圖形（圓形，半徑按 44pt 換算） |
-| 轉碟旋鈕 + 字母盤（CR-002 取代 Wheel） | SVG；pointer 拖動旋鈕（吸附去最近一格） | `role="listbox"`；方向鍵可操作；角度由 `scaleAngle()` 計（CR-003：弧固定、專輯平均分佈）。第 17 版：邊格出字母、邊格出細點由純函數 `dialShowsLetter()` 決定（Functional Spec D28）；出細點嘅格照舊係 listbox 嘅 option，無障礙名稱唔變 |
-| 歌單 | SVG `<text>` 行，用 `arcRows()` 沿弧線排（以碟心做原點；T-037 定案）。⚠️ CR-005 第 18 版：只用喺冇歌載入時揀中嘅碟同載入嘅碟 | 拖動 / 滾輪捲動 + 吸附；`role="listbox"` |
-| 拎住嘅碟嘅歌單欄（CR-005 第 18 版） | SVG `<text>` 行，直身靠左一欄；欄內捲動用 SVG `mask`（頂底淡出）+ 位置條；底下一層舞台底色漸變（T-049 定案） | 拖動 / 滾輪 / 鍵盤捲動，拖過唔當㩒；每行係一粒掣 |
+| 轉碟旋鈕 + 字母盤（CR-002 取代 Wheel） | SVG；pointer 拖動旋鈕（吸附去最近一格）。⚠️ CR-008（D91）：㩒住 `dialHoldMs`（180）或者郁過 `turnThresholdPx`（6）先開字母盤，輕點唔做嘢 | ~~`role="listbox"`~~ ⚠️ CR-008 實作對齊（B-077 ②）：旋鈕 = `role="slider"` + `aria-valuenow`（同實現注意事項 14；`components/knob/Knob.tsx`）；方向鍵可操作；角度由 `scaleAngle()` 計（CR-003：弧固定、專輯平均分佈）。第 17 版：邊格出字母、邊格出細點由純函數 `dialShowsLetter()` 決定（Functional Spec D28）；出細點嘅格嘅無障礙名稱唔變（⚠️ CR-008：唔係 listbox option，見上） |
+| 歌單 | SVG `<text>` 行，用 `arcRows()` 沿弧線排（以碟心做原點；T-037 定案）。⚠️ CR-005 第 18 版：只用喺冇歌載入時揀中嘅碟同載入嘅碟。⚠️ CR-008：拎住嘅碟都用（D84）；由歌單欄開時歌名飄落（`LIST_FLOAT`） | 拖動 / 滾輪捲動 + 吸附；`role="listbox"`。⚠️ CR-008（D92，T-037 已做）：行唔㩒得；唱片夾或者 Enter／Space 播框入面嗰首 |
+| 拎住嘅碟嘅歌單欄（CR-005 第 18 版） | SVG `<text>` 行，直身靠左一欄；欄內捲動用 SVG `mask`（頂底淡出）+ 位置條；底下一層舞台底色漸變（T-049 定案）。⚠️ CR-008：幾時出見 `showsColumn`（冇歌載入都出）；逐行飄落（`PANEL_FLOAT`） | 拖動 / 滾輪 / 鍵盤捲動，拖過唔當㩒；~~每行係一粒掣~~ ⚠️ CR-008（D82）：行唔係掣，冇 focus |
 | 細唱片機（CR-005 第 18 版） | 重用轉盤、碟、唱片夾、唱臂元件，外層 `scale(MINI.r / PLATTER.r)`（T-048 定案） | 成組係一粒掣；碟用自己嘅轉動 class（播緊就轉，同大唱片機嘅停轉分開） |
 | 電視 | SVG 機身（同一個畫布）；`<video>` 係疊喺畫布上面嘅 HTML element，用 `clip-path: path()` 裁成弧面螢幕，位置由幾何表換算；掃描線用 CSS 疊層 | 獨立 chunk，㩒 MV 掣先載入；T-060 定案 |
 | 模糊層 | 唱片機層 `filter: blur()` | 唔用 mockup 嘅 `blurBackdrop()` |
@@ -805,7 +805,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 9. **掃描配對規則**（`packages/catalog/scan`）：檔名（唔計資料夾）開頭嘅 1–3 位數字 = 歌號；副檔名分類：`m4a`、`mp3` → audio；`mp4`、`m4v` → mv；其他 → `UNKNOWN_EXTENSION`。同一個歌號同一類有多過一個檔 → `conflicts`，唔自動揀。比對唔分大細楷。⚠️ CR-004：加兩類：`cover.jpg`／`cover.png`（冇歌號）→ 封面來源；開頭有歌號嘅 `txt` → 歌曲文字。完整分類表見「CR-004 對技術設計嘅影響 → 掃描嘅設計」。
 10. **Design token**：開發第一步由 `anim.js` 檔頭常數生成 `apps/player/src/styles/tokens.css`（色、字級、陰影）同 `config/motion.ts`。時長分兩組：回饋類 `--motion-feedback-*`（≤ 300ms）同場景類 `--motion-scene-*`（旗幟淡出、落針、電視彈出、歌單進出；Functional Spec D1 已接受超過 300ms）。唔可以喺元件寫死毫秒數。
 11. **減少動態**：CSS 動畫放喺 `@media (prefers-reduced-motion: no-preference)`；JS 喺動畫開始嗰刻先讀設定（唔 cache）；唔可以因為等 `animationend` 而卡住狀態機。狀態轉換要有「冇動畫」路徑，test 行呢條路。
-12. **PWA 更新**（`pwa/updateManager.ts`，同 903-player）：啟動、`visibilitychange`、定時叫 `registration.update()`；新 SW 喺 waiting 等；播放狀態係 `idle` / `paused` 先 `SKIP_WAITING` → `controllerchange` → reload 一次（`sessionStorage` 防 loop）。
+12. **PWA 更新**（`pwa/updateManager.ts`，同 903-player）：啟動、`visibilitychange`、定時叫 `registration.update()`；新 SW 喺 waiting 等；~~播放狀態係 `idle` / `paused` 先 `SKIP_WAITING` → `controllerchange` → reload 一次（`sessionStorage` 防 loop）~~。⚠️ **CR-008（Functional Spec D93，取代 D14）**：只喺開 app（Preload 期間）自動 `SKIP_WAITING` → reload 一次（防 loop）；用緊 app 永遠唔會自己換，出提示等聽眾㩒「立即更新」。見「CR-008 對技術設計嘅影響 → 更新」。
 13. **畫面固定**：`html, body { height: 100dvh; overflow: hidden }`；舞台自己處理 `env(safe-area-inset-*)`；歌單 / Wheel / 歌詞嘅捲動係元件內部手勢，唔係頁面捲動；要 `touch-action: none` 防止 iOS 回彈。
 14. **無障礙**：Wheel 同歌單用 `role="listbox"` + `aria-activedescendant`；所有 icon 掣 `aria-label`；停用掣用 `aria-disabled`（保持可 focus）；旋鈕用 `role="slider"` + `aria-valuenow`。
 15. **介面文字（管理端同播放端）**：集中喺各自嘅 `src/i18n/zh-Hant.ts`，書面語；加 test 鎖住唔出現口語字（同 903-player `writtenChinese.test.ts`）。詳見「CR-002 對技術設計嘅影響」i18n 幾行。
@@ -1237,7 +1237,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 
 | 項目 | 設計 |
 | --- | --- |
-| 策略 | `fitText()`（歌名）由「縮字 → 『…』」改為「縮字（44 → 32）→ `wrapLine()` 兩行 → 第二行尾『…』」。斷行規則用歌書嘅 `wrapLine()`，加「英文字同括號入面唔斷」（設計稿第 18 版）；共用函數改動要連歌書測試一齊跑 |
+| 策略 | `fitText()`（歌名）由「縮字 → 『…』」改為「縮字（44 → 32）→ ~~`wrapLine()`~~ `breakAt()` 兩行 → 第二行尾『…』」。~~斷行規則用歌書嘅 `wrapLine()`，加「英文字同括號入面唔斷」（設計稿第 18 版）；共用函數改動要連歌書測試一齊跑~~ ⚠️ CR-008 實作對齊（B-070、S-132）：T-047 用嘅係 `utils/breakAt.ts` 嘅 `breakAt()`（照設計稿第 18 版 `breakAt()`）：英文字母、數字、半形括號同標點連住嘅一串唔喺中間斷；中文字之間同空格前後都斷得；唔係「先揀空格」。同歌書嘅 `wrapLine()` 唔共用 |
 | 幾何（第 18 版，✅ 已確認；`SONG_FIT`） | 第一行上移 22（`lift`）、行距 38（`pitch`）、「第 nn 首」行唔郁；第二行右邊界 x ≤ 470（`secondRight`，唱臂泊位）。數值入 `layouts/phone.ts`，元件只讀表；`clearance.test.ts` 加兩行時嘅淨空 |
 | 元件 | `info-block/SongLines.tsx`：兩行時心形跟最後一行；`key` 唔好再用字級（backlog B-056 ④） |
 
@@ -1279,11 +1279,13 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | FR-042 隨機封面 | `pickCoverVariants()`、`albumArt()`、Preload、`homeView`、轉盤、Media Session、背景攞另一張入 cache |
 | FR-123、FR-105（改） | 音檔做錨、`skipped`（`NO_AUDIO`、`NO_FIRST_COVER`） |
 | FR-103、FR-108（改） | 管理端同 seed 放大到 1200；API-050 不變 |
-| FR-036（改） | `fitText()` 兩行策略、`wrapLine()`、`layouts/phone.ts` |
+| FR-036（改） | `fitText()` 兩行策略、~~`wrapLine()`~~ `breakAt()`（CR-008 實作對齊）、`layouts/phone.ts` |
 | US-003、FR-038（改） | `chromeHidden`、`spinning`、`chromeFadeMs` |
 | FR-041（改） | 字眼；code 不變 |
 
 ### 補充：播放端設計稿第 18 版確認嘅技術設計（T-036、T-047、T-048、T-049、T-038、T-040）
+
+> ⚠️ **CR-008（第 19 版）**：本節入面嘅歌單欄（幾時出、欄底 `bottomHeld`、行係掣、`aria-disabled`）、`openList` 嘅 `holding` 守衛、`playHeldTrack`、`returnToLoaded` 嘅「淡出期間換碟」、淨空 ② ④ 同 D57 例外、motion「歌單欄內容冇過場」已被取代（原位標 ⚠️），以「CR-008 對技術設計嘅影響」為準。
 
 對應 Functional Spec v1.7 §CR-005「補充：播放端設計稿第 18 版確認」（用戶 2026-11-25 確認；source commit `4e739cd`）。數值以設計稿常數為準：`SCALE`、`DIAL_KEYS`、`SONG_FIT`、`MINI`、`TRACKLIST`、`SWAP_FADE_MS`；下面只寫常數名同做法。**今次冇改 code**；只影響 `apps/player`。標「T-xxx 定案」嘅細節留畀嗰個任務。
 
@@ -1301,7 +1303,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | `chromeHidden`（唱臂、三粒細掣、左上**歌名嗰部分**：音量條、歌名、心形、「第 nn 首」同時間） | `loaded !== null && (scene === 'discChange' ｜｜ holding)`；冇歌載入時照 CR-002（字母盤開住時淡出唱臂同細掣）。隱藏時 `opacity` 0、`pointer-events: none`、唔入 Tab 次序 |
 | 大唱片機嘅碟轉唔轉 | `pose === 'playing' && scene !== 'discChange' && !holding` |
 | 細唱片機 | `holding` 先顯示；碟：播放 store `playing` 就轉（用自己嘅 class，唔受上一行影響）；唱臂姿勢用同一張「唱臂姿勢」表，以**載入嘅碟**代替 `viewAlbumId` 計（Functional Spec D58 ①） |
-| 歌單欄 | `holding` 先顯示；欄底 = `scene === 'discChange' ? TRACKLIST.bottomOpen : TRACKLIST.bottomHeld`；行只喺 `scene === 'home'` 先㩒得（旋鈕開住時 `aria-disabled`） |
+| 歌單欄 | ~~`holding` 先顯示；欄底 = `scene === 'discChange' ? TRACKLIST.bottomOpen : TRACKLIST.bottomHeld`；行只喺 `scene === 'home'` 先㩒得（旋鈕開住時 `aria-disabled`）~~ ⚠️ CR-008：`showsColumn`；欄底 `bottomOpen`／`bottomIdle`；行唔係掣 |
 | 碟名闊度上限 | `holding` 時收窄到細唱片機左邊（設計稿 `MINI.x - MINI.r - 20`；入幾何表做有名常數，例如 `albumTitle.rightWhenHeld`）；其餘照 T-035 嘅上限。同一個 fit 函數，只換闊度 |
 | 半透明層 | `holding` 先顯示；喺碟上面、字母盤同旋鈕下面 |
 
@@ -1311,9 +1313,9 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | --- | --- |
 | 擰旋鈕（`openDiscChange`、`selectAlbum`，已有） | 唔使改 reducer：`viewAlbumId` 跟旋鈕，`holding` 自動成立／解除 |
 | 鬆手（`closeDiscChange`，已有） | 返 `home`；`viewAlbumId` 唔變。如果 `viewAlbumId` = 載入嘅碟：淡入、唔行開場；否則繼續 `holding` |
-| `openList`（㩒碟面／唱片夾） | `holding` 時唔做嘢（冇轉盤、冇唱片夾；歌單已經喺碟名下面）。要 reducer 知道載入嘅碟：action 帶 `loadedAlbumId`，或者由 `useHome` 擋（T-048 定案）；連測試 |
-| 㩒細唱片機（新 action，建議 `returnToLoaded`） | `viewAlbumId = 載入嘅碟`、`scene = home`（字母盤開住都收埋）。顯示層：淡出期間換碟、唱臂即時到位，之後淡入（設計稿 `swapAlbum`，CSS 用一個「即時」記號關掉唱臂 transition），唔行開場 |
-| 㩒歌單欄一行（新 action，建議 `playHeldTrack`） | 只喺 `scene === 'home' && holding`：stage `selectedTrackId = trackId`；播放 store `start { albumId: viewAlbumId, trackId }`（已有嘅 action：舊歌停、換隊列）。`albumId` 變咗之後 `holding` 自動解除 → 轉盤淡入、細唱片機淡出 → 唱臂由 `parked` 行完整開場（`tonearmMs` + `needleDropMs`）。未有音檔嘅行唔發 action。真正出聲由 T-038（`audioEngine`）接 |
+| `openList`（㩒碟面／唱片夾） | ~~`holding` 時唔做嘢（冇轉盤、冇唱片夾；歌單已經喺碟名下面）~~。要 reducer 知道載入嘅碟：action 帶 `loadedAlbumId`，或者由 `useHome` 擋（T-048 定案）；連測試。⚠️ CR-008：**反轉**：`holding` 時照開（拎住嘅碟嘅弧線歌單）；`discChange` 唔開；唱片夾唔再開歌單（`playFirst`） |
+| 㩒細唱片機（新 action，建議 `returnToLoaded`） | `viewAlbumId = 載入嘅碟`、`scene = home`（字母盤開住都收埋）。顯示層：~~淡出期間換碟~~、唱臂即時到位，之後淡入（設計稿 `swapAlbum`，CSS 用一個「即時」記號關掉唱臂 transition），唔行開場。⚠️ CR-008 實作對齊（S-176）：實作係即刻換碟（`useSwapInstant`），唔係淡出期間換；QA 接受 |
+| ~~㩒歌單欄一行（新 action，建議 `playHeldTrack`）~~ ⚠️ CR-008：**拎走**（D82）；由唱片夾 `playFirst` 同弧線歌單取代 | 只喺 `scene === 'home' && holding`：stage `selectedTrackId = trackId`；播放 store `start { albumId: viewAlbumId, trackId }`（已有嘅 action：舊歌停、換隊列）。`albumId` 變咗之後 `holding` 自動解除 → 轉盤淡入、細唱片機淡出 → 唱臂由 `parked` 行完整開場（`tonearmMs` + `needleDropMs`）。未有音檔嘅行唔發 action。真正出聲由 T-038（`audioEngine`）接 |
 | ♥（`toggleFavourites`） | `holding` 時等同轉去 ♥ 嗰格（Functional Spec D58 ④）；`previousAlbumId` 嘅處理由 T-048 定案（建議：記低拎住之前嘅顯示嘅碟） |
 | 播放 store 變化（自動下一首、播完、載入失敗） | 唔改 stage；細唱片機嘅歌名同唱臂跟住播放 store（D58 ①②） |
 | 續播（T-062） | 只記載入嘅碟同歌；`holding` 唔記低，重開 app 返載入嘅碟（D58 ③） |
@@ -1325,21 +1327,21 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | `songFit` | `SONG_FIT` | 左上歌名兩行（T-047） |
 | `miniTurntable` | `MINI`（圓心、半徑、字同轉盤之間嘅距離、感應範圍加闊、兩行字級）；縮放 = `MINI.r / PLATTER.r` | 細唱片機（T-048） |
 | `albumTitle.rightWhenHeld` | `MINI.x - MINI.r - 20`（20 要變有名常數） | 碟名 fit（T-048） |
-| `heldTracks` | `TRACKLIST`（欄位置、`bottomOpen`／`bottomHeld`、字級、行距、歌號比例同闊度、淡出高度、位置條闊度同 x、半透明層嘅 `scrimOpacity`／`scrimEnd`）；位置條最短長度（設計稿寫死 60）同拖動門檻（設計稿 6 px）要變有名常數 | 歌單欄（T-049） |
+| `heldTracks` | `TRACKLIST`（欄位置、`bottomOpen`／`bottomHeld`（⚠️ CR-008：`bottomHeld` → `bottomIdle` 1290）、字級、行距、歌號比例同闊度、淡出高度、位置條闊度同 x、半透明層嘅 `scrimOpacity`／`scrimEnd`）；位置條最短長度（設計稿寫死 60）同拖動門檻（設計稿 6 px）要變有名常數 | 歌單欄（T-049） |
 | 22 格 | `SCALE`（`positions` 由專輯數生成，唔寫死 22）、`DIAL_KEYS`（字母嚟自內容檔 `wheelKey`） | 轉盤（T-036；E2E 用 22 格嘅 fixture） |
 
-**淨空規則測試（`clearance.test.ts`）加**：① 歌單欄欄底（`bottomOpen`）唔入字母盤外圈；欄底（`bottomHeld`）唔入刻度弧同旋鈕；② 歌單欄右邊唔入細唱片機嘅感應範圍；③ 細唱片機嘅感應範圍唔同版本號、碟名（收窄之後）、♥ 重疊；④ 感應範圍 ≥ 44pt 嘅檢查加一個**明文例外清單**，只得「歌單欄嘅行」（Functional Spec D57；行高 = `heldTracks.pitch`，約 24pt），其餘控件照守。
+**淨空規則測試（`clearance.test.ts`）加**：① 歌單欄欄底（`bottomOpen`）唔入字母盤外圈；欄底（`bottomHeld`）唔入刻度弧同旋鈕；② 歌單欄右邊唔入細唱片機嘅感應範圍；③ 細唱片機嘅感應範圍唔同版本號、碟名（收窄之後）、♥ 重疊；④ 感應範圍 ≥ 44pt 嘅檢查加一個**明文例外清單**，只得「歌單欄嘅行」（Functional Spec D57；行高 = `heldTracks.pitch`，約 24pt），其餘控件照守。⚠️ **CR-008**：① 嘅 `bottomHeld` 改為 `bottomIdle`（唔入三粒細掣）；② 唔再適用（行唔係控件；review S-173）；④ 例外清單拎走（D57 作廢）；見「CR-008 對技術設計嘅影響 → 淨空規則」。
 
 **元件**（每個 `.tsx` 檔 ≤ 150 行、函數 ≤ 50 行；拆細）
 
 | 元件／模組 | 內容 |
 | --- | --- |
 | `components/mini-turntable/MiniTurntable.tsx` | 重用 `Platter`、`Disc`（封面用 T-046 揀中嗰張）、唱片夾、`Tonearm`（姿勢以載入嘅碟計）；兩行字（`t()`：「播放中」／「已暫停」、歌名）；成組 `role="button"`、`aria-label`「返回播放中的唱片」、透明感應範圍 |
-| `components/held-tracks/`（`HeldTrackList.tsx`、`HeldTrackRow.tsx`、`HeldScrim.tsx`、`ScrollBar.tsx`） | 一欄行；歌號專輯色、歌名黑字；灰色行 `aria-disabled`；長歌名用現有量字函數加「…」（同 T-037 弧線歌單共用一個「一行截短」函數）；頂底淡出用 SVG `mask` + `linearGradient`（id 用 `useId()` 或者 `defIds`）；位置條喺**左邊**；半透明層 = 舞台底色 `linearGradient`（左 `scrimOpacity` → 右 0）做 `mask` |
+| `components/held-tracks/`（`HeldTrackList.tsx`、`HeldTrackRow.tsx`、`HeldScrim.tsx`、`ScrollBar.tsx`） | 一欄行；歌號專輯色、歌名黑字；灰色行 `aria-disabled`（⚠️ 實作對齊 S-174：灰色行係唔 focus 得嘅普通列表項；CR-008 之後全部行都係普通列表項）；長歌名用現有量字函數加「…」（同 T-037 弧線歌單共用一個「一行截短」函數）；頂底淡出用 SVG `mask` + `linearGradient`（id 用 `useId()` 或者 `defIds`）；位置條喺**左邊**；半透明層 = 舞台底色 `linearGradient`（左 `scrimOpacity` → 右 0）做 `mask` |
 | `components/held-tracks/columnLayout.ts`（純函數，連 unit test） | 由行數、欄高、行距計：可捲距離、某行嘅 y、頂／底淡出開唔開、位置條長度同位置；捲動值夾喺 0 至可捲距離 |
 | 捲動 | pointer 拖動（過咗門檻先當拖，拖過唔當㩒）、滾輪、鍵盤（焦點喺行時上下鍵、Page Up／Down）；欄 `touch-action: none`；換碟時捲動歸零 |
 | 圖層次序（`StageSvg`） | 照設計稿 `scene()`：底色 → 螺絲 → 轉盤 → 碟 → 半透明層（連螺絲再畫一次）→ 字母盤 → 旋鈕 → ♥ → 唱臂 → 細唱片機 → 三粒細掣 → 歌單欄 → 左上資訊 |
-| i18n（`src/i18n/zh-Hant.ts`） | 加「播放中」「已暫停」「返回播放中的唱片」、行嘅 `aria-label`（例如「播放：{歌名}」）；空欄重用「尚未有歌曲」「尚未收藏歌曲」。鍵名由 T-048／T-049 定；書面語測試照跑 |
+| i18n（`src/i18n/zh-Hant.ts`） | 加「播放中」「已暫停」「返回播放中的唱片」、行嘅 `aria-label`（例如「播放：{歌名}」；⚠️ CR-008：拎走，加「已播完」）；空欄重用「尚未有歌曲」「尚未收藏歌曲」。鍵名由 T-048／T-049 定；書面語測試照跑 |
 
 **Motion token**
 
@@ -1347,7 +1349,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | --- | --- | --- |
 | `MOTION.scene.chromeFadeMs`（CSS `--motion-scene-chrome-fade`；新） | 設計稿 `SWAP_FADE_MS`（同 CSS 嘅 `opacity` 過場一樣） | 唱臂、三粒細掣、左上歌名嗰部分淡出淡入；大轉盤、細唱片機、半透明層出現／消失。屬 scene token（Functional Spec D1 豁免 300ms） |
 | 現有 `tonearmMs`、`needleDropMs` | 不變 | 拎住嘅碟㩒一行之後嘅完整開場 |
-| 歌單欄內容 | 冇過場（設計稿即時換） | 換碟時欄內容即時換 |
+| 歌單欄內容 | 冇過場（設計稿即時換）。⚠️ CR-008：逐行飄落（`PANEL_FLOAT`）、停定先出、鬆手縮短；見「CR-008 對技術設計嘅影響 → Motion token」 | 換碟時欄內容即時換 |
 | 減少動態效果 | 全部 0；唱臂即時到位 | `utils/motion.ts`（`prefersReducedMotion`） |
 
 `motion.test.ts`、`tokens.node.test.ts` 鎖住新 token 嘅數值。元件唔寫死毫秒。
@@ -1615,7 +1617,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | API-033 | `GET /api/sync` | bucket 第一層（`listLevel('')`，最多 `SCAN_LIST_PAGES_MAX` 頁）+ D1 專輯：回 `folders`（每個：名、id、類別、序號、`status`：`new`｜`known`）、`invalid`（名唔啱格式；`_` 開頭唔列）、`duplicateIds`、`missingAlbums`（D1 有、資料夾冇：專輯移除候選）、`truncated`。唔寫嘢 |
 | API-034 | `POST /api/sync/folders/:folder?from=<no>` | 同步一個資料夾：list → 讀 `info.txt`（ETag 同 `info_etag` 唔同先讀）→ `planFolderSync()` → 讀 `textReads`（`from` 起，最多 `SCAN_TEXT_READS_MAX` 個；超過回 `more: true`、`nextFrom`）→ 一個 D1 batch 寫專輯同新增／更新嘅歌（歌曲文字用 `saveSongText()` 同一套欄位、歌詞 JSON 用 `putLyrics()`）→ 寫 `albums.checks` → 回 `{ album, added, updated, unchanged, checks, pendingRemovals, coverJobs, more, nextFrom }`。冇呢個專輯就建立；名唔啱格式或者 id 重複 → 400／409，唔寫。寫咗 D1 就經現有 `afterWrite` 生成 catalog（hash 冇變唔寫 R2）；冇改就唔生成 |
 | API-035 | `POST /api/sync/removals` | body `{ items: [{ kind, albumId, trackId?, key?, slot? }] }`（`kind`：`album`｜`track`｜`audio`｜`mv`｜`text`｜`cover`），最多 `SYNC_REMOVALS_MAX`（50）項。逐項再對一次（list／head：檔仲喺度 = `STILL_PRESENT`，唔刪）→ 刪專輯（連歌、歌詞，清冇人用嘅歌詞檔，backlog B-048）／刪歌／清連結（清音檔 = 連 MV、文字、歌詞一齊清，D54）／清封面（第一張冇咗連第二張都清；專輯色返中性灰）→ 逐項回結果 → 生成 catalog。**永遠唔刪 bucket 嘅檔** |
-| API-017 | `PUT /api/albums/:id/cover` | 同步嘅封面結果：body `{ slot: 'cover'｜'cover2', cover, thumb, sourceKey, sourceEtag, accent? }`。檢查：`MEDIA.head(sourceKey)` 嘅 ETag = `sourceEtag`（唔同 = 409 `STALE`）；`cover` 係 1200²、`thumb` 係 320²（`assets` 讀檔頭量或者加尺寸欄；T-099 併入；backlog B-052 ①）；`cover2` 要有第一張（backlog B-067 ②：唔會撞 D1 CHECK 變 500）；`accent` 只收喺 `slot = 'cover'`。寫入之後生成 catalog |
+| API-017 | `PUT /api/albums/:id/cover` | 同步嘅封面結果：body `{ slot: 'cover'｜'cover2', cover, thumb, sourceKey, sourceEtag, accent? }`。檢查：`MEDIA.head(sourceKey)` 嘅 ETag = `sourceEtag`（唔同 = 409 `STALE`）；`cover` 係 1200²、`thumb` 係 320²（`assets` 讀檔頭量或者加尺寸欄；T-099 併入；backlog B-052 ①）；`cover2` 要有第一張（backlog B-067 ②：唔會撞 D1 CHECK 變 500）；`accent` 只收喺 `slot = 'cover'`。寫入之後生成 catalog。⚠️ CR-008 回寫（B-081 ④）：加 `notSquare`、錯誤次序同碼、回應，見「CR-008 對技術設計嘅影響 → API-017／018／019／040／041 回寫」 |
 
 **管理端（T-055）點樣行**：`GET /api/sync` → 逐個資料夾（照 API-033 嘅次序）叫 API-034（`more` 就再叫）→ 每個回應嘅 `coverJobs`：`fetch(MEDIA_BASE + key)`（要 bucket CORS 容許管理端 origin，U-1）→ 置中裁正方形 → 1200（細過就放大，D50）同 320 → WebP（`@jsquash/webp`）→ 第一張 `dominantColor()` → API-050 × 2 → API-017；失敗 = 檢查結果（`COVER_FAILED`，連原因），ETag 冇記低，下次再試 → 收集全部 `pendingRemovals` 同 API-033 嘅 `missingAlbums` → 顯示（逐項剔選，預設全剔）→ 「確認移除」→ API-035（分批）。中途閂咗頁面：做完嘅資料夾已經生效。
 
@@ -1628,6 +1630,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | API-034（之後冇改） | list 1 + D1 1 | < 5 |
 | API-035 | 每項 head／list 1 + D1 1 + 歌詞檔清理 ≤ 幾個；50 項 | < 300 |
 | API-017 | head 1 + D1 2 + 生成 catalog | < 10 |
+| API-019、API-041（⚠️ CR-008 回寫） | 讀寫 2 + 一次 API-034 | 一般約 335、最差約 845（review S-189）；QA 實測最多 318 |
 
 成個 bucket（21 個資料夾、幾百個檔）第一次同步：1 + 21 個 API-034（大碟可能 2 個）+ 每張封面 3 個請求（API-050 × 2、API-017），約 90 個請求；之後冇改嘅同步約 22 個請求。CPU：每個請求最多解析約 100 個細文字檔（每個 ≤ 64 KiB），同現有掃描預覽一樣。
 
@@ -1637,10 +1640,10 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 
 | 編號 | Method + Path | 做乜 |
 | --- | --- | --- |
-| API-018 | `GET /api/albums/:id/info` | 讀 `<folder>/info.txt`：`{ key, etag, text }`；冇檔 = `{ key, etag: null, text: formatAlbumInfo(而家 D1 嘅資料) }` |
-| API-019 | `PUT /api/albums/:id/info` | body `{ text, etag }`（`etag` = 讀入時嘅值；`null` = 新檔）。檢查：大細同行數上限（413）；內容唔擋（`parseAlbumInfo()` 嘅檢查結果喺回應）→ 寫入 → 同步呢個資料夾（同 API-034 一樣）→ 回 `{ etag, album, checks, pendingRemovals, coverJobs }` |
-| API-040 | `GET /api/tracks/:id/text` | **改**：讀 `text_key` 嘅檔：`{ key, etag, text }`；冇檔 = `{ key: null, etag: null, text: formatSongText({ title }) }`（歌名用 `info.txt` 嘅） |
-| API-041 | `PUT /api/tracks/:id/text` | **改**：body `{ text, etag }`。嗰首歌冇音檔 → 409 `NO_AUDIO`；`parseSongText()` 有錯 → 400 逐行（乜都唔寫，同之前一樣）；會清走現有歌詞而冇 `?force=1` → 409 `LYRICS_REMOVED`（D30 保留）→ 寫入 `text_key`（冇就新 key）→ 同步呢個資料夾 → 回 `{ etag, track, checks, hints }` |
+| API-018 | `GET /api/albums/:id/info` | ⚠️ CR-008 回寫：回應加 `problem`，見「CR-008 對技術設計嘅影響」。讀 `<folder>/info.txt`：`{ key, etag, text }`；冇檔 = `{ key, etag: null, text: formatAlbumInfo(而家 D1 嘅資料) }` |
+| API-019 | `PUT /api/albums/:id/info` | body `{ text, etag }`（`etag` = 讀入時嘅值；`null` = 新檔）。檢查：大細同行數上限（413）；內容唔擋（`parseAlbumInfo()` 嘅檢查結果喺回應）→ 寫入 → 同步呢個資料夾（同 API-034 一樣）→ 回 `{ etag, album, checks, pendingRemovals, coverJobs }`。⚠️ CR-008 回寫：實際回 `{ key, etag, ...API-034 嘅回應 }`；加 409 `FOLDER_MISMATCH`、`FILE_TOO_LARGE` |
+| API-040 | `GET /api/tracks/:id/text` | ⚠️ CR-008 回寫：回應 `{ trackId, key, etag, text, problem }`；409 `TEXT_CONFLICT`。**改**：讀 `text_key` 嘅檔：`{ key, etag, text }`；冇檔 = `{ key: null, etag: null, text: formatSongText({ title }) }`（歌名用 `info.txt` 嘅） |
+| API-041 | `PUT /api/tracks/:id/text` | **改**：body `{ text, etag }`。嗰首歌冇音檔 → 409 `NO_AUDIO`；`parseSongText()` 有錯 → 400 逐行（乜都唔寫，同之前一樣）；會清走現有歌詞而冇 `?force=1` → 409 `LYRICS_REMOVED`（D30 保留）→ 寫入 `text_key`（冇就新 key）→ 同步呢個資料夾 → 回 `{ etag, track, checks, hints }`。⚠️ CR-008 回寫：實際回 `{ trackId, key, etag, text, track, checks, hints, sync }`（`sync.skippedBefore`）；加 409 `FOLDER_MISMATCH`、`TEXT_CONFLICT`、`FILE_TOO_LARGE`、`TRACK_NOT_LISTED`，次序見「CR-008 對技術設計嘅影響」 |
 
 | 項目 | 規則 |
 | --- | --- |
@@ -1665,7 +1668,7 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | API-030、API-031、API-032 | **取消**（由同步取代；冇手動指定） |
 | API-043 | **取消**（批量匯入取消） |
 
-新錯誤碼：`STALE`（409，檔案版本）、`NO_AUDIO`（409）、`INVALID_FOLDER`（400）、`DUPLICATE_ALBUM_ID`（409）、`STILL_PRESENT`（API-035 逐項）。檢查結果嘅 `code`（建議，T-103／T-105 定案）：`INVALID_FOLDER_NAME`、`DUPLICATE_ALBUM_ID`、`DUPLICATE_ORDINAL`、`NO_INFO`、`INFO_BAD_ENCODING`、`INFO_TOO_LARGE`、`INFO_UNKNOWN_LINE`、`INFO_DUPLICATE_LABEL`、`INFO_DUPLICATE_NUMBER`、`INFO_BAD_YEAR`、`INFO_NO_TITLE`、`AUDIO_NOT_LISTED`、`FILE_WITHOUT_TRACK`、`NO_AUDIO`、`TITLE_MISMATCH`、`TEXT_INVALID`（連逐行）、`AUDIO_CONFLICT`／`MV_CONFLICT`／`TEXT_CONFLICT`／`COVER_CONFLICT`、`NO_FIRST_COVER`、`COVER_FAILED`、`COVER_NOT_SQUARE`、`SUBTITLE_IGNORED`。訊息全部經 `apps/api/src/i18n/zh-Hant.ts`（書面語），管理端以 `code` 砌字
+新錯誤碼：`STALE`（409，檔案版本）、`NO_AUDIO`（409）、`INVALID_FOLDER`（400）、`DUPLICATE_ALBUM_ID`（409）、`STILL_PRESENT`（API-035 逐項）。⚠️ CR-008 回寫（B-081 ④）：再加 409 `TEXT_CONFLICT`、`NO_FIRST_COVER`、`FOLDER_MISMATCH`、`FILE_TOO_LARGE`、`TRACK_NOT_LISTED`，`reason` `IMAGE_NOT_FOUND`、`WRONG_SIZE`。檢查結果嘅 `code`（建議，T-103／T-105 定案）：`INVALID_FOLDER_NAME`、`DUPLICATE_ALBUM_ID`、`DUPLICATE_ORDINAL`、`NO_INFO`、`INFO_BAD_ENCODING`、`INFO_TOO_LARGE`、`INFO_UNKNOWN_LINE`、`INFO_DUPLICATE_LABEL`、`INFO_DUPLICATE_NUMBER`、`INFO_BAD_YEAR`、`INFO_NO_TITLE`、`AUDIO_NOT_LISTED`、`FILE_WITHOUT_TRACK`、`NO_AUDIO`、`TITLE_MISMATCH`、`TEXT_INVALID`（連逐行）、`AUDIO_CONFLICT`／`MV_CONFLICT`／`TEXT_CONFLICT`／`COVER_CONFLICT`、`NO_FIRST_COVER`、`COVER_FAILED`、`COVER_NOT_SQUARE`、`SUBTITLE_IGNORED`。訊息全部經 `apps/api/src/i18n/zh-Hant.ts`（書面語），管理端以 `code` 砌字
 
 ### 安全設計（CR-007 補充）
 
@@ -1720,6 +1723,164 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | FR-102、FR-104、FR-124（改） | API-010、API-012（唯讀）、`albumOrder()`、`wheelKeyFor()` |
 | FR-108、FR-110、FR-118、FR-119（取消） | seed、API-043、API-024、`lyrics_source_url` 拎走 |
 
+## CR-008 對技術設計嘅影響
+
+對應 Functional Spec v1.10 §CR-008（用戶 2026-11-26 逐點定案；播放端設計稿**第 19 版**，commit `ca8c52a`）。本節取代上文同佢有出入嘅地方：主要係「補充：播放端設計稿第 18 版確認嘅技術設計」入面嘅歌單欄、`playHeldTrack`、`openList` 守衛、淨空規則同 motion，「場景狀態機」嘅 `discChange → list`，同實現注意事項 12；受影響嘅表已喺原位加 ⚠️ CR-008。播放端部分只影響 `apps/player`（新任務 T-108，Implementation Plan v1.7）；Backend、API、資料庫、內容檔唔受 CR-008 影響。最後一部分「實作對齊」將 review／QA 要求嘅字眼（backlog B-070、B-077 ②、B-080 ③⑤、B-081 ④）對照 code（2026-11-26，branch `claude/charming-cannon-8yulp0`）寫返本文件。數值以設計稿常數為準：`TRACKLIST`、`PANEL_FLOAT`、`LIST_FLOAT`、`MINI`、`SWAP_FADE_MS`、`showsColumn()`。**今次冇改 code**。
+
+### 狀態同衍生顯示
+
+用詞（照「補充：第 18 版」）：`loaded` = 播放 store 嘅 `albumId`（`null` = 冇歌載入）；`view` = `stageReducer` 嘅 `viewAlbumId`；`holding` = `loaded !== null && view !== loaded && (scene === 'home' ｜｜ scene === 'discChange')`（已有，`app/holding.ts`）；`dialOpen` = `scene === 'discChange'`。新：**`trackChosen` = `loaded !== null && view === loaded`**（顯示緊嘅碟揀咗歌，Functional Spec「未揀歌」嘅反面）。
+
+| 衍生（純函數，連 unit test；放 `app/holding.ts` 或者新檔，T-108 定案） | 規則 | 設計稿 |
+| --- | --- | --- |
+| `showsColumn` | `(dialOpen ｜｜ !trackChosen) && scene !== 'list' && overlay !== 'mv'`；`dialOpen` 時另外要等旋鈕停定（`settle`，見 motion） | `showsColumn()`、`panelHold` |
+| 欄底 | `dialOpen ? heldTracks.bottomOpen : heldTracks.bottomIdle` | `panelMetrics()` |
+| 三粒細掣 | `!dialOpen`（`home`）；`!trackChosen` 時歌書、MV `aria-disabled`（同冇歌嘅主頁一樣），播放模式照用 | — |
+| 大唱片機嘅唱臂 | `!holding && !dialOpen`；姿勢照「唱臂姿勢」表 | — |
+| 細唱片機 | `holding`（不變）；字：播放 store `ended` = 「已播完」（新）、`paused` = 「已暫停」、其餘「播放中」 | `miniTurntable()`、`loadedEnded` |
+| 唱片夾圖案 | 永遠有：`playing` = pause，其餘 play | `spindle()` |
+
+**場景 × 載入／拎住 × 字母盤**（Functional Spec §CR-008「揀碟時邊樣嘢出現」嘅技術版）
+
+| `scene` | `loaded` | `view` | 歌單欄 | 三粒細掣 | 大唱臂 | 細唱片機 | 唱片夾 | 碟面 |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `home` | `null` | 任何 | ✅ `bottomIdle` | ✅（歌書、MV 停用） | ✅ `parked` | ✗ | `playFirst(view)` | `openList`（由欄飄落） |
+| `discChange` | `null` | 任何 | ✅ `bottomOpen`（停定先出） | ✗ | ✗ | ✗ | 唔做嘢 | 唔做嘢 |
+| `home` | X | X | ✗（左上歌名） | ✅ | ✅ 姿勢表 | ✗ | 暫停／繼續 | `openList`（直接開） |
+| `discChange` | X | X | ✅ `bottomOpen` | ✗ | ✗ | ✗ | 唔做嘢 | 唔做嘢 |
+| `discChange` | X | Y | ✅ `bottomOpen` | ✗ | ✗ | ✅ | 唔做嘢 | 唔做嘢 |
+| `home`（`holding`） | X | Y | ✅ `bottomIdle` | ✅（歌書、MV 停用） | ✗ | ✅ | `playFirst(view)`：Y 第一首入機（舊歌停） | `openList`（由欄飄落） |
+| `list` | 任何 | 任何 | ✗ | 照舊（暗層下面，唔入 Tab 次序） | 照舊 | 照舊 | 播框入面嗰首 | — |
+| `home` + `overlay = mv` | X | X | ✗ | — | `parked` | ✗ | — | — |
+
+`playFirst(view)`：揀 `view` 第一首 `audio !== null` 嘅歌（純函數，連 Favourites 虛擬專輯）；冇 = 唔做嘢。之後同弧線歌單揀歌一樣：stage `selectedTrackId`、播放 store `start { albumId: view, trackId }`（舊歌停、換隊列），唱臂由 `parked` 行完整開場（`tonearmMs` + `needleDropMs`）；`holding` 自動解除。真正出聲由 T-038 接（同一個 `start` 路徑）。
+
+**動作嘅變化**
+
+| 動作 | 之前（T-037、T-048、T-049） | CR-008 |
+| --- | --- | --- |
+| `openList` | `home` 或者 `discChange` 先得；`holding` 時唔做嘢 | **只喺 `home`**（`discChange` 唔做嘢，Functional Spec D84；拎走 `discChange → list`）；`holding` 時**照開**（開拎住嘅碟嘅弧線歌單） |
+| 唱片夾（`useSpindle…`／`useHome`） | 未揀歌 = 開歌單；`holding` 時冇作用 | 見上表：`playFirst(view)`；`discChange` 唔做嘢 |
+| `playHeldTrack`（stage action）、`startHeld`（播放狀態 action） | 歌單欄㩒一行 | **拎走**（連測試）；由 `playFirst` 同弧線歌單嘅 `start` 取代 |
+| `closeList`（㩒暗位） | 返 `home` | 不變；返 `home` 之後 `showsColumn` 照規則再出歌單欄 |
+| `returnToLoaded` | 「淡出期間換碟」 | 即刻換碟、唱臂即時到位（`useSwapInstant`，兩格），之後淡入（見「實作對齊」S-176） |
+| 旋鈕（`useKnobTurn`） | — | 已做（T-037／T-039 修正，S-152）：㩒住 `MOTION.input.dialHoldMs`（180）或者郁過 `layouts.knob.turnThresholdPx`（6）先 `openDiscChange`；輕點唔做嘢；鍵盤不變 |
+| 弧線歌單嘅行 | — | 已做（W-051）：行唔㩒得；`closeList` 只由暗位；唱片夾或者 Enter／Space 播框入面嗰首 |
+
+**拎走或者反轉嘅 code**（T-108）
+
+| 位置 | 改動 | 原因 |
+| --- | --- | --- |
+| `app/stageReducer.ts`（連測試） | 刪 `playHeldTrack`；`openList` 守衛反轉（`holding` 照開、`discChange` 唔開） | D82、D84 |
+| `app/playbackState.ts`（連測試） | 刪 `startHeld`；加 `ended`（或者等價嘅「播完」狀態，T-038 定案）畀細唱片機用 | D82、D88 |
+| `app/useHome.ts`、`HomeScene.tsx`、`TopGroup.tsx`、`MachineChrome.tsx`、`heldTracksView.ts`、`miniView.ts`（連測試） | `onPlayHeldTrack` 拎走；唱片夾 `playFirst`；`showsColumn`、細掣、唱臂規則 | D83、D85、D86 |
+| `components/held-tracks/`（`HeldTrackRow.tsx`、`rowFocus.ts`、`HeldTrackList.tsx` 等） | 行唔再係掣：拎走 `data-part="held-button"`、focus、鍵盤（`rowFocus.ts`）；欄嘅捲動（拖動、滾輪）保留；欄本身仲可唔可以 focus 嚟捲由 T-108 定（建議：可以，方向鍵捲，冇行 focus） | D82 |
+| `i18n/zh-Hant.ts` | `heldTracks.play`（「播放第 {no} 首：{title}」）拎走；加「已播完」 | D82、D88 |
+| `stage/layouts/phone.ts`、`types.ts` | `heldTracks.bottomHeld`（1650）→ `bottomIdle`（1290）；加飄落嘅位移 | D87 |
+| `stage/layouts/clearance.test.ts` | 刪 D57 例外清單；改寫「歌單欄」幾條（見下） | D57 作廢 |
+
+**淨空規則（取代「補充：第 18 版」嗰四條入面嘅 ② ④，連 ① 嘅欄底）**
+
+1. 歌單欄欄底 `bottomOpen` 唔入字母盤外圈（不變）；欄底 `bottomIdle` 唔入三粒細掣嘅感應範圍（新）
+2. ~~歌單欄右邊唔入細唱片機嘅感應範圍~~ 歌單欄嘅行唔係控件：同細唱片機感應範圍重疊（約 x 510–620、y 330–442，review S-173）唔算淨空問題；照設計稿圖層次序，歌單欄喺細唱片機上面（`StageSvg` 嘅次序要喺 T-108 對返設計稿：細唱片機 → 三粒細掣 → 歌單欄），細唱片機淨低嘅感應範圍仍然 ≥ 44pt
+3. 細唱片機感應範圍唔同版本號、碟名、♥ 重疊（不變）；細唱片機兩行字（推上之後）唔疊住歌單欄第一行（`MINI.titleDy` 對 `TRACKLIST.top`）
+4. 44pt 檢查**冇例外**（D57 作廢）
+5. 泊位唱臂同歌單欄頭幾行可以重疊（唱臂唔係控件；Functional Spec D87）
+
+**版面數字（`stage/layouts/phone.ts`）**
+
+| 表 | 來源常數 | 改動 |
+| --- | --- | --- |
+| `heldTracks.bottomIdle`（取代 `bottomHeld`） | `TRACKLIST.bottomIdle`（1290） | 改 |
+| `heldTracks.float`（建議名，T-108 定案） | `PANEL_FLOAT.dx`（170）、`dy`（−62） | 新 |
+| `miniTurntable.label.dy`、`title.dy`、`title.left`、`title.minSize`、`title.step` | `MINI.labelDy`（−62）、`titleDy`（−14）、`titleLeft`（330）、`titleMin`（24）、`titleStep`（2） | **已做**（T-037／T-039 修正，W-045、S-193）；T-108 只核對 |
+| `knob.turnThresholdPx` | 6 | **已做**（S-152） |
+
+**Motion token（`config/motion.ts`，連 `motion.test.ts`、`tokens.node.test.ts`；名係建議，T-108 定案）**
+
+| Token | 數值（設計稿） | 用喺 |
+| --- | --- | --- |
+| `scene.panelRowMs` | `PANEL_FLOAT.duration` 460 | 歌單欄每行飄落兼淡入 |
+| `scene.panelStaggerMs` | `PANEL_FLOAT.stagger` 60 | 逐行遲 |
+| `scene.panelSpreadMs` | `PANEL_FLOAT.spread` 560 | 成欄最多攤開幾耐（行多就壓細每行嘅遲） |
+| `input.panelSettleMs` | `PANEL_FLOAT.settle` 140 | 旋鈕停定幾耐先出歌單欄（輸入規則，減少動態效果都一樣等） |
+| `scene.chromeFadeMs`（已有） | `SWAP_FADE_MS` 320 | 鬆手時讓出嘅行淡出、三粒細掣淡入、唱臂淡入淡出 |
+| `scene.listFloatRowMs`、`listFloatStaggerMs`、`listVeilMs`、`listFrameDelayMs`、`listFrameMs`、`listDialCloseMs` | `LIST_FLOAT`：560、80、360、280、300、200 | 由歌單欄飄落弧線（黑字變白字、暗層、框線、字母盤先收） |
+| `input.dialHoldMs`（已有） | 180 | 旋鈕㩒住先開 |
+| 減少動態效果 | 全部 scene token 0；`panelSettleMs` 照等 | `utils/motion.ts` |
+
+元件唔寫死毫秒；欄嘅 CSS 時長由 token 生成（同 `chromeFadeMs` 一樣經 `tokens.css`）。
+
+**測試同 E2E**
+
+| 層 | 內容 |
+| --- | --- |
+| Unit | `showsColumn`、欄底、細掣、唱臂、細唱片機字（播放中／已暫停／已播完）喺上表每一行；`openList` 守衛（`discChange` 唔開、`holding` 照開）；`playFirst`（第一首冇音檔、全部冇音檔、Favourites）；冇 `playHeldTrack`／`startHeld` |
+| 元件 | 歌單欄冇掣、冇 focus 行、拖動照捲、㩒落唔開弧線歌單；唱片夾未揀歌顯示 play；飄落有 stagger、`settle` 之前唔 render；減少動態效果即時 |
+| 淨空 | 上面五條 |
+| E2E 截圖（T-040） | 第 19 版 `VIEWS` 嘅格：「未揀歌嘅主頁」「播緊時，手上拎住另一隻碟」「拎住另一隻碟，播緊嗰隻碟播完咗」「拎住另一隻碟：播緊嘅歌名好長／超長」等；流程：開 app（有歌單欄）→ 㩒唱片夾（播第一首）→ 擰去另一隻碟鬆手（細掣出、冇唱臂）→ 㩒碟面（飄落弧線）→ 㩒暗位（歌單欄出返）→ 㩒唱片夾（換碟、完整開場）；減少動態效果再行一次 |
+
+QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`player-core`、`player-foundation`（改到嘅檔按 validation gate 重驗）。
+
+### 更新（取代實現注意事項 12；Functional Spec D93）
+
+| 情況 | 做法（`pwa/updateManager.ts`，T-039 已做） |
+| --- | --- |
+| 檢查 | 開 app、`visibilitychange`（返前景）、`pageshow`（bfcache）、每 30 分鐘（`UPDATE_CHECK_INTERVAL_MS`）叫 `registration.update()`；限流 60 秒（`UPDATE_CHECK_THROTTLE_MS`）；離線唔查 |
+| 開 app（Preload 期間，`launching`） | 搵到 waiting 嘅 SW：即刻 `SKIP_WAITING` → `controllerchange` → reload 一次（`sessionStorage` 防 loop） |
+| 用緊 app（Preload 之後） | **唔會自己換、唔會自己 reload**（播緊、暫停、閒置、返前景都一樣）；狀態 `waiting` → 出提示（`components/update-prompt`，「已有新版本」「立即更新」），有版本等緊就一直出 |
+| 㩒「立即更新」 | `SKIP_WAITING` → reload（聽眾自己揀，唔使防 loop；播緊嘅歌停） |
+| 另一個分頁換咗版 | `controllerchange` 而唔係自己揀：當有新版本等緊，出提示 |
+| 外觀 | 提示同「請打直」設計稿冇畫，等用戶睇（Functional Spec §開放問題） |
+
+### 實作對齊（review、QA 要求回寫；唔係新決定）
+
+| 來源 | 原本嘅字眼 | 跟 code 改為 | 改咗邊度 |
+| --- | --- | --- | --- |
+| B-070（S-132） | 「左上歌名兩行」：斷行用歌書嘅 `wrapLine()`，加「英文字同括號入面唔斷」 | `utils/breakAt.ts` 嘅 `breakAt()`（設計稿第 18 版 `breakAt()`）：英文字母、數字、半形括號同標點連住嘅一串唔喺中間斷；中文字之間同空格前後都斷得；唔係「先揀空格」。`wrapLine()` 係歌書純文字歌詞嘅斷行（T-082），唔共用 | 「左上歌名兩行」、CR-005 對照表 |
+| B-077 ②（S-151） | 元件表：轉碟旋鈕 `role="listbox"` | 旋鈕 = `role="slider"` + `aria-valuenow`（`components/knob/Knob.tsx`，同實現注意事項 14）；字母盤每格唔係 option | 「繪圖方式」元件表 |
+| B-080 ③（S-173） | 淨空 ②：歌單欄右邊唔入細唱片機感應範圍 | CR-008 之後行唔係控件，見上面淨空第 2 條 | 「補充：第 18 版」淨空 |
+| B-080 ③（S-174） | 元件表：灰色行 `aria-disabled` | 灰色行係普通列表項，唔 focus 得（T-049 已咁做）；CR-008 之後所有行都係普通列表項 | 「補充：第 18 版」元件表 |
+| B-080 ⑤（S-176） | `returnToLoaded`：淡出期間換碟、唱臂即時到位，之後淡入 | 即刻換碟（`viewAlbumId` 即時變），唱臂用 `useSwapInstant` 兩格冇過場到位，之後淡入；QA 對比設計稿互動格：快約 330 ms、冇閃冇跳 | 「補充：第 18 版」動作表 |
+| B-081 ④（S-189） | API 表（下面） | 見「API-017／018／019／040／041 回寫」 | CR-007「同步嘅設計」「寫返媒體 bucket」 |
+
+**API-017／018／019／040／041 回寫**（對照 `apps/api/src/albums/cover.ts`、`coverBody.ts`、`albums/info.ts`、`tracks/text.ts`、`media/readText.ts`、`sync/syncFolder.ts`、`config.ts`）
+
+| 編號 | 補充 |
+| --- | --- |
+| API-017 | body 加 `notSquare?: boolean`（管理端置中裁切咗 → 檢查結果 `COVER_NOT_SQUARE`；同一個來源舊嘅 `COVER_NOT_SQUARE`／`COVER_FAILED` 換走，其他檢查結果照留）；未知欄位 `NOT_EDITABLE`。次序：body（太大 413、未 parse 就擋；400）→ 專輯 404 → `sourceKey` 要係呢張碟資料夾第一層、同 `slot` 同類嘅檔（400 `INVALID_VALUE`）→ 兩張圖：未上載 400 `IMAGE_NOT_FOUND`、尺寸唔啱 400 `WRONG_SIZE`（`reason`，喺 `VALIDATION_ERROR` 嘅 `details`）→ `cover2` 而冇第一張 409 `NO_FIRST_COVER` → 來源 ETag 唔同 409 `STALE` → 寫 D1（專輯讀入之後改過 409 `STALE`）→ 生成 catalog。回應 `{ album, checks }`。`COVER_FAILED`（處理失敗）而家冇 endpoint 記低（backlog B-081 ③，T-055 前定） |
+| API-018 | 回應 `{ key, etag, text, problem }`；`problem` = `null`｜`TOO_LARGE`（大過上限：`text` = `null`，唔讀）｜`BAD_ENCODING`（照解碼，認唔到嘅 byte 變 U+FFFD；改好再存 = 寫返 UTF-8）。冇檔 = `{ key: <folder>/info.txt, etag: null, text: formatAlbumInfo(…) }` |
+| API-019 | 次序：body `{ text, etag }`（400）→ 大細、行數上限 413 → 專輯 404 → 資料夾過 `resolveAlbumFolder()`（400／404／409；D1 嘅資料夾 id 唔係呢張碟 = 409 `FOLDER_MISMATCH`）→ 已有嘅 `info.txt` 大過上限 = 409 `FILE_TOO_LARGE`（S-181）→ 寫入（版本唔啱 409 `STALE`）→ 同步呢個資料夾。回應 `{ key, etag, ...API-034 嘅回應 }` |
+| API-040 | 回應 `{ trackId, key, etag, text, problem }`（`problem` 同 API-018）；冇檔 = `{ key: null, etag: null, text: 歌名 }`；同一個歌號有幾個 `.txt` 而 D1 連住嗰個唔喺度 = 409 `TEXT_CONFLICT` |
+| API-041 | 次序：body（400）→ `parseSongText()`（逐行 400；太大 413）→ 歌 404 → 資料夾（409 `FOLDER_MISMATCH`）→ 冇音檔 409 `NO_AUDIO` → 409 `TEXT_CONFLICT` → 已有嘅檔大過上限 409 `FILE_TOO_LARGE`（S-181）→ 歌號唔喺曲目表（等緊確認移除）409 `TRACK_NOT_LISTED`（S-183）→ 會清走歌詞而冇 `?force=1` 409 `LYRICS_REMOVED` → 寫入（409 `STALE`）→ 由呢首歌起同步呢個資料夾。回應 `{ trackId, key, etag, text, track, checks, hints, sync }`；`checks` 只係呢首歌嘅；`sync` = API-034 嘅回應加 `skippedBefore`（前面嘅歌今次冇同步，要再掃描；S-182） |
+| API-034（補） | 回應實際係 `{ album: { id, folder, title, year, category, categoryNo, created }, added, updated, unchanged, failed, checks, pendingRemovals, coverJobs, more, nextFrom, truncated }`（上面「同步嘅設計」漏咗 `failed`、`truncated`） |
+
+**新錯誤碼**（`apps/api/src/config.ts` 嘅 `ERROR_CODE`；訊息經 `apps/api/src/i18n/zh-Hant.ts`）：409 `TEXT_CONFLICT`、409 `NO_FIRST_COVER`、409 `FOLDER_MISMATCH`、409 `FILE_TOO_LARGE`、409 `TRACK_NOT_LISTED`；`details` 嘅 `reason`：`IMAGE_NOT_FOUND`、`WRONG_SIZE`。`FILE_TOO_LARGE`、`TRACK_NOT_LISTED` 嘅行為係主 session 代決定，**待用戶確認**（Functional Spec §CR-008「實作對齊」）。
+
+**每個請求嘅操作上限（補 API-019、API-041；review S-189 嘅估算）**
+
+| 請求 | 最多操作 | 估算 |
+| --- | --- | --- |
+| API-019、API-041 | 讀 1 + 寫 1 + 一次 API-034 嘅同步（list、`info.txt`、`.txt` 讀取、歌詞 JSON、D1、生成 catalog） | 一般約 335、最差約 845（上限假設 1000；部署前對官方文件，backlog B-074 ④）。QA（T-103–T-106）實測每個請求最多 318 |
+
+### Functional Spec 對照（CR-008）
+
+| Functional 需求／決定 | 技術落點 |
+| --- | --- |
+| D82、FR-044（改） | 歌單欄行唔係掣；`playHeldTrack`、`startHeld`、`rowFocus` 拎走；淨空冇例外 |
+| D83 | `showsColumn`、`trackChosen`、`settle` |
+| D84、FR-005 | `openList` 守衛（`discChange` 唔開、`holding` 照開）；`LIST_FLOAT` token |
+| D85 | `playFirst(view)`、唱片夾永遠有圖案 |
+| D86、FR-043 | 細掣、唱臂衍生規則 |
+| D87、FR-038、FR-032 | `PANEL_FLOAT` token、`bottomIdle`、`chromeFadeMs`；淨空規則 |
+| D88 | 播放 store「播完」、細唱片機「已播完」 |
+| D89 | `miniTurntable` 字嘅數值（已做） |
+| D90 | 歌號照用專輯色（冇改） |
+| D91 | `dialHoldMs`、`turnThresholdPx`（已做） |
+| D92 | 弧線歌單行唔㩒得（已做） |
+| D93、FR-009 | `updateManager`（已做）；實現注意事項 12 |
+| D94 | `src/assets/logo-full.png`、app icon（已做） |
+
 
 ## 修訂記錄
 
@@ -1738,3 +1899,4 @@ T-026（catalog 生成同公開 route）嘅 code 已交（commit `aad0d81`、`83
 | v1.5 | 2026-11-25 19:36 | 跟 Functional Spec v1.7（**CR-005 補充：播放端設計稿第 18 版確認**，source commit `4e739cd`）更新：加「補充：播放端設計稿第 18 版確認嘅技術設計」（載入嘅碟 = 播放 store `albumId`、顯示嘅碟 = `viewAlbumId`、衍生 `holding`；`chromeHidden` 連左上歌名嗰部分、大唱片機唔轉；動作 `returnToLoaded`、`playHeldTrack`、`openList` 守衛；`layouts/phone.ts` 加 `songFit`、`miniTurntable`、`albumTitle.rightWhenHeld`、`heldTracks`；淨空規則加四條連 D57 例外清單；元件 `mini-turntable/`、`held-tracks/`、`columnLayout.ts`；`chromeFadeMs` = 設計稿 `SWAP_FADE_MS`；測試同 E2E 格；已完成 code 受影響清單）。「播緊時揀碟」入面「喺另一隻碟鬆手 = 唱臂泊位」作廢；唱臂姿勢表、組件圖、繪圖方式跟住改；D51、22 格數值定案。今次冇改 code |
 | v1.6 | 2026-11-25 21:10 | 跟 Functional Spec v1.8（**CR-006**）更新：加「CR-006 對技術設計嘅影響」一節（對照表、掃描建立歌曲、歌號同歌 id、只有年份同冇「類型」、初始資料只入專輯、參考資料、字體檔網址、已完成 code 要改嘅地方連任務、Functional Spec 對照）。API-030 加 `newTracks`、`audioMissing`、`manualMissing`；API-031 加 `create`、`clearAudio`；API-020 收 `no`、id = `<albumId>-<NN>`；API-021 加 `no`；API-023 取消；API-011、API-013、API-070 刪 `releaseDate`、`type`，`year` 直接輸入（`INVALID_YEAR`）；`albums` 刪 `release_date`、`type`；`tracks.no` 可以跳號、刪歌唔重編；`tracks.id` 規則改；R2 key layout 加 `cover2.png` 同字體檔名；CR-004、CR-005 入面 D44、D49、D54 例外、`cover2.png` 嘅「待確認」改為定案。新任務 T-101（年份、刪 `type`）、T-102（歌號、歌 id）；T-025、T-027 改範圍。今次冇改 code |
 | v1.7 | 2026-11-26 10:30 | 跟 Functional Spec v1.9（**CR-007**）更新：加「CR-007 對技術設計嘅影響」一節（對照表、資料模型、`packages/catalog` 新增同改、同步嘅設計（每個資料夾嘅計劃、API-033／034／035／017、管理端流程、每個請求嘅操作上限、並發）、寫返媒體 bucket（API-018／019／040／041、寫入規則）、API 一覽嘅變化、安全設計、技術風險、已完成 code 保留／改寫／拎走清單連任務、Functional Spec 對照）。架構表（媒體 bucket、D1）、Endpoint 一覽、數據庫設計、R2 key layout（`info.txt`）、Seed、安全設計「R2 key 驗證」加 ⚠️ CR-007 標記。今次冇改 code |
+| v1.8 | 2026-11-26 11:40 | 跟 Functional Spec v1.10（**CR-008**；播放端設計稿第 19 版，commit `ca8c52a`）更新：加「CR-008 對技術設計嘅影響」一節：狀態同衍生顯示（`trackChosen`、`showsColumn`、欄底、細掣、唱臂、細唱片機「已播完」、唱片夾圖案）、場景 × 載入／拎住 × 字母盤表（歌單欄、細掣、唱臂、細唱片機、唱片夾、碟面）、`playFirst()`、動作嘅變化（`openList` 守衛反轉、`discChange → list` 拎走、`playHeldTrack`／`startHeld` 拎走、`returnToLoaded` 即刻換碟）、拎走或者反轉嘅 code、淨空規則（D57 例外拎走）、版面數字（`bottomIdle`、飄落位移）、motion token（`PANEL_FLOAT`、`LIST_FLOAT`、`panelSettleMs`）、測試同 E2E、更新規則（取代實現注意事項 12）、實作對齊（`breakAt()`、旋鈕 `slider`、S-173／S-174／S-176、API-017／018／019／040／041 嘅回應同錯誤碼、API-034 漏咗嘅 `failed`／`truncated`、API-019／041 操作數）、Functional Spec 對照。原位加 ⚠️ CR-008：場景狀態機、元件表（旋鈕、歌單、歌單欄）、實現注意事項 12、「左上歌名兩行」、CR-005 對照表、「補充：第 18 版」（歌單欄、`openList`、`returnToLoaded`、`playHeldTrack`、`heldTracks`、淨空、元件、motion、i18n）、CR-007 嘅 API-017／018／019／040／041、新錯誤碼、操作數表。今次冇改 code |
