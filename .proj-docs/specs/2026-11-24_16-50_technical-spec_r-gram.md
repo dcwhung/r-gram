@@ -1,10 +1,10 @@
 # Technical Spec：R Gram（播放端 PWA + 內容管理 Backend）
 
-**版本**：v1.9
-**日期**：2026-11-26 16:30（v1.8：2026-11-26 11:40；v1.7：2026-11-26 10:30；v1.6：2026-11-25 21:10；v1.5：2026-11-25 19:36；v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
-**作者**：Architect Agent（v1.2–v1.9：Project Manager Agent 跟 CR-003 至 CR-009 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
-**關聯 Functional Spec**：v1.11（v1.11 = CR-009：版本掣、手機打橫轉返、弧線歌單同旋鈕頭尾相接、播完最後一首、app icon 細尺寸（播放端設計稿第 20 版）；v1.10 = CR-008：揀碟同歌單欄（播放端設計稿第 19 版）、旋鈕、弧線歌單、更新、logo；v1.9 = CR-007：媒體 bucket 係唯一資料來源、`info.txt`、管理端 = 同步 + 文字框；v1.8 = CR-006：掃描係主要資料來源、初始資料只入專輯、歌號跟檔名、只有年份；v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：**v1.9**（CR-009）。跟 Functional Spec v1.11 更新（見「CR-009 對技術設計嘅影響」）：版本掣（`useUpdateStatus`／`applyNow` 經 context 入 `TopGroup`，喺弧線歌單暗層下面；拎走 `update-prompt`、`data-trap-stop`）；手機打橫轉返（`quarterTurn`、舞台轉 ±90°、`fitStage` 對調闊高、安全區轉、`toStagePoint`；`useDragScroll` 要改、`useKnobTurn` 唔使改；拎走 `rotate-notice` 同 `Stage covered`）；弧線歌單圈（`ring = N + 1`、`loopWindow`、接駁位、圈上吸附、頭尾相接鍵盤、`LIST_FLOAT` 摺返行原地淡入）；旋鈕唔夾、`stackOffset`、碟疊次序；播完最後一首（`ended` → 3 秒 → `idle`）；favicon 16／32／48、maskable 192。對照 code 改正：「手機橫版」係舞台照 render 再蓋住（唔係「唔 render」）；`pwa/` 有七個檔。今次冇改 code。**以下係 v1.8（CR-008）嘅狀態**（入面實現注意事項 12 嘅提示部分已由 CR-009 取代）：跟 Functional Spec v1.10 更新（見「CR-008 對技術設計嘅影響」）：播放端揀碟嘅顯示規則（`showsColumn`、`trackChosen`、細掣、唱臂、細唱片機；場景 × 載入／拎住 × 字母盤表）；拎走 `playHeldTrack`、`startHeld`、歌單欄行嘅 focus 同 D57 例外；反轉「拎住嘅碟唔開弧線歌單」同「字母盤開住㩒碟面入歌單」；唱片夾 `playFirst`；`heldTracks.bottomIdle` 取代 `bottomHeld`；歌單欄飄落同飄落弧線嘅 motion token；淨空規則改寫；更新規則（取代實現注意事項 12）。另外「實作對齊」：`breakAt()`（B-070）、旋鈕 `slider`（B-077 ②）、S-173／S-174／S-176（B-080）、API-017／018／019／040／041 嘅回應、錯誤碼同操作數（B-081 ④）。只影響 `apps/player`（T-108）；Backend 只係文件回寫。今次冇改 code。**以下係 v1.7（CR-007）嘅狀態**：跟 Functional Spec v1.9 更新（見「CR-007 對技術設計嘅影響」）：媒體 bucket 係唯一來源，D1 係索引；專輯由資料夾名（`parseAlbumFolder()`）同 `info.txt`（`parseAlbumInfo()`）；曲目由 `info.txt`，冇音檔 = 灰色；`albums` 刪 `label`、`wheel_key`、`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`；內容檔刪 `label`、`subtitle`；全 bucket 同步（API-033、034、035）、封面結果（API-017）、寫返 bucket（API-018、019、040、041）；取消 API-011、013、014、015、020、021、022、024、030、031、032、043；初始資料 seed 拎走；已完成 code 嘅保留／改寫／拎走清單連任務 T-103–T-106。標 🅰️ 嘅對應 Functional Spec D66–D81 嘅 PM 建議，照建議做。今次冇改 code。**以下係 v1.6（CR-006）嘅狀態**（入面掃描、seed、歌號 API 嘅設計已由 CR-007 取代）：跟 Functional Spec v1.8 更新（見「CR-006 對技術設計嘅影響」）：掃描建立歌曲（API-030 加 `newTracks`、`audioMissing`；API-031 加 `create`、`clearAudio`）；歌號 = 檔名歌號、可以跳號，刪歌唔重編，API-023 取消，API-020 要 `no`、API-021 可以改 `no`；歌 id 建立時 `<albumId>-<NN>`、之後不變；`albums.release_date`、`albums.type` 刪走，`year` 直接輸入（API-011、API-013、內容檔）；seed（T-027）只入專輯；`.mp3`、手動指定音檔、`cover2.png` 定案；字體檔 `_fonts/lubalin-graph-book.otf`。列出已完成 code 要改嘅檔（新任務 T-101、T-102；T-025、T-027 改範圍）。標 🅰️ 嘅對應 Functional Spec D60–D62、D64、D65 同 D63 細項：PM 建議，照建議做。今次冇改 code。**以下係 v1.5（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）嘅狀態**：加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
+**版本**：v1.10
+**日期**：2026-11-26 17:50（v1.9：2026-11-26 16:30；v1.8：2026-11-26 11:40；v1.7：2026-11-26 10:30；v1.6：2026-11-25 21:10；v1.5：2026-11-25 19:36；v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
+**作者**：Architect Agent（v1.2–v1.10：Project Manager Agent 跟 CR-003 至 CR-010 同步；v1.10 嘅播放架構嚟自 Architect 嘅 spike 報告；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
+**關聯 Functional Spec**：v1.12（v1.12 = CR-010：真機 spike 結果、打橫改返「請打直」、旋鈕取消、播放同 MV 音訊、Preload 旗幟、臨時測試 catalog、先做後端；v1.11 = CR-009：版本掣、手機打橫轉返、弧線歌單同旋鈕頭尾相接、播完最後一首、app icon 細尺寸（播放端設計稿第 20 版）；v1.10 = CR-008：揀碟同歌單欄（播放端設計稿第 19 版）、旋鈕、弧線歌單、更新、logo；v1.9 = CR-007：媒體 bucket 係唯一資料來源、`info.txt`、管理端 = 同步 + 文字框；v1.8 = CR-006：掃描係主要資料來源、初始資料只入專輯、歌號跟檔名、只有年份；v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
+**狀態**：**v1.10**（CR-010）。跟 Functional Spec v1.12 同 spike 報告（`reports/2026-11-26_17-10_spike-report_T-011.md`）更新（見「CR-010 對技術設計嘅影響」）：播放架構定案（`audioEngine` 介面同合約、controller 外部 store、開場「停喺 0」、Media Session 規則、`PlaybackStatus` 加 `error`；取代實現注意事項 1–4 同數據流 B）；MV 音訊只用 `GainNode`、一個 `<video>`、`audioSession`；模糊用 CSS `blur()`；旗幟改 WebGL（T-114）；手機打橫**撤回 D96**，T-039 嘅 `rotate-notice` 照用，真機量度留底；旋鈕取消（`useSeamJump`）；臨時測試 catalog（T-113）；冇設計嘅同步頁（`apps/admin`、`[assets]`、`ADMIN_EMAILS` 改 secret、private bucket 改名 `rb-discography-catalog`、Worker `https://r-gram-api.dcwhung.workers.dev`；T-116）；B-090 ① 實作對齊（版本掣經 prop、`info.update`、`update.applyLabel`、`UpdateNotice`、`updateBox.test.ts`；`rowStep` 已刪）。今次冇改 code。**以下係 v1.9（CR-009）嘅狀態**（入面「手機打橫轉返」已由 CR-010 撤回）：跟 Functional Spec v1.11 更新（見「CR-009 對技術設計嘅影響」）：版本掣（`useUpdateStatus`／`applyNow` 經 context 入 `TopGroup`，喺弧線歌單暗層下面；拎走 `update-prompt`、`data-trap-stop`）；手機打橫轉返（`quarterTurn`、舞台轉 ±90°、`fitStage` 對調闊高、安全區轉、`toStagePoint`；`useDragScroll` 要改、`useKnobTurn` 唔使改；拎走 `rotate-notice` 同 `Stage covered`）；弧線歌單圈（`ring = N + 1`、`loopWindow`、接駁位、圈上吸附、頭尾相接鍵盤、`LIST_FLOAT` 摺返行原地淡入）；旋鈕唔夾、`stackOffset`、碟疊次序；播完最後一首（`ended` → 3 秒 → `idle`）；favicon 16／32／48、maskable 192。對照 code 改正：「手機橫版」係舞台照 render 再蓋住（唔係「唔 render」）；`pwa/` 有七個檔。今次冇改 code。**以下係 v1.8（CR-008）嘅狀態**（入面實現注意事項 12 嘅提示部分已由 CR-009 取代）：跟 Functional Spec v1.10 更新（見「CR-008 對技術設計嘅影響」）：播放端揀碟嘅顯示規則（`showsColumn`、`trackChosen`、細掣、唱臂、細唱片機；場景 × 載入／拎住 × 字母盤表）；拎走 `playHeldTrack`、`startHeld`、歌單欄行嘅 focus 同 D57 例外；反轉「拎住嘅碟唔開弧線歌單」同「字母盤開住㩒碟面入歌單」；唱片夾 `playFirst`；`heldTracks.bottomIdle` 取代 `bottomHeld`；歌單欄飄落同飄落弧線嘅 motion token；淨空規則改寫；更新規則（取代實現注意事項 12）。另外「實作對齊」：`breakAt()`（B-070）、旋鈕 `slider`（B-077 ②）、S-173／S-174／S-176（B-080）、API-017／018／019／040／041 嘅回應、錯誤碼同操作數（B-081 ④）。只影響 `apps/player`（T-108）；Backend 只係文件回寫。今次冇改 code。**以下係 v1.7（CR-007）嘅狀態**：跟 Functional Spec v1.9 更新（見「CR-007 對技術設計嘅影響」）：媒體 bucket 係唯一來源，D1 係索引；專輯由資料夾名（`parseAlbumFolder()`）同 `info.txt`（`parseAlbumInfo()`）；曲目由 `info.txt`，冇音檔 = 灰色；`albums` 刪 `label`、`wheel_key`、`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`；內容檔刪 `label`、`subtitle`；全 bucket 同步（API-033、034、035）、封面結果（API-017）、寫返 bucket（API-018、019、040、041）；取消 API-011、013、014、015、020、021、022、024、030、031、032、043；初始資料 seed 拎走；已完成 code 嘅保留／改寫／拎走清單連任務 T-103–T-106。標 🅰️ 嘅對應 Functional Spec D66–D81 嘅 PM 建議，照建議做。今次冇改 code。**以下係 v1.6（CR-006）嘅狀態**（入面掃描、seed、歌號 API 嘅設計已由 CR-007 取代）：跟 Functional Spec v1.8 更新（見「CR-006 對技術設計嘅影響」）：掃描建立歌曲（API-030 加 `newTracks`、`audioMissing`；API-031 加 `create`、`clearAudio`）；歌號 = 檔名歌號、可以跳號，刪歌唔重編，API-023 取消，API-020 要 `no`、API-021 可以改 `no`；歌 id 建立時 `<albumId>-<NN>`、之後不變；`albums.release_date`、`albums.type` 刪走，`year` 直接輸入（API-011、API-013、內容檔）；seed（T-027）只入專輯；`.mp3`、手動指定音檔、`cover2.png` 定案；字體檔 `_fonts/lubalin-graph-book.otf`。列出已完成 code 要改嘅檔（新任務 T-101、T-102；T-025、T-027 改範圍）。標 🅰️ 嘅對應 Functional Spec D60–D62、D64、D65 同 D63 細項：PM 建議，照建議做。今次冇改 code。**以下係 v1.5（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）嘅狀態**：加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -39,7 +39,7 @@
 | `apps/api` | 認證、管理 API、R2 掃描、圖片上載、每次儲存之後生成 catalog（CR-003）、對外出 catalog / 圖 / 歌詞 |
 | `packages/catalog` | 純邏輯、冇 build step：catalog 型別同 validator、LRC parser、歌曲文字 parser 同回填（CR-003）、掃描配對規則、Wheel 字母規則、顏色計算。三個 app 共用，保證「管理端驗得過 = 播放端讀得到」 |
 | D1 | ~~內容嘅唯一來源（SSoT）~~ ⚠️ CR-007：由媒體 bucket 砌出嚟嘅索引（加封面處理結果、歌詞 JSON 名、檢查結果）；session；catalog 生成狀態（CR-003：冇草稿、冇發佈記錄） |
-| R2 `r-gram-catalog` | 而家生效嘅 `catalog.json`、封面圖、歌詞 JSON；private，只經 Worker 出 |
+| R2 ~~`r-gram-catalog`~~ **`rb-discography-catalog`**（⚠️ CR-010：用戶開嘅名） | 而家生效嘅 `catalog.json`、封面圖、歌詞 JSON；private，只經 Worker 出 |
 | R2 `rb-discography`（⚠️ CR-004；之前叫 `r-gram-media`） | 媒體 bucket：每張專輯一個資料夾（`<類別>-<NN>-<id>`），放音檔、MV 檔、封面來源（`cover.jpg｜png`）同歌曲文字檔（`NN 名.txt`）；可選 `_fonts/`。公開網址直接串流；Worker 只 list / head / get（掃描時讀文字檔），**唔寫**。⚠️ CR-007：**唯一資料來源**；每個資料夾加 `info.txt`；Worker 只寫 `info.txt` 同 `NN 名.txt`（管理端文字框），永遠唔刪 |
 
 **核心原則**
@@ -61,8 +61,8 @@
 | 語言 | TypeScript | ^6.0 | 同 903-player；strict |
 | 播放端 UI | React + Vite | ^19.3 / ^8.3 | 同 903-player |
 | 播放端 PWA | vite-plugin-pwa（Workbox） | ^2.0 | 同 903-player；`registerType: 'prompt'` 自己控制更新時機 |
-| 播放端繪圖 | DOM + inline SVG + CSS transform；旗幟用 `<canvas>` 2D | — | HANDOFF 建議；有 accessibility；GPU 合成層做轉動 |
-| 播放端狀態 | React `useReducer` + context（唔加狀態庫） | — | 場景係一個細狀態機；少一個依賴 |
+| 播放端繪圖 | DOM + inline SVG + CSS transform；旗幟用 `<canvas>` 2D | — | HANDOFF 建議；有 accessibility；GPU 合成層做轉動。⚠️ CR-010（D106）：旗幟改 WebGL，2D 只畫靜止一格後備（T-114） |
+| 播放端狀態 | React `useReducer` + context（唔加狀態庫） | — | 場景係一個細狀態機；少一個依賴。⚠️ CR-010：播放 store 改為 controller 外部 store，經 `useSyncExternalStore` 讀（引擎 `ended` handler 要同步讀隊列）；仍然唔加狀態庫 |
 | 管理端 UI | React + Vite + react-router-dom | ^19.3 / ^8.3 / ^7.18 | 同 903-player `apps/admin` |
 | 管理端元件 | lucide-react、@dnd-kit、@jsquash/webp | ^1.71 / ^6.3 / ~1.5 | 同 903-player：icon、拖動排序、瀏覽器入面轉 WebP（Safari canvas 唔識輸出 WebP） |
 | Backend | Cloudflare Workers + Hono | wrangler ^4 / hono ^4.13 | 同 903-player |
@@ -125,14 +125,14 @@ src/
 ├── config/         layout.ts（裝置 media query 常數）、motion.ts（時長 token）、storageKeys.ts、limits.ts
 ├── catalog/        loader.ts（fetch + 驗證 + 本機 cache）、selectors.ts
 ├── stage/          Stage.tsx（按比例縮放舞台）、StageSvg.tsx（單一 SVG 畫布，貼頂 / 貼底兩組；CR-003）、geometry.ts（幾何純函數）、fitStage.ts、safeArea.ts、layouts/<mode>.ts（幾何資料表）、useLayoutMode.ts
-├── components/     flag/ metal/（SvgDefs、Screws、車床紋）platter/ disc/ spindle/ tonearm/ metal-button/ icons/ knob/ dial-ring/ tracklist/ info-block/ booklet/ tv/ rotate-notice/（⚠️ CR-009：拎走，D96）
+├── components/     flag/ metal/（SvgDefs、Screws、車床紋）platter/ disc/ spindle/ tonearm/ metal-button/ icons/ knob/ dial-ring/ tracklist/ info-block/ booklet/ tv/ rotate-notice/（~~⚠️ CR-009：拎走，D96~~ ⚠️ CR-010：照留，D101）update-button/（T-109：版本掣、`UpdateNotice`、`updateBox`）
 │                   mini-turntable/ held-tracks/（CR-005 第 18 版：細唱片機、拎住嘅碟嘅歌單欄；T-048、T-049）
 │                   （CR-002 + CR-003：場景零件全部係 React SVG 元件；wheel/、lyrics/、info-panel/ 已刪）
-├── playback/       audioEngine.ts、queue.ts（純函數）、playModes.ts、mediaSession.ts、resume.ts
-├── mv/             videoEngine.ts、volumeGain.ts（Web Audio）
+├── playback/       audioEngine.ts、queue.ts（純函數）、playModes.ts、mediaSession.ts、resume.ts（⚠️ CR-010：加 playbackController.ts（外部 store）；`app/playbackState.ts` 搬入嚟；見「CR-010 → 播放架構」）
+├── mv/             videoEngine.ts、~~volumeGain.ts~~ mvAudio.ts（⚠️ CR-010：只用 GainNode；見「CR-010 → MV 音訊」）
 ├── favourites/     store.ts、favouritesAlbum.ts（由收藏砌出虛擬專輯）
 ├── lyrics/         loader.ts、activeLine.ts；第 17 版：歌詞斷行同長行策略嘅純函數（`wrapLine`、`fitLyricLine`；檔名由 T-082 定案）
-├── pwa/            updateManager.ts（⚠️ CR-009 對照 code：仲有 registerUpdates.ts、reloadGuard.ts、updateChecks.ts、useUpdates.ts、manifest.ts、catalogCaching.ts）
+├── pwa/            updateManager.ts（⚠️ CR-009 對照 code：仲有 registerUpdates.ts、reloadGuard.ts、updateChecks.ts、useUpdates.ts、manifest.ts、catalogCaching.ts；⚠️ CR-010：仲有 spikePage.ts，T-115 拆走）
 ├── styles/         tokens.css、global.css；CR-004：fonts.css（`@font-face`：local Lubalin Graph → bucket 字體 URL → 內建 Rokkitt；T-044）
 ├── i18n/           zh-Hant.ts（語言檔）、t.ts、locale.ts、writtenChinese.test.ts（CR-002：FR-037）
 └── utils/          motion.ts（prefersReducedMotion）、format.ts
@@ -147,7 +147,7 @@ src/
 | `viewAlbumId` | 畫面顯示緊嘅碟（可以同播緊嘅碟唔同，Functional Spec D13）。⚠️ CR-005 第 18 版：= 旋鈕指住／手上拎住嘅碟（「顯示嘅碟」）；「載入嘅碟」係播放 store 嘅 `albumId`；兩個唔同就係 `holding`（見「補充：播放端設計稿第 18 版確認嘅技術設計」） |
 | `previousAlbumId` | 去 Favourites 碟之前嗰隻真專輯：再㩒 ♥ 返去（⚠️ CR-003 同步：T-032 已做） |
 | `selectedTrackId` | 歌單揀中 / 左上顯示嘅歌 |
-| 播放狀態（獨立 store） | `idle`｜`loading`｜`playing`｜`paused`｜`error` + `queue`、`currentTrackId`、`positionSec`、`durationSec` |
+| 播放狀態（獨立 store） | `idle`｜`loading`｜`playing`｜`paused`｜`error` + `queue`、`currentTrackId`、`positionSec`、`durationSec`。⚠️ CR-010：實際係 `idle`｜`playing`｜`paused`｜`ended`｜`error`（冇 `loading`；載入中係 `playing` 而未出聲，引擎有 `stalled`）；見「CR-010 → 播放架構」 |
 
 衍生狀態唔另外存：唱臂姿勢、碟轉唔轉、掣停唔停用都由上面計出嚟。
 
@@ -184,7 +184,7 @@ src/
 | 幾何表 | `layouts/phone.ts` 輸出一個有型別嘅常數物件：各場景嘅碟位（圓心、半徑）、唱臂軸心同角度、掣位、Wheel、歌單弧線、電視框。初版數值由 `_mockups_/r-gram/src/anim.js` 檔頭常數抄入；主頁改版 mockup 確認後換數值 |
 | 裝置模式 | `LayoutMode = 'phone' ｜ 'duoCover' ｜ 'duoOpenPortrait' ｜ 'duoOpenLandscape' ｜ 'square' ｜ 'desktop'`；`config/layout.ts` 用 media query 範圍判斷（Duo / HomeView 範圍沿用 903-player `apps/player/src/config/layout.ts`） |
 | 未匹配裝置 | 退去 `phone`：舞台保持 9:16、按高度縮放、置中 |
-| 手機橫版 | ~~橫向而且高度 ≤ 手機短邊上限 → 顯示 `RotateNotice`，舞台唔 render~~（T-039 實際：舞台照 render、`inert` + `aria-hidden`，上面蓋 `RotateNotice`）。⚠️ **CR-009（D96）**：唔再出「請打直」；同一個條件下將舞台反方向轉 90 度（闊高對調、安全區同手勢跟住轉），見「CR-009 對技術設計嘅影響 → 手機打橫轉返」 |
+| 手機橫版 | ~~橫向而且高度 ≤ 手機短邊上限 → 顯示 `RotateNotice`，舞台唔 render~~（T-039 實際：舞台照 render、`inert` + `aria-hidden`，上面蓋 `RotateNotice`）。⚠️ **CR-009（D96）**：唔再出「請打直」；同一個條件下將舞台反方向轉 90 度（闊高對調、安全區同手勢跟住轉），見「CR-009 對技術設計嘅影響 → 手機打橫轉返」。⚠️ **CR-010（D101）**：CR-009 嗰句撤回；照 T-039 實際做法（舞台照 render、`inert` + `aria-hidden`、蓋 `RotateNotice`） |
 | 加裝置 | 加一份 `layouts/<mode>.ts` +（需要時）一個排版元件；現有模式嘅表同 CSS 唔改；用截圖比對工具證明現有裝置零改變（同 903-player `e2e:visual`） |
 | 高身畫面（⚠️ CR-003 決定 1） | 舞台闊度填滿之後可用高度多過 1920：`StageSvg` 嘅 viewBox 高度跟舞台；「貼頂」組（左上資訊、頂部螺絲、版本號）唔郁，「貼底」組（轉盤、碟、唱片夾、唱臂、控件、左下螺絲）`translate(0, extraUnits)`；多出嚟嘅高度留喺中間。幾何表嘅數值唔變（T-033 已做） |
 | 細屏（⚠️ CR-003 決定 3） | 全部按 `--u` 比例縮放，唔加細屏分支。感應範圍以 `clearance.viewportPt = 390` 做基準計（44pt）；375pt 闊 = 42.3pt、360pt 闊 = 40.6pt，用戶已接受 |
@@ -195,7 +195,7 @@ src/
 
 | 元件 | 技術 | 備注 |
 | --- | --- | --- |
-| 旗幟 | `<canvas>` 2D，移植 mockup 嘅布料網格 | DPR 上限 2；網格密度係常數，真機唔夠 30fps 就降；reduced-motion 畫一格靜止 |
+| 旗幟 | `<canvas>` 2D，移植 mockup 嘅布料網格 | DPR 上限 2；網格密度係常數，真機唔夠 30fps 就降；reduced-motion 畫一格靜止。⚠️ CR-010：真機約 5 fps；改 WebGL（`flagGl.ts`），2D 靜止一格做後備（D106、T-114） |
 | CD | SVG `<g>`：封面用 evenodd `clipPath` 挖走碟孔，銀邊同膠圈係 SVG 圖形；以設計稿嘅畫圖半徑 500 畫，再由外層 `scale(r / 500)` 放大 | 轉動用 CSS animation，長駐喺封面，暫停只切換 `animation-play-state`（停喺原位）。同一個 SVG 入面保證唔到獨立合成層：真機預覽（Implementation Plan R-005）要量轉碟時嘅 fps。換碟時以專輯 id 做 `key`，新封面先會由 0° 開始 |
 | 唱臂 | SVG `<g>`，CSS `rotate` | 時長用 scene token；三個姿勢（泊位 / 落針 / 升針，CR-003 決定 11）；由泊位開始播有兩段開場（轉入 650ms → 放低 160ms，第 17 版；見上面「唱針開場」） |
 | 金屬面 / 掣 / 旋鈕 / 螺絲 / 轉盤 / 唱片夾 | SVG gradient 同 filter，集中喺一個共用 `<defs>`（`components/metal/SvgDefs.tsx`；id 同引用共用 `defIds.ts` 嘅常數） | 光圈用 CSS；感應範圍係零件上面一個透明圖形（圓形，半徑按 44pt 換算） |
@@ -204,7 +204,7 @@ src/
 | 拎住嘅碟嘅歌單欄（CR-005 第 18 版） | SVG `<text>` 行，直身靠左一欄；欄內捲動用 SVG `mask`（頂底淡出）+ 位置條；底下一層舞台底色漸變（T-049 定案）。⚠️ CR-008：幾時出見 `showsColumn`（冇歌載入都出）；逐行飄落（`PANEL_FLOAT`） | 拖動 / 滾輪 / 鍵盤捲動，拖過唔當㩒；~~每行係一粒掣~~ ⚠️ CR-008（D82）：行唔係掣，冇 focus |
 | 細唱片機（CR-005 第 18 版） | 重用轉盤、碟、唱片夾、唱臂元件，外層 `scale(MINI.r / PLATTER.r)`（T-048 定案） | 成組係一粒掣；碟用自己嘅轉動 class（播緊就轉，同大唱片機嘅停轉分開） |
 | 電視 | SVG 機身（同一個畫布）；`<video>` 係疊喺畫布上面嘅 HTML element，用 `clip-path: path()` 裁成弧面螢幕，位置由幾何表換算；掃描線用 CSS 疊層 | 獨立 chunk，㩒 MV 掣先載入；T-060 定案 |
-| 模糊層 | 唱片機層 `filter: blur()` | 唔用 mockup 嘅 `blurBackdrop()` |
+| 模糊層 | 唱片機層 `filter: blur()` | 唔用 mockup 嘅 `blurBackdrop()`。⚠️ CR-010：真機 60 fps，照用（D105） |
 | 歌書（曲詞編監 + 歌詞） | SVG `<text>`。有時間標記嘅歌詞用 `arcRows()`，而家嗰行太長就喺框入面斷行；冇時間標記嘅歌詞係直身一欄，可以上下捲（第 17 版；見「播放端設計稿第 17 版嘅技術設計」。T-072、T-082 定案） | 獨立 chunk |
 
 ### 組件圖：`apps/api`
@@ -242,7 +242,7 @@ src/
 播放端啟動 / 返回前景 ─► GET /catalog/v1/catalog.json（帶 ETag）─► 驗證 ─► 存本機 ─► render
 ```
 
-**B. 播歌**
+**B. 播歌**（⚠️ CR-010：下面係暫定版本；定案見「CR-010 → 播放架構」：手勢入面 `controller.start()` → `engine.cue()`（靜音預備、停喺 0）→ 810 ms 後 `engine.land()` 出聲；`ended` handler 同步揀下一首；Media Session 由 controller 擁有）
 
 ```
 㩒碟芯 play（用戶手勢）
@@ -660,9 +660,9 @@ D1（SQLite）。時間欄一律 ISO 8601 UTC 字串（session 過期用 epoch m
 
 | Bucket | Key | 寫入時機 |
 | --- | --- | --- |
-| `r-gram-catalog` | `catalog/v1/catalog.json` | 每個成功嘅寫入請求之後（⚠️ CR-003；hash 冇變就唔寫） |
-| `r-gram-catalog` | `catalog/v1/img/<hash>.<ext>` | 上載封面 |
-| `r-gram-catalog` | `catalog/v1/lyrics/<hash>.json` | **儲存嗰首歌嘅文字時**（API-041）；生成 catalog 只寫一個 `catalog.json`，唔會一次過寫幾百個檔 |
+| `rb-discography-catalog`（⚠️ CR-010；之前寫 `r-gram-catalog`） | `catalog/v1/catalog.json` | 每個成功嘅寫入請求之後（⚠️ CR-003；hash 冇變就唔寫） |
+| `rb-discography-catalog`（⚠️ CR-010；之前寫 `r-gram-catalog`） | `catalog/v1/img/<hash>.<ext>` | 上載封面 |
+| `rb-discography-catalog`（⚠️ CR-010；之前寫 `r-gram-catalog`） | `catalog/v1/lyrics/<hash>.json` | **儲存嗰首歌嘅文字時**（API-041）；生成 catalog 只寫一個 `catalog.json`，唔會一次過寫幾百個檔 |
 | `rb-discography`（⚠️ CR-004；之前 `r-gram-media`） | `<folder>/<NN> <名>.<m4a｜mp3>`、`<folder>/<NN> <名>.<mp4｜m4v>` | 用戶自行上載。`<folder>` 預設 = `<category>-<NN>-<id>` |
 | `rb-discography` | `<folder>/cover.<jpg｜png>`（封面來源）、`<folder>/cover2.<jpg｜png>`（第二張，CR-005／CR-006）、`<folder>/<NN> <名>.txt`（歌曲文字） | ⚠️ CR-004：用戶自行上載；Worker 只讀（掃描）。⚠️ CR-007：`.txt` 亦會由管理端文字框寫（API-041） |
 | `rb-discography` | `<folder>/info.txt`（⚠️ CR-007：碟名、年份、曲目） | 用戶自行上載，或者管理端 `info.txt` 文字框寫（API-019） |
@@ -685,7 +685,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 | 範疇 | 設計 |
 | --- | --- |
-| 認證 | Google Authorization Code + PKCE；`state` + `code_verifier` 存短期 `__Host-oauth` cookie；callback 驗 ID token（issuer、audience、`email_verified`），email 要喺 `ADMIN_EMAILS`（`wrangler.toml` `[vars]`，逗號分隔） |
+| 認證 | Google Authorization Code + PKCE；`state` + `code_verifier` 存短期 `__Host-oauth` cookie；callback 驗 ID token（issuer、audience、`email_verified`），email 要喺 `ADMIN_EMAILS`（`wrangler.toml` `[vars]`，逗號分隔）。⚠️ CR-010：`ADMIN_EMAILS` 改做 Worker secret（公開 repo 唔放 email；T-116） |
 | Session | 32 bytes 隨機 token；D1 只存 SHA-256；cookie `__Host-session`：`HttpOnly; Secure; SameSite=Lax; Path=/`；TTL 30 日（`SESSION_DAYS` 常數，同 903-player） |
 | CSRF | 改資料嘅請求要 `Origin` header = `WORKER_ORIGIN`，唔啱回 403；admin SPA 同 Worker 同源，唔使開 CORS |
 | 授權 | 單一角色：白名單內 = 全部權限；`/api/*`（除 `health`）全部過 session middleware |
@@ -698,7 +698,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 | 歌曲文字 / 歌詞 | `SONG_TEXT_MAX_BYTES`（64 KB；⚠️ CR-003 取代 `LRC_MAX_BYTES`）、行數同每行長度上限、`CREDIT_MAX_CHARS`；常數放 `packages/catalog`，管理端同 API 共用；播放端用文字節點 render，唔用 `innerHTML` |
 | 公開路由 | `/catalog/v1/*` 只回 `PLAYER_ORIGINS` 嘅 CORS；唔設 cookie |
 | Header | `/api/*`、`/auth/*`：`X-Frame-Options: DENY`、`Content-Security-Policy: frame-ancestors 'none'`、`Cache-Control: no-store`、`Referrer-Policy: no-referrer`、`X-Content-Type-Options: nosniff`（後兩個係 CR-003 同步 T-021 嘅實作）；admin 靜態檔用 `apps/admin/public/_headers` |
-| Secret | `GOOGLE_CLIENT_SECRET`、`SESSION_SECRET` 用 `wrangler secret`；本機 `.dev.vars`（gitignore）；CI 嘅 Cloudflare token 只畀 deploy job（同 903-player `deploy-api.yml` 兩個 job 分隔） |
+| Secret | `GOOGLE_CLIENT_SECRET`、`SESSION_SECRET` 用 `wrangler secret`；本機 `.dev.vars`（gitignore）；CI 嘅 Cloudflare token 只畀 deploy job（同 903-player `deploy-api.yml` 兩個 job 分隔）。⚠️ CR-010：加 `ADMIN_EMAILS` |
 | 搜尋引擎 | 播放端：`<meta name="robots" content="noindex,nofollow">` + `robots.txt` + Vercel `X-Robots-Tag`；Worker 所有回應加 `X-Robots-Tag: noindex` |
 | 媒體 | `rb-discography`（⚠️ CR-004）係公開網址（Functional Spec C2 / R-1，用戶已接受）；bucket 唔開 listing；CORS 容許 `PLAYER_ORIGINS`（MV 音量、字體）同管理端 origin（`WORKER_ORIGIN`：掃描套用封面時攞原圖），連本機開發用嘅 origin。而家入面仲有歌詞文字檔同（可選）字體檔：CORS 擋唔到直接下載（Functional Spec R-16） |
 
@@ -718,7 +718,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 | 動畫 | 只郁 `transform` / `opacity`；轉動嘅碟同唱臂用獨立合成層；模糊層只喺 overlay 開住時存在；旗幟 canvas 有 DPR 上限同可調網格密度。⚠️ CR-003：零件喺同一個 SVG 入面，獨立合成層保證唔到；真機預覽（Implementation Plan R-005）要量轉碟時嘅 fps，唔夠就將隻碟抽出嚟做獨立一層 |
 | 時間更新 | 進度圈 / 時間用 `timeupdate`（約 4 次 / 秒）；歌詞畫面開住時用 `requestAnimationFrame` 讀 `currentTime`，收埋就停 |
 | D1 | 全部查詢行數以百計；專輯列表嘅完整度用一條 `GROUP BY`。⚠️ CR-003：每次寫入之後重新讀全部專輯同歌砌 catalog（幾百行） |
-| 瓶頸 | ① 旗幟網格（Functional Spec R-5，M0 真機量度）② iOS 模糊濾鏡喺舊機嘅 fps（唔夠就改用預先模糊嘅靜態截圖）③ r2.dev 網址有速率限制（見 T2） |
+| 瓶頸 | ① 旗幟網格（Functional Spec R-5，M0 真機量度）② iOS 模糊濾鏡喺舊機嘅 fps（唔夠就改用預先模糊嘅靜態截圖）③ r2.dev 網址有速率限制（見 T2）。⚠️ CR-010：① 已量：iPhone 約 5 fps → WebGL（T-114）；② 關閉（60 fps）；轉碟 fps 未量（U-24 ⑤） |
 
 ---
 
@@ -730,11 +730,11 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 | 播放端 | Vercel：`buildCommand = npm run build -w apps/player`、`outputDirectory = apps/player/dist`；只部署 production branch（feature / fix / claude branch 關閉，同 903-player `vercel.json`）。⚠️ CR-003 決定 12、13：未有 `main` 之前，Phase B spike 頁都放 Vercel；用邊條 branch 部署見 Implementation Plan A-7（待用戶確認） |
 | 播放端 cache | `sw.js`、`index.html`、`manifest.webmanifest`：`Cache-Control: no-cache`；`assets/*`（有 hash）：`immutable` |
 | Worker | `wrangler deploy`；admin SPA 係 Worker 嘅 static assets（`[assets] directory = "../admin/dist"`、`not_found_handling = "single-page-application"`、`run_worker_first = ["/api/*", "/auth/*", "/catalog/*"]`） |
-| Bindings | `DB`（D1 `r-gram`）、`CATALOG`（R2 `r-gram-catalog`）、`MEDIA`（R2 `rb-discography`；⚠️ CR-004：bucket 改名，binding 名不變。`apps/api/wrangler.toml` 仲寫 `r-gram-media`，由 T-098 改） |
-| `[vars]` | `GOOGLE_CLIENT_ID`、`ADMIN_EMAILS`、`PLAYER_ORIGINS`、`WORKER_ORIGIN`、`MEDIA_BASE`（只改 `wrangler.toml`，每次 deploy 會蓋走 dashboard 改動，同 903-player） |
-| 播放端 build 變數 | `VITE_CATALOG_URL`（Worker 嘅 `catalog.json` 網址）；⚠️ CR-004（T-044 已定案）：`VITE_FONT_URL`（可選：媒體 bucket 嘅 slab 字體檔網址，一定要係 https；只有一個網址，冇另外嘅粗體檔設定） |
+| Bindings | `DB`（D1 `r-gram`）、`CATALOG`（R2 ~~`r-gram-catalog`~~ **`rb-discography-catalog`**，⚠️ CR-010：用戶 2026-11-26 開嘅名；binding 名不變）、`MEDIA`（R2 `rb-discography`；⚠️ CR-004：bucket 改名，binding 名不變。`apps/api/wrangler.toml` 仲寫 `r-gram-media`，由 T-098 改） |
+| `[vars]` | `GOOGLE_CLIENT_ID`、`ADMIN_EMAILS`、`PLAYER_ORIGINS`、`WORKER_ORIGIN`、`MEDIA_BASE`（只改 `wrangler.toml`，每次 deploy 會蓋走 dashboard 改動，同 903-player）。⚠️ CR-010：`ADMIN_EMAILS` 搬去 secret；值：`WORKER_ORIGIN` = `https://r-gram-api.dcwhung.workers.dev`、`PLAYER_ORIGINS` = `https://rgram.vercel.app`（T-116） |
+| 播放端 build 變數 | `VITE_CATALOG_URL`（Worker 嘅 `catalog.json` 網址）；⚠️ CR-004（T-044 已定案）：`VITE_FONT_URL`（可選：媒體 bucket 嘅 slab 字體檔網址，一定要係 https；只有一個網址，冇另外嘅粗體檔設定）。⚠️ CR-010：Worker 部署之前暫時 `/test-catalog/catalog.json`（T-113）；部署之後 `https://r-gram-api.dcwhung.workers.dev/catalog/v1/catalog.json` |
 | CI：`ci.yml` | 非 production branch push：lint、`tsc -b`、unit、build、e2e；淨改 docs 用 job 層 `if:` 跳過（SK-025） |
-| CI：`deploy-api.yml` | production branch 改到 `apps/api`、`apps/admin`、`packages/catalog` 先跑：build job（冇 secret：lint + test + build admin）→ deploy job（有 secret：apply D1 migration → `wrangler deploy`） |
+| CI：`deploy-api.yml` | production branch 改到 `apps/api`、`apps/admin`、`packages/catalog` 先跑：build job（冇 secret：lint + test + build admin）→ deploy job（有 secret：apply D1 migration → `wrangler deploy`）。⚠️ CR-010：第一次部署由用戶喺自己電腦手動行（T-116 指引）；workflow 之後喺 T-028 做 |
 | 版本 | 播放端：`apps/player/package.json` version，build time 注入（Vite `define` + `index.html` placeholder）；管理端顯示 `apps/api/package.json` version |
 | Rollback | 播放端：Vercel 回上一個 deployment；Worker：`wrangler rollback`；D1 migration 只加唔減（向前修正） |
 | Seed | ⚠️ **CR-007：取消**（Functional Spec D79）：冇 seed；部署之後喺管理端同步一次，專輯由資料夾建立。下面只留做記錄。 `npm run seed -w apps/api -- --local｜--remote`：讀 `seed/discography.json` → D1（`INSERT … ON CONFLICT DO NOTHING`）；讀 `seed/credits.json` 填 credit（只填而家係 `NULL` 嘅欄，唔蓋管理端改過嘅值）；下載 `coverUrl` → R2 `img/`（已有封面嘅專輯跳過）；完成後印出冇 credit 嘅歌。⚠️ CR-004：寫入 `category`、`category_no`（`folder` 留 NULL = 用預期資料夾名）；資料係 21 個發行、291 首歌（T-097 重新生成之後）；封面照 ~~Functional Spec D48（待確認）~~ ⚠️ CR-005 D50：置中裁正方形，細過 1200 就放大到 1200，再出 320 縮圖（script 自己做），完成後列出放大咗同冇封面嘅專輯；初始資料冇第二張封面。⚠️ CR-003：冇上架欄，seed 完全部專輯同歌即刻入 catalog；seed 之後要生成一次 catalog（做法由 T-027 定案，見 API-070 `NOT_READY`） |
@@ -744,13 +744,13 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 | # | 設定 | 備注 |
 | --- | --- | --- |
-| 1 | Cloudflare：R2 bucket **`rb-discography`**（⚠️ CR-004：用戶已開；之前寫 `r-gram-media`），開公開存取，設 CORS：容許播放端 origin **同管理端 origin**（Worker 嘅網址），連本機開發嘅 origin；`GET`、`HEAD`；容許 `Range` header | CORS 係 MV 音量旋鈕（Web Audio）、跨 origin 字體、同管理端攞封面原圖嘅必要條件 |
-| 2 | Cloudflare：開 R2 bucket `r-gram-catalog`（private） | |
-| 3 | Cloudflare：開 D1 database `r-gram`，將 id 填入 `wrangler.toml` | |
-| 4 | Google Cloud：開 OAuth client，redirect URI = `<WORKER_ORIGIN>/auth/google/callback` 同 `https://localhost:8787/auth/google/callback` | |
-| 5 | Worker secret：`GOOGLE_CLIENT_SECRET`、`SESSION_SECRET` | |
-| 6 | GitHub secret：`CLOUDFLARE_API_TOKEN`（Workers Scripts / D1 / R2 Edit）、`CLOUDFLARE_ACCOUNT_ID` | |
-| 7 | Vercel：開 project 連 repo，設 `VITE_CATALOG_URL` | |
+| 1 | Cloudflare：R2 bucket **`rb-discography`**（⚠️ CR-004：用戶已開；之前寫 `r-gram-media`），開公開存取，設 CORS：容許播放端 origin **同管理端 origin**（Worker 嘅網址），連本機開發嘅 origin；`GET`、`HEAD`；容許 `Range` header | CORS 係 MV 音量旋鈕（Web Audio）、跨 origin 字體、同管理端攞封面原圖嘅必要條件。⚠️ CR-010：Worker origin `https://r-gram-api.dcwhung.workers.dev` 部署之後加入 CORS |
+| 2 | Cloudflare：開 R2 bucket ~~`r-gram-catalog`~~ **`rb-discography-catalog`**（private） | ✅ 用戶 2026-11-26 已開（U-3） |
+| 3 | Cloudflare：開 D1 database `r-gram`，將 id 填入 `wrangler.toml` |✅ 用戶 2026-11-26 已開（U-3）；id 由 T-116 填 |
+| 4 | Google Cloud：開 OAuth client，redirect URI = `<WORKER_ORIGIN>/auth/google/callback` 同 `https://localhost:8787/auth/google/callback` |✅ 用戶 2026-11-26 已開（U-4）；redirect URI = `https://r-gram-api.dcwhung.workers.dev/auth/google/callback`（用戶確認已登記） |
+| 5 | Worker secret：`GOOGLE_CLIENT_SECRET`、`SESSION_SECRET` |⚠️ CR-010：加 `ADMIN_EMAILS`；部署時由用戶入（T-116） |
+| 6 | GitHub secret：`CLOUDFLARE_API_TOKEN`（Workers Scripts / D1 / R2 Edit）、`CLOUDFLARE_ACCOUNT_ID` |⚠️ CR-010：手動部署唔使；`deploy-api.yml`（T-028）先要 |
+| 7 | Vercel：開 project 連 repo，設 `VITE_CATALOG_URL` |✅ project 已開（U-7）；⚠️ CR-010：暫時 `/test-catalog/catalog.json`，Worker 部署之後改指 Worker |
 
 ---
 
@@ -761,7 +761,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 | T1 | 播放端寄存 | **Vercel**（同 903-player，設定可以照抄）✅ 用戶 2026-11-25 確認（CR-003 決定 13：spike 頁都放 Vercel） | Cloudflare（Workers static assets）：全部喺一個平台，但要自己寫 cache header 同部署 workflow |
 | T2 | 媒體公開網址 | **先用 `r2.dev`**（同 903-player 音檔一樣，唔使網域）；`MEDIA_BASE` 係設定值，之後轉自訂網域只要改設定再生成一次 catalog（API-061） | 一開始就用自訂網域：冇速率限制、可以經 Cloudflare cache，但要你有網域 |
 | T3 | Branch 模式 | **只用 `main`**（同 903-player：feature branch → PR → `main`，`main` = production）✅ 用戶 2026-11-25 確認（CR-003 決定 12）：雲端 session 期間全部喺 `claude/charming-cannon-8yulp0` 做，第一個可用版本由用戶開 PR 入 `main` | 團隊預設嘅 `main` + `develop` |
-| T4 | 資源命名 | Worker `r-gram-api`、D1 `r-gram`、R2 ~~`r-gram-media`~~ **`rb-discography`**（✅ 用戶 2026-11-25 指定，CR-004 決定 2）+ `r-gram-catalog` | 你指定 |
+| T4 | 資源命名 | Worker `r-gram-api`、D1 `r-gram`、R2 ~~`r-gram-media`~~ **`rb-discography`**（✅ 用戶 2026-11-25 指定，CR-004 決定 2）+ ~~`r-gram-catalog`~~ **`rb-discography-catalog`**（✅ 用戶 2026-11-26 開，CR-010） | 你指定 |
 | T5 | 媒體檔格式建議 | 音檔 AAC `.m4a`（或者 MP3）；MV H.264 + AAC `.mp4`、最高 1080p、**要 fast start**（moov atom 喺檔頭，否則要下載晒先播到） | — |
 | T6 | 多碟專輯檔名 | 歌號用連續編號（同歌單一樣：第二隻碟第一首 = `16 …`），唔支援 `2-01` 呢種寫法 | 支援 `碟-歌` 格式（規則複雜啲） |
 
@@ -771,11 +771,11 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 | 風險 | 可能性 | 影響 | 應對方案 |
 | --- | --- | --- | --- |
-| iOS 要喺用戶手勢入面先播到聲，但設計係㩒 play 之後約 1.5 秒（落針）先出聲 | 高 | 高 | 手勢入面即刻解鎖 `<audio>`（靜音 `play()`），落針嗰刻先由頭出聲；M0 真機驗證（見實現注意事項 1）。設計稿第 17 版：唱針開場本身係 0.81 秒（轉入 0.65 + 放低 0.16）；由手勢到出聲嘅總時間（連歌單收返）喺 T-010 / T-038 量 |
-| iOS 背景 / 鎖屏自動播下一首失敗 | 中 | 高 | 用同一個 `<audio>` 喺 `ended` 入面換 `src` 再 `play()`；唱片播放**唔經** Web Audio（AudioContext 喺背景會被暫停）；903-player 已有同類經驗；M0 驗證 |
-| MV 音量旋鈕（Web Audio gain）喺 iPhone 唔穩定，或者 CORS 設錯導致冇聲 | 中 | 中 | M0 驗證；特徵檢測：`video.volume` 可寫就直接用（電腦 / Android）；唔得先行 Web Audio；兩樣都唔得就退做靜音開關 |
+| iOS 要喺用戶手勢入面先播到聲，但設計係㩒 play 之後約 1.5 秒（落針）先出聲 | 高 | 高 | 手勢入面即刻解鎖 `<audio>`（靜音 `play()`），落針嗰刻先由頭出聲；M0 真機驗證（見實現注意事項 1）。設計稿第 17 版：唱針開場本身係 0.81 秒（轉入 0.65 + 放低 0.16）；由手勢到出聲嘅總時間（連歌單收返）喺 T-010 / T-038 量⚠️ **CR-010：關閉**（spike 1a、1c）；見「CR-010 → 技術風險」 |
+| iOS 背景 / 鎖屏自動播下一首失敗 | 中 | 高 | 用同一個 `<audio>` 喺 `ended` 入面換 `src` 再 `play()`；唱片播放**唔經** Web Audio（AudioContext 喺背景會被暫停）；903-player 已有同類經驗；M0 驗證⚠️ **CR-010：減低**（短片段得；長時間 R-030） |
+| MV 音量旋鈕（Web Audio gain）喺 iPhone 唔穩定，或者 CORS 設錯導致冇聲 | 中 | 中 | M0 驗證；特徵檢測：`video.volume` 可寫就直接用（電腦 / Android）；唔得先行 Web Audio；兩樣都唔得就退做靜音開關⚠️ **CR-010：關閉**：gain、CORS 得；靜音改用 gain（`video.muted` 冇效），唔再有特徵檢測同靜音開關後備 |
 | 主頁改版令 v16 幾何數值作廢 | 高（已確定會改） | 中 | 幾何資料表同元件分離；改版 = 換數值 + 主頁排版元件 |
-| 旗幟 canvas 喺真機 fps 唔夠 | 中 | 中 | 可調網格密度同 DPR 上限；最後手段改 WebGL |
+| 旗幟 canvas 喺真機 fps 唔夠 | 中 | 中 | 可調網格密度同 DPR 上限；最後手段改 WebGL⚠️ **CR-010：已發生**（5 fps）→ WebGL（T-114，Plan R-027） |
 | `r2.dev` 速率限制影響串流 | 低（自用） | 中 | T2：轉自訂網域，只係改設定 |
 | MP4 冇 fast start，MV 要等好耐先播 | 中 | 中 | T5 寫入用戶準備檔案嘅指引；掃描時讀檔頭頭幾 KB 檢查 `moov` 位置並出警告（P1） |
 | Duo / HomeView 尺寸係模擬器量度值 | 中 | 低 | 用範圍判斷唔用固定值；真機有出入只改 `config/layout.ts` |
@@ -794,10 +794,10 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 ## 實現注意事項
 
-1. **iOS 播放解鎖**：`audioEngine.prime(src)` 一定要喺 click / pointerup handler 入面同步叫：設 `src`、`muted = true`、`play()`。落針時 `currentTime = 0`、`muted = false`。唔可以用 `volume`（iPhone 唯讀）。MV 嘅 `<video>` 同樣處理。呢個係 M0 第一個要驗證嘅嘢，結果會決定 `audioEngine` 介面。
-2. **唱片播放唔經 Web Audio**：只有 MV 嘅 `<video>` 先接 `GainNode`。`<video>` 要 `crossorigin="anonymous"` + `playsinline`；`AudioContext` 喺 MV 掣嘅手勢入面 `resume()`。
-3. **一個 `<audio>` element 用到尾**：換歌只換 `src`，唔好重新建立 element（iOS 解鎖狀態跟 element）。
-4. **Media Session**：每次換歌更新 `metadata`（歌名、碟名、封面 `thumb` + `cover`）；註冊 `play`、`pause`、`previoustrack`、`nexttrack`、`seekto`。
+1. ⚠️ **CR-010：由「CR-010 → 播放架構」取代**（`cue()`／`land()`、停喺 0；下面係暫定版本，留做記錄）。~~**iOS 播放解鎖**：`audioEngine.prime(src)` 一定要喺 click / pointerup handler 入面同步叫：設 `src`、`muted = true`、`play()`。落針時 `currentTime = 0`、`muted = false`。唔可以用 `volume`（iPhone 唯讀）。MV 嘅 `<video>` 同樣處理。呢個係 M0 第一個要驗證嘅嘢，結果會決定 `audioEngine` 介面。~~
+2. **唱片播放唔經 Web Audio**：只有 MV 嘅 `<video>` 先接 `GainNode`。`<video>` 要 `crossorigin="anonymous"` + `playsinline`；`AudioContext` 喺 MV 掣嘅手勢入面 `resume()`。⚠️ CR-010：真機確認；MV 音量同靜音只用 gain，見「CR-010 → MV 音訊」
+3. **一個 `<audio>` element 用到尾**：換歌只換 `src`，唔好重新建立 element（iOS 解鎖狀態跟 element）。⚠️ CR-010：真機確認（spike ②）；`createAudioEngine()` 成個 app 一個
+4. **Media Session**：每次換歌更新 `metadata`（歌名、碟名、封面 `thumb` + `cover`）；註冊 `play`、`pause`、`previoustrack`、`nexttrack`、`seekto`。⚠️ CR-010：由 controller 擁有；狀態跟 element 事件、設 `playbackState` 同 `setPositionState`、`seekbackward`／`seekforward`／`stop` 設 `null`；見「CR-010 → 播放架構 → Media Session」
 5. **播放隊列係純函數**（`playback/queue.ts`）：輸入（歌曲列表、當前歌、模式、隨機數來源）→ 輸出下一首。隨機數來源由外面注入，test 先可以固定結果。Shuffle 用 Fisher–Yates，一輪之內唔重覆；只計有 `audio` 嘅歌。
 6. **Favourites 係虛擬專輯**：`favouritesAlbum(catalog, favourites)` 砌出一個同真專輯同型別嘅物件（id = 保留字 `favourites`），Wheel、歌單、隊列全部當普通專輯用，唔使特別分支。catalog 入面搵唔到嘅收藏歌保留喺本機，但唔顯示。
 7. **LRC parser 只有一份**（`packages/catalog/lrc`）：管理端即時驗證、API 儲存驗證、轉 JSON 都用佢。時間戳格式 `[mm:ss]`、`[mm:ss.x]`、`[mm:ss.xx]`、`[mm:ss.xxx]`；一行多個時間戳要拆開；輸出按 `t` 排序。 ⚠️ CR-003：入口改為 `parseSongText()`（`packages/catalog/song-text`），佢將歌詞部分交畀 `parseLrc()`；見「CR-003 對技術設計嘅影響」。
@@ -827,21 +827,21 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 
 | Functional 需求 | 技術落點 |
 | --- | --- |
-| FR-001 旗幟 + 真實進度 | `components/flag`、`catalog/loader`（進度事件） |
+| FR-001 旗幟 + 真實進度 | `components/flag`、`catalog/loader`（進度事件）；⚠️ CR-010：`flagGl.ts` |
 | FR-002–FR-006、FR-025 主頁 / Wheel / 歌單 / 播放 | `stage/layouts/phone.ts`、`stageReducer`、`components/*`、`playback/audioEngine` |
 | FR-007、FR-024 自動下一首、Shuffle / Repeat | `playback/queue.ts`、`playModes.ts` |
 | FR-008 內容載入 + fallback | API-070、`catalog/loader`、`rgram.catalog.v1` |
 | FR-009 PWA | vite-plugin-pwa、`pwa/updateManager`、Vercel cache header |
 | FR-010 無障礙 / 減少動態 | 實現注意事項 11、14 |
 | FR-011 noindex | 安全設計「搜尋引擎」 |
-| FR-012、FR-026 MV 電視 + 旋鈕 | `components/tv`、`mv/videoEngine`、`mv/volumeGain` |
+| FR-012、FR-026 MV 電視 + 旋鈕 | `components/tv`、`mv/videoEngine`、~~`mv/volumeGain`~~ `mv/mvAudio`（⚠️ CR-010） |
 | FR-013 歌詞 | API-072、`lyrics/*`、`components/lyrics` |
 | FR-014 鎖屏控制 | `playback/mediaSession.ts` |
 | FR-015 續播 | `playback/resume.ts`、`rgram.resume.v1` |
 | FR-016、FR-023 收藏 + Favourites 碟 | `favourites/*`、`rgram.favourites.v1` |
 | FR-017、FR-030 Info + 歌曲 credit | `components/info-panel`；catalog `tracks[].credits` |
 | FR-117–FR-119 credit、由同名歌帶入、歌詞參考連結 | API-041（credit 經歌曲文字）、API-024、API-021、`tracks` credit 欄 + 參考欄 |
-| FR-018、FR-027–FR-029 裝置 | `config/layout.ts`、`stage/layouts/*`、~~`rotate-notice`~~（⚠️ CR-009：手機打橫轉返，`stage/rotation.ts`、`usePhoneLandscape`） |
+| FR-018、FR-027–FR-029 裝置 | `config/layout.ts`、`stage/layouts/*`、`rotate-notice`、`usePhoneLandscape`（~~⚠️ CR-009：手機打橫轉返，`stage/rotation.ts`~~ ⚠️ CR-010：撤回，D101） |
 | FR-101 Login | API-001–004、`auth/*`、`sessions` |
 | FR-102–FR-104 專輯 / 封面 / 歌 | API-010–023、API-050、`albums`、`tracks`、`assets` |
 | FR-105 掃描 | API-030–032、`packages/catalog/scan`（⚠️ CR-004：連封面來源同歌曲文字檔，FR-123，見「CR-004 對技術設計嘅影響」） |
@@ -1015,7 +1015,7 @@ Backend、API、資料庫、部署**全部唔受影響**。受影響嘅只有 `a
 
 | 範疇 | v1.2 | v1.3 | 狀態 |
 | --- | --- | --- | --- |
-| 媒體 bucket | `r-gram-media` | **`rb-discography`**（用戶已開）。Worker 嘅 binding 名 `MEDIA` 同 `MEDIA_BASE` 不變；`r-gram-catalog`（private）不變 | 決定 2 已確認（D42） |
+| 媒體 bucket | `r-gram-media` | **`rb-discography`**（用戶已開）。Worker 嘅 binding 名 `MEDIA` 同 `MEDIA_BASE` 不變；`r-gram-catalog`（private）不變（⚠️ CR-010：用戶最後開嘅名係 `rb-discography-catalog`） | 決定 2 已確認（D42） |
 | 專輯資料夾 | `albums.folder`：一層，NULL = 用專輯 id | NULL = 用**預期資料夾名** `<category>-<NN>-<id>`（由類別、序號、id 即時計，唔另外存）；非 NULL = 手動改綁。純函數 `expectedFolder()` 放 `packages/catalog`，API、seed、管理端共用。資料夾名唔可以有 `..`（同手動指定 key 嘅規則睇齊）；`_` 開頭保留 | 決定 3 已確認（D43）；短名串法 ⚠️ CR-005 已確認 |
 | 專輯資料模型 | — | `albums` 加 `category`（六個短名之一）、`category_no`（類別內序號）、`cover_source_etag`（上次套用嘅封面來源）。`tracks` 加 `text_source_etag`（上次套用嘅文字檔） | 決定 5 已確認（D44）；兩個 `*_source_etag` 係技術做法（D41） |
 | 內容檔 schema | 專輯有 `type`（自由文字） | `albums[]` 加 `category`、`categoryNo`；`type` 照留。播放端唔顯示呢兩個欄，validator 要收 | 決定 5 已確認；`type` 點處理待用戶確認（D44） |
@@ -1893,17 +1893,17 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | 項目 | 做法 |
 | --- | --- |
 | 訊號 | 照用 `pwa/`：`useUpdateStatus(port) === 'waiting'` = 出版本掣；㩒 = `port.applyNow()`（`chosen` → `SKIP_WAITING` → reload，唔經 30 秒防 loop）。`updateManager` 嘅規則唔改（Preload 期間 `publish()` 一律 `none`，所以版本掣唔會喺 Preload 出） |
-| 點樣傳入舞台 | `UpdatePort` 而家只喺 `App`；版本掣喺 `HomeScene` → `TopGroup` 入面。建議：`App` 用 context（例如 `pwa/UpdateContext`）提供 `{ waiting, apply }`，`TopGroup` 讀；唔好經 `homeView`（純函數，唔應該知 SW）。T-109 定案 |
+| 點樣傳入舞台 | ⚠️ CR-010 實作對齊：實際經 prop，冇 context（見「CR-010 → 實作對齊」）。`UpdatePort` 而家只喺 `App`；版本掣喺 `HomeScene` → `TopGroup` 入面。建議：`App` 用 context（例如 `pwa/UpdateContext`）提供 `{ waiting, apply }`，`TopGroup` 讀；唔好經 `homeView`（純函數，唔應該知 SW）。T-109 定案 |
 | 圖層 | 設計稿：掣畫喺唱片機嗰層，**喺暗層下面**。而家弧線歌單嘅暗層（`ArcVeil`）喺 `TopGroup` 入面（貼頂組畫喺貼底組之後）。所以版本掣要喺 `TopGroup` 入面、排喺 `ArcTrackList` 之前（仍然屬貼頂組，高身手機唔跟貼底組郁）；之後歌書（T-072）、MV（T-060）嘅暗層都要喺佢上面 |
 | 蓋住（`covered`） | `listOpen ｜｜ overlay === 'booklet' ｜｜ overlay === 'mv'`（衍生純函數，連 unit test；歌書、MV 未做時只有 `listOpen`）：`pointer-events="none"`、唔 focus 得（唔入 Tab 次序）；視覺上靠暗層變暗，唔使另外轉色 |
-| 外觀 | `layouts/phone.ts` 加 `updatePill`（由 `UPDATE_PILL` 抄：字級 26、`charW` 0.4、`padX` 26、高 58、右邊 1034、`midDy` −9、線寬 3、感應範圍 122）；顏色 `#f09a00` 入 `tokens.css`（例如 `--color-update`，連 `tokens.node.test.ts`）；字用 `--font-slab`（唔係 Light）；框闊 = `padX × 2 + 字數 × (size × charW + spacing)`（同設計稿 `updatePillBox()`；唔用量字，數字闊度設計稿已經估好）；感應範圍：高 122，闊 = max(框闊, 122) + (1080 − 1034)，貼住畫面右邊 |
+| 外觀 | ⚠️ CR-010 實作對齊：key 係 `info.update`、量真字、`--color-update`、`--motion-loop-update-blink`。`layouts/phone.ts` 加 `updatePill`（由 `UPDATE_PILL` 抄：字級 26、`charW` 0.4、`padX` 26、高 58、右邊 1034、`midDy` −9、線寬 3、感應範圍 122）；顏色 `#f09a00` 入 `tokens.css`（例如 `--color-update`，連 `tokens.node.test.ts`）；字用 `--font-slab`（唔係 Light）；框闊 = `padX × 2 + 字數 × (size × charW + spacing)`（同設計稿 `updatePillBox()`；唔用量字，數字闊度設計稿已經估好）；感應範圍：高 122，闊 = max(框闊, 122) + (1080 − 1034)，貼住畫面右邊 |
 | 閃 | CSS keyframes：opacity 1 → 0.2 → 1，ease-in-out，無限；時長 1.4 秒做 motion token（`config/motion.ts` + `tokens.css`，例如 `--motion-scene-update-blink`；連 `motion.test.ts`、`tokens.node.test.ts`）；放喺 `@media (prefers-reduced-motion: no-preference)` 入面，減少動態效果 = 常亮 |
-| 元件 | `components/info-block/VersionButton.tsx`（或者 `components/update-button/`，T-109 定案）：SVG `<g role="button" tabIndex={0}>` + `aria-label`（`t('update.buttonLabel')`：「已有新版本，立即更新並重新載入」）；Enter／Space 同㩒一樣；`waiting` 時唔 render `VersionText`（同設計稿 `versionMark()`） |
-| 淨空 | `clearance.test.ts` 加：感應範圍 ≥ 44pt；唔掂細唱片機感應範圍（設計稿「拎住另一隻碟時」：掣喺細唱片機上面） |
-| 拎走 | `components/update-prompt/`（`UpdatePrompt.tsx`、`updatePrompt.css`、兩個測試）；`App.tsx` 嘅 `<UpdatePrompt>`；`useListFocus.ts` 嘅 `OUTSIDE_STOPS`／`data-trap-stop`（冇舞台外面嘅掣，S-199 嘅兜圈例外拎走）；語言檔 `update.available`、`update.apply`、`update.applyLabel`（換 `update.buttonLabel`）；`AppPwa.test.tsx` 改為驗版本掣。順手改 backlog B-085 ② 兩個舊註解（`i18n/zh-Hant.ts` 嘅 D14、`vite.config.ts`） |
+| 元件 | ⚠️ CR-010 實作對齊：`components/update-button/UpdateButton.tsx`、`update.applyLabel`；另有 `UpdateNotice`。`components/info-block/VersionButton.tsx`（或者 `components/update-button/`，T-109 定案）：SVG `<g role="button" tabIndex={0}>` + `aria-label`（`t('update.buttonLabel')`：「已有新版本，立即更新並重新載入」）；Enter／Space 同㩒一樣；`waiting` 時唔 render `VersionText`（同設計稿 `versionMark()`） |
+| 淨空 | ⚠️ CR-010 實作對齊：測試喺 `updateBox.test.ts`。`clearance.test.ts` 加：感應範圍 ≥ 44pt；唔掂細唱片機感應範圍（設計稿「拎住另一隻碟時」：掣喺細唱片機上面） |
+| 拎走 | `components/update-prompt/`（`UpdatePrompt.tsx`、`updatePrompt.css`、兩個測試）；`App.tsx` 嘅 `<UpdatePrompt>`；`useListFocus.ts` 嘅 `OUTSIDE_STOPS`／`data-trap-stop`（冇舞台外面嘅掣，S-199 嘅兜圈例外拎走）；語言檔 `update.available`、`update.apply`、`update.applyLabel`（換 `update.buttonLabel`）（⚠️ CR-010 實作對齊：只拎走 `update.apply`；`update.available`、`update.applyLabel` 照留）；`AppPwa.test.tsx` 改為驗版本掣。順手改 backlog B-085 ② 兩個舊註解（`i18n/zh-Hant.ts` 嘅 D14、`vite.config.ts`） |
 | QA 鏈 | `player-pwa`、`player-home`（`info-block`）；亦掂到 `player-holding`（`TopGroup`）、`player-list`（`useListFocus`）、`player-foundation`（`layouts/phone.ts`、motion、tokens）：按 validation gate 重驗改咗嘅檔 |
 
-### 手機打橫轉返（D96；T-111）
+### 手機打橫轉返（D96；T-111）（⚠️ CR-010：**撤回**；T-111 取消；見「CR-010 → 手機打橫」，下面只留做記錄）
 
 **而家嘅 code**（T-039）：`stage/deviceClass.ts` 嘅 `isPhoneLandscape({ width, height, coarsePointer })` = `coarsePointer && width > height && height ≤ PHONE_MAX_SHORT_SIDE_PX`（500）；`stage/usePhoneLandscape.ts`（聽 `resize`、`orientationchange`、`(pointer: coarse)`）；`App.tsx`：打橫時 `<Stage covered>`（舞台照 render，但 `inert` + `aria-hidden`）再蓋 `components/rotate-notice/RotateNotice`（`role="alert"`）。⚠️ 上面「繪圖方式」寫「舞台唔 render」同 code 唔一致：code 係照 render、蓋住。`manifest.ts` `orientation: 'portrait'`。`useStageFit` 用 `innerWidth`、`innerHeight` 同 `safeArea.readSafeAreaInsets()`（只讀 top、bottom）計 `fitStage()`。
 
@@ -1931,7 +1931,7 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | 接駁位 | 新元件（例如 `ArcSeam`）：圓點（半徑 `LIST_LOOP.dot` 9）+ 短線（長 `markW` 230、線寬 `markStroke` 5、同點相隔 `gap` 8），顏色 = 專輯色（`accent`）；不透明度 = lerp(`minOpacity` 0.45, 1, clamp(1 − abs(k) / visible))（歌名用 `depth`，淡得快啲）；`aria-hidden`、`pointer-events: none`；數值入 `layouts/phone.ts`（`list.loop`） |
 | 吸附 | `snapIndex` 改用圈上距離：候選 = 播得嘅歌（唔包接駁位、灰色行）；距離 = 圈上最短距離；結果係「未摺返」嘅 offset（例如由 N − 1 拖過接駁位去 N + 1，吸附到 N + 1 = 第 0 首），等動畫唔會倒轉成個圈行返去 |
 | 滾輪 | 照 `wheelSteps`；目標 = `current + steps`（唔夾），再經吸附 |
-| 鍵盤 | `rowStep.ts` 加「頭尾相接」版本（弧線歌單用；歌單欄照用會停嘅版本，D97 歌單欄唔頭尾相接）：去到盡頭就由另一頭第一行播得嘅歌開始；跳過接駁位同灰色行；Home／End、Page Up／Down 照舊（Home = 第一首播得、End = 最後一首播得） |
+| 鍵盤 | ⚠️ CR-010 實作對齊：`rowStep.ts` 已刪，弧線歌單用 `arcScroll.ts` 嘅 `stepRing()`／`nextRingIndex()`，歌單欄用 `useColumnScroll`。~~`rowStep.ts` 加「頭尾相接」版本（弧線歌單用；歌單欄照用會停嘅版本，D97 歌單欄唔頭尾相接）~~：去到盡頭就由另一頭第一行播得嘅歌開始；跳過接駁位同灰色行；Home／End、Page Up／Down 照舊（Home = 第一首播得、End = 最後一首播得） |
 | 得一首 | `ring = 2`：above 0、below 1（接駁位喺下面）；吸附永遠係第 0 首 |
 | 冇歌 | 不變（`ArcEmpty`） |
 | `active`（框入面）| `mod(round(offset), ring)`；如果啱啱係接駁位（拖動途中）就攞最近嗰首（同設計稿 `listRowOf()`）；左上歌名跟 `active` |
@@ -1945,7 +1945,7 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 
 | 項目 | 做法 |
 | --- | --- |
-| 擰 | `moveTurn()` 唔再夾 `turnedDeg`；`turnedPosition()` = `mod(startPos + round(turnedDeg / stepDeg), P)`。指針角度 = 刻度上 `position` 嘅角度，即時跳（唔做跨越成條弧嘅過場：指針嘅 CSS transition 喺頭尾跳嗰下要關，T-110 定案點做） |
+| 擰 | ⚠️ CR-010：Esc 取消規則見「CR-010 → 旋鈕取消」。`moveTurn()` 唔再夾 `turnedDeg`；`turnedPosition()` = `mod(startPos + round(turnedDeg / stepDeg), P)`。指針角度 = 刻度上 `position` 嘅角度，即時跳（唔做跨越成條弧嘅過場：指針嘅 CSS transition 喺頭尾跳嗰下要關，T-110 定案點做） |
 | 鍵盤 | `keyTarget()`：方向鍵 `mod(current ± 1, P)`；Home = 0、End = P − 1（不變）；`aria-valuenow` 照用 position |
 | 碟疊 offset | 純函數 `stackOffset(i, current, P) = mod(i − current + STACK_LOOP.before, P) − STACK_LOOP.before`（`before` = 1：前面 1 隻、後面其餘），連 unit test；P ≤ 2 時照用（結果唔重覆） |
 | 窗口 | 唔再 `slice`：揀 `stackOffset` 喺 `shown.from − EDGE … shown.to + EDGE` 之內嘅碟（`layout.orbit.shown`，而家 −1 至 2）；key 照用 `albumId`，所以 ♥ ⇄ 第一隻碟換位時唔會重新 mount |
@@ -1987,11 +1987,353 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | Functional 需求／決定 | 技術落點 |
 | --- | --- |
 | D95、FR-009、US-011 | 版本掣（`TopGroup`，暗層下面）；`useUpdateStatus`、`applyNow`；拎走 `update-prompt` |
-| D96、FR-018、US-015、C11 | `quarterTurn`、轉舞台、`fitStage` 對調闊高、安全區轉、`toStagePoint`；拎走 `rotate-notice` |
+| D96、FR-018、US-015、C11 | ⚠️ CR-010：撤回。~~`quarterTurn`、轉舞台、`fitStage` 對調闊高、安全區轉、`toStagePoint`；拎走 `rotate-notice`~~ |
 | D97、FR-005、US-004 | `arcScroll` 圈、`loopWindow`、`ArcSeam`、圈上吸附、頭尾相接鍵盤、`LIST_FLOAT` 摺返行原地淡入 |
 | D98、FR-004、US-003 | `knobTurn` 唔夾、`mod`；`stackOffset`；碟疊次序 |
 | D99、FR-007、US-006、US-014 | `ended` → 3 秒 → `idle`；`playFirst` |
 | D100、D94 | `APP_ICONS`、manifest、`iconLinks()` |
+
+
+## CR-010 對技術設計嘅影響
+
+對應 Functional Spec v1.12 §CR-010（用戶 2026-11-26 喺 iPhone 試完 spike 頁之後嘅決定）同 Architect 嘅 spike 報告 `reports/2026-11-26_17-10_spike-report_T-011.md`（T-011，commit `12b259e`；真機逐項結果、旗幟慢嘅原因、打橫量度、Q1–Q6 喺報告入面，本節只引結論）。本節取代上文同佢有出入嘅地方：實現注意事項 1–4（暫定版本）、數據流 B、組件圖 `playback/`、`mv/`、Tech Stack「播放端狀態」同「播放端繪圖」兩行、「繪圖方式」嘅旗幟同模糊層、「手機橫版」一行（回復 T-039）、性能考量「瓶頸」、技術風險表入面 iOS 播放、MV 音量、旗幟三行、安全設計同部署架構入面 `ADMIN_EMAILS` 嘅位置、「CR-009 → 手機打橫轉返」（**撤回**）；另外按 code 改正「CR-009 → 版本掣」同「弧線歌單頭尾相接」入面同 code 唔一致嘅字眼（backlog B-090 ①）。受影響嘅表已喺原位加 ⚠️ CR-010。下面「而家嘅 code」對照 2026-11-26 branch `claude/charming-cannon-8yulp0`（T-113 合併 `379828f`、spike 報告 `12b259e` 之後）。**今次冇改 code**。
+
+### Spike 結果同採用嘅做法（T-010、T-011）
+
+iPhone，iOS 18.7；Safari 分頁（393 × 695）同主畫面 App（393 × 852）各一次；測試碟 KOMOREBI（`album-11-komorebi`）。逐項數字見報告 §1.1。
+
+| 項目 | 結果（兩個模式） | 採用 |
+| --- | --- | --- |
+| ① 手勢入面靜音解鎖，之後喺手勢以外出聲 | ✅ 落針 1503／1520 ms 出聲；`currentTime = 0` 之後約 0.5–0.6 秒先再出聲 | 手勢入面 `cue()`（靜音 `play()`）→ 一 `playing` 就停喺 0 → 落針只係 `play()`（下面「開場合約」） |
+| ② 鎖機下同一個 `<audio>` `ended` → 換 `src` → `play()` | ✅（分頁 2 次、App 1 次；換歌之間 0.3–0.5 秒） | `ended` handler 入面同步揀下一首（冇 `await`、唔等 render） |
+| ③ Media Session | ✅ metadata、上／下一首、`seekto`、`pause`；**`play` action 兩次都冇收到** | 狀態一律跟 element 事件；設 `playbackState`、`setPositionState`；兩個 handler 都註冊（下面「Media Session」） |
+| ④ MV `<video>` 經 Web Audio | ✅ gain 調到音量、CORS 啱（HTTP 206）；❌ `video.muted` 對接咗 graph 嘅 element 冇效 | 音量同靜音只用 `GainNode`；MV 路徑設 `navigator.audioSession.type = 'playback'`（側邊撥掣未驗） |
+| ⑤ 幀率 | 模糊（SVG 濾鏡、CSS `blur()`）60.1 fps、0 % 掉格；**Preload 旗幟 5.2–5.3 fps、最慢一格約 200 ms、掉格 91 %** | 模糊用 CSS `filter: blur()`；旗幟改 WebGL（T-114） |
+| ⑥ 打橫反方向轉 | 座標換算 ✅；**系統轉向嘅過場用戶唔接受** | D96 撤回；`rotate-notice` 照用；量度留底（下面「手機打橫」） |
+
+### 播放架構（D103；T-038）
+
+> 取代上文「實現注意事項 1–4」嘅暫定講法（`audioEngine.prime(src)`、「落針時 `currentTime = 0`」）。介面同合約跟 spike 報告 §2（簽名一樣，唔好改）；做法有出入要先改報告同本節。
+
+**分層**
+
+| 層 | 檔（建議） | 職責 | 唔做 |
+| --- | --- | --- | --- |
+| `audioEngine` | `playback/audioEngine.ts` | 擁有**唯一**一個 `<audio>`；解鎖、載入、靜音預備、落針出聲、暫停、seek、停；`ended` 同步接下一首；卡住重試；將 element 事件翻譯成少量引擎事件 | 隊列、Shuffle／Repeat、播放 store、畫面、Media Session、續播記錄 |
+| 播放 controller（外部 store） | `playback/playbackController.ts` | 持有 `PlaybackState`（沿用 `playbackReducer`）同隊列；`subscribe`／`getSnapshot` 畀 `useSyncExternalStore`；落針 timer；建立 Media Session（擁有者）；畀引擎一個同步 `next` resolver | DOM、元件、動畫 |
+| 隊列 | `playback/queue.ts`（純函數） | 下一首／上一首（只計有 `audio` 嘅歌）；順序模式先，T-071 加四個模式 | 任何 I/O |
+| Media Session | `playback/mediaSession.ts` | handler、`metadata`、`playbackState`、`setPositionState`；由 controller 建立同驅動 | 決定播乜（叫 controller） |
+| 畫面 | `app/useHome.ts` 等 | 讀 snapshot；用戶手勢叫 controller；D99 嘅 3 秒 timer（要睇 stage：拎住、overlay） | 直接掂 `<audio>` |
+
+**型別同成員**
+
+```ts
+/** 引擎只需要知嘅嘢：id 對返 store，url 已經逐段 encode（catalog selectors） */
+export interface EngineTrack {
+    readonly id: string;
+    readonly url: string;
+}
+
+export type EngineErrorReason =
+    | 'blocked' // play() 被拒（NotAllowedError）：要下一次用戶手勢
+    | 'network' // MEDIA_ERR_NETWORK，或者重試用晒都未出聲
+    | 'decode' // MEDIA_ERR_DECODE
+    | 'unsupported'; // MEDIA_ERR_SRC_NOT_SUPPORTED（包括 404）
+
+export type EngineEvent =
+    /** 真係出緊聲（落針之後；靜音預備期間唔發） */
+    | { type: 'playing'; trackId: string }
+    /** 停咗。requested = false：唔係我哋叫嘅（鎖屏由系統處理、電話、Siri、拔耳機） */
+    | { type: 'paused'; trackId: string; requested: boolean }
+    /** 大約每 0.25 秒（timeupdate）；靜音預備期間唔發 */
+    | { type: 'time'; trackId: string; positionSec: number; durationSec: number | null }
+    /** 自動下一首已經換咗（喺 ended handler 入面同步做完） */
+    | { type: 'advanced'; trackId: string; previousTrackId: string }
+    /** 播完而冇下一首（resolver 回 null） */
+    | { type: 'ended'; trackId: string }
+    /** 想播但等數據超過 STALL_NOTICE_MS；之後出聲會有 playing */
+    | { type: 'stalled'; trackId: string }
+    | { type: 'error'; trackId: string; reason: EngineErrorReason };
+
+export interface AudioEngine {
+    /**
+     * 只可以喺用戶手勢（click／pointerup／keydown handler）入面同步叫，之前唔可以有 await。
+     * 設 src、muted = true、play()（= 解鎖 + 開始載入）；一出 playing 就 pause()、currentTime = 0、muted = false，
+     * 停喺 0 等 land()。舊歌即刻停（唔發 ended）。
+     */
+    cue(track: EngineTrack): void;
+    /**
+     * 唱針放低：由 0 出聲（play()）。預備未完成（未出 playing）就記住，一出 playing 即刻出聲（唔再 pause）。
+     * 未 cue 過 = 唔做嘢。減少動態效果：controller 喺同一個手勢入面 cue() 之後即刻 land()。
+     */
+    land(): void;
+    /**
+     * 即刻出聲播 track（冇開場）：鎖屏上一首／下一首、Repeat One 由頭。手勢入面或者 element 已解鎖都得。
+     */
+    playNow(track: EngineTrack): void;
+    /** 繼續（升針 → 落針、鎖屏 play）。仲喺預備（未落針）= 同 land() 一樣 */
+    play(): void;
+    /** 我哋要求嘅暫停（paused 事件 requested = true）。預備期間 = 取消未做嘅 land() */
+    pause(): void;
+    /** 跳位置（夾喺 0 至長度）；metadata 未到就記住，到咗先套用 */
+    seek(positionSec: number): void;
+    /** 停同放開：pause()、removeAttribute('src')、load()（唔用 src = ''）；之後 Now Playing 冇嘢 */
+    stop(): void;
+    /**
+     * 自動下一首嘅來源：ended handler 入面同步叫，回 null = 隊列完（發 ended）。
+     * 一定要同步、冇 I/O（隊列純函數讀 controller 嘅 snapshot）
+     */
+    setNext(resolve: (currentTrackId: string) => EngineTrack | null): void;
+    subscribe(listener: (event: EngineEvent) => void): () => void;
+    /** 測試同 Media Session 用；畫面唔可以讀 */
+    readonly currentTrackId: string | null;
+    readonly positionSec: number;
+    readonly durationSec: number | null;
+}
+
+/** 唯一入口：成個 app 一個引擎、一個 element（唔放入 React tree，唔會因為 unmount 而換 element） */
+export const createAudioEngine = (element: HTMLAudioElement = new Audio()): AudioEngine;
+```
+
+**每個成員嘅合約**
+
+| 成員 | 合約 |
+| --- | --- |
+| element | 引擎建立一個 `new Audio()`，`preload = 'metadata'`，唔設 `crossOrigin`（唱片唔經 Web Audio，實現注意事項 2），唔放入 DOM，一直用到尾（實現注意事項 3）。測試可以注入假 element |
+| 世代 | 每次 `cue`／`playNow`／重試加一；舊世代嘅 promise（例如換 `src` 引起嘅 `AbortError`）同事件一律唔理 |
+| `cue` | 同步；設 `src` → `muted = true` → `play()`。`play()` 成功 + `playing` → `pause()`、`currentTime = 0`、`muted = false`（seek 喺開場 810 ms 入面做完）。被拒（`NotAllowedError`）→ `error: blocked`。**唯一要手勢嘅成員**；element 第一次成功 `play()` 之後解鎖一直有效 |
+| `land` | 預備完 → `play()`（唔使手勢）；預備未完 → 設 `landPending`，`playing` 嗰下改為：唔 pause、`currentTime = 0`、`muted = false`。之後先發 `playing` 同 `time` |
+| `playNow` | 同步設 `src`、`muted = false`、`play()`；冇預備、冇開場 |
+| `play` | 預備中 = `land()`；停咗 = `play()`；被拒 = `error: blocked` |
+| `pause` | 標記 `requested`，`element.pause()`；本身已經停咗都照發一次 `paused`（element 唔會再發 `pause` 事件，903-player S-643 嘅教訓） |
+| `seek` | 夾喺 `[0, duration]`；metadata 未到記住目標 |
+| `stop` | `pause()`、`removeAttribute('src')`、`load()`；唔發 `ended`；由佢引起嘅 `emptied`／`error` 唔理 |
+| `ended` handler | 同步：`next = resolve(current)`；有 → 設 `src` → `play()` → 發 `advanced`；冇 → 發 `ended`。中間冇 `await`、唔等 render |
+| 系統暫停 | 冇 `requested` 嘅 `pause` 事件 → `paused { requested: false }`。唔自動再播（前景用戶自己㩒；903-player 嘅「鎖屏 Play 後系統停就自動再播」暫時唔搬，等真機見到先加） |
+| 系統恢復 | 唔係我哋叫嘅 `playing`（③ H1）→ 照發 `playing`，store 跟住變 |
+| 卡住 | 想播（`play()` 之後、未暫停）而 `waiting`／冇進展超過 `STALL_NOTICE_MS`（4 s）→ 發 `stalled`；前景超過 `STALL_RETRY_MS`（8 s）→ 記低位置、重設 `src`、`seek`、`play()`；畫面隱藏時唔重載（903-player v1.20.8：背景重開 range request 會更差），等返前景或者鎖屏 `play` 先試；每首最多重試 `STALL_MAX_RETRIES`（2）次，之後 `error: network` |
+| 錯誤 | `MEDIA_ERR_NETWORK` → 同卡住一樣重試；`DECODE`／`SRC_NOT_SUPPORTED`（404 都係呢個）→ 唔重試，即刻 `error`。~~鎖機自動下一首遇到錯誤：停（照 US-004「載入失敗」），唔跳去下一首（見開放問題 Q3）~~ ⚠️ CR-010 🅰️（Q3，Functional Spec D109）：引擎照樣只發 `error`；「跳過一次」喺 controller 做（下面「controller 嘅補充規則」），引擎合約不變 |
+| 常數 | `STALL_NOTICE_MS`、`STALL_RETRY_MS`、`STALL_MAX_RETRIES` 放 `config/limits.ts`（唔係動畫，唔入 `motion.ts`） |
+
+**開場（落針出聲）合約**
+
+| 情況 | 手勢入面 | 之後 | 出聲時間 |
+| --- | --- | --- | --- |
+| 由泊位開始播（揀歌、未揀歌㩒唱片夾、拎住嘅碟入機、熄 MV 後再播、重開 app 後第一次播） | `controller.start()` → store `start`（`playing`，唱臂開場）+ `engine.cue(track)` + 開落針 timer | timer 到（`leadInMs()` = `tonearmMs + needleDropMs` = 810 ms）→ `engine.land()` | 唱針放低嗰刻 |
+| 減少動態效果 | `cue()` 之後即刻 `land()` | — | 即刻（載到就出） |
+| 暫停之後繼續（升針 → 落針） | `engine.play()` | — | 即刻（FR-040「即刻續播」；放低唱針 160 ms 只係畫面） |
+| 開場途中暫停 | `engine.pause()` 取消 `land`；store `paused`（`user`），唱臂照 `useArmLeadIn` 規則行完轉入、停喺升針 | 再㩒 = `play()` = `land()` | 再㩒嗰刻 |
+| 畫面隱藏時由泊位開始（鎖屏 play、`ended` 期間） | `playNow(track)`，冇開場 | — | 即刻 |
+
+- 點解用「停喺 0」：唔用 `volume`（iOS 舊版唯讀）；唔用「一直靜音播、落針先 `currentTime = 0` + 取消靜音」（spike 1a 得但有 0.5–0.6 秒延遲）；`muted` 只用喺預備嗰一刹（1a 證明 `muted` 對冇接 Web Audio 嘅 `<audio>` 有效）。呢個改良要喺 T-038 真機核對（Implementation Plan U-24 ①）；唔得就退返 spike 1a 原樣。
+- 落針 timer 放 controller，唔放畫面：出聲唔可以靠 React render、effect 或者唱臂元件有冇 mount。`leadInMs(reduceMotion)` 係純函數，放 `components/tonearm/armPose.ts` 隔籬，同 `useArmLeadIn` 讀同一組 `MOTION` token。
+
+**`PlaybackState` 同 action**（`app/playbackState.ts` 搬去 `playback/`，reducer 保留做純函數；檔案頭「暫時」註解拎走）
+
+| 項目 | 而家 | T-038 |
+| --- | --- | --- |
+| `PlaybackStatus` | `idle`、`playing`、`paused`、`ended` | 加 `error`（載入失敗：唱臂泊位 D36 ③、一行錯誤提示 US-004、唱片夾 play；再㩒 = 重新 `start` 同一首） |
+| `PauseReason` | `user`、`mv`、`restore` | 不變；系統暫停（`requested: false`）當 `user`；`blocked` 當 `restore`（泊位，下一次㩒行完整開場、喺手勢入面 `cue`） |
+| `positionSec`、`durationSec` | 有，冇人寫 | 由 `time` 事件寫；只喺秒數或者長度變先通知 |
+
+| Action | 由邊度嚟 | 結果 |
+| --- | --- | --- |
+| `start { albumId, trackId }`（已有） | 用戶手勢 | `playing`、唱臂由泊位開場；controller 同時 `cue` |
+| `advanced { trackId }` | 引擎 `advanced`、鎖屏上／下一首 | 換 `trackId`，`albumId` 不變，唱臂唔郁（冇開場）；細唱片機歌名跟住換（D58 ②） |
+| `ended` | 引擎 `ended` | `ended`；唱臂泊位（D36 ②）；唱片夾 play；Media Session `paused` |
+| `release` | D99 嘅 3 秒、提早結束、拎住時返去（D88、D99 ⑤） | `IDLE_PLAYBACK`；controller 同時 `engine.stop()`、清 Media Session、清續播記錄（D99 ③） |
+| `resumed` | 引擎 `playing` 而 store 係 `paused` | `playing`，`pauseReason = null`（系統自己恢復） |
+| `paused { reason }` | 引擎 `paused`（`requested: false` → `user`） | 同 `pauseFor` |
+| `time { positionSec, durationSec }` | 引擎 `time` | 更新進度圈同時間 |
+| `failed { reason }` | 引擎 `error` | `error`（`blocked` → `paused` + `restore`） |
+
+- D99 同 D88 嘅 3 秒 timer 放畫面層一個 hook（例如 `app/useEndedRelease.ts`）：`ended && !holding && overlay === null` 先開始計；時長 token `endedReleaseMs` = 3000，放 `MOTION.input`。
+- `app/useHome.ts`：`useReducer(playbackReducer)` → `useSyncExternalStore(controller.subscribe, controller.getSnapshot)`（引擎嘅 `ended` handler 要同步讀隊列，React state 喺 handler 入面讀唔到）。所有會 `start` 嘅路（`pressSpindle`、弧線歌單 Enter／Space、`playFirst`）一定要由 click／pointerup／keydown handler 同步行到 `controller.start()`，中間冇 `setTimeout`、`await`、effect；加測試鎖住（假 engine 記錄 `cue` 係咪喺同一個 call stack）。
+- 要改嘅檔：`app/useHome.ts`、`app/playbackState.ts`、`app/homeView.ts`、`app/miniView.ts`（`error` = 泊位、唱片夾 play、一行錯誤提示）、`components/tonearm/armPose.ts`（`leadInMs`）；新 `playback/{audioEngine,playbackController,queue,mediaSession}.ts`（連假 `HTMLAudioElement` 嘅測試）。
+
+**controller 嘅補充規則（CR-010 🅰️，Functional Spec D109、D110；引擎合約不變）**
+
+| 規則 | 做法 |
+| --- | --- |
+| 🅰️ 鎖機自動下一首載入失敗（Q3，D109） | controller 收到 `error`（`decode`／`unsupported`／重試用晒嘅 `network`），而且 ① `document.visibilityState === 'hidden'` ② 呢首係 `advanced` 帶入嚟、未出過 `playing` ③ 今次未跳過：用隊列純函數揀再下一首有音檔嘅歌 → `engine.playNow()` + `advanced`，記低「已跳過一次」；再失敗、冇下一首或者前景 = 照舊 `failed`（停 + 錯誤提示）。出過 `playing` 或者聽眾手動揀歌就清走「已跳過」 |
+| 🅰️ 鎖屏「上一首」（Q4，D110） | `previoustrack` handler：`engine.positionSec > PREVIOUS_RESTART_S`（3，放 `config/limits.ts`）→ `engine.seek(0)`（唔換歌）；否則隊列揀上一首 → `playNow()` + `advanced`（冇上一首 = `seek(0)`）。屬隊列規則，T-071 加模式時照用 |
+
+**Media Session**（擁有者：controller；取代實現注意事項 4）
+
+| 項目 | 做法 |
+| --- | --- |
+| 建立 | controller 建立時一次：`play` → `controller.resume()`；`pause` → `controller.pause()`；`previoustrack`／`nexttrack` → 隊列純函數揀 → `engine.playNow()` + `advanced`（冇上／下一首 = 唔做嘢；🅰️ 上一首 3 秒規則見上）；`seekto` → `engine.seek()`；`seekbackward`、`seekforward`、`stop` 設 `null`。每個 `setActionHandler` 包 `try/catch`（舊 Safari 唔識某啲 action） |
+| `metadata` | 換歌嗰下同步設（`advanced` 喺 `ended` handler 入面）；`artist` = `RubberBand`（資料，唔翻譯）；`album` = 碟名；`artwork` = `thumb`（320）+ `cover`（1200），連 `sizes`、`type` |
+| `playbackState` | 引擎 `playing` → `'playing'`；`paused`／`ended`／`error` → `'paused'`；`release` → `'none'` + `metadata = null` |
+| `setPositionState` | 長度知道、`playing`、`paused`、`seek`、換歌時設；夾喺 `[0, duration]`；長度未知唔設；冇呢個 function（舊 Safari）就唔設 |
+| `ended` 期間鎖屏 `play` | 同㩒唱片夾一樣：`playFirst`（載入嘅碟第一首有音檔），畫面隱藏用 `playNow`（冇開場） |
+| MV 開住 | `<video>` 會搶 Now Playing。`mediaSession.ts` 有一個「目標」：`record`／`mv`；MV 期間 handler 轉去 `videoEngine`（`play`／`pause`），`metadata` 改為歌名 + 「MV」（i18n）；電視收埋就轉返 `record`（T-060） |
+
+**刻意唔放入引擎嘅嘢**：隊列同「下一首」嘅規則（`queue.ts`）；Shuffle／Repeat／Repeat One（T-071）；播放 store、暫停原因、唱臂姿勢、唱片夾圖案；D99 嘅 3 秒同「放低隻碟」；續播記錄（`storageKeys` resume）；Media Session；錯誤提示文字；MV 音訊；`navigator.audioSession`；任何 React。
+
+### MV 音訊（D104；T-060、T-061）
+
+> 取代上文技術風險「MV 音量旋鈕……特徵檢測：`video.volume` 可寫就直接用；唔得先行 Web Audio；兩樣都唔得就退做靜音開關」同組件圖 `mv/volumeGain.ts`。
+
+```ts
+/** T-060：電視嘅唯一 <video>（成個 app 一個，因為 createMediaElementSource 每個 element 只可以一次） */
+export interface VideoEngine {
+    /** 電視 mount 時將 element 放入電視容器（同一個 element 搬嚟搬去） */
+    readonly element: HTMLVideoElement; // crossOrigin = 'anonymous'、playsInline、preload = 'metadata'
+    /** 㩒 MV 掣（手勢入面，同步）：mvAudio.attach()、設 src、play()（gain 0），一 playing 就 pause() + currentTime = 0 */
+    cue(url: string): void;
+    /** 螢幕開機（crtOn 完）：gain 去旋鈕音量、play() */
+    reveal(): void;
+    play(): void;
+    pause(): void;
+    /** ■ 或者播完：pause()、removeAttribute('src')、load()；mvAudio.detach() */
+    stop(): void;
+    seek(positionSec: number): void; // 下面旋鈕：快轉／倒轉
+    subscribe(listener: (event: EngineEvent) => void): () => void; // 同 audioEngine 一樣嘅事件型別
+}
+
+/** T-061：MV 音量（GainNode）。所有平台一樣；唔用 video.volume、video.muted */
+export interface MvAudio {
+    /** 有冇 AudioContext；false = 音量旋鈕 aria-disabled，MV 用系統音量 */
+    readonly supported: boolean;
+    /**
+     * 手勢入面同步叫：第一次建立 AudioContext、source、gain（之後重用）；context.resume()；
+     * 有 navigator.audioSession 就設 type = 'playback'（唔跟側邊靜音撥掣；未驗，U-24 ④）
+     */
+    attach(video: HTMLVideoElement): void;
+    /** 0–1；setTargetAtTime 短 ramp（常數放 mv 嘅 config，唔係動畫 token） */
+    setVolume(level: number): void;
+    /** 靜音掣：gain 0，記住 level；false 還原 */
+    setMuted(muted: boolean): void;
+    readonly volume: number;
+    readonly muted: boolean;
+    /** 電視收埋：context.suspend()（唔 close，下次 attach 再 resume） */
+    detach(): void;
+}
+```
+
+| 項目 | 做法 |
+| --- | --- |
+| 音量 | `GainNode.gain`（0–1，`setTargetAtTime` 短 ramp）；所有平台一樣，唔再分「特徵檢測 → Web Audio → 靜音開關」三條路 |
+| 靜音 | gain 去 0，記住音量；`video.muted` 一直 `false`、`video.volume` 一直 1（spike 4f：接咗 graph 之後 `muted` 冇效） |
+| 冇 `AudioContext` | 旋鈕 `aria-disabled`，MV 用系統音量照播 |
+| CORS | `<video>` 永遠 `crossOrigin="anonymous"`：CORS 壞咗 = 載入失敗（睇得到嘅錯），唔會「有畫面冇聲」 |
+| 一個 element | `createMediaElementSource` 每個 element 只可以一次：電視用**同一個** `<video>` 播所有 MV（`videoEngine` 擁有，T-060） |
+| `audioSession` | 🅰️（Q2，D104）開電視嘅手勢入面，有 `navigator.audioSession` 就設 `type = 'playback'`；只喺 MV 路徑，`audioEngine` 唔掂。真機核對 U-24 ④ |
+| 唱片 | 電視升起：`controller.pauseFor('mv')`（唱臂泊位）；收埋唔自動續播（C8）。MV 嘅開場同唱片一樣喺手勢入面 `cue`，開機先出聲；預備期間係 gain 0，唔係 `muted` |
+| Media Session | 見上面「Media Session → MV 開住」 |
+
+### 模糊背景（D105）
+
+「繪圖方式」嘅「模糊層：唱片機層 `filter: blur()`」**照用**（spike 5b、5c 都係 60 fps；量度時主頁靜止，MV 開住時唱片機本身停，所以同真實情況一致）。半徑寫 `calc(var(--u) * 20)`；唔喺共用 `<defs>` 加 filter。性能考量「瓶頸」② 關閉。
+
+### Preload 旗幟用 WebGL（D106；T-114）
+
+**而家嘅 code**（T-034）：`components/flag/{flagMesh,flagRenderer,useFlagAnimation,FlagCanvas}`；`stage/layouts/phone.ts` 嘅 `PRELOAD.flag`。每格：光暗圖 90 × 120 `flagWave` + `putImageData`；布料圖 canvas 1760 × 2821（約 497 萬像素）成張重畫；`projectCloth` 31 × 41 點；`drawMesh` 2400 個三角形，每個 `save` → path → **`clip()`** → `transform` → `drawImage` → `restore`。主因係每個三角形一個非矩形 `clip()` 加一次有仿射變換嘅 `drawImage`（Safari 2D canvas 逐個光柵化遮罩）；次因係每格重畫接近 500 萬像素嘅布料圖。JS 數學唔係問題；降 DPR 幫唔到幾多（報告 §1.2 ⑤）。
+
+| 項目 | 做法 |
+| --- | --- |
+| Renderer | 新 `components/flag/flagGl.ts`：一個 WebGL canvas；布料圖（黑布 + logo）只畫一次、上載一次做 texture；網格 31 × 41 點每格由現有 `projectCloth()` 喺 CPU 計，`bufferSubData` 上載位置；光暗喺 fragment shader 逐像素計（`sumWaves`／`shadeAt` 移植做 GLSL）；一次 `drawElements` 畫晒 |
+| 常數 | GLSL 入面嘅波、旗杆、光暗常數由 `flagMesh.ts` 嘅 `WAVES`／`HOIST`／`LIFT`／`SHADE`／`LIGHT` 生成（同一個 TS 物件，唔寫兩份） |
+| 揀 renderer | `useFlagAnimation`：WebGL 建立成功 → WebGL；失敗、`webglcontextlost`、減少動態效果 → 現有 2D renderer 畫**一格靜止**（已有呢條路）；唔 throw |
+| 唔改 | `flagScene`、版面表（`PRELOAD.flag`）、Preload 時間線；`FlagCanvas` 嘅 DPR 上限 |
+| 驗收 | ① spike 5a 喺用戶 iPhone 兩個模式：平均 ≥ 30 fps（目標 55+）、最慢一格 ≤ 50 ms、掉格 ≤ 10 %（低耗電模式關；開咗只記錄）② 同 2D 版喺固定時間（`flagGustMs`）一格截圖比對（Playwright Chromium，容許少量差異）③ 冇 WebGL（測試入面 `getContext('webgl')` 回 `null`）= 靜止一格、Preload 照行 ④ context lost = 靜止一格、唔 throw ⑤ 減少動態效果 = 靜止一格 ⑥ 唔掂 `flagScene`、版面表同時間線 |
+| 測試限制 | jsdom 測唔到 shader：純函數（常數生成、buffer 砌法）用 unit test；畫面靠截圖比對同真機量度 |
+| 量度 | spike 頁（`/spike.html` 5a 用嘅係真 `PreloadScreen` + `FlagCanvas`）：新 renderer 合併、部署之後用戶再量；量完先拆 spike 頁（T-115） |
+| QA 鏈 | `player-startup` |
+
+### 手機打橫（D101；撤回 D96）
+
+**撤回**上文「CR-009 → 手機打橫轉返」（T-111 取消；未合併嘅 branch `feature/t111-landscape` 留底參考）。code 一直係 T-039 嘅做法，**唔使改**：`stage/deviceClass.ts` `isPhoneLandscape()`、`stage/usePhoneLandscape.ts`（viewport 闊高 + `pointer: coarse`，聽 `resize` 同 `orientationchange`）、`App.tsx` 打橫時 `<Stage covered>`（`inert` + `aria-hidden`）再蓋 `components/rotate-notice/RotateNotice`（`role="alert"`，`rotate.notice`）；`UpdateNotice` 打橫時唔讀；manifest `orientation: 'portrait'`。
+
+**量度到嘅事實**（留底，將來要知方向嘅功能用；詳情見報告 §1.2 ⑥）：
+
+| 項目 | Safari 分頁 | 主畫面 App |
+| --- | --- | --- |
+| 直向 viewport | 393 × 735（工具列展開）／393 × 695（收起） | 393 × 852 |
+| 打橫 viewport | 852 × 393 | 852 × 393 |
+| 安全區 上/右/下/左：直向 | 0/0/0/0 | 59/0/34/0 |
+| 安全區：打橫（兩邊一樣） | 0/59/20/59 | 0/59/20/59 |
+| 事件次序 | `orientationchange`（同 `screen.orientation` `change`）先，`resize` 遲 29–88 ms | `resize` 先，`orientationchange` 遲 285–299 ms；冇 `screen.orientation` `change` |
+| 對唔上嘅時段 | 29–88 ms：angle 新、viewport 舊；左右互換時 `orientationchange` 入面 `screen.orientation.angle` 仲係舊值 | 約 0.29 秒：viewport 新、angle 舊 |
+
+結論：以 viewport 為準（而家嘅 `usePhoneLandscape` 已經係咁）；唔好單靠 `screen.orientation.angle`。座標換算（`toStagePoint` 嘅數學）真機啱（spike 6c、6d），將來要轉舞台可以由 `feature/t111-landscape` 攞返。
+
+### 旋鈕取消（D102；T-110 之後嘅修正）
+
+**而家嘅 code**（已合併 `070dd29`，QA 重驗 pass）：`components/knob/useSeamJump.ts`。`start()` 記低開始嗰格同淨跨過次數 0；每一步（擰、方向鍵；`turn(to, mayJump)`）用 `crossesSeam()` + `ringDelta()` 計跨過方向（♥ → 第一隻碟 +1、倒轉 −1），Home／End（`mayJump = false`）唔計；`cancel()`（Esc）：淨跨過 ≠ 0 → `jump = true`（指針冇過場跳返開始嗰格）；= 0 → `jump = false`（指針 CSS transition 沿刻度掃返去，幾長都照掃）；`finish()`（Enter、放手、focus 離開）唔係一步，冇跳；唔係旋鈕要求嘅改動（例如㩒 ♥ 掣）唔跳。減少動態效果：冇過場。補充上文「CR-009 → 旋鈕同碟疊頭尾相接」嘅「擰」一行。
+
+### 臨時測試 catalog（D107；T-113）
+
+| 項目 | 做法（已合併 `379828f`） |
+| --- | --- |
+| 生成 | `scripts/dev/build-test-catalog.mjs [--audio=all｜none] [--out=<path>]`：用 `packages/catalog` 嘅 `seedToCatalog()`（同開發 fixture 一樣）由 `apps/api/seed/discography.json`、`credits.json` 砌，寫入前 `parseCatalogDocument()` 驗；`generatedAt` 寫死，輸出固定 |
+| 內容 | 21 張專輯、291 首歌；`--audio=all`（預設）每首歌 key 跟資料夾規則 `<類別>-<NN>-<id>/<NN> <歌名>.m4a`（bucket 冇嗰個檔 = 載入失敗）；封面、歌詞 `null`；專輯色中性灰；`mediaBase` 同 Worker 一樣由 `wrangler.toml` 讀 |
+| 檔 | `apps/player/public/test-catalog/catalog.json`（連 `README.md`）；唔入 precache（`precache.node.test.ts` 鎖住） |
+| 用法 | Vercel 環境變數 `VITE_CATALOG_URL=/test-catalog/catalog.json`（root-relative，`catalog/defaultDeps.test.ts` 鎖住） |
+| 測試 | `scripts/dev/build-test-catalog.test.mjs`（vitest project `@r-gram/repo-scripts`）：committed 檔 = 生成結果、播放端 parser 讀得到、21／291 |
+| 拎走（T-041 之前） | 刪 `public/test-catalog/`、`scripts/dev/build-test-catalog.*`、`precache.node.test.ts` 嗰段、`defaultDeps.test.ts` 嘅 root-relative 測試（如果正式網址唔再需要）；`VITE_CATALOG_URL` 改指 Worker 嘅 `/catalog/v1/catalog.json` |
+| QA 鏈 | 未有：`scripts/dev/` 唔喺任何鏈（`repo-scaffold` 只包 `scripts/ci`）。建議歸 `repo-scaffold`，`public/test-catalog` 歸 `player-catalog`（`.claude/CLAUDE.md` 由主 session 改） |
+
+### 冇設計嘅同步頁同部署準備（D108；T-116）
+
+**定位**：`apps/admin` 嘅第一個版本 = T-051 嘅骨架（登入、app scaffold）加 T-055 嘅邏輯部分（同步 runner、封面處理）；冇設計、冇 R Gram 外觀。之後 T-051、T-052、T-053、T-055 照管理端設計稿第 4 版（等確認，U-8）做畫面，重用呢度嘅邏輯模組，同步頁本身拎走。
+
+| 項目 | 做法 |
+| --- | --- |
+| Scaffold | `apps/admin`：Vite + React（版本同播放端，Tech Stack）；`src/i18n/zh-Hant.ts`（書面語，連 `writtenChinese` 同寫死文字測試）；根 `tsconfig.json` `references`、根 `vitest.config.ts` `projects`、`.github/workflows/ci.yml` 各加一行，`.claude/CLAUDE.md` 指令表同 QA 鏈表（主 session）跟住改 |
+| 登入 | 冇 session（API-001／`/api/health` 以外回 401）→ 一粒「以 Google 帳戶登入」連去 `/auth/google/start?next=/`；Worker 嘅「沒有權限」「登入逾時」頁照用（T-021）；已登入顯示 email 同「登出」 |
+| 同步 runner（邏輯，放 `src/sync/`，畀 T-055 重用） | 純流程模組（注入 `fetch`，可測）：`GET /api/sync`（API-033）→ 照 `folders` 次序逐個 `POST /api/sync/folders/:folder`（API-034；`more: true` 就帶 `from=nextFrom` 再叫）→ 收集 `added`、`updated`、`unchanged`、`failed`、`checks`、`pendingRemovals`、`coverJobs`；API-033 嘅 `invalid`、`duplicateIds`、`missingAlbums`、`truncated` 照列 |
+| 封面處理（放 `src/covers/`，畀 T-055 重用） | 每個 `coverJob`：`fetch(MEDIA_BASE + key)`（要 bucket CORS 容許 Worker origin；失敗講明係 CORS／網絡／檔案）→ 解碼 → 置中裁正方形（唔係正方形就帶 `notSquare: true`）→ 1200（細過就放大，D50）同 320 → WebP（`@jsquash/webp`，Safari canvas 出唔到 WebP）→ 第一張 `dominantColor()`（`packages/catalog`）做 `accent` → `PUT /api/assets` × 2（API-050）→ `PUT /api/albums/:id/cover`（API-017，帶 `sourceKey`、`sourceEtag`）。一張一張做；失敗唔停成個同步，記入記錄 |
+| 移除 | **只列出**（`pendingRemovals` 同 `missingAlbums`），唔叫 API-035；確認移除係 T-055 嘅有設計畫面 |
+| `COVER_FAILED` | 只喺記錄顯示（backlog B-081 ③ 嘅「只喺瀏覽器顯示」做法，臨時）；T-055 開工前照舊要定 |
+| 記錄 | 一段純文字（`<pre>`，`aria-live="polite"`）：每個資料夾一行、檢查結果、封面結果、要確認嘅移除、總數；介面文字經語言檔；錯誤碼由管理端自己砌字（唔直接用 Worker 句子） |
+| Worker 出頁 | `wrangler.toml` 開返 `[assets]`（`directory = "../admin/dist"`、`not_found_handling = "single-page-application"`、`run_worker_first = ["/api/*", "/auth/*", "/catalog/*"]`）；部署前要 `npm run build -w apps/admin` |
+| `ADMIN_EMAILS` | 由 `wrangler.toml` `[vars]` 拎走，改做 Worker secret（`wrangler secret put ADMIN_EMAILS`）；本機照用 `.dev.vars`。`[vars]` 同 secret 唔可以同名；`validateEnv` 照驗（冇或者係 placeholder = 回 500，backlog B-016）；`.dev.vars.example` 同註解跟住改 |
+| `wrangler.toml` 其他值 | U-3、U-4 用戶 2026-11-26 已做：`[[r2_buckets]] CATALOG` 嘅 `bucket_name` 改做 **`rb-discography-catalog`**（binding 名 `CATALOG` 不變）；`database_id` = 用戶開嘅 D1 `r-gram` 嘅 id；`GOOGLE_CLIENT_ID` = 用戶嘅 OAuth client id；`WORKER_ORIGIN = "https://r-gram-api.dcwhung.workers.dev"`；`PLAYER_ORIGINS = "https://rgram.vercel.app"`（本機開發用 `.dev.vars`）；`MEDIA_BASE` 已有。id 同 client id 唔係 secret，可以入 repo |
+| 部署 | **由用戶喺自己電腦行**（agent 唔部署）。用戶指引第 2 部分（第 1 部分係 U-3、U-4 嘅 Cloudflare 同 Google 設定）：`npm ci` → `npm run build -w apps/admin` → `wrangler d1 migrations apply r-gram --remote` → `wrangler secret put GOOGLE_CLIENT_SECRET`／`SESSION_SECRET`／`ADMIN_EMAILS` → `wrangler deploy` → 確認 Google OAuth client 已登記 redirect URI `https://r-gram-api.dcwhung.workers.dev/auth/google/callback` → 媒體 bucket CORS 加 `https://r-gram-api.dcwhung.workers.dev`（U-1；封面處理要）→ 開 Worker 網址登入、㩒同步 → 開 `https://r-gram-api.dcwhung.workers.dev/catalog/v1/catalog.json` 睇到內容 → Vercel `VITE_CATALOG_URL` 改做呢個網址、重新 deploy 播放端（之前用 `/test-catalog/catalog.json`） |
+| 第一次部署順手驗 | ① production R2 嘅 `If-None-Match: *`（backlog B-060 ②、B-081 ⑥）：第一次同步寫入新檔成功、再同步冇重覆；② Workers 每個請求嘅操作上限：對 Cloudflare 官方文件（backlog B-074 ④；由用戶或者主 session 喺可以上網嘅地方查，呢個 session 唔連外部網站）；記錄 API-034 實際最多幾多操作 |
+| `deploy-api.yml` | 唔喺今次：T-028 之後做（用 GitHub secret，U-6） |
+| QA 鏈 | 新鏈（建議 `admin-sync`：`apps/admin` 全部）；`api-auth`（`env`、`validateEnv`、`wrangler.toml`、`.dev.vars.example`） |
+
+### 實作對齊（backlog B-090 ①：CR-009 嘅字眼跟 code；唔係新決定）
+
+| 位置 | 原本嘅字眼 | 跟 code 改為 |
+| --- | --- | --- |
+| 「CR-009 → 版本掣」點樣傳入舞台 | 建議 `App` 用 context（`pwa/UpdateContext`）提供 `{ waiting, apply }` | **冇 context**：`App` 用 `useUpdateStatus(updates) === 'waiting'`（而且 Preload 已經走咗）計 `waiting`，經 prop `update={{ onApply: updates.applyNow }}`（冇新版 = `null`）入 `HomeScene` → `TopGroup`（`UpdateAction`） |
+| 同上，外觀 | `layouts/phone.ts` 加 `updatePill`；框闊用設計稿 `charW` 估 | 版面 key 係 **`info.update`**（`layouts/phone.ts` 嘅 `UPDATE_BUTTON`：字級 26、`padX` 26、高 58、右邊 1034、感應範圍 122）；框闊用**量真字**（冇 `charW`）；幾何計法喺 `components/update-button/updateBox.ts`（`updatePillBox`、`updateHitBox`）。顏色 token `--color-update`；閃嘅 token `MOTION.loop.updateBlinkMs`（1400）／CSS `--motion-loop-update-blink` |
+| 同上，元件 | `components/info-block/VersionButton.tsx` 或者 `components/update-button/`；`aria-label` 用新 key `update.buttonLabel` | `components/update-button/UpdateButton.tsx`；`aria-label` 用 **`update.applyLabel`**（「已有新版本，立即更新並重新載入」）；`covered` = `listOpen ｜｜ bookletOpen ｜｜ mvOpen` |
+| 同上，讀屏通知 | 冇寫 | **`components/update-button/UpdateNotice.tsx`**：舞台外面一個 `visually-hidden` 嘅 `role="status"`，有新版本先填 `update.available`（「已有新版本」），手機打橫時唔填；所以 `update.available` 照留 |
+| 同上，淨空 | `clearance.test.ts` 加 44pt、唔撞細唱片機 | 喺 **`components/update-button/updateBox.test.ts`**（`updateHitBox`：最少 44pt、唔撞細唱片機） |
+| 同上，拎走 | 語言檔 `update.available`、`update.apply`、`update.applyLabel`（換 `update.buttonLabel`） | 拎走 `update.apply`；`update.available`（`UpdateNotice`）同 `update.applyLabel`（掣名）照留 |
+| 「CR-009 → 弧線歌單頭尾相接」鍵盤 | `rowStep.ts` 加頭尾相接版本；歌單欄照用會停嘅版本 | `components/scroll/rowStep.ts` **已刪**（T-110；本來只有弧線歌單用）：弧線歌單用 `arcScroll.ts` 嘅 `stepRing()`／`nextRingIndex()`；歌單欄（純睇）用 `held-tracks/useColumnScroll.ts` 自己嘅按像素捲動，從來冇用 `rowStep` |
+
+### 技術風險（CR-010）
+
+| 風險 | 之前 | 而家 | 理由 |
+| --- | --- | --- | --- |
+| iOS 手勢解鎖、1.5 秒後出聲（上表第一行；Plan R-001） | 高／高 | **關閉** | spike 1a、1c 兩個模式都得；開場 810 ms 短過測試嘅 1.5 秒。剩低「出聲延遲」見 R-031 |
+| iOS 背景／鎖屏自動下一首（Plan R-002） | 中／高 | **減低** → R-030 | 短片段得；長時間未驗 |
+| MV 音量旋鈕（Plan R-003） | 中／中 | **關閉**；靜音改用 gain | spike 4b–4d；4f 原因已知 |
+| 旗幟 canvas fps（Plan R-004 嘅旗幟部分） | 中／中 | **已發生** → R-027 | 5 fps |
+| 模糊濾鏡 fps（Plan R-004 嘅模糊部分、R-005 嘅模糊部分） | 中／中 | **關閉** | 60 fps |
+| 轉碟 fps（Plan R-005） | 中／中 | **未量** | spike 主頁碟唔轉；T-038 真機核對（U-24 ⑤） |
+| 打橫反方向轉（Plan R-026） | 中／中 | **關閉**（已發生，已處理） | D96 撤回 |
+| 新：鎖屏 `play` action 冇收到（R-028）、側邊靜音撥掣（R-029）、長時間鎖機（R-030）、落針出聲延遲（R-031）、只驗一部 iPhone（R-032） | — | 開 | 見 Implementation Plan v1.9 風險登記（同 spike 報告 §3） |
+
+### Functional Spec 對照（CR-010）
+
+| Functional 需求／決定 | 技術落點 |
+| --- | --- |
+| D101、FR-018、US-015、C11 | T-039 嘅 `rotate-notice`、`usePhoneLandscape`（唔使改）；「CR-009 → 手機打橫轉返」撤回 |
+| D102、D98、US-003 | `components/knob/useSeamJump.ts`（已做） |
+| D103、FR-006、FR-014、US-004、US-006 | `playback/{audioEngine,playbackController,queue,mediaSession}.ts`；`useSyncExternalStore`；`leadInMs()`；`PlaybackStatus` 加 `error` |
+| D104、FR-026、US-007 | `mv/videoEngine.ts`（一個 `<video>`）、`mv/mvAudio.ts`（`GainNode`、`audioSession`） |
+| D105 | 唱片機層 CSS `filter: blur()` |
+| D106、FR-001、US-001 | `components/flag/flagGl.ts`、`useFlagAnimation` 揀 renderer、2D 靜止一格後備 |
+| D107 | `scripts/dev/build-test-catalog.mjs`、`public/test-catalog/` |
+| D108 | `apps/admin`（登入、`src/sync/`、`src/covers/`、記錄）；`[assets]`；`ADMIN_EMAILS` secret |
+| D109、D110 | controller 嘅補充規則；`PREVIOUS_RESTART_S` |
 
 
 ## 修訂記錄
@@ -2013,3 +2355,4 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | v1.7 | 2026-11-26 10:30 | 跟 Functional Spec v1.9（**CR-007**）更新：加「CR-007 對技術設計嘅影響」一節（對照表、資料模型、`packages/catalog` 新增同改、同步嘅設計（每個資料夾嘅計劃、API-033／034／035／017、管理端流程、每個請求嘅操作上限、並發）、寫返媒體 bucket（API-018／019／040／041、寫入規則）、API 一覽嘅變化、安全設計、技術風險、已完成 code 保留／改寫／拎走清單連任務、Functional Spec 對照）。架構表（媒體 bucket、D1）、Endpoint 一覽、數據庫設計、R2 key layout（`info.txt`）、Seed、安全設計「R2 key 驗證」加 ⚠️ CR-007 標記。今次冇改 code |
 | v1.8 | 2026-11-26 11:40 | 跟 Functional Spec v1.10（**CR-008**；播放端設計稿第 19 版，commit `ca8c52a`）更新：加「CR-008 對技術設計嘅影響」一節：狀態同衍生顯示（`trackChosen`、`showsColumn`、欄底、細掣、唱臂、細唱片機「已播完」、唱片夾圖案）、場景 × 載入／拎住 × 字母盤表（歌單欄、細掣、唱臂、細唱片機、唱片夾、碟面）、`playFirst()`、動作嘅變化（`openList` 守衛反轉、`discChange → list` 拎走、`playHeldTrack`／`startHeld` 拎走、`returnToLoaded` 即刻換碟）、拎走或者反轉嘅 code、淨空規則（D57 例外拎走）、版面數字（`bottomIdle`、飄落位移）、motion token（`PANEL_FLOAT`、`LIST_FLOAT`、`panelSettleMs`）、測試同 E2E、更新規則（取代實現注意事項 12）、實作對齊（`breakAt()`、旋鈕 `slider`、S-173／S-174／S-176、API-017／018／019／040／041 嘅回應同錯誤碼、API-034 漏咗嘅 `failed`／`truncated`、API-019／041 操作數）、Functional Spec 對照。原位加 ⚠️ CR-008：場景狀態機、元件表（旋鈕、歌單、歌單欄）、實現注意事項 12、「左上歌名兩行」、CR-005 對照表、「補充：第 18 版」（歌單欄、`openList`、`returnToLoaded`、`playHeldTrack`、`heldTracks`、淨空、元件、motion、i18n）、CR-007 嘅 API-017／018／019／040／041、新錯誤碼、操作數表。今次冇改 code |
 | v1.9 | 2026-11-26 16:30 | 跟 Functional Spec v1.11（**CR-009**；播放端設計稿第 20 版，commit `a335587`）更新：加「CR-009 對技術設計嘅影響」一節：版本掣（訊號由 `pwa/useUpdates` 經 context 入 `TopGroup`；圖層喺弧線歌單暗層下面；`covered`；`layouts/phone.ts` `updatePill`；顏色 token；閃嘅 motion token 同減少動態效果；拎走 `update-prompt`、`data-trap-stop`、三條語言檔字串）、手機打橫轉返（`quarterTurn`、舞台 transform、闊高對調、安全區加 left／right、`toStagePoint`；`useDragScroll` 要改、`useKnobTurn` 唔使改但要測試；拎走 `rotate-notice`、`Stage covered`）、弧線歌單頭尾相接（`ring`、`loopWindow`、接駁位元件、圈上吸附、`rowStep` 頭尾相接版、`LIST_FLOAT` 摺返行）、旋鈕同碟疊頭尾相接（`moveTurn` 唔夾、`turnedPosition`／`keyTarget` `mod`、`stackOffset`、窗口同次序）、播完最後一首（`ended` → 3 秒 → `idle`、`playFirst`、提早結束、續播記錄）、app icon（favicon 16／32／48、maskable 192、`iconLinks()`）、Functional Spec 對照。原位加 ⚠️ CR-009：元件樹（`rotate-notice/`、`pwa/` 實際檔案）、「繪圖方式」手機橫版（連對照 code 改正：舞台照 render 再蓋住）、實現注意事項 12、Functional Spec 對照 FR-018、「CR-008 → 更新」表同對照表。今次冇改 code |
+| v1.10 | 2026-11-26 17:50 | 跟 Functional Spec v1.12（**CR-010**）同 Architect spike 報告（T-011，`12b259e`）更新：加「CR-010 對技術設計嘅影響」一節：spike 結果同採用做法；播放架構（分層、`AudioEngine` 型別同成員（同報告一樣）、成員合約、開場合約、`PlaybackState`／action、controller 補充規則（🅰️ D109 鎖機載入失敗跳過一次、D110 上一首 3 秒）、Media Session、唔放入引擎嘅嘢）；MV 音訊（`VideoEngine`、`MvAudio`、只用 gain、`audioSession`）；模糊 CSS `blur()`；旗幟 WebGL（T-114，驗收值）；手機打橫撤回 D96 同真機量度；旋鈕取消（`useSeamJump`）；臨時測試 catalog（T-113）；冇設計嘅同步頁同部署準備（`apps/admin`、同步 runner、封面處理、`[assets]`、`ADMIN_EMAILS` secret、`wrangler.toml` 值、用戶部署指引第 2 部分；T-116）；實作對齊 B-090 ①；技術風險；Functional Spec 對照。private bucket 名改 `rb-discography-catalog`（用戶 2026-11-26 開；舊名劃走）；Worker `https://r-gram-api.dcwhung.workers.dev`。原位加 ⚠️ CR-010：Tech Stack 兩行、組件圖、播放狀態、手機橫版、旗幟、模糊、數據流 B、安全設計（`ADMIN_EMAILS`、Secret）、瓶頸、部署（`[vars]`、build 變數、`deploy-api.yml`、dashboard 設定 1–7）、技術風險四行、實現注意事項 1–4、Functional Spec 對照、「CR-009 → 手機打橫轉返」（撤回）、「CR-009 → 版本掣」同弧線歌單鍵盤（實作對齊）、旋鈕。今次冇改 code |
