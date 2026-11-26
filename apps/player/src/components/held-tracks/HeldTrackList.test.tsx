@@ -80,6 +80,15 @@ describe('HeldTrackList', () => {
         expect(container.querySelector('[data-part="held-title"]')).toHaveAttribute('x', '130');
     });
 
+    // W-044：D57「由畫面左邊起成行都㩒得」：感應範圍由 x 0 起，去到 right + rowReach
+    it('should make the whole row pressable from the left edge of the screen', () => {
+        const { container } = renderList(held([row(1)]));
+        const hit = container.querySelector('[data-part="held-hit"]');
+        expect(hit).toHaveAttribute('x', '0');
+        const { right, rowReach } = PHONE_LAYOUT.heldTracks;
+        expect(hit).toHaveAttribute('width', String(right + rowReach));
+    });
+
     it('should play the pressed row by click or by keyboard', () => {
         const { onPlay } = renderList(held([row(1), row(2)]));
         fireEvent.click(screen.getByRole('button', { name: '播放第 2 首：歌 2' }));

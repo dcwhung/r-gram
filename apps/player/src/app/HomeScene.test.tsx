@@ -279,6 +279,15 @@ describe('HomeScene holding another disc', () => {
         expect(list && info && list.compareDocumentPosition(info) & follows).toBeTruthy();
     });
 
+    // W-044：設計稿 scene()：細唱片機喺下、歌單欄喺上（兩者感應範圍重疊嗰條屬歌單行，S-173）
+    it('should draw the track column above the mini turntable', () => {
+        const { container } = render(scene(holding()));
+        const mini = part(container, 'mini-turntable');
+        const list = part(container, 'held-tracks');
+        const follows = Node.DOCUMENT_POSITION_FOLLOWING;
+        expect(mini && list && mini.compareDocumentPosition(list) & follows).toBeTruthy();
+    });
+
     it('should play the pressed row and hand the focus to the clamp', () => {
         const { container } = render(scene(holding()));
         const button = screen.getByRole('button', { name: '播放第 1 首：room 1' });
