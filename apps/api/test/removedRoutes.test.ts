@@ -8,7 +8,7 @@ import { stateRow } from './catalogFixtures';
 
 const IF_MATCH = { 'if-match': `"${NOW}"` };
 
-/** [method, path, body]：API-011、013、014、015、020、021、022、032（API-024、043 從來冇 route） */
+/** [method, path, body]：API-011、013、014、015、020、021、022、032；T-105：API-030、031（API-024、043 從來冇 route） */
 const REMOVED: [string, string, unknown][] = [
     ['POST', '/api/albums', { id: 'x', title: 'X', category: 'album' }],
     ['PATCH', '/api/albums/apollo-18', { title: 'X' }],
@@ -19,6 +19,8 @@ const REMOVED: [string, string, unknown][] = [
     ['DELETE', '/api/tracks/apollo-18-01?force=1', undefined],
     ['GET', '/api/media', undefined],
     ['GET', '/api/media?prefix=album-01-apollo-18/', undefined],
+    ['GET', '/api/albums/apollo-18/scan', undefined],
+    ['POST', '/api/albums/apollo-18/scan/apply', { create: [] }],
 ];
 
 beforeEach(async () => {
