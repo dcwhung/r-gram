@@ -52,7 +52,7 @@ export const trackRow = (track: CatalogTrack): TrackRow => ({
     playable: isPlayable(track),
 });
 
-/** 收藏（T-070）未有之前，Favourites 碟冇歌：`albumTracks()` 搵唔到就係空 */
+/** Favourites 碟（T-070）同其他碟一樣：`document` 係 `withFavourites()` 嗰份，歌號 = 收藏次序 */
 export const trackColumnView = (
     document: CatalogDocument,
     stage: StageState,

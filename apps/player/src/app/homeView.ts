@@ -18,6 +18,7 @@ import { t } from '../i18n/t';
 import { DEFAULT_PLAY_MODE, type PlayMode } from '../playback/playModes';
 import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
+import { type FavouriteParts, favouriteParts } from './favouritesView';
 import { type TrackColumnView, trackColumnView } from './heldTracksView';
 import { isHolding, isLoadedHere, loadedAlbumOf } from './holding';
 import { type ArcListView, listView } from './listView';
@@ -53,7 +54,7 @@ export const listFocusTrackId = (
     return albumTracks(document, stage.viewAlbumId).find(isPlayable)?.id ?? null;
 };
 
-export interface HomeView {
+export interface HomeView extends FavouriteParts {
     album: CatalogAlbum | null;
     /** 左上顯示、唱片夾控制嘅歌：播放狀態入面嗰首（要係呢隻碟嘅） */
     track: CatalogTrack | null;
@@ -102,6 +103,9 @@ export interface HomeView {
     /** 歌單開住時框入面嗰首（左上白字顯示）；冇 = null */
     listTrack: CatalogTrack | null;
 }
+
+/** 冇收藏（測試、未接 store） */
+const NO_FAVOURITE_IDS: ReadonlySet<string> = new Set();
 
 const loadedTrack = (album: CatalogAlbum | null, stage: StageState, playback: PlaybackState) =>
     isLoadedHere(stage, playback)
@@ -190,6 +194,26 @@ const listParts = (
             : null,
 });
 
+/** 唱片夾嘅圖案，同「播緊」（唱片夾 = pause） */
+const spindleParts = (stage: StageState, playback: PlaybackState) => {
+    const spindle = spindleMode(stage, playback);
+    return { spindle, playing: spindle === 'playing' };
+};
+
+/** 弧線歌單同收藏：左上嗰首 = 歌單開住時框入面嗰首，否則播緊嗰首（T-070） */
+const listAndFavourites = (
+    document: CatalogDocument,
+    album: CatalogAlbum | null,
+    track: CatalogTrack | null,
+    state: { stage: StageState; playback: PlaybackState; favouriteIds: ReadonlySet<string> },
+) => {
+    const lists = listParts(document, album, state.stage, state.playback);
+    return {
+        ...lists,
+        ...favouriteParts(document, album, lists.listTrack ?? track, state.favouriteIds),
+    };
+};
+
 export const homeView = (
     document: CatalogDocument,
     stage: StageState,
@@ -197,10 +221,10 @@ export const homeView = (
     covers: CoverVariants = NO_COVER_PICKS,
     mode: PlayMode = DEFAULT_PLAY_MODE,
     audible = true,
+    favouriteIds: ReadonlySet<string> = NO_FAVOURITE_IDS,
 ): HomeView => {
     const album = stage.viewAlbumId ? findAlbum(document, stage.viewAlbumId) : null;
     const track = loadedTrack(album, stage, playback);
-    const spindle = spindleMode(stage, playback);
     const pose = armPose(stage, playback);
     const dial = dialView(document, stage, covers);
     const choosing = choosingView(stage, playback, pose, audible);
@@ -208,15 +232,14 @@ export const homeView = (
         album,
         track,
         ...colours(document, album, covers),
-        spindle,
+        ...spindleParts(stage, playback),
         armPose: pose,
         ...timing(playback, track !== null && playback.status === 'error'),
         ...songFlags(track, mode),
-        playing: spindle === 'playing',
         ...openFlags(stage),
         dial,
         ...choosing,
         ...heldParts(document, stage, playback, dial, choosing.holding),
-        ...listParts(document, album, stage, playback),
+        ...listAndFavourites(document, album, track, { stage, playback, favouriteIds }),
     };
 };

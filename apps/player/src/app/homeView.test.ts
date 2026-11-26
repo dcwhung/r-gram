@@ -6,6 +6,7 @@ import {
     sampleDocument,
     withSecondCover,
 } from '../catalog/testing/catalogFixtures';
+import { FAVOURITES_ACCENT } from '../favourites/favouritesAlbum';
 import { armPose, homeView, listFocusTrackId, spindleMode } from './homeView';
 import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
@@ -333,14 +334,20 @@ describe('homeView mini turntable', () => {
         );
     });
 
-    // 由 Favourites 碟播緊：碟面用 ♥ 格（T-070 之前係中性色）；歌名照搵得到
+    // 由 Favourites 碟播緊：碟面用 ♥ 格（T-070：黑色碟 + logo、紅色）；歌名照搵得到
     it('should show the favourites disc when the song was started from it', () => {
         const fromFavourites = playback({ albumId: 'favourites', trackId: 'room-01' });
         expect(mini(holdingRoom, fromFavourites)).toMatchObject({
             title: 'room 1',
-            accent: NEUTRAL_ACCENT,
+            accent: FAVOURITES_ACCENT,
+            glow: glowColor(FAVOURITES_ACCENT),
+            face: 'favourites',
             coverUrl: null,
         });
+    });
+
+    it('should show the cover face of a real album', () => {
+        expect(mini(holdingRoom, playback())?.face).toBe('cover');
     });
 
     it('should leave the title empty when the loaded track is not in the catalog', () => {

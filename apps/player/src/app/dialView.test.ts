@@ -1,6 +1,8 @@
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { COVER_VARIANT } from '../catalog/coverVariants';
 import { sampleDocument, withSecondCover } from '../catalog/testing/catalogFixtures';
+import { FAVOURITES_ACCENT, withFavourites } from '../favourites/favouritesAlbum';
+import { t } from '../i18n/t';
 import { dialView, HEART_KEY } from './dialView';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
 
@@ -54,5 +56,23 @@ describe('dialView', () => {
     it('should leave the images empty and keep the album colour when an album has no cover', () => {
         const [apollo] = dialView(sampleDocument(), stage()).entries;
         expect(apollo).toMatchObject({ coverUrl: null, thumbUrl: null, accent: '#c8442b' });
+    });
+
+    // T-070：Favourites 碟有自己嘅碟面（黑色碟 + logo）同紅色；其他碟用封面
+    it('should give the heart position the Favourites disc face, title and red accent', () => {
+        const entries = dialView(sampleDocument(), stage()).entries;
+        expect(entries.at(-1)).toMatchObject({
+            albumId: FAVOURITES_ALBUM_ID,
+            title: t('favourites.title'),
+            accent: FAVOURITES_ACCENT,
+            face: 'favourites',
+        });
+        expect(entries.slice(0, -1).every((entry) => entry.face === 'cover')).toBe(true);
+    });
+
+    it('should keep a single heart position when the document carries the Favourites disc', () => {
+        const document = withFavourites(sampleDocument(), [{ trackId: 'room-01', addedAt: 1 }]);
+        const keys = dialView(document, stage()).entries.map((entry) => entry.key);
+        expect(keys).toEqual(['A', 'R', HEART_KEY]);
     });
 });

@@ -1,9 +1,10 @@
 import type { CatalogDocument } from '@r-gram/catalog';
 import { type Dispatch, useCallback, useReducer, useState, useSyncExternalStore } from 'react';
 import type { CoverVariants } from '../catalog/coverVariants';
-import { dialAlbums, findTrack, isPlayable } from '../catalog/selectors';
+import { dialAlbums } from '../catalog/selectors';
 import { useCoverVariants } from '../catalog/useCoverVariants';
 import { usePrefetchOtherArt } from '../catalog/usePrefetchOtherArt';
+import type { FavouritesStore } from '../favourites/store';
 import { createAudioEngine } from '../playback/audioEngine';
 import { createPlaybackController, type PlaybackController } from '../playback/playbackController';
 import { playbackSource } from '../playback/playbackSource';
@@ -11,6 +12,7 @@ import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { isHolding, loadedAlbumOf } from './holding';
 import { endedWaitRuns, useEndedRelease } from './useEndedRelease';
 import { homeView, listFocusTrackId, type HomeView } from './homeView';
+import { type Favourites, useFavourites, useFavouritesQueue } from './useFavourites';
 import { INITIAL_STAGE, type StageAction, stageReducer, type StageState } from './stageReducer';
 import type { HomeHandlers } from './Turntable';
 
@@ -26,6 +28,7 @@ export const initialStage = (catalog: CatalogDocument | null): StageState => {
 };
 
 interface HomeContext {
+    /** catalog + 最尾一隻 Favourites 碟（useFavourites） */
     catalog: CatalogDocument;
     stage: StageState;
     playback: PlaybackState;
@@ -33,6 +36,7 @@ interface HomeContext {
     covers: CoverVariants;
     dispatch: Dispatch<StageAction>;
     player: PlaybackController;
+    favourites: Favourites;
 }
 
 /**
@@ -49,14 +53,17 @@ const startTrack = (
     if (source && id) player.start(source, id);
 };
 
-/** 歌單入面㩒 play：播揀中嗰首（要播得）；冇歌嘅碟（D39）= 收返歌單（設計稿 ACTIONS.playpause） */
+/**
+ * 歌單入面㩒 play：播揀中嗰首（要播得）；冇歌嘅碟（D39）= 收返歌單（設計稿 ACTIONS.playpause）。
+ * 一律由顯示緊嘅碟播：Favourites 碟嘅歌喺 Favourites 碟嘅隊列（唔係佢原本嗰隻碟，T-070）
+ */
 const playSelected = (context: HomeContext) => {
-    const { catalog, stage, view, dispatch } = context;
+    const { stage, view, dispatch } = context;
     if (view.list?.rows.length === 0) dispatch({ type: 'closeList' });
-    const found = stage.selectedTrackId ? findTrack(catalog, stage.selectedTrackId) : null;
-    if (!found || !isPlayable(found.track)) return;
+    const row = view.list?.rows.find((candidate) => candidate.id === stage.selectedTrackId);
+    if (!view.list || !row?.playable) return;
     dispatch({ type: 'playSelected' });
-    startTrack(context, found.album.id, found.track.id);
+    startTrack(context, view.list.albumId, row.id);
 };
 
 /** 打開歌單，預先揀中載入嘅歌或者第一首（US-004） */
@@ -182,6 +189,10 @@ const handlersFor = (context: HomeContext): HomeHandlers => ({
     onCloseList: () => context.dispatch({ type: 'closeList' }),
     ...listHandlers(context),
     onReturnToLoaded: () => returnToLoaded(context),
+    // 心形掣（US-010）：左上嗰首（播緊、暫停緊嘅歌）
+    onFavourite: () => {
+        if (context.view.track) context.favourites.toggle(context.view.track.id);
+    },
 });
 
 export interface Home {
@@ -221,25 +232,24 @@ export const useHome = (
     catalog: CatalogDocument | null,
     controller?: PlaybackController,
     random?: () => number,
+    favouritesStore?: FavouritesStore,
 ): Home => {
     const [stage, dispatch] = useReducer(stageReducer, catalog, initialStage);
     const { player, playback, mode, audible } = usePlayer(controller);
-    const holding = isHolding(stage, loadedAlbumOf(playback));
-    useEndedRelease(endedWaitRuns(playback, stage, holding), player.release);
+    const loaded = loadedAlbumOf(playback);
+    useEndedRelease(endedWaitRuns(playback, stage, isHolding(stage, loaded)), player.release);
+    const favourites = useFavourites(catalog, playback, favouritesStore);
     const covers = useCoverVariants(catalog, random);
+    useFavouritesQueue(player, loaded, favourites.document, covers);
     usePrefetchOtherArt(catalog, stage.viewAlbumId, covers);
     const finishPreload = useCallback(() => {
         const first = catalog ? dialAlbums(catalog)[0] : undefined;
         if (first) dispatch({ type: 'preloadDone', albumId: first.id });
     }, [catalog]);
-    if (!catalog) return { stage, playback, covers, view: null, handlers: null, finishPreload };
-    const view = homeView(catalog, stage, playback, covers, mode, audible);
-    return {
-        stage,
-        playback,
-        covers,
-        view,
-        handlers: handlersFor({ catalog, stage, playback, view, covers, dispatch, player }),
-        finishPreload,
-    };
+    const { document } = favourites;
+    if (!document) return { stage, playback, covers, view: null, handlers: null, finishPreload };
+    const view = homeView(document, stage, playback, covers, mode, audible, favourites.ids);
+    const context = { catalog: document, stage, playback, view, covers, dispatch, player };
+    const handlers = handlersFor({ ...context, favourites });
+    return { stage, playback, covers, view, handlers, finishPreload };
 };

@@ -1,6 +1,5 @@
 import { ArcTrackList } from '../components/arc-list/ArcTrackList';
 import { HeldTrackList } from '../components/held-tracks/HeldTrackList';
-import { InfoBlock } from '../components/info-block/InfoBlock';
 import { VersionText } from '../components/info-block/VersionText';
 import { Screws } from '../components/metal/Screws';
 import { MiniTurntable } from '../components/mini-turntable/MiniTurntable';
@@ -8,6 +7,7 @@ import { UpdateButton } from '../components/update-button/UpdateButton';
 import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
 import type { HomeView } from './homeView';
+import { TopInfo as Info } from './TopInfo';
 import { type HomeHandlers, isLowerHalf } from './Turntable';
 import { useColumnEntrance } from './useColumnEntrance';
 import { useListFloating } from './useListFloating';
@@ -24,6 +24,8 @@ interface TopGroupProps {
      * 收返同播已經包好 focus 交接
      */
     listHandlers: Pick<HomeHandlers, 'onCloseList' | 'onFocusListTrack' | 'onPlayListTrack'>;
+    /** 㩒左上歌名後面嘅心形（T-070） */
+    onFavourite: () => void;
     /** 有新版本等緊（T-109）：版本號變成掣，㩒 = 即刻更新；冇 = 照舊顯示版本號 */
     update?: UpdateAction | null;
 }
@@ -77,22 +79,6 @@ const TrackColumn = ({ layout, view, measure }: PartProps) => {
     );
 };
 
-/** 左上資訊；`listOpen` 可以覆寫（飄落期間暗層下面墊一份黑字） */
-const Info = ({ layout, view, measure, listOpen }: PartProps & { listOpen: boolean }) => (
-    <InfoBlock
-        info={layout.info}
-        album={view.album}
-        track={view.track}
-        timeText={view.timeText}
-        accent={view.accent}
-        measure={measure}
-        songHidden={view.songHidden}
-        held={view.holding}
-        listOpen={listOpen}
-        listTrack={listOpen ? view.listTrack : null}
-    />
-);
-
 /**
  * 主頁貼頂組（FR-039；設計稿第 19、20 版 scene() 次序）：頂部螺絲 →（有新版本：版本掣，T-109）→
  * 右上角細唱片機（T-048）→
@@ -103,7 +89,7 @@ const Info = ({ layout, view, measure, listOpen }: PartProps & { listOpen: boole
 export const TopGroup = (props: TopGroupProps) => {
     const { layout, view, measure, onReturnToLoaded, update } = props;
     const floating = useListFloating(view.list, layout);
-    const parts = { layout, view, measure };
+    const parts = { layout, view, measure, onFavourite: props.onFavourite };
     return (
         <>
             <g data-part="screws">
@@ -128,7 +114,7 @@ export const TopGroup = (props: TopGroupProps) => {
             )}
             {floating && (
                 <g data-part="list-info-ghost" className="list-info-ghost" aria-hidden="true">
-                    <Info {...parts} listOpen={false} />
+                    <Info {...parts} listOpen={false} onFavourite={undefined} />
                 </g>
             )}
             <ArcList {...parts} listHandlers={props.listHandlers} floating={floating} />

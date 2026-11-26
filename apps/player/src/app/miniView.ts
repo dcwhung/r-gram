@@ -5,7 +5,7 @@
 import { type CatalogDocument, glowColor } from '@r-gram/catalog';
 import { findTrack } from '../catalog/selectors';
 import type { ArmPose } from '../components/tonearm/armPose';
-import type { DialEntry } from './dialView';
+import type { DialEntry, DiscFaceKind } from './dialView';
 import type { PlaybackState } from '../playback/playbackState';
 
 export interface MiniView {
@@ -26,6 +26,8 @@ export interface MiniView {
     glow: string;
     coverUrl: string | null;
     thumbUrl: string | null;
+    /** Favourites 碟用自己嘅碟面（T-070） */
+    face: DiscFaceKind;
 }
 
 /**
@@ -60,5 +62,6 @@ export const miniView = (
         glow: glowColor(disc.accent),
         coverUrl: disc.coverUrl,
         thumbUrl: disc.thumbUrl,
+        face: disc.face,
     };
 };

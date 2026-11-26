@@ -140,6 +140,8 @@ export const PHONE_LAYOUT: StageLayout = {
     disc: DISC,
     platter: { r: PLATTER_RADIUS },
     hub: { clear: 0.16, clamp: 0.118, rim: 0.972 },
+    // 設計稿 LOGO（logo-full.png 640 × 525 → 高闊比 0.8203）
+    favouritesLogo: { width: 0.36, centreY: 0.46, aspect: 0.8203 },
     arm: ARM,
     orbit: {
         r: 1000,
@@ -233,8 +235,11 @@ export const PHONE_LAYOUT: StageLayout = {
             lift: 2,
             levels: [0.72, 1, 0.5],
         },
-        heart: { gap: 46, size: 50, rise: 0.364, stroke: 2.6 },
+        heart: { gap: 46, size: 50, rise: 0.364, stroke: 2.6, haloOpacity: 0.55 },
         track: { x: 74, y: 368, size: 22, spacing: 3 },
+        // Favourites 碟：原本嗰隻碟（設計稿 infoParts() 嘅 from：歌單 y 368、字級 22、字距 2）；
+        // 播緊時設計稿冇畫，放喺「第 nn 首」行下面一行（行距同歌名兩行之間嘅 38 相若）
+        origin: { x: 74, y: 368, size: 22, spacing: 2, belowTrack: 36 },
         // 歌單開住（設計稿 infoParts() st.list）：框入面嗰首嘅歌號，slab 32、喺歌名第一行基線上面 2
         listNumber: { x: 74, size: 32, lift: 2 },
         version: { x: 1008, y: 118, size: 22, spacing: 3 },

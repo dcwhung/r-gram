@@ -1,4 +1,4 @@
-import { createQueue, firstTrack, nextTrack, previousTrack, withMode } from './queue';
+import { createQueue, firstTrack, nextTrack, previousTrack, refreshQueue, withMode } from './queue';
 
 const IDS = ['a', 'b', 'c', 'd'] as const;
 
@@ -131,5 +131,39 @@ describe('queue: first track (D85、D99)', () => {
         expect(firstTrack(queue)).toBeNull();
         expect(nextTrack(queue, 'x', 'auto', ZERO).trackId).toBeNull();
         expect(previousTrack(queue, 'x')).toBeNull();
+    });
+});
+
+/* T-070：Favourites 碟播緊時收藏有變（加歌、播完嘅歌拎走）：隊列跟新嘅歌單，唔重新開始 */
+describe('queue: refreshing the tracks of the loaded disc', () => {
+    it('should follow the new list in order modes', () => {
+        const queue = refreshQueue(
+            createQueue(['a', 'b', 'c'], 'all', 'a', ZERO),
+            ['b', 'c', 'e'],
+            ZERO,
+        );
+        expect(queue).toMatchObject({
+            mode: 'all',
+            trackIds: ['b', 'c', 'e'],
+            order: ['b', 'c', 'e'],
+        });
+    });
+
+    it('should keep this shuffle round, drop the removed tracks and add new ones after it', () => {
+        const shuffled = createQueue(['a', 'b', 'c', 'd'], 'shuffle', 'c', ZERO);
+        const queue = refreshQueue(shuffled, ['a', 'c', 'd', 'e', 'f'], ZERO);
+        const kept = shuffled.order.filter((id) => id !== 'b');
+        expect(queue.order.slice(0, kept.length)).toEqual(kept);
+        expect([...queue.order.slice(kept.length)].sort()).toEqual(['e', 'f']);
+        expect(queue.trackIds).toEqual(['a', 'c', 'd', 'e', 'f']);
+    });
+
+    it('should go on from the playing track to the next one of the new list', () => {
+        const queue = refreshQueue(
+            createQueue(['a', 'b'], 'order', 'a', ZERO),
+            ['a', 'b', 'c'],
+            ZERO,
+        );
+        expect(nextTrack(queue, 'b', 'auto', ZERO).trackId).toBe('c');
     });
 });

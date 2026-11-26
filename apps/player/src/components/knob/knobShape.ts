@@ -21,7 +21,7 @@ export const KNOB_SHAPE = {
     heart: {
         full: 38,
         color: '#3a3a3a',
-        /** Favourites 碟嘅著燈色（設計稿 ALBUMS.favourites.glow；Favourites 碟嘅樣係 T-070） */
+        /** Favourites 碟嘅著燈色（設計稿 ALBUMS.favourites.glow；碟面同紅色喺 favourites/favouritesAlbum） */
         lit: 'hsl(352 96% 60%)',
         haloExtra: 4,
         haloOpacity: 0.6,

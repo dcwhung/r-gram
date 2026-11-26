@@ -30,6 +30,14 @@ describe('catalog selectors', () => {
             const withEmpty = makeDocument([makeAlbum('new-album', [])]);
             expect(dialAlbums(withEmpty).map((album) => album.id)).toEqual(['new-album']);
         });
+
+        it('should leave out the Favourites disc (the heart is always the last position, T-070)', () => {
+            const withHeart = makeDocument([
+                makeAlbum('zebra', []),
+                { ...makeAlbum('heart', []), id: FAVOURITES_ALBUM_ID },
+            ]);
+            expect(dialAlbums(withHeart).map((album) => album.id)).toEqual(['zebra']);
+        });
     });
 
     describe('findAlbum', () => {

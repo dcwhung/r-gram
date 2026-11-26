@@ -17,6 +17,7 @@ const mini = (overrides: Partial<MiniView> = {}): MiniView => ({
     glow: '#24f96f',
     coverUrl: 'https://api.example/img/komorebi-cover.webp',
     thumbUrl: 'https://api.example/img/komorebi-thumb.webp',
+    face: 'cover',
     ...overrides,
 });
 
@@ -183,5 +184,12 @@ describe('MiniTurntable', () => {
         expect(button).toHaveAttribute('tabindex', '-1');
         if (button) fireEvent.click(button);
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    // T-070：由 Favourites 碟播緊：細唱片機嘅碟都係黑色碟 + logo
+    it('should show the Favourites face when the loaded disc is the Favourites disc', () => {
+        const { part } = renderMini(mini({ face: 'favourites', coverUrl: null, thumbUrl: null }));
+        expect(part('favourites-face')).not.toBeNull();
+        expect(renderMini().part('favourites-face')).toBeNull();
     });
 });

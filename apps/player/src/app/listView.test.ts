@@ -1,5 +1,6 @@
 import { FAVOURITES_ALBUM_ID } from '@r-gram/catalog';
 import { makeAlbum, makeDocument, sampleDocument } from '../catalog/testing/catalogFixtures';
+import { FAVOURITES_ACCENT, withFavourites } from '../favourites/favouritesAlbum';
 import { listView } from './listView';
 import { IDLE_PLAYBACK, type PlaybackState } from '../playback/playbackState';
 import { INITIAL_STAGE, type StageState } from './stageReducer';
@@ -69,5 +70,23 @@ describe('listView opened from the track column', () => {
         ['the disc is the loaded one', listOn('apollo-18'), loaded, false],
     ])('should tell whether it opens from the column when %s', (_c, stage, playback, expected) => {
         expect(listView(sampleDocument(), stage, playback)?.fromColumn).toBe(expected);
+    });
+
+    // T-070、設計稿「Favourites 歌單」：歌號 = 收藏次序；未有音檔嘅歌變灰；Favourites 碟嘅紅色
+    it('should list the favourites in favourite order with the favourite number, greyed without audio', () => {
+        const document = withFavourites(sampleDocument(), [
+            { trackId: 'room-01', addedAt: 1 },
+            { trackId: 'apollo-18-02', addedAt: 2 },
+            { trackId: 'gone-01', addedAt: 3 },
+            { trackId: 'apollo-18-01', addedAt: 4 },
+        ]);
+        const view = listView(document, listOn(FAVOURITES_ALBUM_ID, 'apollo-18-01'));
+        expect(view?.accent).toBe(FAVOURITES_ACCENT);
+        expect(view?.rows.map(({ id, number, playable }) => [id, number, playable])).toEqual([
+            ['room-01', '01', true],
+            ['apollo-18-02', '02', false],
+            ['apollo-18-01', '03', true],
+        ]);
+        expect(view?.focusIndex).toBe(2);
     });
 });

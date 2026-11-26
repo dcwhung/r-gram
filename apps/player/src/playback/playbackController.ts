@@ -23,14 +23,30 @@ import {
     playbackReducer,
     type PlaybackState,
 } from './playbackState';
-import { createQueue, firstTrack, nextTrack, previousTrack, type Queue, withMode } from './queue';
+import {
+    createQueue,
+    firstTrack,
+    nextTrack,
+    previousTrack,
+    type Queue,
+    refreshQueue,
+    withMode,
+} from './queue';
 import { SessionSync } from './sessionSync';
+
+/** 一首歌原本嗰隻碟（Media Session 嘅碟名同封面） */
+export interface SourceAlbum {
+    readonly title: string;
+    readonly artwork: readonly MediaImage[];
+}
 
 export interface SourceTrack extends EngineTrack {
     readonly title: string;
+    /** 首歌原本嗰隻碟同來源唔同（Favourites 碟，T-070）先有；冇 = 用來源嘅碟名同封面 */
+    readonly album?: SourceAlbum;
 }
 
-/** 一隻碟（將來 Favourites 碟一樣）：播得嘅歌（碟嘅次序）、碟名、封面（Media Session） */
+/** 一隻碟（連 Favourites 碟）：播得嘅歌（碟嘅次序）、碟名、封面（Media Session） */
 export interface PlaybackSource {
     readonly albumId: string;
     readonly albumTitle: string;
@@ -61,6 +77,11 @@ export interface PlaybackController {
     getSnapshot(): PlayerSnapshot;
     /** 用戶手勢入面同步叫：由泊位開始播（唱臂開場，唱針放低先出聲） */
     start(source: PlaybackSource, trackId: string): void;
+    /**
+     * 載入嘅碟換咗歌單（Favourites 碟播緊時收藏有變，T-070）：之後嘅自動下一首、上／下一首跟新歌單；
+     * 而家嗰首照播。唔係載入嘅碟 = 唔做嘢
+     */
+    refresh(source: PlaybackSource): void;
     pause(): void;
     /** 繼續：升針 = 即刻；MV 收埋後 = 開場；載入失敗、播完、被拒 = 由泊位重新開始（手勢入面叫） */
     resume(): void;
@@ -158,6 +179,13 @@ class Controller implements PlaybackController {
         }
         this.engine.cue(track);
         this.afterLeadIn(() => this.engine.land());
+    }
+
+    refresh(source: PlaybackSource): void {
+        if (!this.source || this.source.albumId !== source.albumId) return;
+        this.source = source;
+        const ids = source.tracks.map((track) => track.id);
+        this.queue = refreshQueue(this.queue, ids, this.random);
     }
 
     pause(): void {

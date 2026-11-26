@@ -30,6 +30,8 @@ export interface HomeHandlers extends DialHandlers {
     onPlayListTrack: (trackId: string) => void;
     /** 㩒右上角細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048） */
     onReturnToLoaded: () => void;
+    /** 㩒左上歌名後面嘅心形：收藏／取消收藏播緊嘅歌（T-070） */
+    onFavourite: () => void;
 }
 
 /** 螺絲分兩組：上半嘅貼頂，下半嘅（左下）跟唱片機貼底（FR-039） */

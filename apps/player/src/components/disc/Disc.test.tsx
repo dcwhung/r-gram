@@ -173,4 +173,32 @@ describe('Disc', () => {
         const ids = [...container.querySelectorAll('clipPath')].map((clip) => clip.id);
         expect(new Set(ids).size).toBe(2);
     });
+
+    // T-070、設計稿 COVERS.favourites：黑色碟，全個 logo 喺碟芯正下方，闊度 = 碟半徑 × 0.36
+    it('should draw the Favourites face: a black record with the whole logo under the hub', () => {
+        const logo = PHONE_LAYOUT.favouritesLogo;
+        const container = renderDisc({ logo });
+        const face = container.querySelector('[data-part="favourites-face"]');
+        expect(face?.querySelector('circle')).toHaveAttribute('fill', 'url(#rg-vinyl)');
+        const image = face?.querySelector('image');
+        const width = DISC_ART_RADIUS * logo.width;
+        const height = width * logo.aspect;
+        expect(image?.getAttribute('href')).toMatch(/logo-full/);
+        expect(Number(image?.getAttribute('width'))).toBeCloseTo(width, 0);
+        expect(Number(image?.getAttribute('height'))).toBeCloseTo(height, 0);
+        expect(Number(image?.getAttribute('x'))).toBeCloseTo(-width / 2, 0);
+        expect(Number(image?.getAttribute('y'))).toBeCloseTo(
+            DISC_ART_RADIUS * logo.centreY - height / 2,
+            0,
+        );
+        expect(container.querySelector('[data-part="cover-fill"]')).toBeNull();
+    });
+
+    it('should spin the Favourites face with the disc', () => {
+        const container = renderDisc({ logo: PHONE_LAYOUT.favouritesLogo, spinning: true });
+        expect(container.querySelector('[data-part="cover"]')).toHaveAttribute(
+            'data-spinning',
+            'true',
+        );
+    });
 });

@@ -1,6 +1,7 @@
 import type { CatalogAlbum, CatalogTrack } from '@r-gram/catalog';
 import { render } from '@testing-library/react';
 import { makeAlbum } from '../../catalog/testing/catalogFixtures';
+import { hitSizeUnits } from '../../stage/geometry';
 import { PHONE_LAYOUT } from '../../stage/layouts';
 import { estimateTextWidth } from '../../utils/textMeasure';
 import { InfoBlock } from './InfoBlock';
@@ -20,6 +21,8 @@ const track = (overrides: Partial<CatalogTrack> = {}): CatalogTrack => ({
     ...overrides,
 });
 
+const HIT = hitSizeUnits(PHONE_LAYOUT);
+
 const renderInfo = (props: Partial<Parameters<typeof InfoBlock>[0]> = {}) => {
     const { container } = render(
         <svg>
@@ -29,7 +32,9 @@ const renderInfo = (props: Partial<Parameters<typeof InfoBlock>[0]> = {}) => {
                 track={null}
                 timeText="0:41"
                 accent="#2f8f57"
+                glow="#2fdb74"
                 measure={estimateTextWidth}
+                hitSize={HIT}
                 {...props}
             />
         </svg>,
@@ -182,7 +187,9 @@ describe('InfoBlock long song titles', () => {
                     track={track({ title })}
                     timeText="0:41"
                     accent="#2f8f57"
+                    glow="#2fdb74"
                     measure={estimateTextWidth}
+                    hitSize={HIT}
                 />
             </svg>,
         );
@@ -195,7 +202,9 @@ describe('InfoBlock long song titles', () => {
                     track={track({ title })}
                     timeText="0:41"
                     accent="#2f8f57"
+                    glow="#2fdb74"
                     measure={wider}
+                    hitSize={HIT}
                 />
             </svg>,
         );

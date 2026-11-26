@@ -28,9 +28,22 @@
     stroke: var(--color-info-faint);
 }
 
-.info-track {
+.info-track,
+.info-origin {
     fill: var(--color-info-faint);
     font-family: var(--font-mixed);
+}
+
+/* 心形掣（T-070）：同其他掣一樣，鍵盤 focus 時喺感應範圍畫虛線框（SVG outline 喺 Safari 唔可靠） */
+.info-heart-button[role='button'] {
+    cursor: pointer;
+    outline: none;
+}
+
+.info-heart-button:focus-visible [data-part='heart-hit'] {
+    stroke: var(--color-ink);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
 }
 
 /* 設計稿 SLAB_LIGHT（Light 係另一個 family，唔係字重） */
@@ -47,6 +60,11 @@
 
 .info--dark .info-year {
     fill: var(--color-info-soft-dark);
+}
+
+/* 設計稿 infoParts()：暗層上面嘅 faint = #8f8c85 */
+.info--dark .info-origin {
+    fill: var(--color-muted);
 }
 
 .info-version--dark {

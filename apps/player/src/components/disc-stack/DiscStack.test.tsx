@@ -10,6 +10,7 @@ const entry = (albumId: string): DialEntry => ({
     accent: '#c8442b',
     coverUrl: `https://img.example/${albumId}.webp`,
     thumbUrl: `https://img.example/${albumId}-thumb.webp`,
+    face: albumId === 'j' ? 'favourites' : 'cover',
 });
 const ENTRIES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].map(entry);
 
@@ -169,5 +170,16 @@ describe('DiscStack', () => {
         it.each([7, 8, 10])('should never move a disc node with %d entries', (count) => {
             expect(movedOnSomeStep(count)).toBe(false);
         });
+    });
+
+    // T-070：♥ 格（呢度係最尾嗰隻 j）用 Favourites 碟面，其他碟用封面
+    it('should draw the Favourites face for the heart disc only', () => {
+        const container = renderStack({ current: 9 });
+        const faces = [...container.querySelectorAll('[data-part="stack-disc"]')].map((disc) => [
+            disc.getAttribute('data-album'),
+            disc.querySelector('[data-part="favourites-face"]') !== null,
+        ]);
+        expect(faces).toContainEqual(['j', true]);
+        expect(faces.filter(([, logo]) => logo)).toHaveLength(1);
     });
 });
