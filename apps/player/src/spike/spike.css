@@ -1,0 +1,429 @@
+/* T-010 spike 頁（用完即棄）：普通可以捲動嘅頁面，手機直向睇得清楚，掣夠大 */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-cjk);
+    font-size: 17px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+}
+
+.spike {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: calc(env(safe-area-inset-top, 0px) + 16px) calc(env(safe-area-inset-right, 0px) + 16px)
+        calc(env(safe-area-inset-bottom, 0px) + 32px) calc(env(safe-area-inset-left, 0px) + 16px);
+}
+
+.spike h1 {
+    font-size: 24px;
+    margin: 0 0 8px;
+}
+
+.spike-item {
+    margin: 20px 0;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+
+.spike-item h2 {
+    font-size: 20px;
+    margin: 0 0 6px;
+}
+
+.spike-how {
+    color: #444;
+    margin: 0 0 12px;
+}
+
+.spike-mono {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 13px;
+    word-break: break-all;
+    color: #555;
+}
+
+.spike-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+}
+
+.spike-button {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 10px 16px;
+    border: 2px solid var(--color-ink);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--color-ink);
+    font: inherit;
+    font-weight: 600;
+    touch-action: manipulation;
+}
+
+.spike-button:disabled {
+    opacity: 0.4;
+}
+
+.spike-button--main {
+    background: var(--color-ink);
+    color: #fff;
+}
+
+.spike-button[aria-pressed='true'] {
+    background: #1d6b35;
+    border-color: #1d6b35;
+    color: #fff;
+}
+
+.spike-button--no[aria-pressed='true'] {
+    background: #a3261b;
+    border-color: #a3261b;
+}
+
+.spike-button:focus-visible {
+    outline: 3px solid #1a5fd0;
+    outline-offset: 2px;
+}
+
+.spike-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+}
+
+.spike-field input[type='text'] {
+    min-height: 44px;
+    padding: 8px;
+    font: inherit;
+    font-size: 16px;
+    border: 1px solid #999;
+    border-radius: 8px;
+}
+
+.spike-field input[type='range'] {
+    width: 100%;
+    min-height: 44px;
+}
+
+.spike-toggle {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-height: 44px;
+}
+
+.spike-toggle input {
+    width: 24px;
+    height: 24px;
+}
+
+.spike-check {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.spike-check > span {
+    flex: 1 1 100%;
+}
+
+.spike-results {
+    margin-top: 12px;
+}
+
+.spike-result {
+    margin: 4px 0;
+}
+
+.spike-result--pass {
+    color: #1d6b35;
+}
+
+.spike-result--fail {
+    color: #a3261b;
+}
+
+.spike-log {
+    max-height: 180px;
+    overflow: auto;
+    padding: 8px;
+    background: #f1f1f1;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.spike-summary {
+    width: 100%;
+    min-height: 320px;
+    margin-top: 12px;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 12px;
+}
+
+.spike-video {
+    width: 100%;
+    background: #000;
+}
+
+.spike-meter {
+    height: 12px;
+    border-radius: 6px;
+    background: #ddd;
+    overflow: hidden;
+}
+
+.spike-meter > div {
+    height: 100%;
+    background: #1d6b35;
+}
+
+.spike-hidden {
+    position: absolute;
+    width: 0;
+    height: 0;
+}
+
+/* ⑤ 全螢幕量度：舞台元件要一個 position 容器 */
+.spike-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: var(--color-stage);
+}
+
+.spike-blur {
+    position: absolute;
+    inset: 0;
+}
+
+.spike-blur-video {
+    position: absolute;
+    left: 10%;
+    top: 30%;
+    width: 80%;
+    background: #000;
+}
+
+.spike-mover {
+    position: absolute;
+    left: 0;
+    bottom: 20%;
+    width: 30%;
+    height: 24px;
+    background: var(--color-ink);
+    animation: spike-move 1.2s linear infinite alternate;
+}
+
+@keyframes spike-move {
+    to {
+        transform: translateX(233%);
+    }
+}
+
+.spike-overlay-note {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    margin: 0;
+    text-align: center;
+    color: #fff;
+    background: rgb(0 0 0 / 60%);
+}
+
+/* ⑥ 反方向轉嘅舞台 */
+.spike-landscape {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    background: #222;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.spike-landscape-stage {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+    background: var(--color-paper);
+    font-size: 15px;
+}
+
+.spike-landscape-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 12px;
+    background: #ffd84d;
+}
+
+.spike-readout {
+    margin: 0 12px;
+}
+
+.spike-landscape .spike-row,
+.spike-landscape .spike-check {
+    margin: 2px 12px;
+}
+
+.spike-landscape-play {
+    display: flex;
+    gap: 12px;
+    margin: 0 12px;
+    min-height: 0;
+    flex: 1 1 auto;
+}
+
+.spike-drag-list {
+    flex: 1 1 50%;
+    height: 220px;
+    overflow: hidden;
+    border: 2px solid var(--color-ink);
+    border-radius: 8px;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.spike-drag-row {
+    height: 44px;
+    line-height: 44px;
+    padding: 0 12px;
+    border-bottom: 1px solid #ccc;
+}
+
+.spike-knob-wrap {
+    flex: 1 1 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.spike-knob {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #eee, #999);
+    border: 3px solid var(--color-ink);
+    touch-action: none;
+}
+
+.spike-knob-mark {
+    position: absolute;
+    inset: 0;
+}
+
+.spike-knob-mark::after {
+    content: '';
+    position: absolute;
+    left: calc(50% - 3px);
+    top: 6px;
+    width: 6px;
+    height: 40%;
+    border-radius: 3px;
+    background: #a3261b;
+}
+
+.spike-corner {
+    position: absolute;
+    padding: 2px 6px;
+    font-size: 12px;
+    background: #1a5fd0;
+    color: #fff;
+}
+
+.spike-corner--0 {
+    top: 0;
+    left: 0;
+}
+
+.spike-corner--1 {
+    top: 0;
+    right: 0;
+}
+
+.spike-corner--2 {
+    bottom: 0;
+    left: 0;
+}
+
+.spike-corner--3 {
+    bottom: 0;
+    right: 0;
+}
+
+/* 安全區（唔跟舞台轉）：半透明橙色，睇到狀態列、瀏海、底部橫條佔咗邊度 */
+.spike-safe {
+    position: fixed;
+    pointer-events: none;
+    background: rgb(255 120 0 / 35%);
+}
+
+.spike-safe--top {
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top, 0px);
+}
+
+.spike-safe--bottom {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-bottom, 0px);
+}
+
+.spike-safe--left {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: env(safe-area-inset-left, 0px);
+}
+
+.spike-safe--right {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: env(safe-area-inset-right, 0px);
+}
+
+/* 四邊安全區探針（landscape/insets.ts） */
+.spike-inset-probe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px)
+        env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .spike-mover {
+        animation: none;
+    }
+}

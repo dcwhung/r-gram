@@ -14,5 +14,5 @@
         "noEmit": true,
         "types": ["node", "vitest/globals"]
     },
-    "include": ["vite.config.ts", "src/**/*.node.test.ts"]
+    "include": ["vite.config.ts", "vite.spike.config.ts", "src/**/*.node.test.ts"]
 }

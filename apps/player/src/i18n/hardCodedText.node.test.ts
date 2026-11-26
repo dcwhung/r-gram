@@ -11,8 +11,11 @@ import { zhHant } from './zh-Hant';
  */
 const SRC = fileURLToPath(new URL('..', import.meta.url));
 const SOURCE_FILE = /\.tsx?$/;
-/** 路徑相對 `src/`：測試檔、語言檔、型別宣告唔使驗 */
-const EXEMPT = /\.test\.tsx?$|^i18n[\\/]zh-Hant\.ts$|\.d\.ts$/;
+/**
+ * 路徑相對 `src/`：測試檔、語言檔、型別宣告唔使驗。
+ * T-010 真機 spike 頁（用完即棄，唔入產品）：文字集中喺佢自己嘅 `spike/text.ts`，spike 其他檔照驗
+ */
+const EXEMPT = /\.test\.tsx?$|^i18n[\\/]zh-Hant\.ts$|^spike[\\/]text\.ts$|\.d\.ts$/;
 
 const sourceFiles = () =>
     readdirSync(SRC, { recursive: true, encoding: 'utf8' })
