@@ -112,5 +112,7 @@ describe('albumOrder', () => {
         expect(albumOrder(album('album', 1, 'b'), album('album', 1, 'a-z'))).toBeGreaterThan(0);
         expect(albumOrder(album('album', 1, 'a'), album('album', 1, 'a'))).toBe(0);
         expect(albumOrder(album('album', 1, 'a1'), album('album', 1, 'a-1'))).toBeGreaterThan(0);
+        // S-159：英文細楷、數字同 `-` 嘅 id，語系次序同 code unit 一樣；大楷先分得出（code unit：`B` < `a`）
+        expect(albumOrder(album('album', 1, 'a'), album('album', 1, 'B'))).toBeGreaterThan(0);
     });
 });

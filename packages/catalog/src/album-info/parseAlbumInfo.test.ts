@@ -173,6 +173,11 @@ describe('parseAlbumInfo', () => {
             '1歌名',
             '0. 歌名',
             '1000. 歌名',
+            // S-159：歌號最多三位，四位數字（連補零）唔係歌號
+            '0001. 歌名',
+            '1234 歌名',
+            // `曲目：` 有值唔係標頭，亦唔係曲目行
+            '曲目：1. 歌名',
             '1. ',
             '1.',
             'A. 歌名',
@@ -196,6 +201,13 @@ describe('parseAlbumInfo', () => {
             expect(info.tracks).toEqual([]);
             expect(info.checks).toEqual([
                 { level: 'warning', code: 'INFO_UNKNOWN_LINE', line: 2, params: {} },
+            ]);
+        });
+
+        it('should accept a track title of exactly the limit', () => {
+            const title = '歌'.repeat(TITLE_MAX_CHARS);
+            expect(parseAlbumInfo(`唱片名稱：A\n1. ${title}`).tracks).toEqual([
+                { no: 1, title, line: 2 },
             ]);
         });
 
