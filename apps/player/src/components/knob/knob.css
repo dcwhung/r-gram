@@ -45,6 +45,11 @@
         transition: transform var(--motion-scene-disc-change) cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    /* 第 20 版頭尾相接：跨過 ♥ 同第一隻碟之間，指針即刻由刻度尾跳返刻度頭（唔會轉成個刻度弧返去） */
+    .knob-move--jump {
+        transition: none;
+    }
+
     .knob-glow {
         transition: opacity var(--motion-scene-chrome-fade) ease;
     }

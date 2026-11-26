@@ -26,13 +26,23 @@ interface ArcRowProps {
     hitRight: number;
     /** 由歌單欄飄落（設計稿第 19 版 LIST_FLOAT）：起點同遲幾耐；冇 = 唔飄 */
     float?: ArcFloat | undefined;
+    /** 由歌單欄開、但喺接駁位另一邊（第 20 版）：唔飄，框線伸出時原地淡入 */
+    appear?: boolean;
 }
 
 /**
  * 行嘅範圍：上下 = 前後半行（相鄰兩行剛好接住），左邊 = 框嘅圓頭，右邊 = 框嘅右端。
  * 唔係掣（W-051）：㩒落冇反應，只係擋住下面嘅暗層（㩒行唔會收返歌單）；喺度拖照捲
  */
-const HitBand = ({ pose, list, hitRight }: Pick<ArcRowProps, 'pose' | 'list' | 'hitRight'>) => {
+export const HitBand = ({
+    pose,
+    list,
+    hitRight,
+}: {
+    pose: Pick<ArcRowPose, 'x' | 'top' | 'bottom'>;
+    list: ArcListLayout;
+    hitRight: number;
+}) => {
     const left = pose.x - list.frame.gap - list.frame.height / 2;
     return (
         <rect
@@ -46,9 +56,15 @@ const HitBand = ({ pose, list, hitRight }: Pick<ArcRowProps, 'pose' | 'list' | '
     );
 };
 
-/** 行嘅 class：未有音檔變灰；由歌單欄飄落就加過場 */
-const rowClass = (playable: boolean, floating: boolean) =>
-    ['arc-row', playable ? '' : 'arc-row--off', floating ? 'arc-row-float' : '']
+/** 由歌單欄開嘅過場 class：飄落、原地淡入（arcList.css）；冇過場 = '' */
+const entranceClass = (floating: boolean, appear: boolean) => {
+    if (floating) return 'arc-row-float';
+    return appear ? 'arc-row-appear' : '';
+};
+
+/** 行嘅 class：未有音檔變灰；由歌單欄開就加過場 */
+const rowClass = (playable: boolean, floating: boolean, appear: boolean) =>
+    ['arc-row', playable ? '' : 'arc-row--off', entranceClass(floating, appear)]
         .filter(Boolean)
         .join(' ');
 
@@ -67,7 +83,7 @@ export const ArcRow = memo(function ArcRow(props: ArcRowProps) {
             id={props.domId}
             role="option"
             data-part="arc-row"
-            className={rowClass(row.playable, props.float !== undefined)}
+            className={rowClass(row.playable, props.float !== undefined, props.appear ?? false)}
             style={props.float && arcFloatStyle(props.float, pose.opacity)}
             aria-label={t(row.playable ? 'list.track' : 'list.unavailable', names)}
             aria-selected={props.selected}

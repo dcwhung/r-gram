@@ -73,6 +73,15 @@
             backwards;
     }
 
+    /*
+     * 第 20 版頭尾相接：接駁位另一邊嘅行同接駁位唔係由歌單欄飄落，框線伸出時原地由透明淡入
+     *（設計稿 listLayer() 嘅 --o0: 0、--d: frameDelay）
+     */
+    .arc-row-appear {
+        animation: arc-fade-in var(--motion-scene-list-row-float) ease
+            var(--motion-scene-list-frame-delay) backwards;
+    }
+
     .arc-veil--in,
     .list-info-in {
         animation: arc-fade-in var(--motion-scene-list-veil) ease backwards;

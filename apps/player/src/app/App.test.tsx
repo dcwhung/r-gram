@@ -54,12 +54,14 @@ const renderHome = async (catalog: CatalogDocument = sampleDocument()) => {
         await waitFor(() => expect(screen.queryByRole('progressbar')).toBeNull());
     }
     const part = (name: string) => container.querySelector(`[data-part="${name}"]`);
+    // 轉盤上而家隻碟嘅封面（T-110 碟疊頭尾相接：第一隻碟前面都有碟，DOM 第一個封面唔一定係佢）
+    const cover = () => container.querySelector('[data-current="true"] [data-part="cover"]');
     const button = (name: string) => screen.getByRole('button', { name });
     const armLook = () => ({
         arm: part('arm')?.getAttribute('style'),
         lift: part('arm-lift')?.getAttribute('style'),
     });
-    return { container, part, button, armLook };
+    return { container, part, cover, button, armLook };
 };
 
 const PARKED = { arm: expect.stringContaining('rotate(176deg)'), lift: 'transform: scale(1);' };
@@ -140,17 +142,17 @@ describe('App home scene', () => {
     });
 
     it('should walk the clamp from no song to the list, playing, paused and playing again', async () => {
-        const { part, button, armLook } = await renderHome();
+        const { part, cover, button, armLook } = await renderHome();
         await userEvent.click(button('開啟歌單'));
         expect(button('關閉歌單')).toBeInTheDocument();
         await userEvent.click(button('播放'));
         expect(part('song-title')).toHaveTextContent('apollo-18 1');
         expect(part('track-line')).toHaveTextContent('第 01 首 · 0:00');
         expect(armLook()).toEqual(PLAYING);
-        expect(part('cover')).toHaveAttribute('data-spinning', 'true');
+        expect(cover()).toHaveAttribute('data-spinning', 'true');
         await userEvent.click(button('暫停'));
         expect(armLook()).toEqual(LIFTED);
-        expect(part('cover')).toHaveAttribute('data-spinning', 'false');
+        expect(cover()).toHaveAttribute('data-spinning', 'false');
         await userEvent.click(button('播放'));
         expect(armLook()).toEqual(PLAYING);
     });
@@ -288,16 +290,16 @@ describe('App home scene with motion', () => {
 
     // 由泊位開始播：轉入（升高住）→ 放低；碟等放低之後先轉
     it('should start turning the disc only after the needle is down', async () => {
-        const { part, button } = await renderHome();
+        const { part, cover, button } = await renderHome();
         fireEvent.click(button('開啟歌單'));
         fireEvent.click(button('播放'));
         expect(part('arm-lift')).toHaveAttribute('style', 'transform: scale(1.018);');
-        expect(part('cover')).toHaveAttribute('data-spinning', 'false');
+        expect(cover()).toHaveAttribute('data-spinning', 'false');
         act(() => vi.advanceTimersByTime(MOTION.scene.tonearmMs));
         expect(part('arm-lift')).toHaveAttribute('style', 'transform: scale(1);');
-        expect(part('cover')).toHaveAttribute('data-spinning', 'false');
+        expect(cover()).toHaveAttribute('data-spinning', 'false');
         act(() => vi.advanceTimersByTime(MOTION.scene.needleDropMs));
-        expect(part('cover')).toHaveAttribute('data-spinning', 'true');
+        expect(cover()).toHaveAttribute('data-spinning', 'true');
     });
 });
 

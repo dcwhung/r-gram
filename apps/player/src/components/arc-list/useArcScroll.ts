@@ -4,14 +4,14 @@
  * - 滾輪：儲夠一行先移一行（觸控板）；轉方向就由頭儲
  * - 鍵盤（焦點喺 listbox）：上下鍵一行、Page Up／Down 一版（見到嘅行數）、Home／End 頭尾；灰色行跳過；
  *   Enter／空白鍵播框入面嗰首
+ * - 第 20 版頭尾相接：捲過最後一首就係第一首（反方向一樣），接駁位唔停（arcScroll）；位置摺返入圈，唔會無限咁大
  * 停低（吸附、鍵盤、滾輪）就話畀外面知框入面係邊首（左上白字跟住變）。冇過場：位置即時到（減少動態效果唔使另外處理）。
  */
 import { type KeyboardEvent, type RefObject, useCallback, useMemo, useRef, useState } from 'react';
 import type { TrackRow } from '../../app/heldTracksView';
-import { nextRowIndex, stepRowIndex } from '../scroll/rowStep';
 import { useDragScroll } from '../scroll/useDragScroll';
 import { useWheel, wheelUnits } from '../scroll/useWheel';
-import { clampOffset, snapIndex, wheelSteps } from './arcScroll';
+import { framedRow, nextRingIndex, snapIndex, stepRing, wheelSteps, wrapOffset } from './arcScroll';
 
 const ACTIVATION_KEYS: readonly string[] = ['Enter', ' '];
 
@@ -67,9 +67,13 @@ const useWheelStep = (
             const { steps, rest: left } = wheelSteps(carried + units, pitch);
             rest.current = left;
             if (steps === 0) return;
-            const current = Math.round(latest.current);
-            const target = clampOffset(current + steps, rows.length);
-            settle(stepRowIndex(current, steps, pressable) ?? Math.round(target));
+            const next = stepRing(
+                framedRow(latest.current, rows.length),
+                steps,
+                pressable,
+                rows.length,
+            );
+            if (next !== null) settle(next);
         },
         [pitch, perPage, unit, rows.length, pressable, latest, settle],
     );
@@ -103,7 +107,7 @@ const keyHandler =
             if (!event.repeat && row?.playable) spec.onPlay(row.id);
             return;
         }
-        const next = nextRowIndex(event.key, active, pressable, spec.perPage);
+        const next = nextRingIndex(event.key, active, pressable, spec.rows.length, spec.perPage);
         if (next === null) return;
         event.preventDefault();
         settle(next);
@@ -124,10 +128,10 @@ export const useArcScroll = (spec: ArcScrollSpec): ArcScroll => {
     const rootRef = useWheelStep(spec, latest, settle);
     const dragHandlers = useDragScroll(
         spec,
-        (units) => setOffset(clampOffset(latest.current + units / pitch, rows.length)),
+        (units) => setOffset(wrapOffset(latest.current + units / pitch, rows.length)),
         () => settle(snapIndex(latest.current, pressable, rows.length)),
     );
-    const active = Math.round(clampOffset(offset, rows.length));
+    const active = framedRow(offset, rows.length);
     return {
         offset,
         active,

@@ -407,7 +407,8 @@ describe('ArcTrackList floating in from the column', () => {
 
     it('should float the visible rows in one after another, top first', () => {
         const { container } = renderList(view(MANY, 0, true), estimateTextWidth, true);
-        const shown = screen.getAllByRole('option').length;
+        // 第 20 版頭尾相接：淨係框嘅近邊（第 1 至 5 首）飄落；接駁位另一邊嘅原地淡入（ArcTrackListLoop.test）
+        const shown = 5;
         expect(floats(container)).toEqual(
             Array.from({ length: shown }, (_, slot) => `${slot * 80}ms`),
         );
@@ -419,7 +420,7 @@ describe('ArcTrackList floating in from the column', () => {
         const { container } = renderList(view(MANY, 0, true), estimateTextWidth, true);
         const ghosts = container.querySelector('[data-part="arc-ghosts"]');
         expect(ghosts).toHaveAttribute('aria-hidden', 'true');
-        const shown = screen.getAllByRole('option').length;
+        const shown = floats(container).length;
         const titles = [...(ghosts?.querySelectorAll('[data-part="held-title"]') ?? [])];
         expect(titles[0]).toHaveTextContent(`歌 ${shown + 1}`);
         const { top, pitch, bottomIdle } = PHONE_LAYOUT.heldTracks;
@@ -439,7 +440,7 @@ describe('ArcTrackList floating in from the column', () => {
         expect(lastY).toBeLessThan(bottomIdle);
         expect(lastY + pitch).toBeGreaterThanOrEqual(bottomIdle);
         expect(titles.length).toBe(
-            Math.floor((bottomIdle - top) / pitch - 0.5) + 1 - screen.getAllByRole('option').length,
+            Math.floor((bottomIdle - top) / pitch - 0.5) + 1 - floats(container).length,
         );
     });
 

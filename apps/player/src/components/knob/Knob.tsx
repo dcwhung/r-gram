@@ -53,17 +53,18 @@ const KnobBody = ({ knob }: Pick<StageLayout, 'knob'>) => (
     </>
 );
 
-/** 指針（專輯色）：轉去而家嗰格嘅角度（CSS 過場） */
+/** 指針（專輯色）：轉去而家嗰格嘅角度（CSS 過場）；`jump` = 跨過 ♥ 同第一隻碟之間，即刻跳過去 */
 const KnobPointer = ({
     knob,
     angle,
     accent,
-}: Pick<StageLayout, 'knob'> & { angle: number; accent: string }) => {
+    jump,
+}: Pick<StageLayout, 'knob'> & { angle: number; accent: string; jump: boolean }) => {
     const top = knob.r - face.inset;
     return (
         <g
             data-part="knob-pointer"
-            className="knob-move"
+            className={jump ? 'knob-move knob-move--jump' : 'knob-move'}
             style={{ transform: `translate(${knob.x}px, ${knob.y}px) rotate(${px(angle)}deg)` }}
         >
             <path
@@ -99,10 +100,11 @@ const KnobGlow = ({
 /**
  * 大旋鈕（設計稿 knob()）：滾花邊 + 車床面；指針（專輯色）指住而家嗰隻碟；轉碟中外圈著燈。
  * 拖住打圈揀碟、鍵盤方向鍵揀碟（useKnobTurn）；`role="slider"`（Technical Spec 實現注意事項 14）。
+ * 第 20 版頭尾相接：擰過 ♥ 就返第一隻碟，指針由刻度尾即刻跳返刻度頭（knobTurn、knob-move--jump）。
  */
 export const Knob = (props: KnobProps) => {
     const { layout, positions, current, open, accent, glow, valueText, covered = false } = props;
-    const { hitRef, handlers } = useKnobTurn(props);
+    const { hitRef, jump, handlers } = useKnobTurn(props);
     const { knob } = layout;
     return (
         <>
@@ -133,6 +135,7 @@ export const Knob = (props: KnobProps) => {
                     knob={knob}
                     angle={scaleAngle(layout, current, positions)}
                     accent={accent}
+                    jump={jump}
                 />
             </g>
         </>

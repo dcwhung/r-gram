@@ -1,13 +1,29 @@
-import { type KeyboardEvent, type PointerEvent, type RefObject, useEffect, useRef } from 'react';
+import {
+    type KeyboardEvent,
+    type PointerEvent,
+    type RefObject,
+    useEffect,
+    useRef,
+    useState,
+} from 'react';
 import { MOTION } from '../../config/motion';
 import type { StageLayout } from '../../stage/layouts';
-import { keyTarget, type KnobTurn, moveTurn, startTurn, turnedPosition } from './knobTurn';
+import {
+    crossesSeam,
+    keyTarget,
+    type KnobTurn,
+    moveTurn,
+    startTurn,
+    turnedPosition,
+} from './knobTurn';
 
 const RAD_TO_DEG = 180 / Math.PI;
 /** 完成揀碟（留喺指住嗰隻碟）嘅鍵 */
 const FINISH_KEY = 'Enter';
 /** 取消揀碟（返去開始嗰隻碟）嘅鍵（S-154） */
 const CANCEL_KEY = 'Escape';
+/** 直接去頭尾嘅鍵：唔當跨過 ♥ 同第一隻碟之間（指針照舊轉過去） */
+const EDGE_KEYS: readonly string[] = ['Home', 'End'];
 
 export interface KnobTurnOptions {
     layout: StageLayout;
@@ -73,7 +89,7 @@ const PRIMARY_BUTTON = 0;
 /** pointer 郁咗：計新嘅格，變咗先報 */
 const dragTo = (drag: Drag, event: PointerEvent, options: KnobTurnOptions) => {
     const limits = limitsOf(options);
-    drag.turn = moveTurn(drag.turn, angleOf(drag.knob, event), limits);
+    drag.turn = moveTurn(drag.turn, angleOf(drag.knob, event));
     const position = turnedPosition(drag.turn, limits);
     if (position === drag.reported) return;
     drag.reported = position;
@@ -90,7 +106,7 @@ const grab = (
     const knob = measure(hit, options.layout.knob.turnDeadZone);
     if (!knob) return null;
     event.currentTarget.setPointerCapture?.(event.pointerId);
-    const turn = moveTurn(startTurn(options.current), angleOf(knob, event), limitsOf(options));
+    const turn = moveTurn(startTurn(options.current), angleOf(knob, event));
     const { clientX: startX, clientY: startY } = event;
     return {
         pointerId: event.pointerId,
@@ -206,6 +222,7 @@ const keyboardTurn = (
     options: KnobTurnOptions,
     drag: { current: unknown },
     cancelHold: () => void,
+    turn: (position: number, mayJump: boolean) => void,
 ) => ({
     onKeyDown: (event: KeyboardEvent) => {
         if (event.key === FINISH_KEY || event.key === CANCEL_KEY) {
@@ -216,15 +233,30 @@ const keyboardTurn = (
         if (target === null) return;
         event.preventDefault();
         if (!options.open) options.onStart();
-        if (target !== options.current) options.onTurn(target);
+        if (target !== options.current) turn(target, !EDGE_KEYS.includes(event.key));
     },
     onBlur: () => {
         if (options.open && drag.current === null) options.onEnd();
     },
 });
 
+/**
+ * 頭尾相接（第 20 版）：擰過 ♥ 去第一隻碟（或者倒轉）時指針由刻度尾跳返刻度頭，唔好轉成個刻度弧返去。
+ * `jump` = 啱啱嗰一步跨過咗（Home / End 唔計）；字母盤閂埋就冇
+ */
+const useSeamJump = (options: KnobTurnOptions) => {
+    const [jump, setJump] = useState(false);
+    const turn = (position: number, mayJump: boolean) => {
+        setJump(mayJump && crossesSeam(options.current, position, options.positions));
+        options.onTurn(position);
+    };
+    return { jump: jump && options.open, turn };
+};
+
 export const useKnobTurn = (options: KnobTurnOptions) => {
-    const { hitRef, drag, hold, ...pointer } = usePointerTurn(options);
-    const keyboard = keyboardTurn(options, drag, hold.cancel);
-    return { hitRef, handlers: { ...pointer, ...keyboard } };
+    const { jump, turn } = useSeamJump(options);
+    const turning = { ...options, onTurn: (position: number) => turn(position, true) };
+    const { hitRef, drag, hold, ...pointer } = usePointerTurn(turning);
+    const keyboard = keyboardTurn(options, drag, hold.cancel, turn);
+    return { hitRef, jump, handlers: { ...pointer, ...keyboard } };
 };

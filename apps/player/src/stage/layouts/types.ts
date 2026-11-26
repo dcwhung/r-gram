@@ -180,6 +180,11 @@ export interface ArcListLayout {
     titleChars: number;
     /** 拖動要過幾多 CSS px 先當拖（拖過唔當㩒） */
     dragThresholdPx: number;
+    /**
+     * 接駁位（頭尾相接，最後一首之後）：專輯色嘅點（半徑 dot）+ 隔 gap 之後一條短線（長 length、粗 stroke）；
+     * 最淡 minOpacity
+     */
+    seam: { dot: number; gap: number; length: number; stroke: number; minOpacity: number };
 }
 
 export interface StageLayout {
