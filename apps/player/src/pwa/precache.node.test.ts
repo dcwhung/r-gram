@@ -59,4 +59,9 @@ describe('service worker precache', () => {
     it('should precache the app page exactly once', () => {
         expect(precacheCount('index.html')).toBe(1);
     });
+
+    // T-113：public/test-catalog 嘅臨時 catalog 由 loader 經網絡攞（離線用 loader 自己嘅本機副本），唔入預載清單
+    it('should not precache the temporary test catalog', () => {
+        expect(sw).not.toContain('test-catalog');
+    });
 });
