@@ -1,5 +1,5 @@
 import { leadInMs } from '../components/tonearm/armPose';
-import { PREVIOUS_RESTART_S } from '../config/limits';
+import { PREVIOUS_RESTART_S, STALL_NOTICE_MS } from '../config/limits';
 import { PLAY_MODE_STORAGE_KEY } from '../config/storageKeys';
 import { createAudioEngine } from './audioEngine';
 import { createPlaybackController, type PlaybackSource } from './playbackController';
@@ -277,6 +277,29 @@ describe('playbackController queue and end of the disc', () => {
 });
 
 describe('playbackController errors (US-004, T-011 §2.3)', () => {
+    // S-239（M38）：開場途中載入失敗要清落針 timer，唔可以喺唱針放低嗰刻再 play()
+    it('should cancel the needle landing when the track fails during the lead-in', () => {
+        const { element, controller, state } = setup();
+        controller.start(SOURCE, 'room-01');
+        element.fail('unsupported');
+        expect(state().status).toBe('error');
+        vi.advanceTimersByTime(LEAD_IN_MS);
+        expect(element.plays).toHaveLength(1);
+        expect(element.paused).toBe(true);
+    });
+
+    // S-239（M14／M40）：卡住 = 冇出聲，碟停轉
+    it('should stop the disc spinning while the record is stalled', () => {
+        const { element, controller } = setup({ reduceMotion: true });
+        controller.start(SOURCE, 'room-01');
+        expect(controller.getSnapshot().audible).toBe(true);
+        element.fire('waiting');
+        vi.advanceTimersByTime(STALL_NOTICE_MS);
+        expect(controller.getSnapshot().audible).toBe(false);
+        element.fire('playing');
+        expect(controller.getSnapshot().audible).toBe(true);
+    });
+
     it('should park on a failed load and start the same track again on the next tap', () => {
         const { element, controller, state } = setup();
         controller.start(SOURCE, 'room-02');
