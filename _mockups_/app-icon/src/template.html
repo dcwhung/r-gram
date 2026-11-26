@@ -7,6 +7,7 @@
 <title>R Gram App Icon</title>
 <!--
     R Gram — app icon 設計稿（手機主畫面 icon 同瀏覽器 favicon）
+    第 4 版（2026-11-26）：加「C 同 D 放喺介面入面」：管理端頂條同播放端主頁（src/player-home.jpg 由 node src/capture_home.cjs 影）。
     第 3 版（2026-11-26，等用戶喺 C 同 D 之間揀）：C 同 D 嘅碟放大（標誌大細不變），左下加一粒旋鈕。
     第 2 版（2026-11-26）：方案 C 同 D 嘅碟放正中、同一大細，唱臂同底座縮細；頁頂加並排比較。
     第 1 版（2026-11-26）：五個方案（A 至 D 用 RubberBand 標誌，E 唔用），每個連細尺寸簡化版、
@@ -100,6 +101,23 @@ table { border-collapse: collapse; width: 100%; min-width: 520px; }
 th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { color: var(--muted); font-weight: 500; white-space: nowrap; }
 tr:last-child td { border-bottom: 0; }
+.ui { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; }
+.ui figure { margin: 0; min-width: 0; }
+/* 管理端頂條（抄自 _mockups_/admin：鋁條、左右螺絲、R Gram 內容管理、帳戶、登出） */
+.ui-admin { padding: 16px 12px; border-radius: 14px; background: radial-gradient(110% 110% at 30% 12%, #fff, #eeefec); color: #111; }
+.ui-top { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 38px; border-radius: 999px; background: linear-gradient(90deg, #cfcfcc, #efefed 14%, #d6d6d3 32%, #f4f4f2 52%, #d2d2cf 74%, #ececea 90%, #c9c9c6); box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #9a9a96, 0 0 0 1px rgba(95, 95, 95, .45), 0 14px 30px rgba(0, 0, 0, .14); }
+.ui-top .screw { position: absolute; top: 50%; margin-top: -9px; width: 18px; height: 18px; }
+.ui-top .screw.tl { left: 12px; } .ui-top .screw.tr { right: 12px; }
+.ui-top svg.icon { width: 44px; height: 44px; }
+.ui-brand { font: 400 26px/1 "RB Slab", Rockwell, serif; letter-spacing: .5px; white-space: nowrap; }
+.ui-brand small { font: 700 13px/1 "Noto Sans HK", "PingFang HK", "Microsoft JhengHei", system-ui, sans-serif; margin-left: 8px; color: #6b6b67; letter-spacing: 2px; }
+.ui-who { margin-left: auto; font-size: 13px; color: #6b6b67; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ui-round { width: 44px; height: 44px; flex: none; overflow: visible; }
+@media (max-width: 760px) { .ui-who { display: none; } .ui-round { margin-left: auto; } .ui-brand small { display: none; } }
+/* 播放端主頁（已確認設計稿嘅截圖）+ icon */
+.ui-phone { position: relative; width: 100%; max-width: 390px; border-radius: 24px; overflow: hidden; box-shadow: 0 0 0 1px var(--line), 0 18px 44px rgba(0, 0, 0, .55); }
+.ui-phone img { display: block; width: 100%; height: auto; }
+.ui-phone svg.icon { position: absolute; left: 86.2%; top: 7.2%; width: 8.6%; }
 ul.plain { margin: 0 0 10px; padding-left: 1.3em; color: var(--muted); max-width: 74ch; }
 ul.plain li { margin-bottom: 4px; }
 </style>
@@ -119,6 +137,13 @@ ul.plain li { margin-bottom: 4px; }
     <h2 id="compare-title">C 同 D 並排比較</h2>
     <p class="lede">碟嘅位置、大細、唱臂同旋鈕完全一樣，只差顏色。</p>
     <div class="compare" id="compare"></div>
+
+    <h2>C 同 D 放喺介面入面</h2>
+    <p class="lede">管理端頂條：icon 放喺「R Gram」字樣左邊，44 px。播放端主頁：設計稿本身冇預留 logo 位，呢度試放喺右上角版本號下面（唱臂配重上方嘅空位），大約 34 px；位置係建議，未入設計稿。</p>
+    <h3>管理端頂條</h3>
+    <div class="ui" id="ui-admin" style="grid-template-columns: minmax(0, 1fr)"></div>
+    <h3>播放端主頁</h3>
+    <div class="ui" id="ui-player"></div>
 
     <ul class="toc" id="toc" aria-label="方案"></ul>
 
@@ -609,6 +634,19 @@ ul.plain li { margin-bottom: 4px; }
         return `<figure>${icon(key, 'full', 'rounded', { label: `方案 ${key}` })}<div class="row">${slot('square', '22.37%')}${slot('maskable', '50%')}${small}</div><figcaption><b>${key}・${VARIANTS[key].title}</b><br>下排：iOS、Android 圓形、48、32、16</figcaption></figure>`;
     };
 
+    /* ---------- 放喺介面入面 ---------- */
+    const PLAYER_HOME = '__PLAYER_HOME__';
+    const UI_DETAIL = 'mid'; // 44 px 同 34 px 都用中版
+    const uiScrew = (corner) =>
+        `<svg class="screw ${corner}" viewBox="-12 -12 24 24" aria-hidden="true">${metal(0, 0, 11, { rot: 70, bevel: 0.2, withShadow: false })}<path d="M-6 0H6" stroke="#555" stroke-width="2.4" stroke-linecap="round" transform="rotate(35)"/></svg>`;
+    const LOGOUT_ICON = '<path d="M-2 -8h-6v16h6M0 0h9M5 -4l4 4l-4 4" fill="none" stroke="#2e2e2e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+    const adminBar = (key) =>
+        `<figure><div class="ui-admin"><div class="ui-top">${uiScrew('tl')}${uiScrew('tr')}${icon(key, UI_DETAIL, 'rounded')}<span class="ui-brand">R Gram<small>內容管理</small></span>` +
+        `<span class="ui-who">admin@example.com</span><svg class="ui-round" viewBox="-24 -24 48 48" aria-hidden="true">${metal(0, 0, 19)}${LOGOUT_ICON}</svg></div></div>` +
+        `<figcaption><b>${key}・${VARIANTS[key].title}</b></figcaption></figure>`;
+    const playerHome = (key) =>
+        `<figure><div class="ui-phone"><img src="${PLAYER_HOME}" alt="播放端主頁（設計稿第 18 版）">${icon(key, UI_DETAIL, 'rounded')}</div><figcaption><b>${key}・${VARIANTS[key].title}</b></figcaption></figure>`;
+
     const planRow = (plan) =>
         `<tr><td><b>${plan.px}</b></td><td>${plan.use}</td><td>${DETAILS[plan.detail].label}・${shapeNote[plan.shape]}</td><td>${DETAIL_NOTE[plan.detail]}</td></tr>`;
 
@@ -617,6 +655,8 @@ ul.plain li { margin-bottom: 4px; }
         const keys = Object.keys(VARIANTS);
         document.getElementById('toc').innerHTML = keys.map((key) => `<li><a href="#variant-${key}">${icon(key, 'mid', 'rounded')}<span>${key}・${VARIANTS[key].title}</span></a></li>`).join('');
         document.getElementById('compare').innerHTML = COMPARE.map(compareFigure).join('');
+        document.getElementById('ui-admin').innerHTML = COMPARE.map(adminBar).join('');
+        document.getElementById('ui-player').innerHTML = COMPARE.map(playerHome).join('');
         document.getElementById('variants').innerHTML = keys.map(variantSection).join('');
         document.getElementById('plan').innerHTML =
             PLAN.map(planRow).join('') +
