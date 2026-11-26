@@ -69,7 +69,12 @@ const fakeMaker = () => {
                 set: () => true,
             },
         );
-        const canvas = { width, height, painted, getContext: () => ctx };
+        const canvas = {
+            width,
+            height,
+            painted,
+            getContext: () => ctx as CanvasRenderingContext2D,
+        };
         made.push(canvas);
         return canvas;
     };

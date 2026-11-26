@@ -16,9 +16,11 @@ export const FlagCanvas = ({ preload }: { preload: PreloadLayout }) => {
     const ref = useRef<HTMLCanvasElement>(null);
     const scene = useMemo(() => flagSceneFor(preload, extraUnits), [preload, extraUnits]);
     const scale = unit * pixelRatio();
-    useFlagAnimation(ref, scene, scale);
+    // context lost 之後換一塊新 canvas 畫靜止（用過 WebGL 嘅 canvas 攞唔到 2D context）
+    const mode = useFlagAnimation(ref, scene, scale);
     return (
         <canvas
+            key={mode}
             ref={ref}
             className="preload-flag"
             aria-hidden="true"
