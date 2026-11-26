@@ -138,12 +138,36 @@ describe('ArcTrackList', () => {
         ]);
     });
 
-    it('should play the focused row with Enter or Space, and a row that is tapped', () => {
-        const { listbox, option, onPlay } = renderList(view([row(1), row(2), row(3)], 1));
+    it('should play the focused row with Enter or Space', () => {
+        const { listbox, onPlay } = renderList(view([row(1), row(2), row(3)], 1));
         fireEvent.keyDown(listbox(), { key: 'Enter' });
         fireEvent.keyDown(listbox(), { key: ' ' });
-        fireEvent.click(option('第 3 首：歌 3'));
-        expect(onPlay.mock.calls).toEqual([['komorebi-02'], ['komorebi-02'], ['komorebi-03']]);
+        expect(onPlay.mock.calls).toEqual([['komorebi-02'], ['komorebi-02']]);
+    });
+
+    // W-051（用戶決定）：行唔㩒得：㩒框入面或者淡色嗰行都冇反應（唔播、唔收、唔移）；播歌經唱片夾或者 Enter
+    it('should do nothing when a row is tapped, framed or dim', () => {
+        const { option, onPlay, onClose, onFocusTrack, selected } = renderList(view(LONG, 0));
+        const framed = option('第 1 首：歌 1');
+        const dim = option('第 4 首：歌 4');
+        for (const target of [framed, dim]) {
+            const hit = target.querySelector('[data-part="arc-hit"]');
+            if (!hit) throw new Error('no hit band');
+            fireEvent.pointerDown(hit, { pointerId: 1, clientY: 600 });
+            fireEvent.pointerUp(hit, { pointerId: 1, clientY: 600 });
+            fireEvent.click(hit);
+        }
+        expect(onPlay).not.toHaveBeenCalled();
+        expect(onClose).not.toHaveBeenCalled();
+        expect(onFocusTrack).not.toHaveBeenCalled();
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
+    });
+
+    it('should not present the rows as buttons', () => {
+        const { option } = renderList(view([row(1), row(2)]));
+        expect(screen.queryByRole('button', { name: /第 2 首/ })).toBeNull();
+        expect(option('第 2 首：歌 2')).not.toHaveAttribute('tabindex');
+        expect(option('第 2 首：歌 2')).not.toHaveClass('pressable');
     });
 
     // D25：㩒暗位收返；Esc 一樣
@@ -228,14 +252,15 @@ describe('ArcTrackList', () => {
         expect(selected()).toHaveAccessibleName('第 2 首：歌 2');
     });
 
-    it('should treat a small movement as a tap', () => {
-        const { option, onPlay } = renderList(view([row(1), row(2)]));
+    it('should neither scroll nor play on a small movement over a row', () => {
+        const { option, onPlay, selected } = renderList(view([row(1), row(2)]));
         const target = option('第 2 首：歌 2');
         fireEvent.pointerDown(target, { pointerId: 1, clientY: 600 });
         fireEvent.pointerMove(target, { pointerId: 1, clientY: 600 - (dragThresholdPx - 1) });
         fireEvent.pointerUp(target, { pointerId: 1 });
         fireEvent.click(target);
-        expect(onPlay).toHaveBeenCalledWith('komorebi-02');
+        expect(onPlay).not.toHaveBeenCalled();
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
     });
 
     it('should step a row per wheel row and keep the page from scrolling', () => {
