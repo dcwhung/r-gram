@@ -252,6 +252,17 @@ describe('ArcTrackList', () => {
         expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
     });
 
+    // S-198：Ctrl + 滾輪 / 觸控板 pinch 係縮放：留畀瀏覽器，歌單唔捲
+    it('should leave a pinch-zoom wheel to the browser', () => {
+        const { container, selected } = renderList(view(LONG, 0));
+        const root = container.querySelector('[data-part="arc-list"]');
+        if (!root) throw new Error('no list');
+        const wheel = createEvent.wheel(root, { deltaY: 3, deltaMode: 1, ctrlKey: true });
+        fireEvent(root, wheel);
+        expect(wheel.defaultPrevented).toBe(false);
+        expect(selected()).toHaveAccessibleName('第 1 首：歌 1');
+    });
+
     // 效能：歌名只喺開歌單時量一次；捲動唔再量字
     it('should not measure titles again while scrolling', () => {
         const measure = vi.fn(estimateTextWidth);
