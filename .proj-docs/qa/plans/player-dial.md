@@ -10,6 +10,7 @@
     - AC-6 ♥ 同鍵盤（FS US-012、FR-037、D58 ④；TS 實現注意事項 14；S-154）：㩒 ♥ 去 Favourites 碟、再㩒返之前嗰隻；方向鍵 / Home / End（= ♥）、第一下開；Enter / blur = 留低；Esc = 取消返開始嗰隻（拖緊都係）；focus 圈；收埋之後 focus 留喺旋鈕；歌單開住時旋鈕同 ♥ 離開 Tab、`aria-hidden`
     - AC-8 㩒住先開（S-152，用戶決定 B-083 ①）：pointer 㩒住 `dialHoldMs`（180 ms）或者郁過 `turnThresholdPx`（6 px）先開字母盤；輕點（< 180 ms、冇郁）乜都唔做、碟唔變；未開就放手 / 取消 / 離開 = 放棄；鍵盤照舊（第一下方向鍵即開）
     - AC-7 無障礙同減少動態（FS FR-010、FR-038；TS 14）：`role="slider"` + `aria-valuemin/max/now/text`（碟名）；旋鈕感應 ≥ 44pt（390pt 基準）、♥ 方格 ≥ 44pt；`prefers-reduced-motion: reduce` 全部即時
+    - AC-9 細掣同唱臂兩條規則（T-108；FS §CR-008 D86；Plan A5；設計稿第 19 版 `armFade`、`buttonsFade`）：`MachineChrome`：細掣跟字母盤（開住冇、鬆手有，拎住都有）；唱臂：字母盤開住或者有細唱片機冇；320 ms（`chromeFadeMs`）；減少動態效果即時。舊 AC-5 嘅「拎住時細掣淡出」作廢。旋鈕 AC-8（180 ms / 6 px）照驗做回歸
 - Scope files:
     - `apps/player/src/components/knob/**`、`dial-ring/**`、`disc-stack/**`、`chrome-fade/**`（連 test、css）
     - `apps/player/src/app/dialView.ts`、`dialView.test.ts`、`DialControls.tsx`、`MachineChrome.tsx`（接駁測試喺 `HomeScene.test.tsx`，屬 `player-home`）
