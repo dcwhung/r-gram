@@ -133,6 +133,15 @@ describe('MiniTurntable', () => {
             },
         );
 
+        // S-193：設計稿 miniTitle() 每次縮 MINI.titleStep（2）：6 個字放 162 闊，每次縮 1 會停喺 27，縮 2 停喺 26
+        it('should shrink the title in steps of the layout table', () => {
+            const node = renderMini(mini({ title: '下一位參賽者' })).part('mini-title');
+            expect(node).toHaveTextContent('下一位參賽者');
+            expect(node).toHaveAttribute('font-size', '26');
+            const size = Number(node?.getAttribute('font-size'));
+            expect((shape.title.size - size) % shape.title.step).toBe(0);
+        });
+
         it('should only shrink a title that fits at the minimum size', () => {
             const node = renderMini(mini({ title: '長夜的晚安' })).part('mini-title');
             expect(node).toHaveTextContent('長夜的晚安');

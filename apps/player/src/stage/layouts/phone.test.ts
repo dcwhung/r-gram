@@ -28,8 +28,8 @@ describe('PHONE_LAYOUT', () => {
         });
     });
 
-    // T-048：設計稿第 18 版 MINI = { x: 930, y: 322, r: 120, labelGap: 28, hitPad: 300, label: 24, title: 36 }；
-    // miniTurntable() 入面兩行字：「播放中」y − 18（字距 4）、歌名 y + 30
+    // T-048：設計稿第 18 版 MINI = { x: 930, y: 322, r: 120, labelGap: 28, hitPad: 300, label: 24, title: 36,
+    // titleMin: 24, titleStep: 2 }；miniTurntable() 入面兩行字：「播放中」y − 18（字距 4）、歌名 y + 30（S-193：每次縮 2）
     it('should carry the mini turntable of the mockup', () => {
         expect(PHONE_LAYOUT.miniTurntable).toEqual({
             x: 930,
@@ -38,7 +38,7 @@ describe('PHONE_LAYOUT', () => {
             labelGap: 28,
             hitPad: 300,
             label: { size: 24, rise: 18, spacing: 4 },
-            title: { size: 36, drop: 30, minSize: 24 },
+            title: { size: 36, drop: 30, minSize: 24, step: 2 },
         });
     });
 
