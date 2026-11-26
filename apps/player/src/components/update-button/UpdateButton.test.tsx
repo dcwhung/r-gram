@@ -70,16 +70,24 @@ describe('UpdateButton', () => {
         expect(onPress).toHaveBeenCalledTimes(3);
     });
 
+    // W-058（D95 🅰️ ①）：暗層下面唔係掣（唔㩒得、唔入 Tab 次序），但版本號照畀讀屏讀
     it('should be dimmed with the stage but not pressable or focusable while covered by the veil', () => {
         const { onPress, part } = renderButton(true);
-        expect(screen.queryByRole('button', { name: NAME })).toBeNull();
+        expect(screen.queryByRole('button')).toBeNull();
         const button = part('update-button') as Element;
-        expect(button).toHaveAttribute('tabindex', '-1');
-        expect(button).toHaveAttribute('aria-hidden', 'true');
+        expect(button).not.toHaveAttribute('tabindex');
+        expect(button).not.toHaveAttribute('role');
+        expect(button).not.toHaveAttribute('aria-label');
         expect(button).toHaveAttribute('pointer-events', 'none');
         expect(part('update-hit')).toBeNull();
         fireEvent.click(button);
         fireEvent.keyDown(button, { key: 'Enter' });
         expect(onPress).not.toHaveBeenCalled();
+    });
+
+    it('should keep the version number readable by screen readers while covered', () => {
+        renderButton(true);
+        const version = screen.getByText(/^v\d+\.\d+\.\d+$/);
+        expect(version.closest('[aria-hidden="true"]')).toBeNull();
     });
 });

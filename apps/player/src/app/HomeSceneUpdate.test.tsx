@@ -77,7 +77,7 @@ describe('HomeScene with an update waiting', () => {
         expect(
             button.compareDocumentPosition(veil) & Node.DOCUMENT_POSITION_FOLLOWING,
         ).toBeTruthy();
-        expect(button).toHaveAttribute('tabindex', '-1');
+        expect(button).not.toHaveAttribute('tabindex');
         expect(screen.queryByRole('button', { name: NAME })).toBeNull();
     });
 
@@ -85,7 +85,7 @@ describe('HomeScene with an update waiting', () => {
         'should take the button out of reach while the %s is open',
         (overlay) => {
             const { part } = renderScene({ overlay });
-            expect(part('update-button')).toHaveAttribute('tabindex', '-1');
+            expect(part('update-button')).not.toHaveAttribute('tabindex');
             expect(screen.queryByRole('button', { name: NAME })).toBeNull();
         },
     );

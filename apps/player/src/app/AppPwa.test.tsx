@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { sampleDocument } from '../catalog/testing/catalogFixtures';
 import type { UpdateStatus } from '../pwa/updateManager';
@@ -66,7 +66,8 @@ describe('App and the update manager', () => {
         render(<App startup={startup} updates={port} />);
         expect(port.endLaunch).not.toHaveBeenCalled();
         await screen.findByRole('button', { name: '開啟歌單' });
-        expect(port.endLaunch).toHaveBeenCalled();
+        // W-059：主頁一出 DOM 就會返，useLaunchEnd 嘅 effect 未必已經跑：等佢
+        await waitFor(() => expect(port.endLaunch).toHaveBeenCalled());
     });
 
     // D95：Preload 期間（連旗淡出中）永遠唔出版本掣，亦唔通知
@@ -117,7 +118,10 @@ describe('App and the update manager', () => {
         set('waiting');
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
         const button = screen.getByTestId('stage').querySelector('[data-part="update-button"]');
-        expect(button).toHaveAttribute('tabindex', '-1');
+        expect(button).not.toHaveAttribute('tabindex');
+        // W-058：版本號照畀讀屏讀（D95 🅰️ ①）
+        expect(button).toHaveTextContent(/^v\d+\.\d+\.\d+$/);
+        expect(button?.closest('[aria-hidden="true"]')).toBeNull();
     });
 
     it('should run without an update manager (tests, browsers without service workers)', async () => {
@@ -151,5 +155,23 @@ describe('App on a phone turned sideways', () => {
         await screen.findByRole('alert');
         set('waiting');
         expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
+    });
+
+    // S-221（mutant M20）：打橫時唔通知（唔好打斷「請打直」）；打返直先講
+    it('should keep the screen-reader notice quiet while the phone is sideways', async () => {
+        setViewport(393, 852);
+        const { port, set } = fakePort();
+        await renderHome(port);
+        const turn = (width: number, height: number) =>
+            act(() => {
+                setViewport(width, height);
+                window.dispatchEvent(new Event('resize'));
+            });
+        turn(852, 393);
+        set('waiting');
+        expect(screen.getByRole('alert')).toHaveTextContent('請將裝置轉為直向');
+        expect(screen.getByRole('status')).toBeEmptyDOMElement();
+        turn(393, 852);
+        expect(screen.getByRole('status')).toHaveTextContent('已有新版本');
     });
 });

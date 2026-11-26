@@ -1,5 +1,4 @@
 import { t } from '../../i18n/t';
-import './updateButton.css';
 
 /**
  * 有新版本時只畀讀屏聽嘅通知（T-109）：畫面上冇另外一粒提示，版本號變咗掣；呢個 live region 喺舞台外面一直都喺度
