@@ -249,9 +249,14 @@ class Controller implements MvController {
         this.reportPosition();
     }
 
-    /** 進度線同時間一秒一格就夠；長度變咗先報鎖屏 */
+    /**
+     * 進度線同時間一秒一格就夠（S-260：timeupdate 約 4 Hz，唔好每次都令主頁 re-render）：
+     * 整秒變咗或者長度變咗先通知；長度變咗先報鎖屏
+     */
     private onTime(positionSec: number, durationSec: number | null): void {
         const lengthChanged = durationSec !== this.snapshot.durationSec;
+        const sameSecond = Math.floor(positionSec) === Math.floor(this.snapshot.positionSec);
+        if (sameSecond && !lengthChanged) return;
         this.update({ positionSec, durationSec });
         if (lengthChanged) this.reportPosition();
     }
