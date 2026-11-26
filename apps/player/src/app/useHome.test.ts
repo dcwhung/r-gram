@@ -156,9 +156,35 @@ describe('useHome holding another disc', () => {
         expect(result.current.playback).toBe(before.playback);
     });
 
-    // T-037：拎住嘅碟唔開弧線歌單（佢嘅歌單喺碟名下面，T-049）；碟面亦唔係掣
-    it('should not open the arc list from the face of the held disc', () => {
+    // B-086 ②：拎住另一隻碟都係㩒碟面開弧線歌單；框入面係第一首有音檔嘅歌
+    it('should open the arc list of the held disc from its face', () => {
         const result = holdRoom();
+        expect(result.current.view?.canOpenList).toBe(true);
+        act(() => result.current.handlers?.onOpenList());
+        expect(result.current.stage).toMatchObject({ scene: 'list', viewAlbumId: 'room' });
+        expect(result.current.view?.list?.focusIndex).toBe(0);
+    });
+
+    // B-086 ②：弧線歌單入面播框入面嗰首 = 拎住嘅碟入機（載入嘅碟停、細唱片機冇咗、唱臂由泊位開場）
+    it('should put the held disc on when a track of its arc list is played', () => {
+        const result = holdRoom();
+        act(() => result.current.handlers?.onOpenList());
+        press(result, 'onSpindle');
+        expect(result.current.playback).toMatchObject({
+            status: 'playing',
+            albumId: 'room',
+            trackId: 'room-01',
+        });
+        expect(result.current.view).toMatchObject({
+            holding: false,
+            mini: null,
+            armPose: 'playing',
+        });
+    });
+
+    it('should do nothing on the disc face while the dial is open', () => {
+        const result = holdRoom();
+        act(() => result.current.handlers?.onTurnStart());
         const before = result.current.stage;
         act(() => result.current.handlers?.onOpenList());
         expect(result.current.stage).toBe(before);

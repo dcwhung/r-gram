@@ -68,9 +68,10 @@ describe('spindleMode', () => {
 describe('listFocusTrackId', () => {
     const document = sampleDocument();
 
-    it('should keep the track already focused in the list', () => {
+    // B-086 ②：未揀歌嘅碟開弧線歌單，框入面一律係第一首有音檔嘅歌（唔記上次捲到邊）
+    it('should frame the first playable track even after an earlier list was scrolled', () => {
         expect(listFocusTrackId(document, home({ selectedTrackId: 'apollo-18-03' }))).toBe(
-            'apollo-18-03',
+            'apollo-18-01',
         );
     });
 
@@ -303,7 +304,7 @@ describe('homeView mini turntable', () => {
 
 /*
  * T-037：弧線歌單（Functional Spec FR-005（第 18 版）、US-004、D52；設計稿第 18 版「歌單（㩒碟面）」）：
- * 只喺冇歌載入時揀中嘅碟、或者載入嘅碟（主頁㩒碟面）先開；拎住另一隻碟唔開
+ * 主頁字母盤收埋時㩒碟面就開，拎住另一隻碟都一樣（B-086 ②）
  */
 describe('homeView arc list', () => {
     const document = sampleDocument();
@@ -311,7 +312,7 @@ describe('homeView arc list', () => {
     it.each([
         ['nothing is loaded', home(), IDLE_PLAYBACK, true],
         ['the loaded disc is on screen', home(), playback(), true],
-        ['another disc is held', home({ viewAlbumId: 'room' }), playback(), false],
+        ['another disc is held', home({ viewAlbumId: 'room' }), playback(), true],
         ['the dial is open', home({ scene: 'discChange' }), IDLE_PLAYBACK, false],
         ['the list is already open', home({ scene: 'list' }), IDLE_PLAYBACK, false],
         ['the MV is open', home({ overlay: 'mv' }), playback(), false],

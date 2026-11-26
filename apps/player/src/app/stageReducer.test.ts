@@ -36,7 +36,7 @@ describe('stageReducer', () => {
 
         it.each<StageAction>([
             { type: 'openDiscChange' },
-            { type: 'openList', loadedAlbumId: null },
+            { type: 'openList' },
             { type: 'toggleBooklet', hasSong: true },
             { type: 'openMv', hasMv: true },
             { type: 'toggleFavourites' },
@@ -59,7 +59,7 @@ describe('stageReducer', () => {
 
         it('should show the chosen album and clear the selected track', () => {
             const state = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-07' },
                 { type: 'closeList' },
                 { type: 'openDiscChange' },
@@ -70,7 +70,7 @@ describe('stageReducer', () => {
 
         it('should keep the selected track when the same album is chosen again', () => {
             const state = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-07' },
                 { type: 'closeList' },
                 { type: 'openDiscChange' },
@@ -89,14 +89,13 @@ describe('stageReducer', () => {
             expect(state).toMatchObject({ scene: 'home', viewAlbumId: 'hours' });
         });
 
-        // D27：㩒碟面 = 入嗰隻碟嘅歌單
-        it('should open the track list of the chosen album straight from disc change', () => {
-            const state = after(
+        // B-086 ④：字母盤開住時㩒碟面冇反應（鬆手先開得弧線歌單）
+        it('should not open the arc list while the dial is open', () => {
+            const turning = after(
                 { type: 'openDiscChange' },
                 { type: 'selectAlbum', albumId: 'hours' },
-                { type: 'openList', loadedAlbumId: null },
             );
-            expect(state).toMatchObject({ scene: 'list', viewAlbumId: 'hours' });
+            expect(stageReducer(turning, { type: 'openList' })).toBe(turning);
         });
 
         it('should close the booklet when disc change opens', () => {
@@ -109,7 +108,7 @@ describe('stageReducer', () => {
 
         it('should not open while the MV is showing or from the track list', () => {
             const mv = after({ type: 'openMv', hasMv: true });
-            const list = after({ type: 'openList', loadedAlbumId: null });
+            const list = after({ type: 'openList' });
             expect(stageReducer(mv, { type: 'openDiscChange' })).toBe(mv);
             expect(stageReducer(list, { type: 'openDiscChange' })).toBe(list);
         });
@@ -117,7 +116,7 @@ describe('stageReducer', () => {
         it('should ignore selectAlbum outside disc change', () => {
             const state = home();
             const list = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-07' },
             );
             expect(stageReducer(state, { type: 'selectAlbum', albumId: 'hours' })).toBe(state);
@@ -127,7 +126,7 @@ describe('stageReducer', () => {
         // S-154：Esc = 取消：返主頁，還原開始揀碟嗰陣嘅碟、之前嗰隻碟同揀中嘅歌
         it('should go back to the disc shown when choosing started on cancel', () => {
             const before = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-07' },
                 { type: 'closeList' },
             );
@@ -155,7 +154,7 @@ describe('stageReducer', () => {
             const states = [
                 INITIAL_STAGE,
                 home(),
-                after({ type: 'openList', loadedAlbumId: null }),
+                after({ type: 'openList' }),
                 after({ type: 'toggleBooklet', hasSong: true }),
                 after({ type: 'openMv', hasMv: true }),
             ];
@@ -168,7 +167,7 @@ describe('stageReducer', () => {
 
     describe('track list', () => {
         it('should open from home and close without changing the album (D25)', () => {
-            const open = after({ type: 'openList', loadedAlbumId: null });
+            const open = after({ type: 'openList' });
             expect(open.scene).toBe('list');
             expect(stageReducer(open, { type: 'closeList' })).toMatchObject({
                 scene: 'home',
@@ -178,7 +177,7 @@ describe('stageReducer', () => {
 
         it('should remember the focused track', () => {
             const state = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-03' },
             );
             expect(state.selectedTrackId).toBe('komorebi-03');
@@ -187,7 +186,7 @@ describe('stageReducer', () => {
         // S-037：捲動歌單時同一首歌會重覆報：冇變就回傳同一個物件，唔使 re-render
         it('should return the same state when the focused track does not change', () => {
             const state = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-03' },
             );
             expect(stageReducer(state, { type: 'focusTrack', trackId: 'komorebi-03' })).toBe(state);
@@ -195,7 +194,7 @@ describe('stageReducer', () => {
 
         it('should go home when the focused track is played', () => {
             const state = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-03' },
                 { type: 'playSelected' },
             );
@@ -203,21 +202,18 @@ describe('stageReducer', () => {
         });
 
         it('should stay in the list when there is no focused track to play', () => {
-            const list = after({ type: 'openList', loadedAlbumId: null });
+            const list = after({ type: 'openList' });
             expect(stageReducer(list, { type: 'playSelected' })).toBe(list);
         });
 
         it('should close the booklet when the list opens', () => {
-            const state = after(
-                { type: 'toggleBooklet', hasSong: true },
-                { type: 'openList', loadedAlbumId: null },
-            );
+            const state = after({ type: 'toggleBooklet', hasSong: true }, { type: 'openList' });
             expect(state).toMatchObject({ scene: 'list', overlay: null });
         });
 
         it('should not open while the MV is showing', () => {
             const mv = after({ type: 'openMv', hasMv: true });
-            expect(stageReducer(mv, { type: 'openList', loadedAlbumId: null })).toBe(mv);
+            expect(stageReducer(mv, { type: 'openList' })).toBe(mv);
         });
 
         it('should ignore focusTrack and playSelected outside the list', () => {
@@ -256,7 +252,7 @@ describe('stageReducer', () => {
 
         it('should clear the selected track and close the booklet', () => {
             const state = after(
-                { type: 'openList', loadedAlbumId: null },
+                { type: 'openList' },
                 { type: 'focusTrack', trackId: 'komorebi-07' },
                 { type: 'playSelected' },
                 { type: 'toggleBooklet', hasSong: true },
@@ -280,7 +276,7 @@ describe('stageReducer', () => {
         });
 
         it('should not react in the track list or while the MV is showing', () => {
-            const list = after({ type: 'openList', loadedAlbumId: null });
+            const list = after({ type: 'openList' });
             const mv = after({ type: 'openMv', hasMv: true });
             expect(stageReducer(list, { type: 'toggleFavourites' })).toBe(list);
             expect(stageReducer(mv, { type: 'toggleFavourites' })).toBe(mv);
@@ -298,21 +294,12 @@ describe('stageReducer', () => {
         const holding = (albumId = 'hours') =>
             stageReducer(turnedTo(albumId), { type: 'closeDiscChange' });
 
-        it('should not open the arc list while another disc is held', () => {
-            const held = holding();
-            const turning = turnedTo('hours');
-            expect(stageReducer(held, { type: 'openList', loadedAlbumId: LOADED })).toBe(held);
-            expect(stageReducer(turning, { type: 'openList', loadedAlbumId: LOADED })).toBe(
-                turning,
-            );
-        });
-
-        it('should still open the list on the loaded disc or when no song is loaded', () => {
-            expect(after({ type: 'openList', loadedAlbumId: LOADED }).scene).toBe('list');
-            const other = holding();
-            expect(stageReducer(other, { type: 'openList', loadedAlbumId: null }).scene).toBe(
-                'list',
-            );
+        // B-086 ②：揀歌一律㩒碟面開弧線歌單，拎住另一隻碟都一樣（取代 T-048 嘅守衛）
+        it('should open the arc list of the held disc once the dial is released', () => {
+            expect(stageReducer(holding(), { type: 'openList' })).toMatchObject({
+                scene: 'list',
+                viewAlbumId: 'hours',
+            });
         });
 
         it('should put the held disc back and show the loaded disc on returnToLoaded', () => {
@@ -335,7 +322,7 @@ describe('stageReducer', () => {
         it.each([
             ['no song is loaded', holding(), null],
             ['the loaded disc is already on screen', after(), LOADED],
-            ['the list is open', after({ type: 'openList', loadedAlbumId: null }), 'hours'],
+            ['the list is open', after({ type: 'openList' }), 'hours'],
             ['the MV is showing', after({ type: 'openMv', hasMv: true }), 'hours'],
             ['still on Preload', INITIAL_STAGE, LOADED],
         ])('should ignore returnToLoaded when %s', (_case, state, loadedAlbumId) => {
@@ -375,7 +362,7 @@ describe('stageReducer', () => {
         it('should not open while changing disc, in the list or over the MV', () => {
             const states = [
                 after({ type: 'openDiscChange' }),
-                after({ type: 'openList', loadedAlbumId: null }),
+                after({ type: 'openList' }),
                 after({ type: 'openMv', hasMv: true }),
             ];
             for (const state of states) {
@@ -406,7 +393,7 @@ describe('stageReducer', () => {
 
         it('should not open while changing disc or in the list', () => {
             const disc = after({ type: 'openDiscChange' });
-            const list = after({ type: 'openList', loadedAlbumId: null });
+            const list = after({ type: 'openList' });
             expect(stageReducer(disc, { type: 'openMv', hasMv: true })).toBe(disc);
             expect(stageReducer(list, { type: 'openMv', hasMv: true })).toBe(list);
         });
@@ -438,8 +425,7 @@ describe('stageReducer', () => {
             { type: 'selectAlbum', albumId: FAVOURITES },
             { type: 'closeDiscChange' },
             { type: 'cancelDiscChange' },
-            { type: 'openList', loadedAlbumId: null },
-            { type: 'openList', loadedAlbumId: 'komorebi' },
+            { type: 'openList' },
             { type: 'returnToLoaded', loadedAlbumId: 'komorebi' },
             { type: 'focusTrack', trackId: 'track-a' },
             { type: 'focusTrack', trackId: 'track-b' },

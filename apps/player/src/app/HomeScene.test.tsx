@@ -380,10 +380,13 @@ describe('HomeScene disc face', () => {
         expect(screen.getByRole('button', { name: '開啟歌單' })).toHaveClass('spindle');
     });
 
-    // T-048 守衛：拎住另一隻碟唔開弧線歌單
-    it('should have no disc face while another disc is held', () => {
-        const { container } = render(scene(viewOf('room', null, {}, PLAYING)));
-        expect(part(container, 'disc-face')).toBeNull();
+    // B-086 ②：拎住另一隻碟都可以㩒碟面開弧線歌單；字母盤開住就冇碟面
+    it('should have a disc face while another disc is held, but not while the dial is open', () => {
+        const held = render(scene(viewOf('room', null, {}, PLAYING)));
+        expect(part(held.container, 'disc-face')).not.toBeNull();
+        held.unmount();
+        const turning = render(scene(viewOf('room', null, { scene: 'discChange' }, PLAYING)));
+        expect(part(turning.container, 'disc-face')).toBeNull();
     });
 
     it('should hand the focus back to the disc face when the list it opened closes', () => {
