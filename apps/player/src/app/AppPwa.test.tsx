@@ -69,6 +69,17 @@ describe('App and the update manager', () => {
         expect(port.endLaunch).toHaveBeenCalled();
     });
 
+    // D95：Preload 期間（連旗淡出中）永遠唔出版本掣，亦唔通知
+    it('should never show the update button or notice during Preload', async () => {
+        const { port, set } = fakePort();
+        const pending: StartupDeps = { ...startup, loadCatalog: () => new Promise(() => {}) };
+        render(<App startup={pending} updates={port} />);
+        set('waiting');
+        await act(() => Promise.resolve());
+        expect(screen.queryByRole('button', { name: APPLY })).toBeNull();
+        expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
     // S-197：播緊歌都好、停咗都好，有新版就出提示；T-109：提示 = 右上版本號變成掣
     it('should turn the version text into the update button while a song plays', async () => {
         const { port, set } = fakePort();
