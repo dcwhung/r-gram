@@ -27,6 +27,10 @@ export const zhHant = {
         number: '第 {no} 首',
         /** 左上資訊：歌號 · 播放位置（`m:ss`） */
         position: '第 {no} 首 · {time}',
+        /** 音檔載入失敗（US-004 一行錯誤提示）：左上「第 nn 首 · 」後面取代時間 */
+        failed: '未能播放',
+        /** 同一件事，畀讀屏（live region）：講埋歌名 */
+        failedNotice: '未能播放「{title}」',
     },
     list: {
         open: '開啟歌單',

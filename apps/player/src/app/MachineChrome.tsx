@@ -40,6 +40,7 @@ export const MachineChrome = ({ layout, view, handlers, leadIn, instant }: Machi
                 bookletOpen={view.bookletOpen}
                 mvOpen={view.mvOpen}
                 playing={view.playing}
+                mode={view.mode}
                 covered={view.listOpen || view.buttonsHidden}
                 onBooklet={handlers.onBooklet}
                 onMv={handlers.onMv}

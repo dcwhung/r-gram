@@ -38,7 +38,7 @@ describe('useHome gesture paths reach the engine synchronously', () => {
     });
 
     it('should cue the framed track on Enter in the arc list', () => {
-        const home = mount();
+        const home = mount(sampleDocument(), false);
         act(() => home.result.current.handlers?.onOpenList());
         const call = () => home.result.current.handlers?.onPlayListTrack('apollo-18-03');
         expect(playsDuring(home, call)).toBe(1);
@@ -46,7 +46,7 @@ describe('useHome gesture paths reach the engine synchronously', () => {
     });
 
     it('should cue the framed track from the clamp in the arc list', () => {
-        const home = mount();
+        const home = mount(sampleDocument(), false);
         act(() => home.result.current.handlers?.onOpenList());
         act(() => home.result.current.handlers?.onFocusListTrack('apollo-18-03'));
         expect(playsDuring(home, () => home.result.current.handlers?.onSpindle())).toBe(1);
@@ -54,7 +54,7 @@ describe('useHome gesture paths reach the engine synchronously', () => {
     });
 
     it('should put the held disc on and cue its first track from the clamp', () => {
-        const home = mount();
+        const home = mount(sampleDocument(), false);
         act(() => home.result.current.handlers?.onSpindle());
         act(() => home.result.current.handlers?.onTurnStart());
         act(() => home.result.current.handlers?.onTurn(1));
@@ -110,7 +110,7 @@ describe('useHome real playback', () => {
             armPose: 'parked',
             spindle: 'paused',
             failed: true,
-            timeText: t('playback.failed'),
+            timeText: t('track.failed'),
         });
         act(() => home.result.current.handlers?.onSpindle());
         expect(home.result.current.playback.status).toBe('playing');

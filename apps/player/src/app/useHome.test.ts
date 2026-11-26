@@ -6,7 +6,7 @@ import {
     sampleDocument,
     withSecondCover,
 } from '../catalog/testing/catalogFixtures';
-import { createTestPlayback, testPlayback } from '../playback/testing/testPlayback';
+import { testPlayback } from '../playback/testing/testPlayback';
 import { useHome } from './useHome';
 
 /** `apollo-18` 第 1 首有 MV */

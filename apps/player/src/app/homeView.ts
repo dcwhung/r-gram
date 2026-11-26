@@ -14,6 +14,8 @@ import { coverVariantOf, type CoverVariants, NO_COVER_PICKS } from '../catalog/c
 import { albumArt, albumTracks, findAlbum, isPlayable } from '../catalog/selectors';
 import type { ArmPose } from '../components/tonearm/armPose';
 import type { SpindleMode } from '../components/spindle/Spindle';
+import { t } from '../i18n/t';
+import { DEFAULT_PLAY_MODE, type PlayMode } from '../playback/playModes';
 import { formatTime } from '../utils/formatTime';
 import { dialView, type DialView } from './dialView';
 import { type TrackColumnView, trackColumnView } from './heldTracksView';
@@ -63,7 +65,12 @@ export interface HomeView {
     armPose: ArmPose;
     /** 播放進度 0–1 */
     progress: number;
+    /** 「第 nn 首 · 」後面：播放位置 `m:ss`；載入失敗 = 一行錯誤提示（US-004） */
     timeText: string;
+    /** 呢隻碟嘅歌載入失敗（唱臂泊位、唱片夾 play；再㩒 = 由泊位重新開始同一首） */
+    failed: boolean;
+    /** 而家嘅播放模式（模式掣嘅 icon 同名） */
+    mode: PlayMode;
     hasSong: boolean;
     hasMv: boolean;
     playing: boolean;
@@ -130,10 +137,11 @@ const choosingView = (stage: StageState, playback: PlaybackState, pose: ArmPose)
     };
 };
 
-/** 播放進度（0–1）同左上嘅時間 */
-const timing = ({ positionSec, durationSec }: PlaybackState) => ({
+/** 播放進度（0–1）同左上嘅時間；載入失敗時間嗰度變錯誤提示 */
+const timing = ({ positionSec, durationSec }: PlaybackState, failed: boolean) => ({
     progress: durationSec ? Math.min(1, positionSec / durationSec) : 0,
-    timeText: formatTime(positionSec),
+    timeText: failed ? t('track.failed') : formatTime(positionSec),
+    failed,
 });
 
 /** 右上角細唱片機（拎住另一隻碟，T-048）、碟名下面嘅歌單欄（B-086） */
@@ -146,6 +154,12 @@ const heldParts = (
 ) => ({
     mini: miniView(document, playback, dial.entries, holding),
     trackColumn: trackColumnView(document, stage, playback),
+});
+
+/** 有歌（歌書有內容）、有 MV */
+const songFlags = (track: CatalogTrack | null) => ({
+    hasSong: track !== null,
+    hasMv: Boolean(track?.mv),
 });
 
 /** 歌單、歌書、電視開住未 */
@@ -175,6 +189,7 @@ export const homeView = (
     stage: StageState,
     playback: PlaybackState,
     covers: CoverVariants = NO_COVER_PICKS,
+    mode: PlayMode = DEFAULT_PLAY_MODE,
 ): HomeView => {
     const album = stage.viewAlbumId ? findAlbum(document, stage.viewAlbumId) : null;
     const track = loadedTrack(album, stage, playback);
@@ -188,9 +203,9 @@ export const homeView = (
         ...colours(document, album, covers),
         spindle,
         armPose: pose,
-        ...timing(playback),
-        hasSong: track !== null,
-        hasMv: Boolean(track?.mv),
+        ...timing(playback, track !== null && playback.status === 'error'),
+        mode,
+        ...songFlags(track),
         playing: spindle === 'playing',
         ...openFlags(stage),
         dial,
