@@ -22,14 +22,18 @@ export const FPS_SAMPLE_MS = 5000;
 export const PROBE_CONCURRENCY = 4;
 
 const WEB_PROTOCOLS = new Set(['http:', 'https:']);
+/** `?media=` 淨係可以指去本機（S-224：放咗上網嘅頁唔可以俾人指去其他主機） */
+const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
 
-/** 網址參數 `media` 係 http(s) 就用佢（結尾補 `/`），否則用真 bucket */
+/** 網址參數 `media` 係本機嘅 http(s) 就用佢（結尾補 `/`），否則用真 bucket */
 export const mediaBaseFrom = (search: string): string => {
     const value = new URLSearchParams(search).get(MEDIA_QUERY_PARAM);
     if (!value) return DEFAULT_MEDIA_BASE;
     try {
-        const { href, protocol } = new URL(value);
-        if (!WEB_PROTOCOLS.has(protocol)) return DEFAULT_MEDIA_BASE;
+        const { href, protocol, hostname } = new URL(value);
+        if (!WEB_PROTOCOLS.has(protocol) || !LOOPBACK_HOSTS.has(hostname)) {
+            return DEFAULT_MEDIA_BASE;
+        }
         return href.endsWith('/') ? href : `${href}/`;
     } catch {
         return DEFAULT_MEDIA_BASE;
