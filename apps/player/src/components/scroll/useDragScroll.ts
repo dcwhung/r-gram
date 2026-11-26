@@ -1,7 +1,7 @@
 /*
  * 元件內部嘅拖動捲動（歌單欄 T-049、弧線歌單 T-037 共用；Technical Spec 實現注意事項 13）：
  * 過咗門檻（CSS px）先當拖，之後捉住 pointer；每次移動按 px 換算做設計單位，向反方向捲（手指向上 = 睇下面）。
- * 拖完嗰下 click 唔當㩒（D57；設計稿互動格「拖過就唔當㩒」）：喺 capture 階段截住，唔會去到行或者暗層。
+ * 拖完嗰下 click 唔當㩒（設計稿互動格「拖過就唔當㩒」）：喺 capture 階段截住，唔會當成㩒暗層（收返歌單）。
  * 只跟第一隻手指（W-050）：拖緊時第二隻手指、手掌唔理；第一隻手指鬆手、取消、甩咗 capture 都當拖完（吸附）。
  */
 import { type MouseEvent, type PointerEvent, useRef } from 'react';

@@ -18,7 +18,10 @@ interface TopGroupProps {
     measure: TextMeasure;
     /** 㩒細唱片機（已經包好 focus 交接） */
     onReturnToLoaded: () => void;
-    /** 弧線歌單（T-037）：收返、捲到停低、㩒一行（收返同播已經包好 focus 交接） */
+    /**
+     * 弧線歌單（T-037）：收返、捲到停低、Enter／Space 播框入面嗰首（行唔㩒得，W-051）；
+     * 收返同播已經包好 focus 交接
+     */
     listHandlers: Pick<HomeHandlers, 'onCloseList' | 'onFocusListTrack' | 'onPlayListTrack'>;
 }
 

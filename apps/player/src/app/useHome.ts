@@ -58,8 +58,8 @@ const openList = ({ catalog, stage, playback, dispatch }: HomeContext) => {
 };
 
 /**
- * 歌單入面㩒一行（或者 Enter）：揀嗰首，再同㩒唱片夾一樣播（返主頁、播放狀態 start；真正出聲係 T-038）。
- * 要係歌單開住、嗰首喺呢隻碟而且播得
+ * 歌單入面 Enter／Space（行唔㩒得，W-051）：揀框入面嗰首，再同㩒唱片夾一樣播（返主頁、播放狀態 start；
+ * 真正出聲係 T-038）。要係歌單開住、嗰首喺呢隻碟而且播得
  */
 const playListTrack = (context: HomeContext, trackId: string) => {
     const { view, dispatch, play } = context;
