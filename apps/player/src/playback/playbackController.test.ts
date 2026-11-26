@@ -271,12 +271,80 @@ describe('playbackController errors (US-004, T-011 §2.3)', () => {
         expect(element.plays.at(-1)).toEqual({ src: url(1), muted: true });
     });
 
-    it('should stop on an error during auto-next instead of skipping (Q3 not answered)', () => {
+    // D109：前景照 US-004 停 + 提示
+    it('should stop on an error during auto-next in the foreground', () => {
         const { element, controller, state } = setup();
         controller.start(SOURCE, 'room-01');
         vi.advanceTimersByTime(LEAD_IN_MS);
+        element.playMode = 'hold';
         element.finish();
         element.fail('decode');
         expect(state()).toMatchObject({ status: 'error', trackId: 'room-02' });
+    });
+});
+
+/* Functional Spec D109（CR-010；Plan T-038 P5）：畫面隱藏時自動下一首載入失敗 = 跳去再下一首試一次 */
+describe('playbackController hidden auto-next failure (D109)', () => {
+    /** 隱藏、播緊 startId；佢播完之後嘅下一首未有數據（hold） */
+    const hiddenAfterEnd = (startId: string, stored?: string) => {
+        const context = setup({ hidden: true, stored });
+        context.controller.start(SOURCE, startId);
+        context.element.playMode = 'hold';
+        context.element.finish();
+        return context;
+    };
+
+    it('should skip once to the following playable track, synchronously', () => {
+        const { element, state } = hiddenAfterEnd('room-01');
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-03' });
+        expect(element.src).toBe(url(3));
+        expect(element.plays.at(-1)).toEqual({ src: url(3), muted: false });
+    });
+
+    it('should stop when the skipped-to track fails as well', () => {
+        const { element, state } = hiddenAfterEnd(
+            'room-01',
+            JSON.stringify({ shuffle: false, repeat: 'all' }),
+        );
+        element.fail('unsupported');
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', trackId: 'room-03' });
+        expect(element.src).toBe(url(3));
+    });
+
+    it('should stop when there is no following track in order mode', () => {
+        const { element, state } = hiddenAfterEnd('room-02');
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', trackId: 'room-03' });
+    });
+
+    it('should not skip back to the same track in repeat one', () => {
+        const { element, state } = hiddenAfterEnd(
+            'room-01',
+            JSON.stringify({ shuffle: false, repeat: 'one' }),
+        );
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', trackId: 'room-01' });
+    });
+
+    it('should not skip a track the listener chose (only auto-next)', () => {
+        const { element, controller, state } = setup({ hidden: true });
+        element.playMode = 'hold';
+        controller.start(SOURCE, 'room-01');
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'error', trackId: 'room-01' });
+    });
+
+    it('should allow another skip once the skipped-to track has played', () => {
+        const { element, state } = hiddenAfterEnd(
+            'room-01',
+            JSON.stringify({ shuffle: false, repeat: 'all' }),
+        );
+        element.fail('unsupported');
+        element.resolvePlay();
+        element.finish();
+        element.fail('unsupported');
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
     });
 });
