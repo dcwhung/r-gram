@@ -4,7 +4,7 @@
  * 次序：body（太大 413，未 parse 就擋；400）→ 專輯（404）→ 來源要係呢張碟資料夾第一層、同個位（cover / cover2）嘅檔（400 sourceKey）→
  * 兩張圖：已上載（assets + R2）、cover 1200²、thumb 320²（調亂 = 400 WRONG_SIZE）→ 第二張要有第一張（409 NO_FIRST_COVER）→
  * MEDIA.head(sourceKey) 嘅 ETag = sourceEtag（唔同或者冇咗 = 409 STALE）→ 寫 D1（第二張加 `cover IS NOT NULL` 條件，
- * 唔會撞 D1 CHECK 變 500）→ 生成 catalog（api/afterWrite.ts）。唔讀寫媒體 bucket 嘅內容（只 head）。
+ * 唔會撞 D1 CHECK 變 500；專輯喺讀入之後改過 = 409 STALE，S-187）→ 生成 catalog（api/afterWrite.ts）。唔讀寫媒體 bucket 嘅內容（只 head）。
  * 圖只讀頭 IMAGE_HEADER_BYTES（range get；JPEG 頭唔夠先讀成個檔，S-186）
  */
 import { checkOf, classifyFile, type Check, type CheckCode, type CoverKind } from '@r-gram/catalog';
@@ -26,7 +26,7 @@ import { BODY_TOO_LARGE, readBoundedJsonObject } from '../lib/http';
 import { isDirectChild } from '../media/listing';
 import { withCheckMessages } from '../sync/checkMessages';
 import { readCoverBody, type CoverBody } from './coverBody';
-import { storeCover } from './coverStore';
+import { missedCover, storeCover } from './coverStore';
 import { albumError, albumValidationError, type AlbumReason } from './errors';
 import { checksOf, toAlbum } from './rows';
 import { findAlbum } from './store';
@@ -130,6 +130,6 @@ export const putAlbumCover = async (c: Context<AppEnv>) => {
     if (!(await isCurrentSource(c.env.MEDIA, body))) return albumError(c, 'stale');
     const checks = coverChecks(checksOf(album), body);
     const row = await storeCover(c.env.DB, album, body, checks);
-    if (!row) return albumError(c, body.slot === 'cover2' ? 'noFirstCover' : 'notFound');
+    if (!row) return albumError(c, await missedCover(c.env.DB, album.id, body.slot));
     return c.json({ album: toAlbum(row), checks: withCheckMessages(checksOf(row)) });
 };
