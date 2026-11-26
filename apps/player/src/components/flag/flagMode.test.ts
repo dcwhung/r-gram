@@ -12,9 +12,9 @@ describe('flag mode', () => {
         expect(nextFlagMode('live', 'context-lost')).toBe('still');
     });
 
-    it('should stay still once still, even when the context comes back (Preload is short)', () => {
-        expect(nextFlagMode('still', 'context-restored')).toBe('still');
+    // S-256：context 返嚟唔會換返飄揚（冇 'context-restored' 呢個事件；Preload 只係幾秒）
+    it('should stay still once still', () => {
         expect(nextFlagMode('still', 'context-lost')).toBe('still');
-        expect(nextFlagMode('live', 'context-restored')).toBe('live');
+        expect(nextFlagMode('still', 'gl-failed')).toBe('still');
     });
 });
