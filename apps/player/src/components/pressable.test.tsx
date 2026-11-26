@@ -15,6 +15,34 @@ const renderPressable = (disabled = false) => {
 const isPrevented = (notCancelled: boolean) => !notCancelled;
 
 describe('pressable', () => {
+    // QA W-056：㩒落嗰陣停用（例如字母盤開住），之後先解除（blur 收字母盤），同一下 click 都唔算
+    it('should ignore the click of a press that began while disabled', () => {
+        const onPress = vi.fn();
+        const { rerender } = render(
+            <svg>
+                <g aria-label="press me" {...pressable(onPress, true)} />
+            </svg>,
+        );
+        const button = screen.getByRole('button', { name: 'press me' });
+        fireEvent.pointerDown(button);
+        rerender(
+            <svg>
+                <g aria-label="press me" {...pressable(onPress, false)} />
+            </svg>,
+        );
+        fireEvent.click(button);
+        expect(onPress).not.toHaveBeenCalled();
+        fireEvent.pointerDown(button);
+        fireEvent.click(button);
+        expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should press on a click with no pointerdown before it', () => {
+        const { button, onPress } = renderPressable();
+        fireEvent.click(button);
+        expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
     it.each(['Enter', ' '])('should press once on the %j key and keep the page still', (key) => {
         const { button, onPress } = renderPressable();
         expect(isPrevented(fireEvent.keyDown(button, { key }))).toBe(true);
