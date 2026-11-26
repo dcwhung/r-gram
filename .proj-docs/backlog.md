@@ -69,9 +69,25 @@ Review 同 QA 留低、未有對應任務嘅項目。做完就刪走嗰行。
 | B-080 | Review T-048 / T-049（S-171、S-178、S-192） | ④ 載入嘅碟喺 catalog 搵唔到時仍然當係「拎住」但冇細唱片機，返唔到去（S-171；今日行唔到）。⑥ 流程（S-178）：補測試要先喺實作之前嘅版本驗佢 fail。⑧ QA（S-192）：歌名啱啱放得落時左邊入咗行嘅感應範圍 2.5 單位，歌單欄 focus 框會掂到第一個字（CR-008 之後行唔係掣，T-108 做完再睇仲有冇 focus 框）。（①② S-172、W-045 由 CR-008 D89、D90 關閉；③⑤ S-173、S-174、S-176 spec 已改；⑦ S-193 已修：`MINI.title.step` = 2） | ④：T-038／T-062；⑥：之後嘅任務；⑧：T-108 |
 | B-081 | Review T-106（S-181、S-183、S-185、S-190、S-191） | ① ② 修正已做，spec 字眼已寫入 Functional Spec v1.10 D75 同 Technical Spec v1.8（CR-008「實作對齊」）；**剩低用戶確認**：太大嘅 `info.txt`／歌詞檔唔可以喺管理端覆蓋（409 `FILE_TOO_LARGE`，S-181）、等緊確認移除嘅歌唔可以存歌詞檔（409 `TRACK_NOT_LISTED`，S-183）。③ **要決定**（S-185）：封面處理失敗（`COVER_FAILED`）冇 endpoint 儲存；T-055 開工前定：API-017 加失敗形態，定係只喺瀏覽器顯示。⑤ 重構（S-190）：`info.ts` 同 `text.ts` 嘅寫入再同步流程可以抽共用函數；`INFO_FILE_NAME` 重複。⑥ 部署前（S-191，連 B-060 ②）：喺真 R2 驗 `If-None-Match: *`；覆蓋舊檔會換走原本嘅 metadata。（④ S-189 已寫入 Technical Spec v1.8） | ①②：用戶（U-22）；③：T-055 前；⑤：有空；⑥：T-028 |
 | B-082 | QA T-103–T-106（S-195、S-196） | ① `apps/api/src/tracks/ids.ts` 嘅隨機後備 id（D61）冇測試行到（T-104 刪咗佢嘅測試；語句覆蓋 42.85%）：補測試，或者如果 CR-007 之後已經用唔著就刪。② API-035（`sync/removals.ts`）讀 body 冇大細上限（4.8 MB 都會 parse 完先 400）：改用有上限嘅讀法（同 API-017 一樣）。③ `apps/player/src/app/{PreloadPlaceholder.tsx,app.css}` 唔屬於任何 QA 鏈：下次播放端 QA 歸入 `player-startup`／`player-core`。 | ①②：T-107 或者下一個後端任務；③：下次播放端 QA |
-| B-085 | QA T-037 / T-039（S-207、S-208） | ① 正式 icon 令離線預載由 373 KiB 升到 1125 KiB（`icon-512.png` 339 KB、maskable 303 KB）：export 時壓縮（`_mockups_/app-icon/src/export.cjs`）再抄入嚟。② 兩個註解仲寫舊嘅更新規則：`apps/player/src/i18n/zh-Hant.ts:102`、`apps/player/vite.config.ts:81`。③ 更新提示同細唱片機感應範圍嘅垂直距離：393 闊 13.5px、360 闊 7.3px，約 321 闊先會撞；提示位置等用戶睇。④ B-082 ③ 已冇嘢做（`PreloadPlaceholder.tsx`、`app.css` 喺 T-037 已刪）。 | ①：T-041 之前；②：下次改 `apps/player` 時一齊；③：用戶 |
-| B-087 | 用戶 2026-11-26（跟進「已有新版本」提示、「請打直」、測試媒體） | ① **更新提示改做版本掣**：唔再出黑色膠囊「已有新版本／立即更新」；右上角版本號變成一粒掣，~~同三粒細掣一樣係拉絲鋁、膠囊形，外面橙黃光暈一明一暗~~ **第 3 稿（用戶同日再改）：唔做立體掣、唔做外圈光暈；透明底、膠囊形框線、橙黃字，框線同字嘅光暈一明一暗**；㩒 = 重新載入更新；永遠喺暗層下面（歌單、歌書、MV 開住時㩒唔到）。設計稿第 20 版第 3 稿（`_mockups_/home-turntable`，commit `097543b`，等用戶確認個樣）。② **手機打橫**：唔再出「請將裝置轉為直向」；app 自己將畫面轉返直向（Android 裝咗落主畫面由 manifest 鎖死；iPhone 冇得鎖，用反方向轉 90 度；真機效果喺 spike T-010 加一項一齊試）。③ **測試碟定案（決定 14）**：KOMOREBI，資料夾 `album-11-komorebi`。 ④ **播完最後一首（用戶同日）**：唔係重覆模式就停，唱片夾由暫停變返 play（同 D10、D36 一致；T-038 做）。播完之後㩒 play 由邊首開始、主頁算唔算「已揀歌」未答（PM 建議：算，重播嗰首）。⑤ 用戶問弧線歌單同旋鈕係咪頭尾相接：而家兩樣都唔係（`arcScroll.clampOffset`、`knobTurn` 嘅 `clamp`），到尾就停；要唔要改等用戶答。要做：CR-009（改 Functional Spec D93、US-015、FR-018、C11 同 Technical Spec 對應段）；新任務（版本掣、打橫轉返；`useDragScroll` 等用 `clientY` 嘅位要跟住轉）；T-010 加「打橫轉返」一項 ⑥ **用戶同日再答**：版本掣第 4 稿確認（冇光暈、冇立體；透明底、膠囊形框線、橙黃字，純色一明一暗）。**播完最後一首**：歌停、唱片夾變返 play；隔一陣（設計稿建議 3 秒，等確認）左上資訊變返未揀歌、歌單欄飄返出嚟；之後㩒 play 由第一首播返（即主頁唔算「已揀歌」；答咗 PM 喺 CR-008 嘅開放問題）。**弧線歌單要頭尾相接**，但要明顯睇到頭同尾（設計稿第 20 版：接駁位 = 點 + 專輯色短線，揀唔到；每首只出現一次）。**旋鈕要頭尾相接**：刻度弧照舊，擰過 ♥ 跳返第一隻碟、指針由尾跳返頭（碟疊都頭尾相接，設計稿第 20 版兩格靜止圖）。**歌名相撞（S-211）**：唔使處理，暗層已經令細唱片機嗰兩行字變暗。 | 設計稿確認之後開 CR-009 同任務 |
-| B-088 | Review／QA T-108（S-209、S-210、S-214、S-215、S-216；觀察） | ① S-209：140 毫秒內擰返原本隻碟，歌單欄即刻出（設計稿會再等 140 毫秒）：細，未做。② S-210：播完嘅碟㩒唱片夾而家冇反應：T-038 做（用戶已定：由第一首播返）。③ S-214：唱片夾嘅讀屏文字只係「播放」，冇講會播邊首：PM 決定。④ S-215：飄落途中捲動，行由舊位置出發（設計稿一樣）。⑤ S-216：停用嘅掣㩒落去又冇㩒完（滑走／取消），下一下冇 pointerdown 嘅 click 會被食一次（`pressable`）：喺 pointercancel／pointerleave 清，或者只擋 `event.detail > 0` 嘅 click。⑥ `heldTracksView`、`HeldTrackList`、`layout.heldTracks` 呢啲名唔再貼切（歌單欄唔一定係拎住）：改名。⑦ ♥ 碟冇碟面、冇碟名（`canOpenList` 要有專輯）：T-070。⑧ 播放模式掣嘅 handler 仲係空（`useHome.ts:139`）：T-038 | ②⑧ T-038；⑦ T-070；其餘有空先做 |
+| B-085 | QA T-037 / T-039（S-207、S-208） | ① 正式 icon 令離線預載由 373 KiB 升到 1125 KiB（`icon-512.png` 339 KB、maskable 303 KB）：export 時壓縮（`_mockups_/app-icon/src/export.cjs`）再抄入嚟。② 兩個註解仲寫舊嘅更新規則：`apps/player/src/i18n/zh-Hant.ts:102`、`apps/player/vite.config.ts:81`（CR-009：嗰段字串喺 T-109 換走，一齊改）。~~③ 更新提示同細唱片機感應範圍嘅垂直距離：393 闊 13.5px、360 闊 7.3px，約 321 闊先會撞；提示位置等用戶睇。~~（③ 由 CR-009 D95 關閉：冇提示，版本掣喺細唱片機上面）④ B-082 ③ 已冇嘢做（`PreloadPlaceholder.tsx`、`app.css` 喺 T-037 已刪）。 | ①：T-041 之前（T-112 加嘅檔細，約 57 KB）；②：T-109 |
+| B-088 | Review／QA T-108（S-209、S-210、S-214、S-215、S-216；觀察） | ① S-209：140 毫秒內擰返原本隻碟，歌單欄即刻出（設計稿會再等 140 毫秒）：細，未做。~~② S-210：播完嘅碟㩒唱片夾而家冇反應：T-038 做（用戶已定：由第一首播返）。~~（② 已定：CR-009 D99，T-038 驗收標準 E3）③ S-214：唱片夾嘅讀屏文字只係「播放」，冇講會播邊首：PM 決定。④ S-215：飄落途中捲動，行由舊位置出發（設計稿一樣）。⑤ S-216：停用嘅掣㩒落去又冇㩒完（滑走／取消），下一下冇 pointerdown 嘅 click 會被食一次（`pressable`）：喺 pointercancel／pointerleave 清，或者只擋 `event.detail > 0` 嘅 click。⑥ `heldTracksView`、`HeldTrackList`、`layout.heldTracks` 呢啲名唔再貼切（歌單欄唔一定係拎住）：改名。⑦ ♥ 碟冇碟面、冇碟名（`canOpenList` 要有專輯）：T-070。⑧ 播放模式掣嘅 handler 仲係空（`useHome.ts:139`）：T-038 | ⑧ T-038；⑦ T-070；其餘有空先做 |
+| B-089 | 用戶 2026-11-26（app icon 任務說明；CR-009 決定 8） | 管理端頂條 icon：44 px，放喺「R Gram」左邊，用方案 D（`_mockups_/app-icon/export/d-black-disc/`；`icon.svg` 或者 `icon-48.png`，管理端開工時定）；管理端設計稿第 4 版（U-8）確認時一齊睇位置 | T-051（管理端開工） |
+## CR-009 關閉或者轉咗去任務嘅項目（2026-11-26；下次整理可以刪走呢段）
+
+CR-009（Functional Spec v1.11、Technical Spec v1.9、Implementation Plan v1.8）：版本掣、手機打橫轉返、弧線歌單同旋鈕頭尾相接、播完最後一首（播放端設計稿第 20 版，commit `a335587`）、app icon 細尺寸。
+
+| # | 結果 |
+| --- | --- |
+| B-087 ①⑥（版本掣，第 4 稿確認） | Functional Spec D95；任務 T-109（進行中）；`update-prompt` 作廢 |
+| B-087 ②（手機打橫） | D96；任務 T-111（等 T-110）；spike T-010 加 ⑥；風險 R-23（Functional Spec）、R-026（Plan） |
+| B-087 ③（測試碟） | KOMOREBI，`album-11-komorebi`（Plan 決定 14、U-1 ④、T-010） |
+| B-087 ④⑥（播完最後一首） | D99：停、唱片夾 play、3 秒後變返未揀歌、㩒 play 由第一首播；CR-008 開放問題關閉（PM 建議唔採用）；T-038 |
+| B-087 ⑤⑥（頭尾相接） | 弧線歌單 D97、旋鈕同碟疊 D98；任務 T-110（進行中） |
+| B-087 ⑥（S-211 歌名相撞） | 接受，唔改；S-211 關閉 |
+| B-088 ②（S-210） | D99，T-038 |
+| B-085 ③（提示撞細唱片機） | 冇提示（D95） |
+| App icon 細尺寸 | D100；T-112（進行中）；管理端頂條 icon → B-089 |
+
 ## CR-008 關閉或者轉咗去任務嘅項目（2026-11-26；下次整理可以刪走呢段）
 
 CR-008（Functional Spec v1.10、Technical Spec v1.8、Implementation Plan v1.7）：揀碟同歌單欄（播放端設計稿第 19 版）、旋鈕、弧線歌單、更新、logo，連 review／QA 要求嘅 spec 字眼。

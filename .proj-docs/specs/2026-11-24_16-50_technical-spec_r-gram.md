@@ -1,10 +1,10 @@
 # Technical Spec：R Gram（播放端 PWA + 內容管理 Backend）
 
-**版本**：v1.8
-**日期**：2026-11-26 11:40（v1.7：2026-11-26 10:30；v1.6：2026-11-25 21:10；v1.5：2026-11-25 19:36；v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
-**作者**：Architect Agent（v1.2–v1.8：Project Manager Agent 跟 CR-003 至 CR-008 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
-**關聯 Functional Spec**：v1.10（v1.10 = CR-008：揀碟同歌單欄（播放端設計稿第 19 版）、旋鈕、弧線歌單、更新、logo；v1.9 = CR-007：媒體 bucket 係唯一資料來源、`info.txt`、管理端 = 同步 + 文字框；v1.8 = CR-006：掃描係主要資料來源、初始資料只入專輯、歌號跟檔名、只有年份；v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
-**狀態**：**v1.8**（CR-008）。跟 Functional Spec v1.10 更新（見「CR-008 對技術設計嘅影響」）：播放端揀碟嘅顯示規則（`showsColumn`、`trackChosen`、細掣、唱臂、細唱片機；場景 × 載入／拎住 × 字母盤表）；拎走 `playHeldTrack`、`startHeld`、歌單欄行嘅 focus 同 D57 例外；反轉「拎住嘅碟唔開弧線歌單」同「字母盤開住㩒碟面入歌單」；唱片夾 `playFirst`；`heldTracks.bottomIdle` 取代 `bottomHeld`；歌單欄飄落同飄落弧線嘅 motion token；淨空規則改寫；更新規則（取代實現注意事項 12）。另外「實作對齊」：`breakAt()`（B-070）、旋鈕 `slider`（B-077 ②）、S-173／S-174／S-176（B-080）、API-017／018／019／040／041 嘅回應、錯誤碼同操作數（B-081 ④）。只影響 `apps/player`（T-108）；Backend 只係文件回寫。今次冇改 code。**以下係 v1.7（CR-007）嘅狀態**：跟 Functional Spec v1.9 更新（見「CR-007 對技術設計嘅影響」）：媒體 bucket 係唯一來源，D1 係索引；專輯由資料夾名（`parseAlbumFolder()`）同 `info.txt`（`parseAlbumInfo()`）；曲目由 `info.txt`，冇音檔 = 灰色；`albums` 刪 `label`、`wheel_key`、`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`；內容檔刪 `label`、`subtitle`；全 bucket 同步（API-033、034、035）、封面結果（API-017）、寫返 bucket（API-018、019、040、041）；取消 API-011、013、014、015、020、021、022、024、030、031、032、043；初始資料 seed 拎走；已完成 code 嘅保留／改寫／拎走清單連任務 T-103–T-106。標 🅰️ 嘅對應 Functional Spec D66–D81 嘅 PM 建議，照建議做。今次冇改 code。**以下係 v1.6（CR-006）嘅狀態**（入面掃描、seed、歌號 API 嘅設計已由 CR-007 取代）：跟 Functional Spec v1.8 更新（見「CR-006 對技術設計嘅影響」）：掃描建立歌曲（API-030 加 `newTracks`、`audioMissing`；API-031 加 `create`、`clearAudio`）；歌號 = 檔名歌號、可以跳號，刪歌唔重編，API-023 取消，API-020 要 `no`、API-021 可以改 `no`；歌 id 建立時 `<albumId>-<NN>`、之後不變；`albums.release_date`、`albums.type` 刪走，`year` 直接輸入（API-011、API-013、內容檔）；seed（T-027）只入專輯；`.mp3`、手動指定音檔、`cover2.png` 定案；字體檔 `_fonts/lubalin-graph-book.otf`。列出已完成 code 要改嘅檔（新任務 T-101、T-102；T-025、T-027 改範圍）。標 🅰️ 嘅對應 Functional Spec D60–D62、D64、D65 同 D63 細項：PM 建議，照建議做。今次冇改 code。**以下係 v1.5（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）嘅狀態**：加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
+**版本**：v1.9
+**日期**：2026-11-26 16:30（v1.8：2026-11-26 11:40；v1.7：2026-11-26 10:30；v1.6：2026-11-25 21:10；v1.5：2026-11-25 19:36；v1.4：2026-11-25 16:40；v1.3：2026-11-25 12:40；v1.2：2026-11-25 08:06；v1.1 Approved：2026-11-25 00:07；v1.1 補二：00:01；v1.1 補一：2026-11-24 23:52；v1.0：2026-11-24 16:50；v1.1 初稿：23:18）
+**作者**：Architect Agent（v1.2–v1.9：Project Manager Agent 跟 CR-003 至 CR-009 同步；標明「由 T-xxx 定案」嘅技術細節留畀嗰個任務）
+**關聯 Functional Spec**：v1.11（v1.11 = CR-009：版本掣、手機打橫轉返、弧線歌單同旋鈕頭尾相接、播完最後一首、app icon 細尺寸（播放端設計稿第 20 版）；v1.10 = CR-008：揀碟同歌單欄（播放端設計稿第 19 版）、旋鈕、弧線歌單、更新、logo；v1.9 = CR-007：媒體 bucket 係唯一資料來源、`info.txt`、管理端 = 同步 + 文字框；v1.8 = CR-006：掃描係主要資料來源、初始資料只入專輯、歌號跟檔名、只有年份；v1.7 = CR-005 補充：播放端設計稿第 18 版確認；包括 CR-001 歌曲 credit、CR-002 播放端介面定稿、CR-003 管理端儲存即生效同歌曲文字框、CR-004 掃描範圍、媒體 bucket、資料夾命名、字體、內容資料、CR-005 兩張封面、封面放大、掃描以音檔做錨、左上長歌名、播緊時揀碟、字重）`2026-11-24_16-13_functional-spec_r-gram.md`
+**狀態**：**v1.9**（CR-009）。跟 Functional Spec v1.11 更新（見「CR-009 對技術設計嘅影響」）：版本掣（`useUpdateStatus`／`applyNow` 經 context 入 `TopGroup`，喺弧線歌單暗層下面；拎走 `update-prompt`、`data-trap-stop`）；手機打橫轉返（`quarterTurn`、舞台轉 ±90°、`fitStage` 對調闊高、安全區轉、`toStagePoint`；`useDragScroll` 要改、`useKnobTurn` 唔使改；拎走 `rotate-notice` 同 `Stage covered`）；弧線歌單圈（`ring = N + 1`、`loopWindow`、接駁位、圈上吸附、頭尾相接鍵盤、`LIST_FLOAT` 摺返行原地淡入）；旋鈕唔夾、`stackOffset`、碟疊次序；播完最後一首（`ended` → 3 秒 → `idle`）；favicon 16／32／48、maskable 192。對照 code 改正：「手機橫版」係舞台照 render 再蓋住（唔係「唔 render」）；`pwa/` 有七個檔。今次冇改 code。**以下係 v1.8（CR-008）嘅狀態**（入面實現注意事項 12 嘅提示部分已由 CR-009 取代）：跟 Functional Spec v1.10 更新（見「CR-008 對技術設計嘅影響」）：播放端揀碟嘅顯示規則（`showsColumn`、`trackChosen`、細掣、唱臂、細唱片機；場景 × 載入／拎住 × 字母盤表）；拎走 `playHeldTrack`、`startHeld`、歌單欄行嘅 focus 同 D57 例外；反轉「拎住嘅碟唔開弧線歌單」同「字母盤開住㩒碟面入歌單」；唱片夾 `playFirst`；`heldTracks.bottomIdle` 取代 `bottomHeld`；歌單欄飄落同飄落弧線嘅 motion token；淨空規則改寫；更新規則（取代實現注意事項 12）。另外「實作對齊」：`breakAt()`（B-070）、旋鈕 `slider`（B-077 ②）、S-173／S-174／S-176（B-080）、API-017／018／019／040／041 嘅回應、錯誤碼同操作數（B-081 ④）。只影響 `apps/player`（T-108）；Backend 只係文件回寫。今次冇改 code。**以下係 v1.7（CR-007）嘅狀態**：跟 Functional Spec v1.9 更新（見「CR-007 對技術設計嘅影響」）：媒體 bucket 係唯一來源，D1 係索引；專輯由資料夾名（`parseAlbumFolder()`）同 `info.txt`（`parseAlbumInfo()`）；曲目由 `info.txt`，冇音檔 = 灰色；`albums` 刪 `label`、`wheel_key`、`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`；內容檔刪 `label`、`subtitle`；全 bucket 同步（API-033、034、035）、封面結果（API-017）、寫返 bucket（API-018、019、040、041）；取消 API-011、013、014、015、020、021、022、024、030、031、032、043；初始資料 seed 拎走；已完成 code 嘅保留／改寫／拎走清單連任務 T-103–T-106。標 🅰️ 嘅對應 Functional Spec D66–D81 嘅 PM 建議，照建議做。今次冇改 code。**以下係 v1.6（CR-006）嘅狀態**（入面掃描、seed、歌號 API 嘅設計已由 CR-007 取代）：跟 Functional Spec v1.8 更新（見「CR-006 對技術設計嘅影響」）：掃描建立歌曲（API-030 加 `newTracks`、`audioMissing`；API-031 加 `create`、`clearAudio`）；歌號 = 檔名歌號、可以跳號，刪歌唔重編，API-023 取消，API-020 要 `no`、API-021 可以改 `no`；歌 id 建立時 `<albumId>-<NN>`、之後不變；`albums.release_date`、`albums.type` 刪走，`year` 直接輸入（API-011、API-013、內容檔）；seed（T-027）只入專輯；`.mp3`、手動指定音檔、`cover2.png` 定案；字體檔 `_fonts/lubalin-graph-book.otf`。列出已完成 code 要改嘅檔（新任務 T-101、T-102；T-025、T-027 改範圍）。標 🅰️ 嘅對應 Functional Spec D60–D62、D64、D65 同 D63 細項：PM 建議，照建議做。今次冇改 code。**以下係 v1.5（CR-005 補充：播放端設計稿第 18 版用戶 2026-11-25 已確認，source commit `4e739cd`）嘅狀態**：加「補充：播放端設計稿第 18 版確認嘅技術設計」：載入嘅碟（播放 store `albumId`）同顯示嘅碟（`viewAlbumId`）分開、衍生狀態 `holding`（拎住另一隻碟）、細唱片機元件、拎住嘅碟嘅歌單欄（欄內捲動）、版面數字入 `stage/layouts/phone.ts`、motion token `chromeFadeMs`、細唱片機出現時碟名闊度收窄；D51、22 格嘅數值定案。只影響 `apps/player`；Backend、API、資料庫、內容檔唔受影響。今次冇改 code。**以下係 v1.4（CR-005）嘅狀態**（入面「第 18 版數值等用戶確認」已由 v1.5 回答）：跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：類別短名同次序確認；封面細過 1200 由管理端放大（Worker 規則不變）；掃描以音檔做錨；第二張封面（`albums.cover2`／`thumb2`／`cover2_source_etag`、內容檔可選欄、API-013、掃描）；播放端每次開 app 隨機揀封面；左上歌名兩行；播緊時揀碟淡出淡入；字重唔模擬粗體（見「CR-005 對技術設計嘅影響」）。對應播放端設計稿第 18 版（commit `ae30893`）嘅數值**等用戶確認**；Functional Spec D44、D49、D54 兩個例外、D55 `cover2.png` 仍然待確認。**以下係 v1.3（CR-004）嘅狀態**（D43、D47、D48 已由 CR-005 回答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌；並回寫專輯、歌曲、封面 API 開發時定落嚟嘅細節（見「CR-004 對技術設計嘅影響」）。對應 Functional Spec D43（短名串法）、D44（`type` 欄）、D47、D48、D49 嘅部分**待用戶確認**；標「T-xxx 定案」嘅係技術做法。**以下係 v1.2（CR-003）嘅狀態，仍然有效**：跟用戶 2026-11-25 嘅 14 項決定（已確認）更新。對應 Functional Spec D30–D39 嘅設計：**用戶 2026-11-25 已確認 D30、D31、D32、D34、D36–D39**（「嗰 8 條跟建議」；D31 由已確認嘅決定 8 加 D32、D37 完全決定）；D33（儲存欄位）係技術決定，唔使用戶確認；D35（統計項目）等管理端設計稿第 2 版確認。**播放端設計稿第 17 版用戶 2026-11-25 已確認**（包埋第 16 版嘅內容；對應嘅技術設計見「播放端設計稿第 17 版嘅技術設計」）。管理端設計稿第 2 版同 Implementation Plan A-7、A-8 仍然等用戶確認，靠佢哋嘅任務唔開工。v1.1 用戶 2026-11-25 已確認。之後改動要行 Change Request
 
 **參考實作**：`dcwhung/903-player`（commit `38a6176`）。下面寫「同 903-player」嘅地方，即係做法已經喺嗰個 repo 行緊，可以直接參考對應檔案。
 
@@ -125,14 +125,14 @@ src/
 ├── config/         layout.ts（裝置 media query 常數）、motion.ts（時長 token）、storageKeys.ts、limits.ts
 ├── catalog/        loader.ts（fetch + 驗證 + 本機 cache）、selectors.ts
 ├── stage/          Stage.tsx（按比例縮放舞台）、StageSvg.tsx（單一 SVG 畫布，貼頂 / 貼底兩組；CR-003）、geometry.ts（幾何純函數）、fitStage.ts、safeArea.ts、layouts/<mode>.ts（幾何資料表）、useLayoutMode.ts
-├── components/     flag/ metal/（SvgDefs、Screws、車床紋）platter/ disc/ spindle/ tonearm/ metal-button/ icons/ knob/ dial-ring/ tracklist/ info-block/ booklet/ tv/ rotate-notice/
+├── components/     flag/ metal/（SvgDefs、Screws、車床紋）platter/ disc/ spindle/ tonearm/ metal-button/ icons/ knob/ dial-ring/ tracklist/ info-block/ booklet/ tv/ rotate-notice/（⚠️ CR-009：拎走，D96）
 │                   mini-turntable/ held-tracks/（CR-005 第 18 版：細唱片機、拎住嘅碟嘅歌單欄；T-048、T-049）
 │                   （CR-002 + CR-003：場景零件全部係 React SVG 元件；wheel/、lyrics/、info-panel/ 已刪）
 ├── playback/       audioEngine.ts、queue.ts（純函數）、playModes.ts、mediaSession.ts、resume.ts
 ├── mv/             videoEngine.ts、volumeGain.ts（Web Audio）
 ├── favourites/     store.ts、favouritesAlbum.ts（由收藏砌出虛擬專輯）
 ├── lyrics/         loader.ts、activeLine.ts；第 17 版：歌詞斷行同長行策略嘅純函數（`wrapLine`、`fitLyricLine`；檔名由 T-082 定案）
-├── pwa/            updateManager.ts
+├── pwa/            updateManager.ts（⚠️ CR-009 對照 code：仲有 registerUpdates.ts、reloadGuard.ts、updateChecks.ts、useUpdates.ts、manifest.ts、catalogCaching.ts）
 ├── styles/         tokens.css、global.css；CR-004：fonts.css（`@font-face`：local Lubalin Graph → bucket 字體 URL → 內建 Rokkitt；T-044）
 ├── i18n/           zh-Hant.ts（語言檔）、t.ts、locale.ts、writtenChinese.test.ts（CR-002：FR-037）
 └── utils/          motion.ts（prefersReducedMotion）、format.ts
@@ -184,7 +184,7 @@ src/
 | 幾何表 | `layouts/phone.ts` 輸出一個有型別嘅常數物件：各場景嘅碟位（圓心、半徑）、唱臂軸心同角度、掣位、Wheel、歌單弧線、電視框。初版數值由 `_mockups_/r-gram/src/anim.js` 檔頭常數抄入；主頁改版 mockup 確認後換數值 |
 | 裝置模式 | `LayoutMode = 'phone' ｜ 'duoCover' ｜ 'duoOpenPortrait' ｜ 'duoOpenLandscape' ｜ 'square' ｜ 'desktop'`；`config/layout.ts` 用 media query 範圍判斷（Duo / HomeView 範圍沿用 903-player `apps/player/src/config/layout.ts`） |
 | 未匹配裝置 | 退去 `phone`：舞台保持 9:16、按高度縮放、置中 |
-| 手機橫版 | 橫向而且高度 ≤ 手機短邊上限 → 顯示 `RotateNotice`，舞台唔 render |
+| 手機橫版 | ~~橫向而且高度 ≤ 手機短邊上限 → 顯示 `RotateNotice`，舞台唔 render~~（T-039 實際：舞台照 render、`inert` + `aria-hidden`，上面蓋 `RotateNotice`）。⚠️ **CR-009（D96）**：唔再出「請打直」；同一個條件下將舞台反方向轉 90 度（闊高對調、安全區同手勢跟住轉），見「CR-009 對技術設計嘅影響 → 手機打橫轉返」 |
 | 加裝置 | 加一份 `layouts/<mode>.ts` +（需要時）一個排版元件；現有模式嘅表同 CSS 唔改；用截圖比對工具證明現有裝置零改變（同 903-player `e2e:visual`） |
 | 高身畫面（⚠️ CR-003 決定 1） | 舞台闊度填滿之後可用高度多過 1920：`StageSvg` 嘅 viewBox 高度跟舞台；「貼頂」組（左上資訊、頂部螺絲、版本號）唔郁，「貼底」組（轉盤、碟、唱片夾、唱臂、控件、左下螺絲）`translate(0, extraUnits)`；多出嚟嘅高度留喺中間。幾何表嘅數值唔變（T-033 已做） |
 | 細屏（⚠️ CR-003 決定 3） | 全部按 `--u` 比例縮放，唔加細屏分支。感應範圍以 `clearance.viewportPt = 390` 做基準計（44pt）；375pt 闊 = 42.3pt、360pt 闊 = 40.6pt，用戶已接受 |
@@ -805,7 +805,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 9. **掃描配對規則**（`packages/catalog/scan`）：檔名（唔計資料夾）開頭嘅 1–3 位數字 = 歌號；副檔名分類：`m4a`、`mp3` → audio；`mp4`、`m4v` → mv；其他 → `UNKNOWN_EXTENSION`。同一個歌號同一類有多過一個檔 → `conflicts`，唔自動揀。比對唔分大細楷。⚠️ CR-004：加兩類：`cover.jpg`／`cover.png`（冇歌號）→ 封面來源；開頭有歌號嘅 `txt` → 歌曲文字。完整分類表見「CR-004 對技術設計嘅影響 → 掃描嘅設計」。
 10. **Design token**：開發第一步由 `anim.js` 檔頭常數生成 `apps/player/src/styles/tokens.css`（色、字級、陰影）同 `config/motion.ts`。時長分兩組：回饋類 `--motion-feedback-*`（≤ 300ms）同場景類 `--motion-scene-*`（旗幟淡出、落針、電視彈出、歌單進出；Functional Spec D1 已接受超過 300ms）。唔可以喺元件寫死毫秒數。
 11. **減少動態**：CSS 動畫放喺 `@media (prefers-reduced-motion: no-preference)`；JS 喺動畫開始嗰刻先讀設定（唔 cache）；唔可以因為等 `animationend` 而卡住狀態機。狀態轉換要有「冇動畫」路徑，test 行呢條路。
-12. **PWA 更新**（`pwa/updateManager.ts`，同 903-player）：啟動、`visibilitychange`、定時叫 `registration.update()`；新 SW 喺 waiting 等；~~播放狀態係 `idle` / `paused` 先 `SKIP_WAITING` → `controllerchange` → reload 一次（`sessionStorage` 防 loop）~~。⚠️ **CR-008（Functional Spec D93，取代 D14）**：只喺開 app（Preload 期間）自動 `SKIP_WAITING` → reload 一次（防 loop）；用緊 app 永遠唔會自己換，出提示等聽眾㩒「立即更新」。見「CR-008 對技術設計嘅影響 → 更新」。
+12. **PWA 更新**（`pwa/updateManager.ts`，同 903-player）：啟動、`visibilitychange`、定時叫 `registration.update()`；新 SW 喺 waiting 等；~~播放狀態係 `idle` / `paused` 先 `SKIP_WAITING` → `controllerchange` → reload 一次（`sessionStorage` 防 loop）~~。⚠️ **CR-008（Functional Spec D93，取代 D14）**：只喺開 app（Preload 期間）自動 `SKIP_WAITING` → reload 一次（防 loop）；用緊 app 永遠唔會自己換，出提示等聽眾㩒「立即更新」。見「CR-008 對技術設計嘅影響 → 更新」。⚠️ **CR-009（D95）**：提示換做版本掣（右上版本號，喺暗層下面），㩒 = `applyNow()`；見「CR-009 對技術設計嘅影響 → 版本掣」。
 13. **畫面固定**：`html, body { height: 100dvh; overflow: hidden }`；舞台自己處理 `env(safe-area-inset-*)`；歌單 / Wheel / 歌詞嘅捲動係元件內部手勢，唔係頁面捲動；要 `touch-action: none` 防止 iOS 回彈。
 14. **無障礙**：Wheel 同歌單用 `role="listbox"` + `aria-activedescendant`；所有 icon 掣 `aria-label`；停用掣用 `aria-disabled`（保持可 focus）；旋鈕用 `role="slider"` + `aria-valuenow`。
 15. **介面文字（管理端同播放端）**：集中喺各自嘅 `src/i18n/zh-Hant.ts`，書面語；加 test 鎖住唔出現口語字（同 903-player `writtenChinese.test.ts`）。詳見「CR-002 對技術設計嘅影響」i18n 幾行。
@@ -841,7 +841,7 @@ Key 名集中喺 `config/storageKeys.ts`；讀取時驗 shape，壞咗就當冇�
 | FR-016、FR-023 收藏 + Favourites 碟 | `favourites/*`、`rgram.favourites.v1` |
 | FR-017、FR-030 Info + 歌曲 credit | `components/info-panel`；catalog `tracks[].credits` |
 | FR-117–FR-119 credit、由同名歌帶入、歌詞參考連結 | API-041（credit 經歌曲文字）、API-024、API-021、`tracks` credit 欄 + 參考欄 |
-| FR-018、FR-027–FR-029 裝置 | `config/layout.ts`、`stage/layouts/*`、`rotate-notice` |
+| FR-018、FR-027–FR-029 裝置 | `config/layout.ts`、`stage/layouts/*`、~~`rotate-notice`~~（⚠️ CR-009：手機打橫轉返，`stage/rotation.ts`、`usePhoneLandscape`） |
 | FR-101 Login | API-001–004、`auth/*`、`sessions` |
 | FR-102–FR-104 專輯 / 封面 / 歌 | API-010–023、API-050、`albums`、`tracks`、`assets` |
 | FR-105 掃描 | API-030–032、`packages/catalog/scan`（⚠️ CR-004：連封面來源同歌曲文字檔，FR-123，見「CR-004 對技術設計嘅影響」） |
@@ -1828,10 +1828,10 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | --- | --- |
 | 檢查 | 開 app、`visibilitychange`（返前景）、`pageshow`（bfcache）、每 30 分鐘（`UPDATE_CHECK_INTERVAL_MS`）叫 `registration.update()`；限流 60 秒（`UPDATE_CHECK_THROTTLE_MS`）；離線唔查 |
 | 開 app（Preload 期間，`launching`） | 搵到 waiting 嘅 SW：即刻 `SKIP_WAITING` → `controllerchange` → reload 一次（`sessionStorage` 防 loop） |
-| 用緊 app（Preload 之後） | **唔會自己換、唔會自己 reload**（播緊、暫停、閒置、返前景都一樣）；狀態 `waiting` → 出提示（`components/update-prompt`，「已有新版本」「立即更新」），有版本等緊就一直出 |
-| 㩒「立即更新」 | `SKIP_WAITING` → reload（聽眾自己揀，唔使防 loop；播緊嘅歌停） |
+| 用緊 app（Preload 之後） | **唔會自己換、唔會自己 reload**（播緊、暫停、閒置、返前景都一樣）；狀態 `waiting` → 出提示（`components/update-prompt`，「已有新版本」「立即更新」），有版本等緊就一直出。⚠️ **CR-009（D95）**：`waiting` → 右上版本號變成版本掣；`update-prompt` 拎走 |
+| 㩒「立即更新」 | `SKIP_WAITING` → reload（聽眾自己揀，唔使防 loop；播緊嘅歌停）。⚠️ CR-009：改為㩒版本掣，同一條路（`applyNow()`） |
 | 另一個分頁換咗版 | `controllerchange` 而唔係自己揀：當有新版本等緊，出提示 |
-| 外觀 | 提示同「請打直」設計稿冇畫，等用戶睇（Functional Spec §開放問題） |
+| 外觀 | ~~提示同「請打直」設計稿冇畫，等用戶睇（Functional Spec §開放問題）~~ ⚠️ CR-009：兩樣都拎走；版本掣照設計稿第 20 版 |
 
 ### 實作對齊（review、QA 要求回寫；唔係新決定）
 
@@ -1878,8 +1878,120 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | D90 | 歌號照用專輯色（冇改） |
 | D91 | `dialHoldMs`、`turnThresholdPx`（已做） |
 | D92 | 弧線歌單行唔㩒得（已做） |
-| D93、FR-009 | `updateManager`（已做）；實現注意事項 12 |
+| D93、FR-009 | `updateManager`（已做）；實現注意事項 12。⚠️ CR-009：版本掣（D95） |
 | D94 | `src/assets/logo-full.png`、app icon（已做） |
+
+
+## CR-009 對技術設計嘅影響
+
+對應 Functional Spec v1.11 §CR-009（用戶 2026-11-26，CR-008 之後；播放端設計稿**第 20 版**，commit `a335587`）。本節取代上文同佢有出入嘅地方：「繪圖方式」嘅「手機橫版」一行、元件樹嘅 `rotate-notice/`、實現注意事項 12 同「CR-008 對技術設計嘅影響 → 更新」嘅提示部分、「Functional Spec 對照」嘅 FR-018 一行；受影響嘅表已喺原位加 ⚠️ CR-009。只影響 `apps/player`（新任務 T-109–T-112，T-038 加範圍；Implementation Plan v1.8）；Backend、API、資料庫、內容檔唔受影響。下面「而家嘅 code」對照 2026-11-26 branch `claude/charming-cannon-8yulp0`（T-108 合併之後）。數值以設計稿常數為準：`VERSION`、`UPDATE_PILL`、CSS `versionGlow`、`LIST_LOOP`、`loopWindow()`、`stackOffset()`、`STACK_LOOP`。**今次冇改 code**。
+
+### 版本掣（D95；T-109）
+
+**而家嘅 code**（T-039）：`pwa/` 有 `registerUpdates.ts`（接 vite-plugin-pwa、`controllerchange`）、`updateManager.ts`（狀態 `UpdateStatus = 'none' | 'waiting'`；`launching` 期間自動換；`applyNow()` 設 `chosen`，reload 唔經 `reloadGuard`）、`reloadGuard.ts`（`sessionStorage`，`RELOAD_LOOP_WINDOW_MS` 30 秒）、`updateChecks.ts`（返前景、`pageshow`、`UPDATE_CHECK_INTERVAL_MS` 30 分鐘）、`useUpdates.ts`（`UpdatePort` = `subscribe`／`getSnapshot`／`endLaunch`／`applyNow`；`useUpdateStatus()`、`useLaunchEnd()`）、`manifest.ts`、`catalogCaching.ts`。`App.tsx` 喺舞台外面 render `components/update-prompt/UpdatePrompt`（`role="status"`、「已有新版本」+「立即更新」掣，`data-trap-stop` 令弧線歌單嘅 Tab 兜圈包埋佢，S-199）。版本號係 `components/info-block/VersionText.tsx`，喺 `app/TopGroup.tsx` 入面（貼頂組），歌單開住時轉暗灰（喺暗層上面）。
+
+| 項目 | 做法 |
+| --- | --- |
+| 訊號 | 照用 `pwa/`：`useUpdateStatus(port) === 'waiting'` = 出版本掣；㩒 = `port.applyNow()`（`chosen` → `SKIP_WAITING` → reload，唔經 30 秒防 loop）。`updateManager` 嘅規則唔改（Preload 期間 `publish()` 一律 `none`，所以版本掣唔會喺 Preload 出） |
+| 點樣傳入舞台 | `UpdatePort` 而家只喺 `App`；版本掣喺 `HomeScene` → `TopGroup` 入面。建議：`App` 用 context（例如 `pwa/UpdateContext`）提供 `{ waiting, apply }`，`TopGroup` 讀；唔好經 `homeView`（純函數，唔應該知 SW）。T-109 定案 |
+| 圖層 | 設計稿：掣畫喺唱片機嗰層，**喺暗層下面**。而家弧線歌單嘅暗層（`ArcVeil`）喺 `TopGroup` 入面（貼頂組畫喺貼底組之後）。所以版本掣要喺 `TopGroup` 入面、排喺 `ArcTrackList` 之前（仍然屬貼頂組，高身手機唔跟貼底組郁）；之後歌書（T-072）、MV（T-060）嘅暗層都要喺佢上面 |
+| 蓋住（`covered`） | `listOpen ｜｜ overlay === 'booklet' ｜｜ overlay === 'mv'`（衍生純函數，連 unit test；歌書、MV 未做時只有 `listOpen`）：`pointer-events="none"`、唔 focus 得（唔入 Tab 次序）；視覺上靠暗層變暗，唔使另外轉色 |
+| 外觀 | `layouts/phone.ts` 加 `updatePill`（由 `UPDATE_PILL` 抄：字級 26、`charW` 0.4、`padX` 26、高 58、右邊 1034、`midDy` −9、線寬 3、感應範圍 122）；顏色 `#f09a00` 入 `tokens.css`（例如 `--color-update`，連 `tokens.node.test.ts`）；字用 `--font-slab`（唔係 Light）；框闊 = `padX × 2 + 字數 × (size × charW + spacing)`（同設計稿 `updatePillBox()`；唔用量字，數字闊度設計稿已經估好）；感應範圍：高 122，闊 = max(框闊, 122) + (1080 − 1034)，貼住畫面右邊 |
+| 閃 | CSS keyframes：opacity 1 → 0.2 → 1，ease-in-out，無限；時長 1.4 秒做 motion token（`config/motion.ts` + `tokens.css`，例如 `--motion-scene-update-blink`；連 `motion.test.ts`、`tokens.node.test.ts`）；放喺 `@media (prefers-reduced-motion: no-preference)` 入面，減少動態效果 = 常亮 |
+| 元件 | `components/info-block/VersionButton.tsx`（或者 `components/update-button/`，T-109 定案）：SVG `<g role="button" tabIndex={0}>` + `aria-label`（`t('update.buttonLabel')`：「已有新版本，立即更新並重新載入」）；Enter／Space 同㩒一樣；`waiting` 時唔 render `VersionText`（同設計稿 `versionMark()`） |
+| 淨空 | `clearance.test.ts` 加：感應範圍 ≥ 44pt；唔掂細唱片機感應範圍（設計稿「拎住另一隻碟時」：掣喺細唱片機上面） |
+| 拎走 | `components/update-prompt/`（`UpdatePrompt.tsx`、`updatePrompt.css`、兩個測試）；`App.tsx` 嘅 `<UpdatePrompt>`；`useListFocus.ts` 嘅 `OUTSIDE_STOPS`／`data-trap-stop`（冇舞台外面嘅掣，S-199 嘅兜圈例外拎走）；語言檔 `update.available`、`update.apply`、`update.applyLabel`（換 `update.buttonLabel`）；`AppPwa.test.tsx` 改為驗版本掣。順手改 backlog B-085 ② 兩個舊註解（`i18n/zh-Hant.ts` 嘅 D14、`vite.config.ts`） |
+| QA 鏈 | `player-pwa`、`player-home`（`info-block`）；亦掂到 `player-holding`（`TopGroup`）、`player-list`（`useListFocus`）、`player-foundation`（`layouts/phone.ts`、motion、tokens）：按 validation gate 重驗改咗嘅檔 |
+
+### 手機打橫轉返（D96；T-111）
+
+**而家嘅 code**（T-039）：`stage/deviceClass.ts` 嘅 `isPhoneLandscape({ width, height, coarsePointer })` = `coarsePointer && width > height && height ≤ PHONE_MAX_SHORT_SIDE_PX`（500）；`stage/usePhoneLandscape.ts`（聽 `resize`、`orientationchange`、`(pointer: coarse)`）；`App.tsx`：打橫時 `<Stage covered>`（舞台照 render，但 `inert` + `aria-hidden`）再蓋 `components/rotate-notice/RotateNotice`（`role="alert"`）。⚠️ 上面「繪圖方式」寫「舞台唔 render」同 code 唔一致：code 係照 render、蓋住。`manifest.ts` `orientation: 'portrait'`。`useStageFit` 用 `innerWidth`、`innerHeight` 同 `safeArea.readSafeAreaInsets()`（只讀 top、bottom）計 `fitStage()`。
+
+| 項目 | 做法 |
+| --- | --- |
+| 幾時轉 | 照用 `isPhoneLandscape`（平板、Duo 打開、電腦唔轉，照舊置中）。Android 已安裝 PWA 由 manifest 鎖直，永遠唔會入呢個情況 |
+| 轉邊個方向 | 🅰️ `screen.orientation.angle`（iOS 16.4 起有；舊 Safari 用 `window.orientation`）：90 → 舞台轉 −90°；270（或者 −90）→ 轉 +90°；讀唔到當 90。目標：畫面嘅頂永遠喺手機實際嘅頂。純函數 `quarterTurn(angle)`，連 unit test |
+| 舞台大細 | `fitStage` 用**轉咗之後**嘅尺寸：闊 = `innerHeight`、高 = `innerWidth`（即係打橫 viewport 嘅短邊做舞台闊）；其餘縮放規則不變（`--u`、`extraUnits`） |
+| Transform | 舞台容器（`.stage`）`position: fixed`，`width` = viewport 高、`height` = viewport 闊；`transform: translate(…) rotate(±90deg)`，`transform-origin` 揀到轉完啱啱填滿 viewport（例如 −90°：`translateY(100vh)`…；T-111 定案並寫 snapshot test）；`html`、`body` 照 `100dvh` + `overflow: hidden`。冇過場動畫（減少動態效果一樣） |
+| 安全區 | `safeArea.ts` 加讀 `left`、`right`（`env(safe-area-inset-left/right)`）。打橫時：舞台嘅「頂」= 手機實際嘅頂 = viewport 嘅左或者右（跟 `quarterTurn`），「底」= 對面；viewport 嘅底（底部指示條）變咗舞台嘅側邊。`fitStage` 收已經轉好嘅 insets；側邊 inset 用嚟收窄可用闊度（新參數 `side`），T-111 定案 |
+| Pointer | SVG 嘅 hit test 同 `getBoundingClientRect()` 由瀏覽器處理 transform，㩒掣唔使改。用 `clientX`／`clientY` 自己計嘅地方要跟住轉：① `components/scroll/useDragScroll.ts`（歌單欄、弧線歌單共用；用 `clientY` 計拖動距離）：改為用「舞台直方向」嘅座標，打橫時 = ±`clientX`；② `components/knob/useKnobTurn.ts`：角度係 `atan2(clientY − 中心, clientX − 中心)`，純旋轉 90° 之後角度差（`turnDelta`）唔變、中心由 `getBoundingClientRect()` 計都啱、6 px 門檻用 `hypot` 唔變，所以**唔使改**，但要加測試鎖住（打橫時順時針擰仍然係下一隻碟）。建議：`StageContext` 提供 `toStagePoint(clientX, clientY)`（純函數 `stage/rotation.ts`），所有手勢經佢；之後歌書（T-082）嘅捲動一樣用 |
+| 滾輪 | `deltaY` 照用（電腦先有滾輪，唔會入打橫狀態） |
+| 拎走 | `components/rotate-notice/`（元件、CSS、測試）；`Stage` 嘅 `covered` prop（只係為「請打直」）；`App.tsx` 嘅 `<RotateNotice>`；語言檔 `rotate.notice`；`deviceClass.ts`、`manifest.ts` 嘅註解改（C11 → D96） |
+| 真機 | spike（T-010）喺真 iPhone 試：瀏覽器分頁同加咗落主畫面兩種；量系統轉嘅時間、有冇閃、狀態列位置、手勢方向（R-23） |
+| QA 鏈 | `player-pwa`（`rotate-notice`、`deviceClass`、`usePhoneLandscape`、`AppPwa.test.tsx`）、`player-foundation`（`Stage`、`fitStage`、`safeArea`、`useStageFit`、`StageContext`）、`player-core`（`App.tsx`）、`player-list`（`useDragScroll` 喺 `components/scroll`）、`player-dial`（`useKnobTurn` 嘅測試） |
+
+### 弧線歌單頭尾相接（D97；T-110）
+
+**而家嘅 code**（T-037、T-108）：`components/arc-list/arcScroll.ts` 嘅 `clampOffset(offset, count)` 將捲動位置夾喺 0 至 N − 1；`snapIndex()` 吸附去最近一行播得嘅歌；`useArcScroll.ts` 嘅滾輪同 `active` 都經 `clampOffset`；`components/scroll/rowStep.ts`（歌單欄同弧線歌單共用）嘅方向鍵去到盡頭就停；`stage/arcRows.ts` 按 `offset` 排行（第 k 行喺 180 − k × step）。
+
+| 項目 | 做法 |
+| --- | --- |
+| 圈 | 圈大細 `ring = N + 1`；第 N 格 = 接駁位。捲動位置 `offset` 可以係任何實數（唔再夾），顯示時摺返：`at = mod(round(offset) + j, ring)`（`mod` 永遠正）。純函數放 `arcScroll.ts`（`ringIndex`、`loopWindow`），連 unit test |
+| 窗口 | `visible` = `layouts/phone.ts` 弧線歌單嘅 `visible`（設計稿 `LIST.visible`）。`above = min(⌊visible⌋, ⌊N/2⌋)`、`below = min(⌊visible⌋, N − above)`；畫 j = −above … below 嘅格（`above + below + 1 ≤ ring`，所以每首最多出現一次） |
+| 接駁位 | 新元件（例如 `ArcSeam`）：圓點（半徑 `LIST_LOOP.dot` 9）+ 短線（長 `markW` 230、線寬 `markStroke` 5、同點相隔 `gap` 8），顏色 = 專輯色（`accent`）；不透明度 = lerp(`minOpacity` 0.45, 1, clamp(1 − abs(k) / visible))（歌名用 `depth`，淡得快啲）；`aria-hidden`、`pointer-events: none`；數值入 `layouts/phone.ts`（`list.loop`） |
+| 吸附 | `snapIndex` 改用圈上距離：候選 = 播得嘅歌（唔包接駁位、灰色行）；距離 = 圈上最短距離；結果係「未摺返」嘅 offset（例如由 N − 1 拖過接駁位去 N + 1，吸附到 N + 1 = 第 0 首），等動畫唔會倒轉成個圈行返去 |
+| 滾輪 | 照 `wheelSteps`；目標 = `current + steps`（唔夾），再經吸附 |
+| 鍵盤 | `rowStep.ts` 加「頭尾相接」版本（弧線歌單用；歌單欄照用會停嘅版本，D97 歌單欄唔頭尾相接）：去到盡頭就由另一頭第一行播得嘅歌開始；跳過接駁位同灰色行；Home／End、Page Up／Down 照舊（Home = 第一首播得、End = 最後一首播得） |
+| 得一首 | `ring = 2`：above 0、below 1（接駁位喺下面）；吸附永遠係第 0 首 |
+| 冇歌 | 不變（`ArcEmpty`） |
+| `active`（框入面）| `mod(round(offset), ring)`；如果啱啱係接駁位（拖動途中）就攞最近嗰首（同設計稿 `listRowOf()`）；左上歌名跟 `active` |
+| `LIST_FLOAT` | `arcFloat.ts`／`useArcFloat.ts`：第一首起（未摺返、`base + j < N`）嘅行照舊由歌單欄飄落、逐行 `stagger`；摺返嘅行（`base + j < 0` 或者 `≥ N`）同接駁位：唔飄，`LIST_FLOAT.frameDelay`（280 ms）時原地淡入（同框線一齊）；`ArcColumnGhosts` 不變 |
+| 歌單欄 | `columnLayout`、歌單欄捲動不變（唔頭尾相接） |
+| QA 鏈 | `player-list`（`arc-list`、`scroll`、`stage/arcRows`）、`player-foundation`（`layouts/phone.ts`） |
+
+### 旋鈕同碟疊頭尾相接（D98；T-110）
+
+**而家嘅 code**（T-036）：`components/knob/knobTurn.ts`：`moveTurn()` 將 `turnedDeg` 夾喺頭尾各多半格之內；`turnedPosition()` 夾喺 0 至 P − 1；`keyTarget()` 方向鍵夾、Home／End 去頭尾。`components/disc-stack/DiscStack.tsx`：`entries.slice(from, to + 1)`，`offset = index − current`（直線），畫嘅次序 = 陣列次序。
+
+| 項目 | 做法 |
+| --- | --- |
+| 擰 | `moveTurn()` 唔再夾 `turnedDeg`；`turnedPosition()` = `mod(startPos + round(turnedDeg / stepDeg), P)`。指針角度 = 刻度上 `position` 嘅角度，即時跳（唔做跨越成條弧嘅過場：指針嘅 CSS transition 喺頭尾跳嗰下要關，T-110 定案點做） |
+| 鍵盤 | `keyTarget()`：方向鍵 `mod(current ± 1, P)`；Home = 0、End = P − 1（不變）；`aria-valuenow` 照用 position |
+| 碟疊 offset | 純函數 `stackOffset(i, current, P) = mod(i − current + STACK_LOOP.before, P) − STACK_LOOP.before`（`before` = 1：前面 1 隻、後面其餘），連 unit test；P ≤ 2 時照用（結果唔重覆） |
+| 窗口 | 唔再 `slice`：揀 `stackOffset` 喺 `shown.from − EDGE … shown.to + EDGE` 之內嘅碟（`layout.orbit.shown`，而家 −1 至 2）；key 照用 `albumId`，所以 ♥ ⇄ 第一隻碟換位時唔會重新 mount |
+| 上下次序 | 按 `stackOffset` 由細到大畫（後畫 = 喺上面）：「下一隻」永遠喺上面；冇跨頭尾時同而家一樣 |
+| 唱片夾（slot） | 照舊緊接喺而家隻碟後面畫 |
+| QA 鏈 | `player-dial`（`knob`、`disc-stack`） |
+
+### 播完最後一首（D99；T-038）
+
+**而家嘅 code**（T-108）：`app/playbackState.ts` 已經有 `PlaybackStatus = 'idle' | 'playing' | 'paused' | 'ended'`（`ended` = 碟仲喺唱片機、唱針離開碟；觸發留畀 T-038）；細唱片機「已播完」（D88）已做；播放模式掣嘅 handler 仲係空（`app/useHome.ts`，backlog B-088 ⑧）。
+
+| 項目 | 做法 |
+| --- | --- |
+| 觸發 | 隊列純函數（T-038）：冇 Repeat 而冇下一首 → 播放 store `ended`；唱臂 = 泊位（D36 ②）；唱片夾圖案 = play |
+| 3 秒 | 新 motion／時間 token（例如 `config/motion.ts` 嘅 `endedReleaseMs` = 3000；唔係動畫，但同樣唔准寫死）；`ended` 之後開 timer，到咗 = 「放低隻碟」：播放 store 清走 `albumId`／歌（`idle`，冇歌載入），之後 `trackChosen` = false → `showsColumn` 出歌單欄（`PANEL_FLOAT`）、左上歌名部分淡出（`chromeFadeMs`），全部係 T-108 已有嘅衍生規則 |
+| 㩒唱片夾 | `ended` 期間或者之後：`playFirst(view)`（T-108），由第一首有音檔嘅歌、由泊位行完整開場；Shuffle 開咗就由隊列規則揀第一首（🅰️ D99 ④） |
+| 提早結束 timer | 🅰️ D99 ①：3 秒內擰旋鈕、㩒碟面、開 MV／歌書 = 即刻做「放低隻碟」再做嗰個操作；🅰️ ②：歌書或者 MV 開住時播完，等佢收埋先開始計 |
+| 拎住時播完 | D88 不變：細唱片機留喺 `ended`；冇 timer（拎住期間顯示緊嘅碟本身已經係未揀歌）；㩒細唱片機返去 = 即刻「放低隻碟」（🅰️ ⑤） |
+| 續播記錄 | 🅰️ ③：`ended` 時清走本機續播記錄（`storageKeys` 嘅 resume），重開 app = 未揀歌 |
+| 減少動態效果 | 淡出、飄落即時；3 秒照等 |
+| 測試 | unit：`ended` → timer → `idle`；timer 期間 `playFirst`；提早結束；拎住時冇 timer。E2E（T-040）：用假 audio 播完最後一首 → 3 秒後同「未揀歌嘅主頁」截圖一樣 |
+
+### App icon 細尺寸（D100；T-112）
+
+**而家嘅 code**（T-039，`beb3324`）：`public/icons/` 有 `icon-192.png`、`icon-512.png`、`icon-maskable-512.png`、`apple-touch-icon.png`；`pwa/manifest.ts` 嘅 `APP_ICONS` 同 `appManifest().icons`（192、512、maskable 512）；`iconLinks()` 出兩個 link：`rel="icon"` 用 **192**（完整版）同 `apple-touch-icon`。
+
+| 位置 | 改為 |
+| --- | --- |
+| `public/icons/` | 加 `icon-16.png`、`icon-32.png`、`icon-48.png`、`icon-maskable-192.png`（由 `_mockups_/app-icon/export/d-black-disc/` 原檔抄入，唔好人手改；16／32／48 係 export 嘅簡化版 tiny／small／mid） |
+| `APP_ICONS` | 加 `favicon16`、`favicon32`、`favicon48`（`image/png`）、`maskable192`（`purpose: 'maskable'`） |
+| manifest `icons` | `icon-192`、`icon-512`、`icon-maskable-192`、`icon-maskable-512`（favicon 尺寸唔入 manifest） |
+| `index.html`（`iconLinks()`） | `<link rel="icon" type="image/png" sizes="16x16" href="/icons/icon-16.png">`、`32x32`、`48x48` 三條；`apple-touch-icon` 180 不變；拎走用 192 做 favicon 嗰條 |
+| 測試 | `manifest.node.test.ts`：每個 icon 檔存在、PNG 尺寸同 `sizes` 一樣、maskable 兩個尺寸都有；`index.html` build 出嚟有三條 favicon link |
+| Precache | 新檔細（16／32／48 共約 8 KB；maskable 192 約 49 KB）；backlog B-085 ① 嘅壓縮照舊喺 T-041 之前做 |
+| QA 鏈 | `player-pwa`（`public/icons`、`pwa/manifest.ts`、`index.html`、`vite.config.ts`） |
+
+### Functional Spec 對照（CR-009）
+
+| Functional 需求／決定 | 技術落點 |
+| --- | --- |
+| D95、FR-009、US-011 | 版本掣（`TopGroup`，暗層下面）；`useUpdateStatus`、`applyNow`；拎走 `update-prompt` |
+| D96、FR-018、US-015、C11 | `quarterTurn`、轉舞台、`fitStage` 對調闊高、安全區轉、`toStagePoint`；拎走 `rotate-notice` |
+| D97、FR-005、US-004 | `arcScroll` 圈、`loopWindow`、`ArcSeam`、圈上吸附、頭尾相接鍵盤、`LIST_FLOAT` 摺返行原地淡入 |
+| D98、FR-004、US-003 | `knobTurn` 唔夾、`mod`；`stackOffset`；碟疊次序 |
+| D99、FR-007、US-006、US-014 | `ended` → 3 秒 → `idle`；`playFirst` |
+| D100、D94 | `APP_ICONS`、manifest、`iconLinks()` |
 
 
 ## 修訂記錄
@@ -1900,3 +2012,4 @@ QA 鏈：`player-holding`、`player-list`、`player-home`、`player-dial`、`pla
 | v1.6 | 2026-11-25 21:10 | 跟 Functional Spec v1.8（**CR-006**）更新：加「CR-006 對技術設計嘅影響」一節（對照表、掃描建立歌曲、歌號同歌 id、只有年份同冇「類型」、初始資料只入專輯、參考資料、字體檔網址、已完成 code 要改嘅地方連任務、Functional Spec 對照）。API-030 加 `newTracks`、`audioMissing`、`manualMissing`；API-031 加 `create`、`clearAudio`；API-020 收 `no`、id = `<albumId>-<NN>`；API-021 加 `no`；API-023 取消；API-011、API-013、API-070 刪 `releaseDate`、`type`，`year` 直接輸入（`INVALID_YEAR`）；`albums` 刪 `release_date`、`type`；`tracks.no` 可以跳號、刪歌唔重編；`tracks.id` 規則改；R2 key layout 加 `cover2.png` 同字體檔名；CR-004、CR-005 入面 D44、D49、D54 例外、`cover2.png` 嘅「待確認」改為定案。新任務 T-101（年份、刪 `type`）、T-102（歌號、歌 id）；T-025、T-027 改範圍。今次冇改 code |
 | v1.7 | 2026-11-26 10:30 | 跟 Functional Spec v1.9（**CR-007**）更新：加「CR-007 對技術設計嘅影響」一節（對照表、資料模型、`packages/catalog` 新增同改、同步嘅設計（每個資料夾嘅計劃、API-033／034／035／017、管理端流程、每個請求嘅操作上限、並發）、寫返媒體 bucket（API-018／019／040／041、寫入規則）、API 一覽嘅變化、安全設計、技術風險、已完成 code 保留／改寫／拎走清單連任務、Functional Spec 對照）。架構表（媒體 bucket、D1）、Endpoint 一覽、數據庫設計、R2 key layout（`info.txt`）、Seed、安全設計「R2 key 驗證」加 ⚠️ CR-007 標記。今次冇改 code |
 | v1.8 | 2026-11-26 11:40 | 跟 Functional Spec v1.10（**CR-008**；播放端設計稿第 19 版，commit `ca8c52a`）更新：加「CR-008 對技術設計嘅影響」一節：狀態同衍生顯示（`trackChosen`、`showsColumn`、欄底、細掣、唱臂、細唱片機「已播完」、唱片夾圖案）、場景 × 載入／拎住 × 字母盤表（歌單欄、細掣、唱臂、細唱片機、唱片夾、碟面）、`playFirst()`、動作嘅變化（`openList` 守衛反轉、`discChange → list` 拎走、`playHeldTrack`／`startHeld` 拎走、`returnToLoaded` 即刻換碟）、拎走或者反轉嘅 code、淨空規則（D57 例外拎走）、版面數字（`bottomIdle`、飄落位移）、motion token（`PANEL_FLOAT`、`LIST_FLOAT`、`panelSettleMs`）、測試同 E2E、更新規則（取代實現注意事項 12）、實作對齊（`breakAt()`、旋鈕 `slider`、S-173／S-174／S-176、API-017／018／019／040／041 嘅回應同錯誤碼、API-034 漏咗嘅 `failed`／`truncated`、API-019／041 操作數）、Functional Spec 對照。原位加 ⚠️ CR-008：場景狀態機、元件表（旋鈕、歌單、歌單欄）、實現注意事項 12、「左上歌名兩行」、CR-005 對照表、「補充：第 18 版」（歌單欄、`openList`、`returnToLoaded`、`playHeldTrack`、`heldTracks`、淨空、元件、motion、i18n）、CR-007 嘅 API-017／018／019／040／041、新錯誤碼、操作數表。今次冇改 code |
+| v1.9 | 2026-11-26 16:30 | 跟 Functional Spec v1.11（**CR-009**；播放端設計稿第 20 版，commit `a335587`）更新：加「CR-009 對技術設計嘅影響」一節：版本掣（訊號由 `pwa/useUpdates` 經 context 入 `TopGroup`；圖層喺弧線歌單暗層下面；`covered`；`layouts/phone.ts` `updatePill`；顏色 token；閃嘅 motion token 同減少動態效果；拎走 `update-prompt`、`data-trap-stop`、三條語言檔字串）、手機打橫轉返（`quarterTurn`、舞台 transform、闊高對調、安全區加 left／right、`toStagePoint`；`useDragScroll` 要改、`useKnobTurn` 唔使改但要測試；拎走 `rotate-notice`、`Stage covered`）、弧線歌單頭尾相接（`ring`、`loopWindow`、接駁位元件、圈上吸附、`rowStep` 頭尾相接版、`LIST_FLOAT` 摺返行）、旋鈕同碟疊頭尾相接（`moveTurn` 唔夾、`turnedPosition`／`keyTarget` `mod`、`stackOffset`、窗口同次序）、播完最後一首（`ended` → 3 秒 → `idle`、`playFirst`、提早結束、續播記錄）、app icon（favicon 16／32／48、maskable 192、`iconLinks()`）、Functional Spec 對照。原位加 ⚠️ CR-009：元件樹（`rotate-notice/`、`pwa/` 實際檔案）、「繪圖方式」手機橫版（連對照 code 改正：舞台照 render 再蓋住）、實現注意事項 12、Functional Spec 對照 FR-018、「CR-008 → 更新」表同對照表。今次冇改 code |
