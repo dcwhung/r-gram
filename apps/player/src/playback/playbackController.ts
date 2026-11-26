@@ -8,6 +8,7 @@
 import { leadInMs } from '../components/tonearm/armPose';
 import { prefersReducedMotion } from '../utils/motion';
 import type { AudioEngine, EngineEvent, EngineTrack } from './audioEngine';
+import { createMediaSession, type MediaSessionPort } from './mediaSession';
 import {
     type ModeStorage,
     nextPlayMode,
@@ -22,6 +23,7 @@ import {
     type PlaybackState,
 } from './playbackState';
 import { createQueue, firstTrack, nextTrack, previousTrack, type Queue, withMode } from './queue';
+import { SessionSync } from './sessionSync';
 
 export interface SourceTrack extends EngineTrack {
     readonly title: string;
@@ -49,6 +51,8 @@ export interface PlaybackControllerDeps {
     /** 畫面隱藏（鎖機）：由泊位開始都冇開場，即刻出聲（`playNow`） */
     isHidden?: () => boolean;
     storage?: ModeStorage | null;
+    /** 鎖屏（Media Session）；冇畀 = 瀏覽器嗰個（冇就 null） */
+    session?: MediaSessionPort | null;
 }
 
 export interface PlaybackController {
@@ -96,6 +100,7 @@ class Controller implements PlaybackController {
     private readonly reduceMotion: () => boolean;
     private readonly isHidden: () => boolean;
     private readonly storage: ModeStorage | null;
+    private readonly session: SessionSync;
 
     constructor(deps: PlaybackControllerDeps) {
         this.engine = deps.engine;
@@ -108,6 +113,15 @@ class Controller implements PlaybackController {
         this.queue = createQueue([], mode, null, this.random);
         this.engine.setNext((currentId) => this.resolveNext(currentId));
         this.engine.subscribe((event) => this.onEngine(event));
+        const port = deps.session === undefined ? createMediaSession() : deps.session;
+        this.session = new SessionSync(port, this.engine);
+        port?.bind({
+            play: () => this.resume(),
+            pause: () => this.pause(),
+            previous: () => this.previous(),
+            next: () => this.next(),
+            seekTo: (positionSec) => this.seek(positionSec),
+        });
     }
 
     subscribe = (listener: () => void): (() => void) => {
@@ -130,6 +144,7 @@ class Controller implements PlaybackController {
         this.clearLanding();
         this.silence();
         this.dispatch({ type: 'start', albumId: source.albumId, trackId });
+        this.session.track(source, trackId);
         if (this.isHidden()) {
             this.engine.playNow(track);
             return;
@@ -179,6 +194,7 @@ class Controller implements PlaybackController {
         this.engine.stop();
         this.silence();
         this.dispatch({ type: 'release' });
+        this.session.clear();
     };
 
     cycleMode(): void {
@@ -203,8 +219,10 @@ class Controller implements PlaybackController {
         this.skipTo(previousTrack(this.queue, trackId));
     }
 
+    /** 鎖屏拖進度：即刻報返新位置（時間顯示跟 element 嘅 timeupdate） */
     seek(positionSec: number): void {
         this.engine.seek(positionSec);
+        this.session.position();
     }
 
     private skipTo(trackId: string | null): void {
@@ -213,6 +231,7 @@ class Controller implements PlaybackController {
         this.clearLanding();
         this.engine.playNow(track);
         this.dispatch({ type: 'advanced', trackId: track.id });
+        this.session.track(this.source, track.id);
     }
 
     private restart(trackId: string | null): void {
@@ -268,6 +287,7 @@ class Controller implements PlaybackController {
         const { status } = this.playback;
         if (status === 'idle') return;
         this.hear(event);
+        this.session.onEvent(event, this.source);
         if (event.type === 'playing' && status === 'paused') this.dispatch({ type: 'resumed' });
         else if (event.type === 'paused' && !event.requested && status === 'playing') {
             // 系統暫停（電話、Siri、拔耳機）：當用戶暫停，升針；㩒唱片夾即刻續播

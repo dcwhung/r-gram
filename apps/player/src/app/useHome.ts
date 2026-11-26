@@ -201,11 +201,12 @@ export interface Home {
 
 /**
  * 播放 controller 成個 app 一個：第一次 render 嗰個一直用（唔會因為 re-render 換）。
- * 冇畀（只有 spike 頁嘅靜止主頁）就自己建一個；app 一律由 main.tsx 畀
+ * 冇畀（只有 spike 頁嘅靜止主頁）就自己建一個（唔接 Media Session，唔搶 spike 頁嘅鎖屏測試）；app 一律由 main.tsx 畀
  */
 const usePlayer = (controller: PlaybackController | undefined) => {
     const [player] = useState(
-        () => controller ?? createPlaybackController({ engine: createAudioEngine() }),
+        () =>
+            controller ?? createPlaybackController({ engine: createAudioEngine(), session: null }),
     );
     const { playback, mode, audible } = useSyncExternalStore(player.subscribe, player.getSnapshot);
     return { player, playback, mode, audible };
