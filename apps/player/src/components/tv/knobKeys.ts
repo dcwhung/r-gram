@@ -25,11 +25,14 @@ export const isMuteKey = (key: string): boolean => key === 'Enter' || key === ' 
 
 export type SeekMove = { by: number } | { to: number };
 
-/** 快轉／倒轉旋鈕：每下 SEEK_STEP_S 秒；Home = 由頭、End = 尾 */
+/**
+ * 快轉／倒轉旋鈕：每下 SEEK_STEP_S 秒；Home = 由頭、End = 尾之前一格
+ *（S-263：跳到最尾即刻播完，電視就收埋咗）
+ */
 export const seekForKey = (key: string, durationSec: number): SeekMove | null => {
     if (UP.has(key)) return { by: SEEK_STEP_S };
     if (DOWN.has(key)) return { by: -SEEK_STEP_S };
     if (key === 'Home') return { to: 0 };
-    if (key === 'End') return { to: durationSec };
+    if (key === 'End') return { to: Math.max(0, durationSec - SEEK_STEP_S) };
     return null;
 };
