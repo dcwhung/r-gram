@@ -28,3 +28,16 @@ body {
     /* 場景可以設 --stage-backdrop（例如 Preload 嘅黑底、歌書嘅暗層），等安全區外面同舞台一致 */
     background: var(--stage-backdrop, var(--color-stage));
 }
+
+/* 只畀讀屏嘅字（例如 UpdateNotice）：唔佔位、睇唔見，但仍然喺無障礙樹入面 */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
