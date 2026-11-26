@@ -1,9 +1,9 @@
 # Implementation Plan：R Gram（播放端 PWA + 內容管理 Backend）
 
-**版本**：v1.5
-**日期**：2026-11-25 21:10（v1.4：2026-11-25 19:36；v1.3：2026-11-25 16:40；v1.2：2026-11-25 12:40；v1.1：2026-11-25 08:06；v1.0：2026-11-25 00:07）
-**狀態**：v1.5（CR-006）。**U-16、U-17 完成**：用戶 2026-11-25 答咗：字體檔 `_fonts/lubalin-graph-book.otf`；`.mp3` 同手動指定音檔照建議；**掃描係主要資料來源**，初始資料只入 21 張專輯，歌由掃描建立；「類型」由類別帶出（D44）；專輯只有年份（D63；S-119 解決）；`cover2.png` 照收。已完成嘅 Backend 要跟進：新增 **T-101**（年份、刪 `releaseDate`／`type`，1）同 **T-102**（歌號跟檔名、可以跳號、歌 id 跟歌號，1）；T-025 改為掃描建立歌曲（3 → 3.5）；T-027 只入專輯（1.5 → 0.5）；T-050 再補畫（+0.5）、T-052 改欄位（估算不變）、T-053 掃描結果加兩類、歌號欄（4 → 4.5）。工作量 102.5 → 106。Functional Spec D60–D62、D64、D65 同 D63、D59 嘅細項係 PM 建議，照建議做（U-19，唔阻）。**以下係 v1.4（CR-005 補充：播放端設計稿第 18 版確認）嘅狀態**：**U-18 完成**：用戶 2026-11-25 確認第 18 版（第 ③ 點改咗幾輪，source commit `4e739cd`），T-045 完成；播放端設計稿唔再阻任何任務。第 ③ 點（有歌載入時揀碟 = 拎另一隻碟睇：細唱片機、歌單欄）令 T-036 變大，拆出 **T-048**（拎住另一隻碟、細唱片機，1.5）同 **T-049**（拎住嘅碟嘅歌單欄，2）；T-037 只做載入嘅碟／冇歌載入時揀中嘅碟嘅弧線歌單；T-040 加第 18 版嘅格（1.5 → 2）；全部播放端任務嘅 Mockup Binding 改為 HT 第 18 版。工作量 97.5 → 102.5。**以下係 v1.3 嘅狀態**（入面「等第 18 版確認（U-18）」已解除）：v1.3（CR-005）。跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：D43、D47 確認；封面細過 1200 由管理端放大（D50）；掃描以音檔做錨（D54）；左上歌名兩行（D51）；播緊時揀碟淡出淡入（D52）；字重唔模擬粗體（D53）；兩張封面、每次開 app 隨機揀（D55、D56）。新增 T-045（播放端設計稿第 18 版，已出，commit `ae30893`，等用戶確認）、T-046、T-047、T-100；T-099 改範圍。U-14 完成；U-15 大部分答咗，剩低嘅併入 U-17。**以下係 v1.2 嘅狀態**（入面 D43、D47、D48、W-018、播緊時轉碟已答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌。CR-004 仍然未確認：Functional Spec D43（類別短名串法）、D44（「類型」欄）、D47（轉盤初始次序）、D48（封面尺寸）、D49（文字檔新增歌曲），同兩條播放端問題（D23 左上歌名放唔落、播緊時轉碟嘅唱臂），見 U-15。**以下係 v1.1 嘅狀態，仍然有效**：v1.0 用戶 2026-11-25 批准；v1.1 跟用戶同日嘅 14 項決定更新。**2026-11-25：Functional Spec D30–D39 用戶已確認**（「嗰 8 條跟建議」；D33 係技術決定，D35 等管理端設計稿第 2 版確認），U-12 完成。**2026-11-25：播放端設計稿第 17 版用戶已確認**（「用框入面斷行，第 17 版確認」；包埋第 16 版嘅內容），U-11 完成。仍然未確認：管理端設計稿第 2 版（U-8，連 D35）、本文件 A-7、A-8、spike 測試碟
-**關聯 Spec**：Functional Spec v1.8（CR-001 至 CR-006）；Technical Spec v1.6
+**版本**：v1.6
+**日期**：2026-11-26 10:30（v1.5：2026-11-25 21:10；v1.4：2026-11-25 19:36；v1.3：2026-11-25 16:40；v1.2：2026-11-25 12:40；v1.1：2026-11-25 08:06；v1.0：2026-11-25 00:07）
+**狀態**：v1.6（CR-007）。用戶 2026-11-26 改咗管理端方向（Functional Spec v1.9 §CR-007）：**媒體 bucket 係唯一資料來源**；專輯由資料夾名同 `info.txt`；管理端 = 掃描（新增更新自動、移除確認先做、檢查結果）+ 兩個文字框（寫返 bucket）。Backend 新增 **T-103**（`info.txt` 同資料夾名 parser，1）、**T-104**（資料模型同內容檔、拎走人手寫入 API 同 seed，2）、**T-105**（全 bucket 同步，3）、**T-106**（寫返 bucket、封面結果 endpoint，1.5）；T-099 併入 T-106（取消）；管理端：T-050 出第 4 版（commit `8fb28a7`，等用戶確認，+1）、T-052 3 → 2、T-053 4.5 → 1.5、新增 **T-055**（掃描畫面，2.5）；T-083 只留播音檔對時（1.5 → 0.5）。工作量 106 → 113；另外已做而作廢約 4 人日。管理端任務綁第 4 版，**等用戶確認（U-8）**。新增 U-20（CR-007 PM 建議）、U-21（app icon，另一個 session 設計緊）。**以下係 v1.5（CR-006）嘅狀態**（入面 T-025、T-027 嘅範圍已由 CR-007 取代）：**U-16、U-17 完成**：用戶 2026-11-25 答咗：字體檔 `_fonts/lubalin-graph-book.otf`；`.mp3` 同手動指定音檔照建議；**掃描係主要資料來源**，初始資料只入 21 張專輯，歌由掃描建立；「類型」由類別帶出（D44）；專輯只有年份（D63；S-119 解決）；`cover2.png` 照收。已完成嘅 Backend 要跟進：新增 **T-101**（年份、刪 `releaseDate`／`type`，1）同 **T-102**（歌號跟檔名、可以跳號、歌 id 跟歌號，1）；T-025 改為掃描建立歌曲（3 → 3.5）；T-027 只入專輯（1.5 → 0.5）；T-050 再補畫（+0.5）、T-052 改欄位（估算不變）、T-053 掃描結果加兩類、歌號欄（4 → 4.5）。工作量 102.5 → 106。Functional Spec D60–D62、D64、D65 同 D63、D59 嘅細項係 PM 建議，照建議做（U-19，唔阻）。**以下係 v1.4（CR-005 補充：播放端設計稿第 18 版確認）嘅狀態**：**U-18 完成**：用戶 2026-11-25 確認第 18 版（第 ③ 點改咗幾輪，source commit `4e739cd`），T-045 完成；播放端設計稿唔再阻任何任務。第 ③ 點（有歌載入時揀碟 = 拎另一隻碟睇：細唱片機、歌單欄）令 T-036 變大，拆出 **T-048**（拎住另一隻碟、細唱片機，1.5）同 **T-049**（拎住嘅碟嘅歌單欄，2）；T-037 只做載入嘅碟／冇歌載入時揀中嘅碟嘅弧線歌單；T-040 加第 18 版嘅格（1.5 → 2）；全部播放端任務嘅 Mockup Binding 改為 HT 第 18 版。工作量 97.5 → 102.5。**以下係 v1.3 嘅狀態**（入面「等第 18 版確認（U-18）」已解除）：v1.3（CR-005）。跟用戶 2026-11-25 嘅 8 項決定（已確認）更新：D43、D47 確認；封面細過 1200 由管理端放大（D50）；掃描以音檔做錨（D54）；左上歌名兩行（D51）；播緊時揀碟淡出淡入（D52）；字重唔模擬粗體（D53）；兩張封面、每次開 app 隨機揀（D55、D56）。新增 T-045（播放端設計稿第 18 版，已出，commit `ae30893`，等用戶確認）、T-046、T-047、T-100；T-099 改範圍。U-14 完成；U-15 大部分答咗，剩低嘅併入 U-17。**以下係 v1.2 嘅狀態**（入面 D43、D47、D48、W-018、播緊時轉碟已答）：跟用戶 2026-11-25 嘅 5 項決定（已確認）更新：掃描連封面來源同歌曲文字檔、媒體 bucket `rb-discography`、資料夾名 `<類別>-<NN>-<id>`、字體來源、內容資料 21 個發行／291 首歌。CR-004 仍然未確認：Functional Spec D43（類別短名串法）、D44（「類型」欄）、D47（轉盤初始次序）、D48（封面尺寸）、D49（文字檔新增歌曲），同兩條播放端問題（D23 左上歌名放唔落、播緊時轉碟嘅唱臂），見 U-15。**以下係 v1.1 嘅狀態，仍然有效**：v1.0 用戶 2026-11-25 批准；v1.1 跟用戶同日嘅 14 項決定更新。**2026-11-25：Functional Spec D30–D39 用戶已確認**（「嗰 8 條跟建議」；D33 係技術決定，D35 等管理端設計稿第 2 版確認），U-12 完成。**2026-11-25：播放端設計稿第 17 版用戶已確認**（「用框入面斷行，第 17 版確認」；包埋第 16 版嘅內容），U-11 完成。仍然未確認：管理端設計稿第 2 版（U-8，連 D35）、本文件 A-7、A-8、spike 測試碟
+**關聯 Spec**：Functional Spec v1.9（CR-001 至 CR-007）；Technical Spec v1.7
 **負責人**：Project Manager + Architect Agent
 
 ## Context
@@ -88,6 +88,23 @@ Functional Spec 原本嘅分期（M0–M9）係 CR-002 之前寫嘅，有三處�
 
 新任務編號：全表最後用過嘅係 T-100，所以係 T-101、T-102。
 
+### v1.6（CR-007）改咗乜
+
+用戶 2026-11-26 睇完管理端設計稿第 3 版之後改咗管理端方向（Functional Spec v1.9 §CR-007）：「admin 流程好簡單，有新 album 都係 upload 資料上 R2，portal scan」；媒體 bucket 係唯一資料來源，資料庫係索引。
+
+| 範圍 | 改動 |
+| --- | --- |
+| 新增 | **T-103**（`packages/catalog`：`parseAlbumInfo()`、`formatAlbumInfo()`、`parseAlbumFolder()`、`albumOrder()`、`titleKey()`、副題 hint；1）、**T-104**（D1 同內容檔跟 CR-007；拎走專輯／歌曲嘅人手寫入 API、API-032、初始資料 seed；fixtures；2）、**T-105**（全 bucket 同步：`planFolderSync()`、API-033／034／035；3）、**T-106**（寫返 bucket：API-018／019／040／041；封面結果 API-017，吸收 T-099；1.5）、**T-055**（管理端掃描畫面：逐個資料夾、封面喺瀏覽器處理、檢查結果、移除剔選同確認；2.5）。可選：**T-107**（由參考資料生成起始 `info.txt`／`.txt`；0.5，未計入總數，用戶揀，U-20） |
+| 改範圍 | T-050（第 4 版：CD 展示架、hi-fi 機面板、掃描結果、`info.txt` 文字框；+1，已出 `8fb28a7`）、T-052（專輯列表 + 專輯頁 + `info.txt` 文字框；3 → 2）、T-053（歌曲表 + 歌曲文字框寫返 bucket；4.5 → 1.5）、T-083（只留播音檔顯示時間；1.5 → 0.5）、T-028（runbook：冇 `albums.sql`，部署後喺管理端掃描一次） |
+| 取消 | **T-099**（併入 T-106） |
+| 已完成要改 | T-020／T-096、T-022、T-023、T-025、T-026、T-027、T-029、T-098、T-100、T-101、T-102、播放端 fixtures：保留、改寫、拎走嘅檔見 Technical Spec v1.7「已完成嘅 code：保留、改寫、拎走」。已做而作廢約 4 人日（T-022、T-023、T-102 嘅寫入 API；T-025 嘅逐項套用同手動指定；T-027 seed；T-098、T-100 嘅 PATCH 欄） |
+| 播放端 | 唔受影響（只改 fixtures，喺 T-104）；進行中嘅 T-036 照做 |
+| 工作量 | 106 → 113（+7，見「工作量估算」） |
+| 新嘅依賴 | T-103 → T-104 → T-105 → T-106；T-055 要 T-051、T-105、T-106；T-053 要 T-106；T-052 要 T-104；管理端 UI 全部等第 4 版確認（U-8） |
+| 要用戶做／答 | U-8 改為確認第 4 版；U-13 改寫（資料夾入面要放乜，連 `info.txt`）；新增 U-20（CR-007 PM 建議）、U-21（app icon）；U-19 部分作廢；A-8 建議改 |
+
+新任務編號：全表最後用過嘅 Backend 編號係 T-102，所以係 T-103–T-107；Phase E 嘅 T-054 已取消，下一個空位係 T-055。
+
 ### 進度（2026-11-25 19:36）
 
 | 狀態 | 任務 |
@@ -100,9 +117,10 @@ Functional Spec 原本嘅分期（M0–M9）係 CR-002 之前寫嘅，有三處�
 | 完成（review 85 / 100；修正 W-033–W-035、S-135–S-137、S-139 已合併 `ab79bd3`；QA S1 pass：`qa/2026-11-25_22-46_qa_T-027_T-025.md`） | **T-027**（初始資料只入 21 張專輯；production 用 `apps/api/seed/albums.sql`，由人執行，T-028 runbook 要寫明）、**T-025**（掃描：API-030 預覽、API-031 套用、API-032 資料夾列表） |
 | 完成（review 95 / 100；W-036 已修 `20afb62`；QA S1 pass：`qa/2026-11-25_23-45_qa_T-034.md`；合併 `bb18ef5`） | **T-034**（Preload、開 app 載入、圖片同歌詞離線 cache；backlog B-070、B-071、B-072 ①③ 一併完成） |
 | 完成（用戶確認） | **T-045** 播放端設計稿第 18 版（commit `ae30893` 至 `4e739cd`；U-18，2026-11-25 確認） |
-| 已交，等用戶確認 | T-050 管理端設計稿第 2 版（U-8；CR-004、CR-005 要先補畫） |
-| 可以開工 | ⚠️ v1.5：Backend：**T-101、T-102**（即刻）→ T-025（要 T-102）、T-027（要 T-101）；T-099（要 T-100）。~~Backend：T-025（要 T-098、T-100；連 CR-005）；之後 T-027（要 T-097、T-098、T-026；唔再等 D48）；T-099（要 T-100）。~~播放端：T-034、T-036、T-037、T-039、T-040、T-046、T-047；之後 T-048（要 T-036）、T-049（要 T-048、T-037） |
-| 仍然受阻 | T-038（等 spike T-011 同測試碟；T-010 要 U-1、U-7）；Phase E（U-8）；T-028、T-041（`main`，A-8） |
+| 已交，等用戶確認 | ⚠️ v1.6：T-050 管理端設計稿**第 4 版**（commit `8fb28a7`；U-8）。第 3 版（`29309fd`）用戶 2026-11-26 睇過，由 CR-007 取代。~~T-050 管理端設計稿第 2 版（U-8；CR-004、CR-005 要先補畫）~~ |
+| 進行中（v1.6） | T-036（轉碟；worktree，未合併）。唔受 CR-007 影響 |
+| 可以開工 | ⚠️ v1.6：Backend：**T-103**（即刻）→ T-104 → T-105 → T-106（T-099 取消）。播放端不變。⚠️ v1.5：Backend：**T-101、T-102**（即刻）→ T-025（要 T-102）、T-027（要 T-101）；T-099（要 T-100）。~~Backend：T-025（要 T-098、T-100；連 CR-005）；之後 T-027（要 T-097、T-098、T-026；唔再等 D48）；T-099（要 T-100）。~~播放端：T-034、T-036、T-037、T-039、T-040、T-046、T-047；之後 T-048（要 T-036）、T-049（要 T-048、T-037） |
+| 仍然受阻 | T-038（等 spike T-011 同測試碟；T-010 要 U-1、U-7）；Phase E（U-8：第 4 版）；T-028、T-041（`main`，A-8） |
 
 ---
 
@@ -127,7 +145,7 @@ Functional Spec 原本嘅分期（M0–M9）係 CR-002 之前寫嘅，有三處�
 
 | 維度 | 評估 |
 | --- | --- |
-| 時間 | 約 106 個理想人日（CR-006 之前 102.5；第 18 版確認之前 97.5，CR-005 之前 91.5，CR-004 之前 82；見工作量；Phase A–D 即係「手機上播到歌」約 63.5，之前 61）。播放端核心（Phase D）最大，因為要將 mockup 逐個場景變成有狀態嘅元件 |
+| 時間 | 約 113 個理想人日（CR-007 之前 106；CR-006 之前 102.5；第 18 版確認之前 97.5，CR-005 之前 91.5，CR-004 之前 82；見工作量；Phase A–D 即係「手機上播到歌」約 63.5，之前 61）。播放端核心（Phase D）最大，因為要將 mockup 逐個場景變成有狀態嘅元件 |
 | 資源 | 前端（SVG / CSS 動畫、PWA、iOS 媒體）、Cloudflare Worker、CI；全部喺團隊 agent 能力範圍 |
 | 未知因素 | Phase B 嗰三項 iOS 行為同兩項 fps；CR-003 嘅 D30–D39 已確認（2026-11-25），淨返 D35（統計項目）等管理端設計稿第 2 版。CR-004：新資料嘅 credit 配對數字（等 T-097）；一次掃描讀幾多個文字檔先唔撞 Worker 上限（T-025 核實）；5 條待確認（CR-005、CR-006：全部已答；CR-006 嘅 PM 建議見 U-19，唔阻）；~~播放端設計稿第 18 版（U-18）~~ ✅ 已確認 |
 
@@ -139,9 +157,9 @@ Functional Spec 原本嘅分期（M0–M9）係 CR-002 之前寫嘅，有三處�
 | --- | --- | --- | --- | --- | --- |
 | A | 基礎 | Monorepo、共用邏輯、CI | — | `npm run lint`、`npm test`、`npm run build` 全綠；`packages/catalog` 覆蓋率 ≥ 80%；用現有 `discography.json` + `credits.json` 生成嘅 fixture catalog 通過 validator。CR-004：seed 資料換新（T-097）之後，fixture 同寫死嘅數跟住改 | 冇（已完成；T-097 跟進） |
 | B | 真機 spike（M0） | 驗證 iOS 播放、MV 音量、fps | R-5、R-6、R-8 | 一份 spike 報告：五項各有「得 / 唔得 + 採用做法」；`audioEngine` 介面定案 | 用戶：測試媒體（**用邊張碟未定**）、Vercel（U-7）、iPhone |
-| C | Backend API（M1） | 登入、專輯 / 歌 CRUD、歌曲文字、封面、掃描（CR-004：連封面來源同歌曲文字檔）、每次寫入之後生成 catalog、對外 catalog、seed；CR-004：專輯類別同序號、內容資料重新生成 | FR-101–106、108、109、114、117、120、121、123、124、126 | Worker 測試全綠；本機 seed 後 `GET /catalog/v1/catalog.json` 出到 ~~**21 個發行、291 首歌**（CR-004；之前 17、262）~~ ⚠️ CR-006：**21 張專輯、0 首歌**並通過 validator；掃描一個本機模擬嘅專輯資料夾（有跳號）之後，歌按檔名歌號建立、再掃描冇重覆；改一首歌嘅文字之後 catalog 即時跟住變；用本機模擬 bucket 掃描一個有 `cover.jpg`、`.txt`、音檔嘅資料夾，預覽啱、套用後歌曲文字入咗 D1 | T-027 等 T-097、T-098；~~T-099 等 D48~~（CR-005：T-099 要 T-100）；部署要用戶 dashboard 設定 |
+| C | Backend API（M1） | 登入、專輯 / 歌 CRUD、歌曲文字、封面、掃描（CR-004：連封面來源同歌曲文字檔）、每次寫入之後生成 catalog、對外 catalog、seed；CR-004：專輯類別同序號、內容資料重新生成 | FR-101–106、108、109、114、117、120、121、123、124、126 | Worker 測試全綠；本機 seed 後 `GET /catalog/v1/catalog.json` 出到 ~~**21 個發行、291 首歌**（CR-004；之前 17、262）~~ ⚠️ CR-006：**21 張專輯、0 首歌**並通過 validator；掃描一個本機模擬嘅專輯資料夾（有跳號）之後，歌按檔名歌號建立、再掃描冇重覆；改一首歌嘅文字之後 catalog 即時跟住變；用本機模擬 bucket 掃描一個有 `cover.jpg`、`.txt`、音檔嘅資料夾，預覽啱、套用後歌曲文字入咗 D1 | T-027 等 T-097、T-098；~~T-099 等 D48~~（CR-005：T-099 要 T-100）；部署要用戶 dashboard 設定 ⚠️ CR-007 完成標準：本機模擬 bucket 放三個資料夾（一個有 `info.txt` 而有跳號同冇音檔嘅曲目、一個冇 `info.txt`、一個名唔啱格式）→ 同步 → 兩張專輯、曲目同 `info.txt` 一樣、冇音檔嘅係 `audio: null`、檢查結果啱；再同步冇改動；刪走一個音檔同一個資料夾 → 只列入待確認、確認後先改；經文字框改 `info.txt` 同一首歌嘅文字 → bucket 嘅檔變咗、catalog 跟住變；檔喺其他地方改過 → 409 |
 | D | 播放端核心（M2） | 手機直度：Preload、主頁、轉碟、歌單、播放、自動下一首、PWA、i18n；CR-005：有歌載入時拎另一隻碟睇（細唱片機、歌單欄） | FR-001–011、018、025、031、032、034–044 | E2E 行通「開 app → 轉碟 → 揀歌 → 播 → 暫停 / 繼續 → 自動下一首」同「播緊 → 擰去另一隻碟 → 㩒歌單欄一行（換歌）／㩒細唱片機（返去，聲冇停）」；淨空規則測試全綠（連 D57 例外）；同 mockup 截圖比對喺容許誤差內；真機安裝得 | 設計稿：冇（第 18 版用戶 2026-11-25 已確認，U-18 完成；包埋第 17 版）；B 嘅結論（只阻 T-038） |
-| E | 管理端 UI | 管理介面 | FR-101–106、114、117、119、120–124 | 管理端 E2E：登入 → 改專輯（連類別、序號）→ 上載封面 → 掃描（套用封面來源同歌曲文字）→ 改一首歌嘅文字並儲存 → catalog 已更新 | **管理端設計稿第 2 版要用戶確認（U-8）；CR-004：要先補畫** |
+| E | 管理端 UI | 管理介面 | FR-101–106、114、117、119、120–124 | 管理端 E2E：登入 → 改專輯（連類別、序號）→ 上載封面 → 掃描（套用封面來源同歌曲文字）→ 改一首歌嘅文字並儲存 → catalog 已更新 | **管理端設計稿第 2 版要用戶確認（U-8）；CR-004：要先補畫** ⚠️ CR-007：E2E 改為：登入 → 掃描（新增專輯、封面處理、檢查結果）→ 確認移除 → 改 `info.txt` → 改一首歌嘅文字（寫返 bucket）→ catalog 已更新；等第 4 版確認（U-8） |
 | F | MV 同系統整合（M3） | MV 電視、鎖屏控制、續播 | FR-012、014、015、026、038（電視） | E2E：播歌 → MV → 熄機 → 人手續播；真機鎖屏控制得 | D |
 | G | 收藏、播放模式、歌書（M4） | 心形、Favourites 碟、四個模式、歌書（曲詞編監） | FR-016、023、024、030、033（credit）、038（歌書） | 隊列純函數測試覆蓋四個模式；收藏重開 app 仍然喺度；歌書開住時暫停，歌書留住 | D（T-072 嘅畫面已確認，U-11 完成） |
 | H | 歌詞（M5） | 歌書歌詞；批量匯入、由同名歌帶入、音檔對時 | FR-033（歌詞）、036、110、112、118 | 喺管理端貼入有時間標記嘅歌詞 → 儲存 → 播放端歌書跟住歌行，太長嘅行喺框入面斷行；貼入冇時間標記嘅歌詞 → 歌書一次過顯示成份歌詞（直身一欄），可以上下捲 | E（T-083）；T-082 嘅兩個歌詞版面已確認（設計稿第 17 版，U-11 完成；D22、D38 喺第 17 版修訂） |
@@ -178,21 +196,25 @@ Mockup Binding 縮寫：**HT** = `_mockups_/home-turntable/index.html`（source�
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | T-020 | Worker scaffold：Hono、`wrangler.toml`、env 驗證、D1 migration（6 張表）、workerd 測試環境、health | chore | Backend | none-required | 1 | T-001 | P0 | ✅（schema 跟進：T-096；CR-004：T-098） |
 | T-021 | 認證：Google OAuth（PKCE）、email 白名單、session cookie、middleware、登出 | feature | Backend | none-required | 1 | T-020 | P0 | ✅ |
-| T-022 | 專輯 API：CRUD、排序、每張專輯嘅完整度 + 全站統計（FR-114）；刪除有 ID 守衛（`?force=1`）。**冇上下架** | feature | Backend | none-required | 1 | T-020、T-002、T-096 | P0 | 改；✅ 完成（review 85 → re-review 100 / 100；QA S1 pass）。統計項目照 D35 嘅建議做咗（D35 等 U-8，有改就細改 API-010）。CR-004 跟進：T-098（類別、序號、資料夾規則） |
-| T-023 | 歌曲 API：新增（body 係歌曲文字）、刪除（ID 守衛）、排序（歌號 = 次序）、參考欄同手動指定檔案；歌曲文字讀寫（API-040、API-041：`parseSongText()` → 歌名、副題、credit、歌詞一次過寫入，連歌詞 JSON 寫 R2）。**冇上下架** | feature | Backend | none-required | 2 | T-022、T-029 | P0 | 改（1.5 → 2；吸收 T-080）；✅ 完成（review 95 / 100；QA S1 pass，新鏈 `api-tracks`） |
+| T-022 | 專輯 API：CRUD、排序、每張專輯嘅完整度 + 全站統計（FR-114）；刪除有 ID 守衛（`?force=1`）。**冇上下架** | feature | Backend | none-required | 1 | T-020、T-002、T-096 | P0 | 改；✅ 完成（review 85 → re-review 100 / 100；QA S1 pass）。統計項目照 D35 嘅建議做咗（D35 等 U-8，有改就細改 API-010）。CR-004 跟進：T-098（類別、序號、資料夾規則） ⚠️ **CR-007**：寫入部分（API-011／013／014／015）喺 T-104 拎走；列表同單張保留 |
+| T-023 | 歌曲 API：新增（body 係歌曲文字）、刪除（ID 守衛）、排序（歌號 = 次序）、參考欄同手動指定檔案；歌曲文字讀寫（API-040、API-041：`parseSongText()` → 歌名、副題、credit、歌詞一次過寫入，連歌詞 JSON 寫 R2）。**冇上下架** | feature | Backend | none-required | 2 | T-022、T-029 | P0 | 改（1.5 → 2；吸收 T-080）；✅ 完成（review 95 / 100；QA S1 pass，新鏈 `api-tracks`） ⚠️ **CR-007**：API-020／021／022／024 喺 T-104 拎走；歌曲文字讀寫改為 bucket（T-106）；儲存函數重用 |
 | T-024 | 封面：上載、驗證（宣稱類型同內容一致、圖嘅結構、1200 或者 320 嘅正方形）、內容 hash 檔名、公開圖片 route（API-071）。~~兩個尺寸 WebP、抽專輯色~~：CR-004 改正，呢兩樣喺管理端瀏覽器做（Worker 冇圖片編解碼），屬 T-052 | feature | Backend | none-required | 1 | T-022 | P0 | ✅ 完成（review 100 / 100；QA S1 pass，新鏈 `api-assets`）。CR-004：描述改正（T-024 review S-088）；尺寸規則跟進 T-099（等 D48） |
-| T-025 | 掃描 R2：list、配對、衝突、手動指定（套用後即時生效）。**CR-004**：分類加封面來源（`cover.jpg｜png`）同歌曲文字檔（`NN 名.txt`）（`packages/catalog/scan`）；預覽（API-030）：封面只比 ETag（`albums.cover_source_etag`）；歌曲文字 ETag 變咗先讀檔（大細上限同 API-041）→ `parseSongText()` → 同已儲存內容比較，逐個檔回 `new`／`replace`／`same`、歌名變更、會唔會清歌詞、逐行錯誤；套用（API-031）：只做確認咗嘅項目，歌曲文字行 API-041 同一個儲存函數（`LYRICS_REMOVED` 要 `force`），記低 `text_source_etag`；封面唔經 Worker 套用（管理端做，T-053）；`_` 開頭嘅資料夾唔當專輯；核實一次請求可以讀幾多個檔，超過就分批。D49 確認咗先做「歌號接住歌單就新增歌曲」。**CR-005**：音檔做錨（冇音檔嘅歌號，`.txt`、MV 入 `skipped`，`NO_AUDIO`；`.mp3` 同手動指定音檔照建議算有音檔，U-17）；讀 `cover2.jpg`（冇第一張 = `NO_FIRST_COVER`）；套用時再驗音檔。**CR-006（掃描係主要資料來源，Functional Spec D59–D62、D65、FR-126）**：`.mp3`、手動指定音檔、`cover2.png` 定案；預覽加 `newTracks`（有音檔而未有嗰個歌號：歌號跟檔名、可以跳號；歌名由 `.txt`，冇就 `titleFromFileName()`；`.txt` 錯誤）、`audioMissing`（記住嘅音檔喺資料夾冇咗；同歌號改名 = `replace`）、`manualMissing`（提示）；套用加 `create`（建立歌：id `trackIdFor()`、撞咗隨機；文字行 API-041 嘅 store 函數；`.txt` 有錯照建立、文字唔套用）同 `clearAudio`（只清音檔連結，**永遠唔刪歌**）；`create` 分批（`SCAN_APPLY_MAX_ITEMS`）；「D49 新增歌曲」由 D60 取代 | feature | Backend | none-required | 3.5 | T-023、T-098、T-100、**T-102** | P0 | **改（CR-004）**：1 → 2.5；**CR-005**：2.5 → 3；**CR-006**：3 → 3.5 |
+| T-025 | 掃描 R2：list、配對、衝突、手動指定（套用後即時生效）。**CR-004**：分類加封面來源（`cover.jpg｜png`）同歌曲文字檔（`NN 名.txt`）（`packages/catalog/scan`）；預覽（API-030）：封面只比 ETag（`albums.cover_source_etag`）；歌曲文字 ETag 變咗先讀檔（大細上限同 API-041）→ `parseSongText()` → 同已儲存內容比較，逐個檔回 `new`／`replace`／`same`、歌名變更、會唔會清歌詞、逐行錯誤；套用（API-031）：只做確認咗嘅項目，歌曲文字行 API-041 同一個儲存函數（`LYRICS_REMOVED` 要 `force`），記低 `text_source_etag`；封面唔經 Worker 套用（管理端做，T-053）；`_` 開頭嘅資料夾唔當專輯；核實一次請求可以讀幾多個檔，超過就分批。D49 確認咗先做「歌號接住歌單就新增歌曲」。**CR-005**：音檔做錨（冇音檔嘅歌號，`.txt`、MV 入 `skipped`，`NO_AUDIO`；`.mp3` 同手動指定音檔照建議算有音檔，U-17）；讀 `cover2.jpg`（冇第一張 = `NO_FIRST_COVER`）；套用時再驗音檔。**CR-006（掃描係主要資料來源，Functional Spec D59–D62、D65、FR-126）**：`.mp3`、手動指定音檔、`cover2.png` 定案；預覽加 `newTracks`（有音檔而未有嗰個歌號：歌號跟檔名、可以跳號；歌名由 `.txt`，冇就 `titleFromFileName()`；`.txt` 錯誤）、`audioMissing`（記住嘅音檔喺資料夾冇咗；同歌號改名 = `replace`）、`manualMissing`（提示）；套用加 `create`（建立歌：id `trackIdFor()`、撞咗隨機；文字行 API-041 嘅 store 函數；`.txt` 有錯照建立、文字唔套用）同 `clearAudio`（只清音檔連結，**永遠唔刪歌**）；`create` 分批（`SCAN_APPLY_MAX_ITEMS`）；「D49 新增歌曲」由 D60 取代 | feature | Backend | none-required | 3.5 | T-023、T-098、T-100、**T-102** | P0 | **改（CR-004）**：1 → 2.5；**CR-005**：2.5 → 3；**CR-006**：3 → 3.5 ⚠️ **CR-007**：預覽同逐項套用由 T-105 嘅同步取代；分類、列檔、讀文字檔嘅 code 重用 |
 | T-026 | Catalog 生成：`rebuildCatalog()` 做成每個成功寫入請求嘅後置步驟、`catalog_state`、生成失敗嘅狀態同重試（API-061）；對外 `/catalog/v1/*`（ETag、CORS 限播放端網域）。**冇草稿、變更摘要、警告、發佈記錄** | feature | Backend | none-required | 1 | T-023、T-024 | P0 | 改（1.5 → 1）；✅ 完成（review 85 → re-review 100 / 100；QA S1 pass，新鏈 `api-catalog`） |
-| T-027 | ⚠️ **CR-006 改範圍（Functional Spec D59）：只入 21 張專輯**（`discography.json` 嘅 `albums[]`：id、碟名、Wheel 字母、類別、序號、年份、唱片公司、次序；專輯色中性灰；`folder`、封面欄 NULL）；`INSERT … ON CONFLICT (id) DO NOTHING`（重跑唔蓋走管理端改過嘅）；同類別序號撞咗就跳過並報告；之後生成一次 catalog。**唔入歌、唔入 credit、唔下載封面**（唔使圖片處理依賴）。以下係之前嘅範圍（作廢，只留做記錄）：~~Seed script：歌單 + credit + 下載封面，可重複執行；匯入後全部專輯同歌即刻入 catalog（seed 之後生成一次）。**CR-004**：資料係 T-097 重新生成嘅 21 個發行、291 首歌；寫入 `category`、`category_no`（`folder` 留 NULL = 預期資料夾名）；封面 ~~照 D48~~ **照 D50（CR-005）**：script 置中裁正方形，細過 1200 就放大到 1200，再出 320 縮圖（要揀一個 Node 用得嘅圖片處理方法；新依賴要過 `npm audit`、唔用 GPL），完成後列出放大咗同冇封面嘅專輯；初始資料冇第二張封面~~ | feature | Backend | none-required | 0.5 | T-022、T-026、T-097、T-098、**T-101** | P0 | 改；**CR-004**：1 → 1.5；CR-005：估算不變；**CR-006**：1.5 → 0.5（只入專輯） |
-| T-028 | `deploy-api.yml` 同第一次部署；Worker `robots.txt`（backlog B-021）；D1 時間點還原寫入操作清單（R-011）；CR-004：`wrangler.toml` 嘅 `MEDIA_BASE` 填 `rb-discography` 嘅公開網址 | chore | DevOps | none-required | 0.5 | T-026、用戶 U-3–U-6、`main`（A-8） | P0 | 改 |
+| T-027 | ⚠️ **CR-006 改範圍（Functional Spec D59）：只入 21 張專輯**（`discography.json` 嘅 `albums[]`：id、碟名、Wheel 字母、類別、序號、年份、唱片公司、次序；專輯色中性灰；`folder`、封面欄 NULL）；`INSERT … ON CONFLICT (id) DO NOTHING`（重跑唔蓋走管理端改過嘅）；同類別序號撞咗就跳過並報告；之後生成一次 catalog。**唔入歌、唔入 credit、唔下載封面**（唔使圖片處理依賴）。以下係之前嘅範圍（作廢，只留做記錄）：~~Seed script：歌單 + credit + 下載封面，可重複執行；匯入後全部專輯同歌即刻入 catalog（seed 之後生成一次）。**CR-004**：資料係 T-097 重新生成嘅 21 個發行、291 首歌；寫入 `category`、`category_no`（`folder` 留 NULL = 預期資料夾名）；封面 ~~照 D48~~ **照 D50（CR-005）**：script 置中裁正方形，細過 1200 就放大到 1200，再出 320 縮圖（要揀一個 Node 用得嘅圖片處理方法；新依賴要過 `npm audit`、唔用 GPL），完成後列出放大咗同冇封面嘅專輯；初始資料冇第二張封面~~ | feature | Backend | none-required | 0.5 | T-022、T-026、T-097、T-098、**T-101** | P0 | 改；**CR-004**：1 → 1.5；CR-005：估算不變；**CR-006**：1.5 → 0.5（只入專輯） ⚠️ **CR-007：作廢**（Functional Spec D79）：seed 喺 T-104 拎走；專輯由資料夾建立 |
+| T-028 | `deploy-api.yml` 同第一次部署；Worker `robots.txt`（backlog B-021）；D1 時間點還原寫入操作清單（R-011）；CR-004：`wrangler.toml` 嘅 `MEDIA_BASE` 填 `rb-discography` 嘅公開網址 | chore | DevOps | none-required | 0.5 | T-026、用戶 U-3–U-6、`main`（A-8） | P0 | 改 ⚠️ CR-007：runbook 冇 `albums.sql`；部署之後登入管理端掃描一次（要 T-055；見 A-8）；production 驗 `If-None-Match: *` 寫新檔（backlog B-060 ②） |
 | T-029 | `packages/catalog` `song-text/`：`parseSongText()`、`formatSongText()`、round-trip 測試；歌詞 JSON 加 `synced` 同純文字路徑；長度上限常數（backlog B-006） | feature | Backend | none-required | 1 | T-002（D31、D32、D37 ✅ 2026-11-25 已確認） | P0 | **新**；✅ 完成（review 95 / 100；QA S1 pass） |
 | T-096 | D1 schema 跟 CR-003（跟進 T-020）：刪 `albums.enabled`、`tracks.enabled`；`publishes` → `catalog_state`；`lyrics.lrc` → `source` + `synced`；改 `test/schema.test.ts`、`test/applyMigrations.ts`。未部署過，建議直接改 `0001_init.sql` | fix | Backend | none-required | 0.5 | T-020（D30、D32 ✅ 2026-11-25 已確認；`lyrics.lrc` → `source` 係技術決定 D33，唔使確認） | P0 | **新**；✅ 完成（review 95 / 100；QA S1 pass） |
 | T-097 | **內容資料重新生成**（CR-004 決定 5）：新版 `rubberband-discography.html`、`rubberband-credits.html`（2026-11-25）放入 `_design_/`；補 `_design_/tools/parse_discography.py`（而家冇生成 `discography.json` 嘅 script），`parse_credits.py` 嘅日期字串唔好寫死；重新生成 `apps/api/seed/discography.json`（21 個發行、291 首歌；每個發行有 `category`、`categoryNo`；已有 16 個 id 不變；5 個新發行嘅 id 用明確對照表；`order` 照 D47）同 `credits.json`（21 個發行、252 行）；`packages/catalog` seed 型別加欄；改寫死嘅數（`seed.node.test.ts`、`songText.node.test.ts`、`wheelKeyFor.test.ts`、播放端 `seedCatalog.node.test.ts`）。**交付**：新嘅 credit 配對數字（直接對到／靠同名歌補／冇）、21 個發行嘅 id 同資料夾名清單（畀用戶，U-13）。**結果（review S-122）**：291 首入面 246 首直接對到、0 首靠同名歌補、45 首冇（39 首《逆流大叔》原聲配樂、4 首 KOMOREBI 未公佈、JUNTOS 第 5 首、Ciao 2021 Live 第 1 首）；credit 檔 21 段、252 行 | chore | Backend | none-required | 1.5 | T-002；新版來源檔入咗 repo；D43、D47 ✅ 2026-11-25 已確認（CR-005） | P0 | **新（CR-004）**；已實作同合併（`c7af11b`）；**review pass 90 / 100，修正進行中**（`reviews/2026-11-25_16-27_review_T-098_T-097.md`）；S-119（終於好天氣冇完整發行日期）~~等用戶（U-17）~~ ✅ CR-006 D63：年份由唔完整日期攞（2016），喺 T-101 改 script。CR-006：生成嘅歌單同 credit 留做參考資料（D64），唔入資料庫 |
 | T-098 | **專輯資料模型同 bucket 改名**（CR-004 決定 2、3、5）：D1 `albums` 加 `category`、`category_no`、`cover_source_etag`，`tracks` 加 `text_source_etag`（未部署過，直接改 `0001_init.sql`；連 `test/schema.test.ts`）；`packages/catalog`：`RELEASE_CATEGORIES`、`expectedFolder()`、內容檔專輯加 `category`、`categoryNo`（validator 連測試）；專輯 API：新欄嘅驗證同讀寫、同類別序號唔重覆、新增時預設序號、回應加 `expectedFolder`、`folder` NULL = 預期資料夾名、`folder` 唔收 `..` 同 `_` 開頭（backlog B-045 ①、B-049 ②）；`buildDocument`、fixtures；`apps/api/wrangler.toml` bucket 名改 `rb-discography`（binding `MEDIA` 不變）、`.dev.vars.example` 加 `MEDIA_BASE` 註解、五處註解改名 | fix | Backend | none-required | 1 | T-022、T-096；D43 ✅ 已確認（CR-005）；~~D44 未答 = `type` 保留~~ D44 ✅ 定案（CR-006）：`type` 喺 T-101 刪走 | P0 | **新（CR-004）**；已實作同合併（`c7af11b`）；**review pass 90 / 100，修正進行中**（W-028：內容檔 `category`、`categoryNo` 改為必填；W-029、S-118、S-120、S-121）。CR-005 跟進：T-100 |
-| T-099 | **封面欄位對尺寸**（backlog B-052 ①）：PATCH 專輯時 `cover`／`cover2` 一定係 1200、`thumb`／`thumb2` 一定係 320，大封面同縮圖唔會調亂（`assets` 加尺寸欄或者驗證時讀檔頭量）。~~API-050 大封面收 640 至 1200~~：**CR-005 取消呢部分**，原因：用戶揀咗 D50「細嘅自動放大到 1200」，Worker 嘅尺寸規則唔使改 | fix | Backend | none-required | 0.5 | T-024、T-100 | P0 | **新（CR-004）**；**CR-005 改範圍**（放寬規則取消；加第二張封面兩個欄），估算不變；唔再等用戶 |
+| T-099 | **封面欄位對尺寸**（backlog B-052 ①）：PATCH 專輯時 `cover`／`cover2` 一定係 1200、`thumb`／`thumb2` 一定係 320，大封面同縮圖唔會調亂（`assets` 加尺寸欄或者驗證時讀檔頭量）。~~API-050 大封面收 640 至 1200~~：**CR-005 取消呢部分**，原因：用戶揀咗 D50「細嘅自動放大到 1200」，Worker 嘅尺寸規則唔使改 | fix | Backend | none-required | 0 | T-024、T-100 | P0 | **新（CR-004）**；**CR-005 改範圍**（放寬規則取消；加第二張封面兩個欄），估算不變；唔再等用戶 **CR-007：取消**，併入 T-106（API-017 對位） |
 | T-100 | **第二張封面：資料模型、內容檔、專輯 API**（CR-005 決定 8，Functional Spec D55；跟進 T-098）：D1 `albums` 加 `cover2`、`thumb2`、`cover2_source_etag` 同 CHECK（未部署，直接改 `0001_init.sql`，連 `test/schema.test.ts`）；`packages/catalog`：`CatalogAlbum` 加可選 `cover2`、`thumb2`，validator 收舊 document、成對、要有 `cover`；專輯 API（API-010、012、013）三個新欄嘅驗證同讀寫；`buildDocument`、fixtures（API 同播放端）；語言檔訊息。冇第二張專輯色 | fix | Backend | none-required | 1 | T-098（修正合併之後） | P1 | **新（CR-005）** |
-| T-101 | **專輯只有年份、冇「類型」**（CR-006；Functional Spec D63、D44；跟進 T-022、T-026、T-097、T-098、T-100）：D1 `albums` 刪 `release_date`、`type`（直接改 `0001_init.sql`，連 `test/schema.test.ts`）；`packages/catalog`：`CatalogAlbum`、`SeedAlbum` 刪 `releaseDate`、`type`，validator 刪日期檢查，加 `YEAR_MIN`／`YEAR_MAX`；專輯 API（API-010–013）：刪兩個欄、`year` 直接改（`INVALID_YEAR`）、刪 `yearOf()` 同「日期帶年份」；`buildDocument`、`snapshot`；`_design_/tools/parse_discography.py`：年份由日期頭四位（`2016-06` → 2016，review S-119），輸出刪 `releaseDate`、`type`，連 `test_seed_tools.py`，重新生成 `discography.json`（要人手跑 `python3 -m unittest discover -s _design_/tools`）；fixtures（API、`packages/catalog`、播放端）；語言檔。播放端 `InfoBlock` 唔使改 | fix | Backend | none-required | 1 | T-098、T-100（✅） | P0 | **新（CR-006）**。改到已凍結嘅鏈：`api-albums`、`api-catalog`、`api-auth`（schema）、`catalog-core`、`seed-tools`、`player-catalog` |
-| T-102 | **歌號跟檔名、歌 id 跟歌號**（CR-006；Functional Spec D60、D61；跟進 T-023）：歌號 1 至 999、可以跳號；API-022 刪歌唔重編（刪 `COMPACT_SQL`）；**API-023 取消**（route、`writeTrackOrder()`、測試）；API-020 收 `no`（冇畀 = 最大 + 1；撞咗 409 `NUMBER_TAKEN`）；API-021 可以改 `no`；新歌 id = `trackIdFor(albumId, no)`（由 `packages/catalog/seed` 搬去共用），撞 PK 先用 `newTrackId()`；D1 加 `no` 範圍 CHECK（可選）；語言檔、fixtures、`sessionGuard` 測試 | fix | Backend | none-required | 1 | T-023（✅） | P0 | **新（CR-006）**。改到已凍結嘅鏈：`api-tracks`、`api-auth`（schema）、`catalog-core` |
+| T-101 | **專輯只有年份、冇「類型」**（CR-006；Functional Spec D63、D44；跟進 T-022、T-026、T-097、T-098、T-100）：D1 `albums` 刪 `release_date`、`type`（直接改 `0001_init.sql`，連 `test/schema.test.ts`）；`packages/catalog`：`CatalogAlbum`、`SeedAlbum` 刪 `releaseDate`、`type`，validator 刪日期檢查，加 `YEAR_MIN`／`YEAR_MAX`；專輯 API（API-010–013）：刪兩個欄、`year` 直接改（`INVALID_YEAR`）、刪 `yearOf()` 同「日期帶年份」；`buildDocument`、`snapshot`；`_design_/tools/parse_discography.py`：年份由日期頭四位（`2016-06` → 2016，review S-119），輸出刪 `releaseDate`、`type`，連 `test_seed_tools.py`，重新生成 `discography.json`（要人手跑 `python3 -m unittest discover -s _design_/tools`）；fixtures（API、`packages/catalog`、播放端）；語言檔。播放端 `InfoBlock` 唔使改 | fix | Backend | none-required | 1 | T-098、T-100（✅） | P0 | **新（CR-006）**。改到已凍結嘅鏈：`api-albums`、`api-catalog`、`api-auth`（schema）、`catalog-core`、`seed-tools`、`player-catalog` ⚠️ CR-007：年份規則重用喺 `parseAlbumInfo()` |
+| T-102 | **歌號跟檔名、歌 id 跟歌號**（CR-006；Functional Spec D60、D61；跟進 T-023）：歌號 1 至 999、可以跳號；API-022 刪歌唔重編（刪 `COMPACT_SQL`）；**API-023 取消**（route、`writeTrackOrder()`、測試）；API-020 收 `no`（冇畀 = 最大 + 1；撞咗 409 `NUMBER_TAKEN`）；API-021 可以改 `no`；新歌 id = `trackIdFor(albumId, no)`（由 `packages/catalog/seed` 搬去共用），撞 PK 先用 `newTrackId()`；D1 加 `no` 範圍 CHECK（可選）；語言檔、fixtures、`sessionGuard` 測試 | fix | Backend | none-required | 1 | T-023（✅） | P0 | **新（CR-006）**。改到已凍結嘅鏈：`api-tracks`、`api-auth`（schema）、`catalog-core` ⚠️ CR-007：歌號範圍同 `trackIdFor()` 重用；API-020／021 嘅歌號部分喺 T-104 拎走 |
+| T-103 | **`info.txt` 同資料夾名**（CR-007；Functional Spec D67、D68、D69、D72）：`packages/catalog/src/album-info/`：`parseAlbumInfo()`（寬鬆，只出檢查結果）、`formatAlbumInfo()`（round-trip）、常數同標籤別名；`schema/releaseCategory.ts` 加 `parseAlbumFolder()`、`albumOrder()`；`sync/titleKey()`；`classifyFile()` 加 `info.txt`；`song-text`：`副題` 唔再輸出、hint `SUBTITLE_IGNORED`；全部有 unit test | feature | Backend | none-required | 1 | T-101、T-102（✅） | P0 | **新（CR-007）**。改到已凍結嘅鏈：`catalog-core`、`catalog-song-text` |
+| T-104 | **資料模型同內容檔跟 CR-007；拎走人手寫入**（Technical Spec v1.7「資料模型」「已完成嘅 code」）：`0001_init.sql`（`albums` 刪 `label`／`wheel_key`／`sort_order`，加 `info_etag`、`checks`，`folder` NOT NULL UNIQUE；`tracks` 刪 `subtitle`、手動指定、參考欄，加 `text_key`）連 schema 測試；內容檔刪 `label`、`subtitle`，`buildDocument` 計 `wheelKey` 同次序；拎走 API-011／013／014／015／020／021／022／024／032／043、`albums/validate.ts`／`fieldRules.ts`／`order.ts`、`tracks/albumTrackRoutes.ts`／`fieldRules.ts`、初始資料 seed（`src/seed/*`、`scripts/seed*.mjs`、`seed/albums.sql`、`planAlbumSeed`）同佢哋嘅測試；API-010、API-012 唯讀形狀同統計（第 4 版四個錶）；fixtures（API、`packages/catalog`、播放端） | refactor | Backend | none-required | 2 | T-103 | P0 | **新（CR-007）**。改到已凍結嘅鏈：`api-albums`、`api-tracks`、`api-media`、`api-seed`（拎走）、`api-catalog`、`api-auth`（schema）、`catalog-core`、`player-catalog` |
+| T-105 | **全 bucket 同步**（CR-007；Functional Spec D70、D73、D76、D77、FR-127、FR-130、FR-131；Technical Spec「同步嘅設計」）：`packages/catalog/src/sync/planFolderSync()`（由 `planScan()` 改；重用 `classifyFile`、`groupFiles`、`titleFromFileName`、`trackIdFor`）；Worker：API-033（bucket 第一層）、API-034（一個資料夾：自動新增更新、`.txt` 分批讀、`albums.checks`、`pendingRemovals`、`coverJobs`）、API-035（確認咗嘅移除，逐項再對；清歌詞檔，backlog B-048）；重用 `listing.ts`、`songTextFile.ts`、`saveSongText()`、`putLyrics()`、`insertNumbered()`、`applyGuard`；拎走 API-030／031 嘅逐項揀同 `applyShape.ts`；操作上限常數（`SYNC_REMOVALS_MAX`） | feature | Backend | none-required | 3 | T-104 | P0 | **新（CR-007）**；取代 T-025 嘅預覽同套用。新鏈（建議 `api-sync`，取代 `api-media`） |
+| T-106 | **寫返媒體 bucket、封面結果**（CR-007；Functional Spec D74、D75、FR-128、FR-129）：API-018／019（`info.txt` 讀寫）、API-040／041（歌曲文字讀寫 bucket；`NO_AUDIO`、`LYRICS_REMOVED`、版本前提 → `STALE`）；寫入只限兩種 key、`onlyIf`、冇 delete（測試鎖住）；寫完同步嗰個資料夾；API-017 封面結果（來源 ETag、1200／320 對位 = 原 T-099 同 backlog B-052 ①、第二張要有第一張 = B-067 ②）；`wrangler.toml` 註解 | feature | Backend | none-required | 1.5 | T-105 | P0 | **新（CR-007）**；吸收 T-099 |
 
 ### Phase D — 播放端核心（手機直度）
 
@@ -223,11 +245,12 @@ Mockup Binding 縮寫：**HT** = `_mockups_/home-turntable/index.html`（source�
 
 | 任務 | 描述 | 類型 | Agent | Mockup Binding | 人日 | 依賴 | 優先級 | CR-003 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| T-050 | **P-3 管理端 mockup**（`_mockups_/admin/index.html`）→ 用戶確認。第 1 版因為太似 903-player 被否決；第 2 版：鋁面板、螺絲、專輯以碟呈現、儀錶統計、每首歌一個文字框，冇發佈 / 發佈記錄 / 歌詞編輯畫面。D37 已確認：`副題：` 行已加（commit `82000ed`）；文字框下面嘅細控件（歌詞參考連結、備註、手動指定檔案）未畫，要補 | docs | PM + Frontend | proposal: Functional Spec P-3（CR-003 改寫） | 1.5 + 1.5 + 0.5 + 0.5 + 0.5 | — | P0 | 重開：第 2 版已交（commit `d60b02b`）。**CR-004：補畫（+0.5）**：掃描結果加「封面」（來源預覽、新／已更換／相同、圓碟預覽同專輯色）同「歌曲文字」（逐個檔嘅狀態、歌名變更、逐行錯誤、清歌詞警告、逐項揀選、一個確認掣）；專輯表格加發行類別、序號、預期資料夾名。**CR-005 再補（+0.5）**：專輯頁「第二張封面」一格、掃描結果加第二張封面同「已略過」一類（冇音檔嘅 `.txt`、MV，連原因）、封面細過 1200 嘅放大提示。**CR-006 再補（+0.5）**：專輯表格刪「類型」（顯示類別中文名）、「發行日期」換「年份」；歌曲表冇拖動排序，展開行加「歌號」；掃描結果加「將會新增歌曲」（歌號、歌名同來源、有冇歌曲文字同 MV、`.txt` 錯誤）同「音檔已不在資料夾」（確認 = 清走音檔連結）；示範一張跳號嘅碟（例如 KOMOREBI 01、02、03、05…）。補完先**請用戶確認（U-8）** |
-| T-051 | 管理端 scaffold：登入、外框（鋁面板、螺絲）、共用元件（金屬掣、儀錶、碟）、i18n；只做淺色。903-player 只移植行為，外觀按 AD 重做 | feature | Frontend | mockup: AD（確認之後） | 2.5 | T-050 確認、T-021 | P0 | 改（1.5 → 2.5） |
-| T-052 | 專輯列表（碟 + 儀錶統計 + 拖動排序）、專輯資料、封面裁切、專輯色。冇上架掣、冇發佈掣。**CR-004**：封面喺瀏覽器出兩個尺寸（大封面 + 320 縮圖）、轉 WebP、抽專輯色，逐張上載再 PATCH 專輯（由 T-024 搬入嚟嘅講法；管理端要保證大封面同縮圖唔調亂，backlog B-052 ①）；專輯表格加發行類別（選單）、序號、預期資料夾名（可複製），改類別／序號時提示要搬檔；錯誤文字以 `code`／`reason` 砌。**CR-005**：來源細過 1200 就放大到 1200（提示，唔擋儲存，D50）；「第二張封面」一格（上載、更換、移除；冇第一張唔得；唔改專輯色，D55）。**CR-006**：冇「類型」欄（顯示類別中文名，D44）；「年份」數字欄取代發行日期（D63） | feature | Frontend | 同上 | 3 | T-051、T-022、T-024、T-098、T-100、**T-101**（尺寸對位：T-099） | P0 | 改；**CR-004**：2 → 2.5；**CR-005**：2.5 → 3；CR-006：估算不變（換欄） |
-| T-053 | 歌曲表、就地展開、歌曲文字框（即時逐行檢查、未儲存提示、清走歌詞要確認）、參考欄同手動指定檔案、刪除（ID 守衛確認）、掃描面板。**CR-004**：掃描結果畫面加封面（由媒體 bucket 攞原圖 → 重用 T-052 嘅裁切、兩個尺寸、抽色 → API-050 × 2 → PATCH 連 `coverSourceEtag`；攞唔到圖要講明係 CORS）同歌曲文字（逐個檔嘅狀態、歌名變更、逐行錯誤、清歌詞要逐項再確認）；逐項揀選，一次確認；逐項顯示套用結果。**CR-005**：掃描結果加第二張封面（同第一張一樣嘅流程，唔帶 `accent`）同「已略過」一類（`NO_AUDIO`、`NO_FIRST_COVER`，逐個檔講原因）。**CR-006**：掃描結果加「將會新增歌曲」（逐首揀、`.txt` 錯誤、歌名來源；`create` 分批送）同「音檔已不在資料夾」（`clearAudio`）、`manualMissing` 提示；歌曲表按歌號排、**冇拖動排序**，展開行改歌號（撞號錯誤）；新增歌要填歌號 | feature | Frontend | 同上 | 4.5 | T-052、T-023、T-025、T-029、**T-102** | P0 | 改（2 → 2.5；吸收 T-081）；**CR-004**：2.5 → 3.5；**CR-005**：3.5 → 4；**CR-006**：4 → 4.5（拖動排序冇咗抵消少少） |
+| T-050 | **P-3 管理端 mockup**（`_mockups_/admin/index.html`）→ 用戶確認。第 1 版因為太似 903-player 被否決；第 2 版：鋁面板、螺絲、專輯以碟呈現、儀錶統計、每首歌一個文字框，冇發佈 / 發佈記錄 / 歌詞編輯畫面。D37 已確認：`副題：` 行已加（commit `82000ed`）；文字框下面嘅細控件（歌詞參考連結、備註、手動指定檔案）未畫，要補 | docs | PM + Frontend | proposal: Functional Spec P-3（CR-003 改寫） | 1.5 + 1.5 + 0.5 + 0.5 + 0.5 + 1 | — | P0 | 重開：第 2 版已交（commit `d60b02b`）。**CR-004：補畫（+0.5）**：掃描結果加「封面」（來源預覽、新／已更換／相同、圓碟預覽同專輯色）同「歌曲文字」（逐個檔嘅狀態、歌名變更、逐行錯誤、清歌詞警告、逐項揀選、一個確認掣）；專輯表格加發行類別、序號、預期資料夾名。**CR-005 再補（+0.5）**：專輯頁「第二張封面」一格、掃描結果加第二張封面同「已略過」一類（冇音檔嘅 `.txt`、MV，連原因）、封面細過 1200 嘅放大提示。**CR-006 再補（+0.5）**：專輯表格刪「類型」（顯示類別中文名）、「發行日期」換「年份」；歌曲表冇拖動排序，展開行加「歌號」；掃描結果加「將會新增歌曲」（歌號、歌名同來源、有冇歌曲文字同 MV、`.txt` 錯誤）同「音檔已不在資料夾」（確認 = 清走音檔連結）；示範一張跳號嘅碟（例如 KOMOREBI 01、02、03、05…）。補完先**請用戶確認（U-8）** **CR-007：第 4 版（+1；commit `8fb28a7`，已出）**：專輯 = 牆上 CD 展示架（按類別分層板，有音檔嘅 CD 露出少少）、統計 = hi-fi 機面板（四個指針錶、掃描掣、上次掃描時間）、掃描結果（要你確認／檢查結果／已新增／已更新／沒有改動）、專輯頁（`info.txt` 文字框連檢查、唯讀欄、封面兩格、灰色行、歌曲文字框）、冇 `info.txt` 嘅專輯頁、登入、沒有權限；冇新增專輯／歌曲。**等用戶確認（U-8）**；第 3 版（`29309fd`）作廢 |
+| T-051 | 管理端 scaffold：登入、外框（鋁面板、螺絲）、共用元件（金屬掣、儀錶、碟）、i18n；只做淺色。903-player 只移植行為，外觀按 AD 重做 | feature | Frontend | mockup: AD 第 4 版（**等確認**） | 2.5 | T-050 確認、T-021 | P0 | 改（1.5 → 2.5） ⚠️ CR-007：Mockup Binding 改為 AD 第 4 版（等確認） |
+| T-052 | ⚠️ **CR-007 改寫**：專輯列表（CD 展示架、按類別分層、hi-fi 機面板統計同「掃描媒體資料夾」掣、上次掃描時間、檢查結果數目）；專輯頁：唯讀資料（資料夾、類別、字母盤標記、專輯色、兩格封面）、`info.txt` 文字框（API-018／019，連檢查結果、版本衝突提示）、檢查結果；冇 `info.txt` 嘅專輯頁。之前（作廢）：專輯列表（碟 + 儀錶統計 + 拖動排序）、專輯資料、封面裁切、專輯色、類別選單、序號、第二張封面上載 | feature | Frontend | mockup: AD 第 4 版（**等確認**） | 2 | T-051、T-104、T-106 | P0 | 改；**CR-004**：2 → 2.5；**CR-005**：2.5 → 3；CR-006：估算不變（換欄） **CR-007**：3 → 2（冇人手輸入同封面上載） |
+| T-053 | ⚠️ **CR-007 改寫**：歌曲表（歌號、歌名、音檔／MV／歌曲文字狀態；冇音檔 = 灰色）；㩒行展開歌曲文字框（API-040／041：即時逐行檢查、未儲存提示、清歌詞要確認、版本衝突提示、灰色行唔開）。之前（作廢）：新增、刪除、歌號欄、參考欄、手動指定、掃描面板 | feature | Frontend | mockup: AD 第 4 版（**等確認**） | 1.5 | T-052、T-106、T-029 | P0 | 改（2 → 2.5；吸收 T-081）；**CR-004**：2.5 → 3.5；**CR-005**：3.5 → 4；**CR-006**：4 → 4.5（拖動排序冇咗抵消少少） **CR-007**：4.5 → 1.5（掃描畫面搬去 T-055） |
 | T-054 | ~~發佈面板：變更摘要、警告、記錄~~ | — | — | — | 0 | — | — | **取消**（決定 7） |
+| T-055 | **掃描畫面**（CR-007；Functional Spec D73、D74、D76、D77、FR-127、FR-130、FR-131）：hi-fi 機面板嘅「掃描媒體資料夾」→ API-033 → 逐個資料夾 API-034（進度；`more` 再叫）→ `coverJobs` 喺瀏覽器處理（由 bucket 公開網址攞圖、置中裁切、1200／320、WebP、第一張抽專輯色 → API-050 × 2 → API-017；CORS 失敗講明原因）→ 掃描結果分組（要你確認：已不在媒體資料夾／檢查結果／已新增／已更新／沒有改動）→ 移除逐項剔選、「確認移除」→ API-035（分批）；中途閂頁唔會壞 | feature | Frontend | mockup: AD 第 4 版「掃描結果」（**等確認**） | 2.5 | T-051、T-105、T-106 | P0 | **新（CR-007）**；封面處理（裁切、放大、WebP、抽色）由 T-052 搬嚟 |
 
 ### Phase F — MV 同系統整合
 
@@ -252,7 +275,7 @@ Mockup Binding 縮寫：**HT** = `_mockups_/home-turntable/index.html`（source�
 | T-080 | ~~歌詞 API：儲存、驗證、清除、發佈時出歌詞 JSON~~ | — | — | — | 0 | — | — | **取消**（併入 T-023） |
 | T-081 | ~~歌詞編輯器（即時逐行驗證、參考連結）~~ | — | — | — | 0 | — | — | **取消**（併入 T-053） |
 | T-082 | 歌書歌詞，兩個版面（設計稿第 17 版）。① 有時間標記：`activeLine`、弧線行；而家嗰行太長先縮字（44 → 32），仍然放唔落就喺框入面斷行、框線跟住變高；其他行各佔一列，放唔落嘅部分喺右邊淡出；唱到下一行成組沿弧線移動（D22 第 17 版修訂：冇跑馬燈）。② 冇時間標記（D32；D38 第 17 版修訂）：成份歌詞一次過顯示嘅直身一欄，冇框線、冇 highlight；自動斷行（共用純函數 `wrapLine`：優先喺空格位斷、續行縮入一個字）；放唔晒上下捲，頂底淡出；播放／暫停唔影響位置。試排版唔做（只係設計輔助） | feature | Frontend | mockup: HT 第 18 版「歌書（㩒 i）」「歌書（歌詞冇時間標記）」+「歌詞冇時間標記：試排版」兩格（第 17 版加入，已確認） | 2.5 | T-072、T-029 | P1 | 改（1.5 → 2；第 17 版兩個歌詞版面再 → 2.5）；D32 ✅ 已確認，D22、D38 喺第 17 版修訂（✅ 2026-11-25）；設計稿唔再阻 |
-| T-083 | 批量匯入 `.lrc`（只取代歌詞部分）、由同名歌帶入（曲詞編監同／或歌詞）、展開行播音檔並顯示而家時間 | feature | Frontend + Backend | mockup: AD（要補呢幾個控件） | 1.5 | T-053、T-023（D34 ✅ 已確認） | P1 | 改（2 → 1.5）。CR-004：批量匯入 `.lrc` 同掃描讀 `.txt` 有重疊，開工前問用戶仲要唔要（開放問題） |
+| T-083 | ⚠️ **CR-007 改寫**：只留歌曲文字框入面播音檔並顯示而家時間（FR-112）。~~批量匯入 `.lrc`、由同名歌帶入~~（取消，Functional Spec D81） | feature | Frontend | mockup: AD 第 4 版（**等確認**） | 0.5 | T-053 | P1 | 改（2 → 1.5）。CR-004：批量匯入 `.lrc` 同掃描讀 `.txt` 有重疊，開工前問用戶仲要唔要（開放問題） **CR-007**：1.5 → 0.5 |
 
 ### Phase I–K — 其他裝置
 
@@ -309,6 +332,9 @@ Phase L（P2 項目）而家唔拆。
 | R-020 | ~~CR-005：播放端設計稿第 18 版確認要多一輪，T-036 嘅淡出部分同 T-047 等住~~ **已解除（2026-11-25）**：第 18 版已確認（U-18）；多咗嘅範圍已拆成 T-048、T-049 | — | — | — | PM |
 | R-021 | v1.4：拎住嘅碟嘅歌單欄行高約 24pt（D57，用戶揀咗）喺真機容易㩒錯；歌號用專輯色，疊住同色嘅碟時對比偏低（開放問題） | 中 | 低 | 成行闊度都㩒得、拖過唔當㩒；㩒錯最多播錯一首（冇破壞性）。T-049 完成量對比；T-039 真機檢查時睇；有問題先問用戶（例如歌號改深色或者加深半透明層，只改常數） | Frontend / QA |
 | R-022 | CR-006：掃描變成主要資料來源。① 冇 `.txt` 嘅歌冇曲詞編監同歌詞、歌名用檔名（Functional Spec R-19）；② 第一次掃描一張碟要建立十幾至四十幾首歌、讀晒 `.txt`，撞 Worker 每個請求嘅操作上限（R-016）；③ 用戶改咗檔名嘅歌號，舊歌會變「音檔已不在資料夾」、新歌號當新歌（收藏唔跟過去，D61） | 中 | 中 | ① 掃描結果逐首標「沒有歌曲文字檔」，用戶可以照參考資料寫 `.txt` 再掃描；② `create` 分批，T-025 開工先核實上限；③ 掃描結果講明，管理端可以先改歌號再掃描；永遠唔自動刪歌（D62） | Backend / PM |
+| R-023 | CR-007：管理端寫入公開嘅媒體 bucket，code 有錯會改壞用戶嘅 `.txt`（Functional Spec R-20） | 低 | 高 | 只兩條寫入路徑、server 砌 key、`onlyIf` 版本前提、冇 delete、測試鎖住；U-13 建議用戶喺電腦留一份 | Backend |
+| R-024 | CR-007：封面喺瀏覽器處理：掃描期間要開住管理端；bucket CORS 冇管理端 origin 就處理唔到（Functional Spec R-22） | 中 | 低 | 檢查結果講明，下次掃描再試；U-1 | Frontend / 用戶 |
+| R-025 | CR-007：改到 9 條已凍結嘅 QA 鏈，同已做嘅 code 有約 4 人日作廢；資料夾暫時唔見會令成張專輯列入移除（Functional Spec R-21） | 高（已確定） | 中 | 按 validation gate 只重驗有改動嘅部分；QA 欄已加 1.5；移除永遠確認先做 | QA / Backend |
 
 ---
 
@@ -348,52 +374,60 @@ CR-006：T-098、T-100 → T-101 ─┬─ T-027
                               └─ T-052
         T-023 → T-102 ─┬─ T-025 → T-053
                        └─ T-053
+CR-007：T-101、T-102 → T-103 → T-104 → T-105 → T-106 ─┬─ T-053
+                                     │                 └─ T-055
+                                     └─ T-052（亦要 T-106）
+        T-050 第 4 版（U-8）→ T-051 ─┬─ T-052 → T-053 → T-083
+                                    └─ T-055（要 T-105、T-106）
+        T-099 取消（併入 T-106）；T-025、T-027 由 T-105、T-104 取代
 ```
 
-可以並行嘅三條線：**Backend**（CR-006：T-101、T-102 起，之後 T-025、T-027；~~CR-004：T-098、T-097 起，之後 T-025、T-027~~）、**播放端**（T-034、T-036、T-037、T-046、T-047 起，之後 T-048 → T-049）、**Mockup 確認**（T-050 補畫 → U-8；U-11 已完成）。佢哋只共用 `packages/catalog`。
+可以並行嘅三條線：**Backend**（CR-007：T-103 → T-104 → T-105 → T-106；CR-006：T-101、T-102 起，之後 T-025、T-027；~~CR-004：T-098、T-097 起，之後 T-025、T-027~~）、**播放端**（T-034、T-036、T-037、T-046、T-047 起，之後 T-048 → T-049）、**Mockup 確認**（T-050 補畫 → U-8；U-11 已完成）。佢哋只共用 `packages/catalog`。
 
 ### 外部依賴（要用戶做）
 
 | 編號 | 事項 | 影響任務 | 幾時要 |
 | --- | --- | --- | --- |
-| U-1 | ⚠️ **CR-004 改寫**（CR-006：**仍然未做**；CORS 冇播放端 origin，字體會跌返 Rokkitt）。媒體 bucket **`rb-discography`**（✅ 用戶已開；`r-gram-media`、`r-gram-album` 兩個名作廢）：① 開公開存取（`r2.dev` 網址或者自訂網域），將公開網址話畀我（填 `MEDIA_BASE`）；② 設 CORS：容許嘅 origin = **播放端**（Vercel 網址，MV 音量同字體要用）**同管理端**（Worker 嘅網址，掃描套用封面要用），開發期間加 `http://localhost:5173` 同 `https://localhost:8787`；method `GET`、`HEAD`；容許 `Range` header；③ 唔好開列目錄；④ 上載一張碟嘅測試檔：2–3 首歌（`.m4a` 或 `.mp3`）+ 1 個 MV（`.mp4`，fast start），檔名以歌號開頭，放喺嗰張碟嘅資料夾（命名見 U-13）。**用邊張碟未定（決定 14）** | T-010、T-025、T-028、T-044、T-053 | Phase B 開始前。**CR-005：仍然未做**（CORS 要加播放端同管理端 origin） |
+| U-1 | ⚠️ **CR-004 改寫**（CR-006：**仍然未做**；CORS 冇播放端 origin，字體會跌返 Rokkitt）。媒體 bucket **`rb-discography`**（✅ 用戶已開；`r-gram-media`、`r-gram-album` 兩個名作廢）：① 開公開存取（`r2.dev` 網址或者自訂網域），將公開網址話畀我（填 `MEDIA_BASE`）；② 設 CORS：容許嘅 origin = **播放端**（Vercel 網址，MV 音量同字體要用）**同管理端**（Worker 嘅網址，掃描套用封面要用），開發期間加 `http://localhost:5173` 同 `https://localhost:8787`；method `GET`、`HEAD`；容許 `Range` header；③ 唔好開列目錄；④ 上載一張碟嘅測試檔：2–3 首歌（`.m4a` 或 `.mp3`）+ 1 個 MV（`.mp4`，fast start），檔名以歌號開頭，放喺嗰張碟嘅資料夾（命名見 U-13）。**用邊張碟未定（決定 14）** | T-010、T-025、T-028、T-044、T-053 | Phase B 開始前。**CR-005：仍然未做**（CORS 要加播放端同管理端 origin） ⚠️ **CR-007**：管理端 origin 更加重要：掃描時封面喺管理端頁面由 bucket 攞原圖；管理端寫返文字檔經 Worker，唔使開 bucket 嘅 PUT CORS |
 | U-2 | 用 iPhone 開 spike 網址，照清單逐項試（約 15 分鐘） | T-011 | T-010 完成後 |
 | U-3 | R2 開 `r-gram-catalog`（private）；D1 開 `r-gram` | T-028 | Phase C 尾 |
 | U-4 | Google Cloud 開 OAuth client | T-028 | 同上 |
 | U-5 | Worker secret：`GOOGLE_CLIENT_SECRET`、`SESSION_SECRET` | T-028 | 同上 |
 | U-6 | GitHub secret：`CLOUDFLARE_API_TOKEN`、`CLOUDFLARE_ACCOUNT_ID` | T-028 | 同上 |
 | U-7 | **仍然未做**。Vercel 開 project 連 repo（`VITE_CATALOG_URL` 可以到 T-041 先設；CR-006：連 `VITE_FONT_URL` = `<MEDIA_BASE>_fonts/lubalin-graph-book.otf`）。**決定 13：提前到 T-010 之前**，spike 頁放喺度；用邊條 branch 部署見 A-7 | T-010、T-041 | **Phase B 開始前**（之前係 Phase D 尾） |
-| U-8 | 確認管理端設計稿第 2 版（`_mockups_/admin/`，commit `d60b02b`；`副題：` 行 commit `82000ed`），連統計項目（Functional Spec D35）。**CR-006**：仲要補「類型」刪走、「年份」欄、歌號欄（冇拖動）、掃描結果「將會新增歌曲」「音檔已不在資料夾」（T-050），CR-004、CR-005、CR-006 嘅畫面補齊之後一次過確認。CR-004：設計稿要先補畫掃描結果同專輯表格（T-050），補完一齊確認。**CR-005**：仲要補「第二張封面」一格、掃描結果嘅第二張封面同「已略過」、放大提示 | T-051 起 | T-050 補畫之後 |
+| U-8 | ⚠️ **CR-007：確認管理端設計稿第 4 版**（`_mockups_/admin/`，commit `8fb28a7`）：CD 展示架、hi-fi 機面板（四個指針錶 = 統計，Functional Spec D35、D80）、掃描結果分組、專輯頁（`info.txt` 文字框、唯讀欄、封面兩格、灰色行、歌曲文字框）、冇 `info.txt` 嘅專輯頁。一齊確認第 4 版已經話咗畀用戶知嘅做法：專輯色只由 `cover.jpg` 自動抽；歌名以 `info.txt` 為準、檔名對唔上只出檢查結果；冇 `info.txt` 嘅資料夾照加、用 id 做名；掃描結果嘅分組同移除剔選；音檔冇咗確認移除之後歌變灰、歌詞同 MV 唔再顯示。之前：~~確認管理端設計稿第 2 版（連 CR-004 至 CR-006 補畫）~~（第 3 版 `29309fd` 用戶 2026-11-26 睇過，由 CR-007 取代） | T-051、T-052、T-053、T-055 | 而家（第 4 版已出） |
 | U-9 | 確認 P-7 各裝置 mockup | Phase I–K | 各自出稿後 |
 | U-10 | 高清 / 向量 RubberBand logo（冇就用現有圖） | T-034、T-070 | 唔阻開發 |
 | U-11 | ~~確認播放端設計稿第 16 版（`_mockups_/home-turntable/`，commit `e6f367c`；補兩格 commit `7ecf24b`：歌詞冇時間標記時嘅歌書、冇歌專輯嘅歌單）~~ ✅ **2026-11-25 完成**：用戶睇過第 16、17 版，答「用框入面斷行，第 17 版確認」。第 17 版（commit `3cfc327` 至 `9d0c9d6`）係播放端嘅 Design Source，包埋第 16 版嘅內容 | 已解除：T-036、T-042、T-072；T-037 嘅空狀態、T-082 嘅歌詞版面；T-038 嘅設計稿部分（T-038 仲要等 T-011） | 完成 |
 | U-12 | ~~確認 Functional Spec D30–D39~~ ✅ **2026-11-25 完成**：用戶答「嗰 8 條跟建議」，D30、D31、D32、D34、D36–D39 已確認（D33 係技術決定；D35 轉去 U-8）。本文件 A-7、A-8 唔喺嗰八條問題入面，仍然係建議，要另外問（見開放問題） | 已解除：T-029、T-096、T-022、T-023、T-026；D36：T-038；D38：T-082。仍然等：A-7（T-010）、A-8（T-028、T-041） | D30–D39：完成；A-7、A-8：Phase B 前 |
-| U-13 | **CR-004：照資料夾規則上載專輯**去 `rb-discography`。每個發行一個資料夾，全部同一層，名 = `<類別>-<NN>-<id>`（例如 `album-01-apollo-18`、`ep-01-frank-ep`、`live-02-rubberband-ciao-2021-live`；21 個名嘅完整清單由 T-097 交，管理端專輯頁亦會顯示）。資料夾入面：`cover.jpg`（或者 `cover.png`；正方形、愈大愈好，最少 640）、`NN 歌名.txt`（格式同管理端歌曲文字框一樣，UTF-8）、`NN 歌名.m4a｜mp3`、`NN 歌名.mp4｜m4v`（fast start）。`NN` = 歌號，多碟專輯用連續編號。上載完喺管理端逐張碟㩒掃描、確認套用。**CR-005**：短名同 id 已確認，可以開始上載；`cover.jpg` 細過 1200 都得（會自動放大，但愈大愈清）；可選放 `cover2.jpg`（第二張封面）；**一首歌要有音檔，佢嘅 `.txt` 同 MV 先會匯入**（D54）。**CR-006**：掃描係主要資料來源：資料庫一開始只有專輯，**歌由掃描建立**（有音檔先有歌；`.m4a`、`.mp3` 都得）；`.txt` 決定歌名、曲詞編監同歌詞，冇 `.txt` 歌名就用音檔檔名（所以檔名請寫正歌名）；歌號照檔名，可以跳號（例如 KOMOREBI 冇第 4、6、8、11 首就唔放）；第二張封面 `cover2.jpg` 或者 `cover2.png`；精選、現場碟用其他資料夾嘅音檔：喺管理端新增嗰首歌再手動指定音檔，自己資料夾嘅 `.txt`、MV 照匯入 | T-025、T-053 嘅真實驗證；內容完整度 | 而家（T-097 嘅資料夾名清單喺 review 修正之後交）；唔阻開發（開發用本機模擬 bucket） |
+| U-13 | ⚠️ **CR-007 改寫：照資料夾規則上載專輯**去 `rb-discography`（**而家係唯一資料來源**）。每張專輯一個資料夾，全部同一層，名 = `<類別>-<NN>-<id>`（例如 `album-11-komorebi`；類別 `album`／`ep`／`best`／`live`／`ost`／`single`；名決定 id、類別、序號，改名 = 改專輯）。資料夾入面：① **`info.txt`**（UTF-8）：`唱片名稱：…`、`發行年份：…`、`曲目：` 之後每首一行 `1. 歌名`（`01.`、`1、` 都得；可以跳號；冇音檔嘅歌照列，播放端會灰色）；② `cover.jpg`（或者 `.png`，最好正方形、1200 或以上；會置中裁切）、可選 `cover2.jpg｜png`；③ 音檔 `NN 歌名.m4a｜mp3`（歌號要同 `info.txt` 一樣）；④ 可選 `NN 歌名.txt`（曲詞編監同歌詞，格式同而家一樣；`副題：` 唔再用）；⑤ 可選 MV `NN 歌名.mp4｜m4v`（fast start）。精選、現場碟嘅歌**要喺自己資料夾放一份音檔**（唔可以再借其他資料夾）。上載完喺管理端㩒「掃描」。**建議喺自己電腦留一份成個資料夾**（管理端會寫返 `info.txt` 同 `.txt`，Functional Spec R-20）。之前（CR-004 至 CR-006 嘅講法，作廢）：~~手動指定其他資料夾音檔、冇 `info.txt`、歌由音檔建立~~ | T-105、T-055 嘅真實驗證；內容完整度 | 而家（T-097 嘅資料夾名清單喺 review 修正之後交）；唔阻開發（開發用本機模擬 bucket） |
 | U-14 | ✅ **2026-11-25 完成**（用戶已上載去媒體 bucket；檔名見 U-16）。~~**CR-004（可選）：上載 slab 字體**去 `rb-discography/_fonts/`（ITC Lubalin Graph Std Book；`.woff2` 最好，`.otf` 都得；想要真粗體可以多上載一個較粗嘅檔），將檔案網址話畀我，或者自己喺 Vercel 設 build 變數（建議名 `VITE_FONT_URL`，T-044 已定案；只有一個網址），之後重新 build 播放端。**字體檔唔好放入 repo**。留意：bucket 係公開網址，知道網址嘅人下載到（Functional Spec R-16）；唔上載就用內建 Rokkitt~~ | T-044 嘅真機驗證 | 完成 |
 | U-15 | **CR-004：答七條問題**。✅ **2026-11-25 答咗五條**（CR-005）：D43 接受、D47「按類型再按編號」、D48 → D50「細嘅自動放大到 1200」、D23 → D51「斷成兩行」、播緊時轉碟 → D52。**剩低 D44、D49，搬去 U-17** | — | 部分完成 |
 | U-16 | ✅ **2026-11-25 完成**（CR-006）：檔案 `_fonts/lubalin-graph-book.otf`；`VITE_FONT_URL` = `<MEDIA_BASE>_fonts/lubalin-graph-book.otf`（本機 `.env.local`；正式版喺 Vercel，U-7、T-041）。~~**CR-005：話我知字體檔喺 bucket 嘅檔名**（或者自己喺 Vercel 設 `VITE_FONT_URL` = `<MEDIA_BASE>_fonts/<檔名>`，一定要 https），之後重新 build 播放端。同時確認 bucket CORS 有播放端 origin（U-1），否則字體會跌返 Rokkitt~~ | T-044 嘅真機驗證、T-041 | 完成（真機驗證等 U-1、U-7） |
 | U-17 | ✅ **2026-11-25 完成**（CR-006）：① D44「由類別自動帶出」；② D49 由 D60 取代（掃描係主要資料來源）；③ `.mp3`、手動指定音檔：兩樣都係；④ `cover2.png`：收；⑤ S-119：只要年份（2016）。~~**CR-005：答以下問題**（全部有建議，見「開放問題」）：① D44「類型」欄；② D49 掃描新增歌曲（改為以音檔做錨嘅問法）；③ D54 兩個例外：`.mp3` 算唔算音檔、手動指定音檔嘅歌照唔照匯入自己資料夾嘅 `.txt`／MV；④ D55 `cover2.png` 收唔收；⑤ review S-119：「終於好天氣（方皓玟 × RubberBand）」來源只有 2016-06，冇完整發行日期同唱片公司，要唔要補~~ | ①：T-052；②③④：T-025（照建議先做）；⑤：T-027（唔阻開發，管理端之後都改到） | 完成 |
 | U-18 | ~~**CR-005：確認播放端設計稿第 18 版**（`_mockups_/home-turntable/`，commit `ae30893`）：轉盤真實 22 格；左上長歌名兩行嘅數值；播緊時揀碟嘅淡出淡入，連「喺另一隻碟鬆手」（唱臂泊位、唔顯示歌名、㩒唱片夾開歌單）~~ ✅ **2026-11-25 完成**：用戶確認第 18 版（第 ③ 點改咗幾輪，source commit `4e739cd`；「喺另一隻碟鬆手」改為拎住嗰隻碟：細唱片機 + 歌單欄） | 已解除：T-036、T-047、T-040；新任務 T-048、T-049 | 完成 |
-| U-19 | **CR-006：確認 PM 建議**（Functional Spec §CR-006；全部照建議做，唔阻開發）：① D60 歌號跟檔名、可以跳號、可以改，拖動排序取消（✅ 用戶 2026-11-25 同意）；② D61 歌 id 建立時 = `<專輯 id>-<兩位歌號>`、之後不變；③ D62 音檔消失唔自動刪歌，確認後只清音檔連結；④ D63 細項：`releaseDate` 刪走、冇年份時橫線照畫；⑤ D59 細項：初始資料連唱片公司；⑥ D64 歌單同 credit 留做參考資料 | ①②：T-102；③：T-025；④：T-101；⑤：T-027；⑥：冇 | 對應任務開工前（未答照建議做） |
+| U-19 | **CR-006：確認 PM 建議**（Functional Spec §CR-006；全部照建議做，唔阻開發）：① D60 歌號跟檔名、可以跳號、可以改，拖動排序取消（✅ 用戶 2026-11-25 同意）；② D61 歌 id 建立時 = `<專輯 id>-<兩位歌號>`、之後不變；③ D62 音檔消失唔自動刪歌，確認後只清音檔連結；④ D63 細項：`releaseDate` 刪走、冇年份時橫線照畫；⑤ D59 細項：初始資料連唱片公司；⑥ D64 歌單同 credit 留做參考資料 | ①②：T-102；③：T-025；④：T-101；⑤：T-027；⑥：冇 | 對應任務開工前（未答照建議做） ⚠️ **CR-007**：②（D61）照用；①（D60）改為跟 `info.txt`；③（D62）併入 D76；⑤（唱片公司）作廢；④⑥ 不變 |
+| U-20 | **CR-007：確認 PM 建議**（Functional Spec §CR-007 標 🅰️ 嘅；未答照建議做，唔阻開發）：`info.txt` 格式細節（D68）；歌號唔喺 `info.txt` 嘅音檔唔加（D70）；冇 `info.txt` 照加專輯（D70）；歌名以 `info.txt` 為準（D70）；轉盤次序固定 = 類別 → 序號 → id（D69）；封面置中裁切、冇人手上載、專輯色只自動抽（D69、D74）；移除逐項剔選 + 一個確認（D73）；舊檔 `副題：` 行略過（D72）；取消批量匯入、由同名歌帶入、參考連結（D81）；要唔要 T-107（由參考資料生成起始 `info.txt`／`.txt`，D79） | T-103、T-105、T-055、T-107 | 對應任務開工前；畫面部分同 U-8 一齊 |
+| U-21 | **App icon**：用戶要求，另一個 session 設計緊；確認之後由 T-039（PWA manifest）接入 | T-039 | 唔阻開發 |
 
 ---
 
 ## 工作量估算
 
-單位：理想人日（粗略；已包自測，未包 review 同 QA 嗰兩欄以外嘅來回）。括號係 v1.0 嘅數。2026-11-25 設計稿第 17 版補充之後：Phase D 前端 18 → 19、Phase H 前端 3 → 3.5，總計 80.5 → 82。**v1.2（CR-004）**：Phase C 後端 10.5 → 15.5、Phase D 前端 19 → 20、Phase E 前端 10 → 12、QA + Review 14.5 → 16，總計 82 → 91.5。**v1.3（CR-005）**：Phase C 後端 15.5 → 17、QA 3.5 → 4；Phase D 前端 20 → 22、QA 6 → 6.5；Phase E 前端 12 → 13.5，總計 91.5 → 97.5。**v1.4（第 18 版確認）**：Phase D 前端 22 → 26、QA 6.5 → 7.5，總計 97.5 → 102.5。**v1.5（CR-006）**：Phase C 後端 17 → 18.5、QA 4 → 5；Phase E 前端 13.5 → 14.5，總計 102.5 → 106。
+單位：理想人日（粗略；已包自測，未包 review 同 QA 嗰兩欄以外嘅來回）。括號係 v1.0 嘅數。2026-11-25 設計稿第 17 版補充之後：Phase D 前端 18 → 19、Phase H 前端 3 → 3.5，總計 80.5 → 82。**v1.2（CR-004）**：Phase C 後端 10.5 → 15.5、Phase D 前端 19 → 20、Phase E 前端 10 → 12、QA + Review 14.5 → 16，總計 82 → 91.5。**v1.3（CR-005）**：Phase C 後端 15.5 → 17、QA 3.5 → 4；Phase D 前端 20 → 22、QA 6 → 6.5；Phase E 前端 12 → 13.5，總計 91.5 → 97.5。**v1.4（第 18 版確認）**：Phase D 前端 22 → 26、QA 6.5 → 7.5，總計 97.5 → 102.5。**v1.5（CR-006）**：Phase C 後端 17 → 18.5、QA 4 → 5；Phase E 前端 13.5 → 14.5，總計 102.5 → 106。**v1.6（CR-007）**：Phase C 後端 18.5 → 25.5、QA 5 → 6.5；Phase E 前端 14.5 → 14；Phase H 前端 3.5 → 3、後端 0.5 → 0，總計 106 → 113。
 
 | Phase | 前端 | 後端 | DevOps | QA + Review | 總計 |
 | --- | --- | --- | --- | --- | --- |
 | A 基礎 | — | 2 | 1 | 0.5 | 3.5 |
 | B 真機 spike | 2 | — | — | — | 2 |
-| C Backend API | — | 18.5（9） | 0.5 | 5（2） | 24（11.5） |
+| C Backend API | — | 25.5（9） | 0.5 | 6.5（2） | 32.5（11.5） |
 | D 播放端核心 | 26（16.5） | — | 0.5 | 7.5（5；包 T-040） | 34（22） |
-| E 管理端 UI | 14.5（8） | — | — | 1.5 | 16（9.5） |
+| E 管理端 UI | 14（8） | — | — | 1.5 | 15.5（9.5） |
 | F MV 同系統整合 | 5 | — | — | 1 | 6 |
 | G 收藏、模式、歌書 | 4 | — | — | 1 | 5 |
-| H 歌詞 | 3.5（4） | 0.5（2） | — | 1 | 5（7） |
+| H 歌詞 | 3（4） | 0（2） | — | 1 | 4（7） |
 | I–K 其他裝置 | 9 | — | — | 1.5 | 10.5 |
-| **總計** | **64（48.5）** | **21（13）** | **2** | **19（13.5）** | **106（77）** |
+| **總計** | **63（48.5）** | **27.5（13）** | **2** | **20.5（13.5）** | **113（77）** |
 
 Phase L 未計。
 
@@ -476,19 +510,39 @@ CR-006 嘅增減（v1.5）：
 
 唔改估算：T-052（換欄）、T-037、T-049（顯示 `track.no` 本身已經係咁計）、T-044（唔使改 code）。T-025 入面原本預留嘅「D49 新增歌曲」改做「建立歌曲」，所以只加 0.5。
 
+CR-007 嘅增減（v1.6）：
+
+| 項目 | 人日 |
+| --- | --- |
+| T-103 `info.txt` 同資料夾名 parser（新） | +1 |
+| T-104 資料模型、內容檔、拎走人手寫入 API 同 seed、fixtures（新） | +2 |
+| T-105 全 bucket 同步（新） | +3 |
+| T-106 寫返 bucket、封面結果 endpoint（新） | +1.5 |
+| T-099 取消（併入 T-106） | −0.5 |
+| T-050 管理端設計稿第 4 版（已出） | +1 |
+| T-052（3 → 2）、T-053（4.5 → 1.5）、T-055 掃描畫面（新，2.5） | −1、−3、+2.5 |
+| T-083 只留播音檔對時（1.5 → 0.5；前端 −0.5、後端 −0.5） | −1 |
+| QA + Review（T-103–T-106、T-055；重驗 `api-albums`、`api-tracks`、`api-media`、`api-catalog`、`api-auth`（schema）、`catalog-core`、`catalog-song-text`、`player-catalog`） | +1.5 |
+| **淨增（CR-007）** | **+7** |
+| **合共（77 → 113）** | **+36** |
+
+唔計入總數：T-107（可選，0.5，等用戶揀）；已做而作廢嘅約 4 人日（已經用咗，唔再計）。唔改估算：T-051（外框同共用元件，第 4 版仍然係鋁面板）、T-028（runbook 換步驟）、全部播放端任務（只改 fixtures，喺 T-104）。
+
 v1.4 嘅「唔改估算」：T-036（2.5；「喺另一隻碟鬆手 = 泊位」嗰部分作廢，加嘅「左上歌名嗰部分淡出」細）、T-037（只係寫清楚範圍；共用截短函數本身要寫）、T-038（同一個 `start` 路徑）、T-047（數值同 v1.3 寫嘅一樣）。如果 T-036 冇拆，估算會係 2.5 + 1.5 + 2 = 6 人日，超過 3 日，所以拆開。
 
 ---
 
 ## 建議開始順序
 
-Step 1（T-001、T-002）同 Step 2 嘅頭一段（T-020、T-021、T-030、T-031、T-032、T-033）已完成；D30–D39 已確認（U-12）；T-096、T-029、T-022、T-023、T-024 已完成；T-026、T-035、T-042 已實作；播放端設計稿第 17 版已確認（U-11）。由而家開始（v1.5，CR-006）：
+Step 1（T-001、T-002）同 Step 2 嘅頭一段（T-020、T-021、T-030、T-031、T-032、T-033）已完成；D30–D39 已確認（U-12）；T-096、T-029、T-022、T-023、T-024 已完成；T-026、T-035、T-042 已實作；播放端設計稿第 17 版已確認（U-11）。由而家開始（v1.6，CR-007；下面圖入面 T-025、T-027、T-099 已由 T-103–T-106 取代）：
 
 ```
 而家   → 用戶：設 `rb-discography` 嘅 CORS（播放端 + 管理端 origin，U-1）；開 Vercel 連設 `VITE_FONT_URL`（U-7）；
          A-7、A-8；定 spike 測試碟；照資料夾規則上載專輯（U-13）；有空睇 U-19（唔阻）。
          （U-16、U-17、U-18 ✅）
-並行   → Backend：T-101、T-102 → T-025、T-027；T-099（T-098、T-097、T-100 已完成）
+並行   → Backend（v1.6）：T-103 → T-104 → T-105 → T-106
+         Mockup：管理端設計稿第 4 版 → 用戶確認（U-8、U-20）→ T-051 → T-052、T-053、T-055
+         ~~Backend：T-101、T-102 → T-025、T-027；T-099~~（已完成或者取消）
          播放端：T-046、T-047、T-034、T-037、T-039、T-040（拎住嘅格等 T-048、T-049）；
          T-036（要 T-046）→ T-048 → T-049（亦要 T-037）
          Mockup：T-050 補畫（CR-004 + CR-005）→ 用戶確認（U-8，連 D35）
@@ -509,7 +563,7 @@ Step 1（T-001、T-002）同 Step 2 嘅頭一段（T-020、T-021、T-030、T-031
 | A-5 | Dashboard 設定由你做；我提供逐步清單同要填嘅值 |
 | A-6 | **分工**（用戶 2026-11-25 指示）：mockup 確認之後，developer、reviewer、QA 嘅 subagent 用 Opus 跑；主 session 只做協調 |
 | A-7 | **待用戶確認**（唔喺 2026-11-25 嗰八條問題入面，仍然係建議）：未有 `main` 之前，Vercel project 嘅 Production Branch 暫時設做 `claude/charming-cannon-8yulp0`，spike 頁由呢條 branch 部署；`main` 開咗之後改返 `main`。理由：Technical Spec 定咗只部署 production branch，而 `main` 要到第一個可用版本先有 |
-| A-8 | **待用戶確認**（唔喺 2026-11-25 嗰八條問題入面，仍然係建議）：「第一個可用版本」= Phase C + D 完成（管理端 API 有齊、手機上播到歌）。T-028（Worker）同 T-041（播放端）嘅第一次正式部署喺 PR 合併入 `main` 之後做；之前只用本機環境同 spike 網址 |
+| A-8 | **待用戶確認**（唔喺 2026-11-25 嗰八條問題入面，仍然係建議）。⚠️ CR-007 建議改為：「第一個可用版本」= Phase C + D + T-051 + T-055（冇初始資料之後，要管理端掃描先有內容）。之前：「第一個可用版本」= Phase C + D 完成（管理端 API 有齊、手機上播到歌）。T-028（Worker）同 T-041（播放端）嘅第一次正式部署喺 PR 合併入 `main` 之後做；之前只用本機環境同 spike 網址 |
 | A-9 | CR-004：只有媒體 bucket 改名（`rb-discography`）；內容檔用嘅 private bucket 仍然叫 `r-gram-catalog`，D1 仍然叫 `r-gram`（用戶冇提過要改；U-3 未做，要改都仲嚟得切） |
 | A-10 | CR-004：用戶 2026-11-25 提供嘅新版 `rubberband-discography.html`、`rubberband-credits.html` 由主 session 放入 `_design_/`（寫 v1.2 時 repo 入面仲係舊版：17 個專輯段）。T-097 由佢哋開始；冇呢兩個檔，T-097 開唔到工 |
 | A-11 | ✅ **已關閉（CR-005，2026-11-25）**：用戶確認短名同次序（同建議一樣），唔使改。~~CR-004：類別短名、初始次序未確認之前，T-097、T-098 照建議做（`album`／`ep`／`best`／`live`／`ost`／`single`；先類別後序號）。未部署過，之後要改只係改常數同重跑 script；但用戶一開始上載（U-13）就要用到短名，所以 U-15 要喺 U-13 之前答~~ |
@@ -564,6 +618,7 @@ Step 1（T-001、T-002）同 Step 2 嘅頭一段（T-020、T-021、T-030、T-031
 | CR-005 跟進 | T-100、T-099、T-046、T-047 改到已凍結嘅 QA 鏈（`api-albums`、`api-auth` 嘅 schema、`catalog-core`、`player-catalog`、`player-home`）：按 validation gate 重驗有改動嘅檔。掃描：本機模擬 bucket 放一個有 `cover.jpg`、`cover2.jpg`、有音檔同冇音檔嘅歌號（各有 `.txt`、`.mp4`）嘅資料夾，預覽入面冇音檔嗰幾個係「已略過」；播放端：同一份 catalog 開兩次 app（注入唔同 `random`）見到兩張封面、專輯色一樣 |
 | CR-005 第 18 版（v1.4） | Unit：`holding` 同衍生顯示、`returnToLoaded`、`playHeldTrack`、`openList` 守衛、`columnLayout`；淨空：歌單欄避開字母盤同刻度、細唱片機感應範圍、D57 例外清單；E2E：第 18 版嘅格連 22 格，「播緊 → 擰去另一隻碟 → 鬆手 → 㩒一行／㩒細唱片機」，減少動態效果再行一次；T-036、T-047、T-048、T-049 改到已凍結嘅鏈（`player-home`、`player-core`、`player-foundation`）按 validation gate 重驗 |
 | CR-006 跟進 | T-101、T-102 改到已凍結嘅 QA 鏈（`api-albums`、`api-tracks`、`api-catalog`、`api-auth` 嘅 schema、`catalog-core`、`seed-tools`、`player-catalog`）：按 validation gate 重驗有改動嘅檔；`python3 -m unittest discover -s _design_/tools`（CI 未跑）。掃描：本機模擬 bucket 放一張跳號嘅碟（01、02、03、05、07…，有啲有 `.txt`、有啲冇、一個 `.txt` 有錯、一個 `.mp3`），掃描 → 全部入「將會新增歌曲」→ 套用 → 歌號同檔名一樣、id = `<專輯 id>-<NN>`、冇 `.txt` 嘅歌名 = 檔名；再掃描全部係 `same`、冇重覆；刪走一個音檔再掃描 → 「音檔已不在資料夾」，套用後歌仲喺度（灰色）；seed：本機重跑兩次 → 21 張專輯、0 首歌、「終於好天氣」年份 2016 |
+| CR-007 跟進 | T-103–T-106 改到已凍結嘅 QA 鏈（`api-albums`、`api-tracks`、`api-media`、`api-seed`、`api-catalog`、`api-auth` 嘅 schema、`catalog-core`、`catalog-song-text`、`player-catalog`）：按 validation gate 只重驗有改動嘅檔；新鏈 `api-sync`。`parseAlbumInfo()` 用用戶畀嘅 KOMOREBI `info.txt` 同全形半形、`01.`、`1、`、BOM、CRLF、認唔到嘅行做測試。本機模擬 bucket：見 Phase C 完成標準；寫返：改 `info.txt`／`.txt` → bucket 嘅檔內容同版本變咗；用舊版本寫 → 409，檔冇變；其他 route 冇 `MEDIA.put`／`MEDIA.delete`。播放端：同一份 fixture 刪 `label`、`subtitle` 之後全部測試照過 |
 | CR-004 字體 | 三個情況各影一次：冇設定 bucket 字體（Rokkitt）、設定咗而且載入到、設定咗但載入唔到（跌返 Rokkitt，Preload 照完成）；字體遲到之後長碟名唔出界（W-017） |
 | 真機 | Phase B 清單；之後每個 Phase 完成有一張真機檢查表（安裝、鎖屏、自動更新） |
 
@@ -581,3 +636,4 @@ Step 1（T-001、T-002）同 Step 2 嘅頭一段（T-020、T-021、T-030、T-031
 | v1.3 | 2026-11-25 16:40 | **CR-005**（Functional Spec v1.6、Technical Spec v1.4；用戶 2026-11-25 嘅 8 項決定）。新增 T-045（播放端設計稿第 18 版，已出 `ae30893`，等 U-18）、T-046（隨機封面）、T-047（左上歌名兩行）、T-100（第二張封面 Backend）；改 T-025（3）、T-027（唔再等 D48）、T-034、T-036（2.5；淡出部分等第 18 版）、T-037（唔再受阻）、T-040、T-050（+0.5）、T-052（3）、T-053（4）；T-099 改範圍（放寬規則取消）。U-14 完成；U-15 大部分答咗；加 U-16（字體檔名）、U-17（D44、D49、D54 兩個例外、`cover2.png`、review S-119）、U-18（第 18 版）。A-11 關閉；R-019 更新；加 R-020。工作量 91.5 → 97.5。進度：T-026 完成（re-review 100，QA S1 pass）；T-042、T-035、T-044 完成（QA S1 pass）；T-098、T-097 已合併（`c7af11b`），review pass 90 / 100，修正進行中（W-028：內容檔 `category`、`categoryNo` 必填）；T-097 嘅 credit 數字（246 / 0 / 45，review S-122）寫入 |
 | v1.4 | 2026-11-25 19:36 | **CR-005 補充：播放端設計稿第 18 版確認**（Functional Spec v1.7、Technical Spec v1.5）。U-18 完成；T-045 完成（0.5 → 0.5 + 0.5）。第 ③ 點確認為「拎另一隻碟睇」（細唱片機、歌單欄），T-036 拆開：T-036 留轉碟本身同淡出淡入（連左上歌名嗰部分；2.5 不變），新增 T-048（拎住另一隻碟、細唱片機，1.5）、T-049（拎住嘅碟嘅歌單欄，2）。改 T-037（弧線歌單只限載入嘅碟／冇歌載入；共用截短函數）、T-038（接「㩒一行」；估算不變）、T-040（第 18 版嘅格同流程，1.5 → 2）、T-047（唔再等）。全部未完成播放端任務嘅 Mockup Binding 改為 HT 第 18 版。Phase D 完成標準加「拎另一隻碟」流程。R-020 解除；加 R-021（行高同對比）。開放問題：第 18 版一條關閉，加 D58、歌號對比（都唔阻）。工作量 97.5 → 102.5。進度表更新（T-098、T-097、T-100 已完成；可以開工嘅播放端任務） |
 | v1.5 | 2026-11-25 21:10 | **CR-006**（Functional Spec v1.8、Technical Spec v1.6；用戶 2026-11-25 對 U-16、U-17 嘅答案）。U-16、U-17 完成；加 U-19（CR-006 嘅 PM 建議，唔阻）。新增 T-101（專輯只有年份、刪 `releaseDate`／`type`，1）、T-102（歌號跟檔名、歌 id 跟歌號、API-023 取消，1）。改 T-025（掃描建立歌曲、「音檔已不在資料夾」，3 → 3.5；要 T-102）、T-027（只入 21 張專輯，1.5 → 0.5；要 T-101）、T-050（再補畫，+0.5）、T-052（換欄；要 T-101）、T-053（掃描結果兩類、歌號欄，4 → 4.5；要 T-102）、T-037、T-049（顯示 `track.no`）、T-041（`VITE_FONT_URL`）、T-044、T-097、T-098 嘅備注。U-1、U-7、U-8、U-13 補 CR-006 嘅內容。R-019 解除；加 R-022。Phase C 完成標準改（21 張專輯、0 首歌；掃描建立歌）。開放問題：關閉 D44、D49、D54、D55、S-119、D58，加 CR-006 PM 建議一條。驗證加 CR-006 一行。工作量 102.5 → 106 |
+| v1.6 | 2026-11-26 10:30 | **CR-007**（Functional Spec v1.9、Technical Spec v1.7；用戶 2026-11-26 睇完管理端設計稿第 3 版之後嘅指示）。新增 T-103（`info.txt` 同資料夾名，1）、T-104（資料模型、內容檔、拎走人手寫入同 seed，2）、T-105（全 bucket 同步，3）、T-106（寫返 bucket、封面結果，1.5）、T-055（掃描畫面，2.5）；可選 T-107（未計）。取消 T-099（併入 T-106）。改 T-050（第 4 版，commit `8fb28a7`，+1，等確認）、T-052（3 → 2）、T-053（4.5 → 1.5）、T-083（1.5 → 0.5）、T-028（runbook）；T-022、T-023、T-025、T-027、T-101、T-102 加備注（T-027 作廢）。管理端任務綁第 4 版（等確認）。Phase C、E 完成標準改；依賴圖加 CR-007；U-1、U-8、U-13 改寫，U-19 部分作廢，加 U-20（CR-007 PM 建議）、U-21（app icon，另一個 session）；A-8 建議改；加 R-023–R-025；驗證加 CR-007 一行。工作量 106 → 113；已做而作廢約 4 人日 |
