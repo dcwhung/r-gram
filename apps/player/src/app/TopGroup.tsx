@@ -8,6 +8,7 @@ import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
 import type { HomeView } from './homeView';
 import { type HomeHandlers, isLowerHalf } from './Turntable';
+import { useColumnEntrance } from './useColumnEntrance';
 import { useListFloating } from './useListFloating';
 import { useSettledColumn } from './useSettledColumn';
 
@@ -17,7 +18,10 @@ interface TopGroupProps {
     measure: TextMeasure;
     /** 㩒細唱片機（已經包好 focus 交接） */
     onReturnToLoaded: () => void;
-    /** 弧線歌單（T-037）：收返、捲到停低、㩒一行（收返同播已經包好 focus 交接） */
+    /**
+     * 弧線歌單（T-037）：收返、捲到停低、Enter／Space 播框入面嗰首（行唔㩒得，W-051）；
+     * 收返同播已經包好 focus 交接
+     */
     listHandlers: Pick<HomeHandlers, 'onCloseList' | 'onFocusListTrack' | 'onPlayListTrack'>;
 }
 
@@ -46,16 +50,17 @@ const ArcList = ({
     );
 
 /**
- * 碟名下面嘅歌單欄（B-086）：快擰途中唔 render，停定先出（useSettledColumn）；以碟做 key（換碟 = 新嘅捲動、
- * 新嘅飄落）
+ * 碟名下面嘅歌單欄（B-086）：快擰途中唔 render，停定先出（useSettledColumn）；以碟同出現次數做 key（換碟、
+ * 唔係拎住時打開字母盤 = 新嘅捲動、新嘅飄落，useColumnEntrance）
  */
 const TrackColumn = ({ layout, view, measure }: PartProps) => {
     const disc = view.dial.entries[view.dial.current];
     const column = useSettledColumn(view.trackColumn, disc?.albumId ?? null);
+    const entrance = useColumnEntrance(view.dial.open, view.holding);
     return (
         column && (
             <HeldTrackList
-                key={column.albumId}
+                key={`${column.albumId}:${entrance}`}
                 layout={layout}
                 held={column}
                 albumTitle={disc?.title ?? ''}

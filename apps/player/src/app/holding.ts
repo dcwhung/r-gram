@@ -19,6 +19,8 @@ export const isLoadedHere = (stage: StageState, playback: PlaybackState): boolea
  *（冇歌載入、拎住另一隻碟）。揀咗歌而字母盤冇開 = 左上係歌名，冇歌單欄；弧線歌單、MV 開住時都冇
  */
 export const showsColumn = (stage: StageState, playback: PlaybackState): boolean => {
+    // 防守（review S-213）：MV 只喺顯示緊載入嘅碟、字母盤收埋時先開得，嗰陣歌單欄本身已經冇；
+    // MV 開住又唔可以換碟或者開字母盤。保留呢條，唔靠其他守衛
     if (stage.overlay === 'mv') return false;
     if (stage.scene === 'discChange') return true;
     return stage.scene === 'home' && !isLoadedHere(stage, playback);

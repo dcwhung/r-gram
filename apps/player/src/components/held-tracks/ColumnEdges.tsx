@@ -20,8 +20,8 @@ export const clipRef = (id: string) => `url(#${id}-clip)`;
 export const fadeRef = (id: string) => `url(#${id}-mask)`;
 
 /**
- * 欄嘅邊（設計稿第 18 版 trackPanel()）：clipPath 剪走欄外嘅行（連感應範圍，唔會㩒到字母盤上面睇唔到嘅行）；
- * mask 做頂（捲咗先有）同底（下面仲有先有）淡出
+ * 欄嘅邊（設計稿第 18 版 trackPanel()）：clipPath 剪走欄外嘅行（連透明範圍；行唔係掣，剪走係等欄外睇唔到嘅行
+ * 唔會擋住字母盤）；mask 做頂（捲咗先有）同底（下面仲有先有）淡出
  */
 export const ColumnEdges = ({ id, top, room, fade, metrics }: ColumnEdgesProps) => {
     const edge = ratio(fade / room);

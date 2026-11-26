@@ -26,7 +26,7 @@ export interface HomeHandlers extends DialHandlers {
     onOpenList: () => void;
     /** 歌單捲到停低：框入面換咗另一首 */
     onFocusListTrack: (trackId: string) => void;
-    /** 歌單入面㩒一行（或者 Enter）：播嗰首 */
+    /** 歌單入面 Enter／Space：播框入面嗰首（行唔㩒得，W-051；唱片夾經 onSpindle） */
     onPlayListTrack: (trackId: string) => void;
     /** 㩒右上角細唱片機：放低拎住嘅碟，返去載入嘅碟（T-048） */
     onReturnToLoaded: () => void;

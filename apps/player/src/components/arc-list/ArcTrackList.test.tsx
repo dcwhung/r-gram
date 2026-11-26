@@ -428,6 +428,21 @@ describe('ArcTrackList floating in from the column', () => {
         );
     });
 
+    // 長歌單：淡出行止於鬆手後嘅欄底（bottomIdle 1290），唔係字母盤開住嘅 1470（review W-054 M40）
+    it('should stop the fading column rows at the released bottom of the column', () => {
+        const LONGER = Array.from({ length: 20 }, (_, index) => row(index + 1));
+        const { container } = renderList(view(LONGER, 0, true), estimateTextWidth, true);
+        const ghosts = container.querySelector('[data-part="arc-ghosts"]');
+        const titles = [...(ghosts?.querySelectorAll('[data-part="held-title"]') ?? [])];
+        const { top, pitch, bottomIdle } = PHONE_LAYOUT.heldTracks;
+        const lastY = Number(titles.at(-1)?.getAttribute('y'));
+        expect(lastY).toBeLessThan(bottomIdle);
+        expect(lastY + pitch).toBeGreaterThanOrEqual(bottomIdle);
+        expect(titles.length).toBe(
+            Math.floor((bottomIdle - top) / pitch - 0.5) + 1 - screen.getAllByRole('option').length,
+        );
+    });
+
     it('should open with no float when not floating', () => {
         const { container } = renderList(view(MANY), estimateTextWidth, false);
         expect(floats(container)).toEqual([]);
