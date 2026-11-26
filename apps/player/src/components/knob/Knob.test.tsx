@@ -483,6 +483,14 @@ describe('Knob', () => {
                 expect(press('Escape', POSITIONS - 2, false)).toBe(true);
             });
 
+            // S-226：旋鈕要求咗跨過 ♥ 嗰一步但外面冇跟（例如字母盤啱啱收埋），之後由其他地方嚟嘅改動唔可以借用嗰個跳
+            it('should not use a jump the knob asked for when the pointer goes somewhere else', () => {
+                const { press, jumps, rerender } = setUp(POSITIONS - 1);
+                expect(press('ArrowRight', POSITIONS - 1, false)).toBe(false);
+                rerender(knobAt(5, false));
+                expect(jumps()).toBe(false);
+            });
+
             it('should drop the jump on Enter and not jump for a change from elsewhere', () => {
                 const { press, jumps, rerender } = setUp(POSITIONS - 1);
                 expect(press('ArrowRight', 0)).toBe(true);
