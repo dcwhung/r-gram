@@ -1,5 +1,10 @@
 import { leadInMs } from '../components/tonearm/armPose';
-import { PREVIOUS_RESTART_S, STALL_NOTICE_MS } from '../config/limits';
+import {
+    PREVIOUS_RESTART_S,
+    STALL_MAX_RETRIES,
+    STALL_NOTICE_MS,
+    STALL_RETRY_MS,
+} from '../config/limits';
 import { PLAY_MODE_STORAGE_KEY } from '../config/storageKeys';
 import { createAudioEngine } from './audioEngine';
 import { createPlaybackController, type PlaybackSource } from './playbackController';
@@ -335,6 +340,29 @@ describe('playbackController errors (US-004, T-011 §2.3)', () => {
 });
 
 /* Functional Spec D109（CR-010；Plan T-038 P5）：畫面隱藏時自動下一首載入失敗 = 跳去再下一首試一次 */
+/* W-064：暫停緊時網絡錯誤：store 保持用戶暫停（升針、位置留住），再㩒即刻續播 */
+describe('playbackController network error while paused', () => {
+    it.each([
+        ['in the foreground', false],
+        ['while hidden', true],
+    ])('should stay paused with the position kept %s and resume from there', (_, hidden) => {
+        const { element, controller, state } = setup({ hidden, reduceMotion: true });
+        controller.start(SOURCE, 'room-02');
+        element.loadMetadata(120);
+        element.advance(20);
+        controller.pause();
+        element.fail('network');
+        vi.advanceTimersByTime(STALL_RETRY_MS * (STALL_MAX_RETRIES + 1));
+        expect(state()).toMatchObject({ status: 'paused', pauseReason: 'user', positionSec: 20 });
+        expect(element.paused).toBe(true);
+        controller.resume();
+        expect(state()).toMatchObject({ status: 'playing', trackId: 'room-02' });
+        element.loadMetadata(120);
+        expect(element.currentTime).toBe(20);
+        expect(element.paused).toBe(false);
+    });
+});
+
 describe('playbackController hidden auto-next failure (D109)', () => {
     /** 隱藏、播緊 startId；佢播完之後嘅下一首未有數據（hold） */
     const hiddenAfterEnd = (startId: string, stored?: string) => {
