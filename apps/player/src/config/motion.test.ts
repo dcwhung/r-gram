@@ -80,6 +80,11 @@ describe('motion tokens', () => {
         expect(MOTION.input.dialHoldMs).toBe(180);
     });
 
+    // D99（用戶確認 3 秒）：播完最後一首隔幾耐變返未揀歌；Technical Spec 建議 endedReleaseMs
+    it('should put the disc down 3 seconds after the last track', () => {
+        expect(MOTION.input.endedReleaseMs).toBe(3000);
+    });
+
     it('should only hold positive whole milliseconds', () => {
         const all = [
             ...Object.values(MOTION.feedback),
