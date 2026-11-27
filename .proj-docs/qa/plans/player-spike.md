@@ -1,5 +1,7 @@
 # Test Plan — player-spike
 
+> ⛔ **已退役（2026-11-27，T-115）**：T-010 spike 頁已拆（`spike.html`、`vite.spike.config.ts`、`src/spike/**`、`pwa/spikePage.ts`、`spikeBuild()`、precache 同導航 fallback 例外、覆蓋率排除、寫死文字豁免）；ledger 行已刪。拆咗之後嘅驗收喺 `player-pwa` AC-10（2026-11-27）。下面係歷史記錄。
+
 - Chain: T-010 真機 spike 頁（`apps/player`，用完即棄、唔入產品）：`/spike.html` 同佢自己嘅 build（`vite.spike.config.ts`）、`src/spike/**`（媒體搵檔、六項測試、結果摘要）。同 app 分開嘅部分（precache、導航 fallback、`spikePage.ts`、`vite.config.ts` 嘅 `spikeBuild()`）屬 `player-pwa` AC-10；覆蓋率排除屬 `repo-scaffold` AC-3；寫死文字豁免屬 `player-foundation` AC-12
 - AC（L1 來源：Plan T-010 ①–⑥；Plan R-026、U-1、U-2；QA brief 2026-11-26「只驗掂到產品嘅部分」）:
     - AC-1 隔離：`dist/spike.html` 有 `noindex, nofollow`；唔註冊 Service Worker；app 冇連結去佢；用完 spike 頁 app 嘅 cache 冇 spike 或者媒體檔

@@ -24,5 +24,6 @@
 - 2026-11-26（T-109、T-112、T-010）：browser check = `/tmp/…/scratchpad/qa-t109-t110/update.cjs`（A／B 兩個 build；主流程、四種㩒法、打橫通知；393 × 852、1280 × 800 × normal／`reduce`）+ T-112 靜態檢查（build 嘅 `index.html`、manifest、icon、`sw.js`）+ `spike.cjs`（spike 頁喺 app SW 下面）
 - 2026-11-26（T-038、T-113）：`/tmp/…/scratchpad/qa-t038-t116/``update.cjs`（A／B build，四個 run）、`t038.cjs` R1（打橫）、`t113.cjs`（precache／runtime cache）
 - 2026-11-27（T-060）：`main.tsx` 建 `createSessionTargets(createMediaSession())`、唱片 controller 用 `sessions.record`、MV controller 一個；冇改 SW、manifest、build 設定（PWA gate 唔使做）。Browser = `mv.cjs`（production build 載入、Media Session 兩邊）
+- 2026-11-27（T-115）：AC-10 改為「spike 頁已拆」：build 冇 `spike.html`／`spike-assets`；`sw.js` 冇 spike；precache 16 項；導航 fallback denylist 只剩 `robots.txt`；`/spike.html` 喺 SW 下面 = app shell、app 正常開；`spikePage.ts` 已刪（出 scope）；`manifest.node.test.ts`、`precache.node.test.ts` 鎖住。Browser = `/tmp/…/scratchpad/qa-t117/tools/pwa.cjs`（A 0.1.0／B 0.1.1：precache、`/spike.html`、`robots.txt`、離線重開、版本掣更新）
 - PWA gate: yes（manifest、icon、更新邏輯、build 設定）。Security / Data gate: no（冇新輸入面；SW 只向自己 origin）。Performance gate: no（precache 12 項 1125 KiB，見 QA 報告 S-207）
 - Out of scope（已知、已接受）：提示同「請打直」冇設計稿（用戶睇截圖）；S-205（版本號規則，T-041）；D14 / US-011 字眼（PM）；Chromium `in-incognito` 嘅 installability（測試環境）；真機 iOS / Android 安裝

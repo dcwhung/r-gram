@@ -16,5 +16,6 @@
 - CI 引用: 同一個 SHA 嘅 `CI` workflow 綠咗（`gh run list --branch <branch> --limit 1`）就引用，證明 `ci.yml` 真係行得；唔重跑
 - 淨係 `package-lock.json` 或者加 workspace 嗰一行改咗：跑上面三條指令就夠；改到嘅 workspace 由佢自己條鏈驗
 - 2026-11-26（T-116、T-113）：`node scripts/dev/build-test-catalog.mjs --out=<scratch>` 同 committed 檔比較
+- 2026-11-27（T-115）：AC-3 撤回：根 `vitest.config.ts` coverage `exclude` 冇 `**/src/spike/**`（`src/spike` 已刪）；`npx vitest run --project @r-gram/repo-scripts` 照跑
 - PWA gate: no。Security / Data gate: no。Performance gate: no
 - Out of scope: 各 workspace 入面嘅 code 同設定（`catalog-core`、`player-foundation`、`api-auth`）；`deploy-api.yml`（T-028）；`vercel.json`（T-041）

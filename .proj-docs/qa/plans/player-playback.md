@@ -20,5 +20,6 @@
     - W-064：`/tmp/…/scratchpad/qa-t038-t116/w064.cjs`（同一個 build 同 server；前景、隱藏各一次；四個 run）
 - 2026-11-26（T-070）：AC-9 跨碟隊列（FS US-013、D99、D109、D110）：`playbackSource` 每首歌帶原本碟（鎖屏 metadata 碟名同封面跟每首歌）；`player.refresh()` 收藏有變時換歌單（隨機 = 今輪保留、拎走冇咗嘅、新歌排尾；現時嗰首照留，W-067）；`sessionSync` 換歌即更新 metadata。Browser = `/tmp/…/scratchpad/qa-t114-t070/fav.cjs`（`disc`、`otherTab`、`modes`、`d109`、`regress`）+ `probe-shuffle.cjs`
 - 2026-11-27（T-060）：AC-10 Media Session 目標（TS「Media Session → MV 開住」）：`playback/sessionTargets.ts`（+ test）加入 scope：唱片／MV 兩個 port，只有目標寫得落真 Media Session，換目標寫返記住嘅 handler、metadata、狀態、位置；`mediaSession.ts` 上一首／下一首可以冇（MV = null）。Browser = `/tmp/…/scratchpad/qa-t060/mv.cjs`（`core`、`fav`、`ended`、`regress`）
+- 2026-11-27（T-115）：`audioEngine.ts`、`audioEngine.test.ts` 只改註解（引用 T-011 報告）；靜態 diff，冇 browser
 - PWA gate: no（呢條鏈冇改 build 設定、manifest、SW）。Security / Data gate: no（URL 全部經 `mediaUrl()`）。Performance gate: no（冇 backend）
 - Out of scope（真機，U-24 ①②③⑤，P8）：iOS 落針有冇延遲、鎖機播完成隻碟、鎖屏暫停 → 等 → 播放、耳機掣、系統中斷（電話、Siri）、真網絡斷線；S-237、S-238（已接受）；MV 音訊（T-060、T-061）；續播位置（T-062）

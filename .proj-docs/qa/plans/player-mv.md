@@ -20,5 +20,6 @@
 - Commands:
     - `npx vitest run --project @r-gram/player src/mv src/components/tv src/stage/layouts/tvLayout.test.ts src/app/tvView.test.ts src/app/AppMv.test.tsx src/app/useHomeMv.test.ts`（lint／typecheck／coverage 引用同一個 SHA 嘅 gate）
     - Browser（未有 e2e）：`/tmp/…/scratchpad/qa-t060/mv.cjs` + `server.mjs`（HEAD production build，`VITE_CATALOG_URL` = 本機假 Worker；假媒體 bucket 有 Range + CORS：60 秒 VP9 MV、5 秒 MV、404 MV、冇 MV 嘅歌）；393 × 852、390 × 844、1280 × 800 × normal／`reduce`；斷言喺真 `<video>`／`<audio>`、真 `GainNode.gain.value`、`createMediaElementSource` 次數；Media Session handler 由測試直接叫；非本機請求一律 abort
+- 2026-11-27（T-117）：AC-10 `.tv-veil` `inset: var(--stage-bleed-inset)`：淡白同模糊伸到螢幕頂底（S-262），闊畫面兩邊唔伸（S-269 backlog）；`mvAudio`、`useTv` 只改註解。Browser = `/tmp/…/scratchpad/qa-t117/tools/bleed.cjs`（`10`–`12`）+ `regress.cjs`
 - PWA gate: no（`main.tsx` 只係多建一個 controller；冇改 SW、manifest、build 設定）。Security / Data gate: no（MV 網址經 `mediaUrl()`；冇儲存）。Performance gate: no（冇 backend）
 - Out of scope（真機，U-24 ④ 等）：側邊靜音撥掣（`audioSession`）、鎖機時 MV 暫停一次再由鎖屏繼續（iOS 行為，owner 接受）、真機模糊流暢度（W-069 owner 已試）、iPhone 系統音量上限、真 H.264 MV 檔；歌書（T-072）；續播（T-062）
