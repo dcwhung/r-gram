@@ -159,6 +159,36 @@ describe('fitStage bleed', () => {
     });
 });
 
+/*
+ * T-117 驗收 A8（review W-073）：Safari 分頁（iPhone 15，網址列同工具列之間 393 × 735）。
+ * 平時冇 inset：同以前一樣，冇延伸；萬一報 inset（47／34），安全區變到比 9:16 闊，就按高度縮放、左右置中，
+ * 上下照樣延伸到 viewport 邊
+ */
+describe('fitStage in a Safari tab (393 × 735)', () => {
+    it('should fill the width with no bleed and no offset when there are no insets', () => {
+        const stage = fitStage(393, 735, { top: 0, bottom: 0 });
+        const unit = 393 / 1080;
+        expect(stage.unit).toBeCloseTo(unit);
+        expect(stage.heightUnits).toBeCloseTo(735 / unit);
+        expect(stage.extraUnits).toBeCloseTo(735 / unit - DESIGN_HEIGHT);
+        expect(stage).toMatchObject({ offsetX: 0, offsetY: 0, bleedTop: 0, bleedBottom: 0 });
+    });
+
+    it('should scale by the safe height, centre the stage and bleed to the edges with 47 / 34', () => {
+        const stage = fitStage(393, 735, { top: 47, bottom: 34 });
+        const unit = (735 - 47 - 34) / DESIGN_HEIGHT;
+        expect(stage.unit).toBeCloseTo(unit);
+        expect(stage.heightUnits).toBe(DESIGN_HEIGHT);
+        expect(stage.extraUnits).toBe(0);
+        expect(stage.offsetX).toBeCloseTo((393 - DESIGN_WIDTH * unit) / 2);
+        expect(stage.offsetY).toBe(47);
+        expect(stage.bleedTop).toBeCloseTo(47 / unit);
+        expect(stage.bleedBottom).toBeCloseTo(34 / unit);
+        const { bleedTop, heightUnits, bleedBottom } = stage;
+        expect((bleedTop + heightUnits + bleedBottom) * stage.unit).toBeCloseTo(735);
+    });
+});
+
 /* T-117：要蓋住成個畫面（連延伸）嘅層用嘅範圍（設計單位，喺舞台座標或者向下移咗嘅貼底組座標） */
 describe('bleedSpan', () => {
     const stage = fitStage(393, 852, { top: 59, bottom: 34 });

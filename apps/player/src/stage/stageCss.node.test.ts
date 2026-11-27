@@ -38,6 +38,13 @@ describe('stage.css bleed', () => {
         expectDeclaration(frame, 'overflow: clip;');
     });
 
+    // S-272：唔識 clip 嘅舊瀏覽器（Safari < 16）用 hidden：要寫喺 clip 前面，識 clip 嘅就用後面嗰句
+    it('should fall back to overflow: hidden before overflow: clip', () => {
+        const frame = ruleOf(STAGE, '.stage-frame');
+        expect(frame.indexOf('overflow:hidden;')).toBeGreaterThanOrEqual(0);
+        expect(frame.indexOf('overflow:hidden;')).toBeLessThan(frame.indexOf('overflow:clip;'));
+    });
+
     it('should let the stage draw outside its own box (the frame clips)', () => {
         const stage = ruleOf(STAGE, '.stage');
         expect(stage).not.toMatch(/overflow\s*:/);
@@ -68,6 +75,15 @@ describe('stage.css bleed', () => {
             'top: calc(var(--stage-offset-y, 0px) + var(--u) * var(--stage-height-units));',
         );
         expectDeclaration(bottom, 'bottom: 0;');
+    });
+
+    /*
+     * Review W-073（mutant T10）：擋板要接住㩒落去嘅手指，延伸部分先會「㩒唔到」：
+     * stage.css 唔可以有 pointer-events（擋板、外框、舞台都唔得：外框設咗會傳落擋板）
+     */
+    it('should let the guards take pointer events', () => {
+        const withoutComments = STAGE.replace(/\/\*[\s\S]*?\*\//g, '');
+        expect(withoutComments).not.toMatch(/pointer-events/);
     });
 });
 
