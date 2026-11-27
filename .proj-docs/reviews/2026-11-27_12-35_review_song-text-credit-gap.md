@@ -133,3 +133,65 @@ backlog: [W-076 option A (rules version in text_source_etag), S-284, S-286, S-28
 report: .proj-docs/reviews/2026-11-27_12-35_review_song-text-credit-gap.md
 context: 12/14 mutants killed (M4 pre-existing gap, M8 equivalent). Old-Worker window reproduced in scratch: a sync between migrate and deploy restores ETags with the old parse and later syncs never re-read. No push, no --remote.
 ```
+
+## 覆核（re-review）— 2026-11-27 12:46（UTC）
+
+- **範圍**：`2c94714..fix/song-text-credit-gap`（5 個 commit，6 檔 +72／−6）：`745d854` chore（W-076 方案 B ①）、`48fe6d8` test → `77935ac` fix（S-285）、`3c13623` test（S-287）、`c5a1c78` docs + test（S-284）。只驗上一輪嘅 W-076 同處理咗嘅 S-284／S-285／S-287，唔重新 review 成條 branch。scratch：`/tmp/claude-0/-home-user-r-gram/acff8cc1-40eb-514e-8a3f-b8e552922449/scratchpad/review-songtext2/`（新 `git archive`）
+- **Hard gates**：all pass。eslint（diff 入面 `.ts`）、prettier（diff 檔，`.sql` 除外）、`tsc -b` exit 0；`@r-gram/catalog` song-text 4 檔 82 / 82；`@r-gram/api` `rereadSongTexts`、`syncFolder`、`tracksText`、`songTextFile` 103 / 103，`health` 7 / 7（`/api/health` 回 `pkg.version`，有測試鎖住）；`parseSongText.ts` stmt 100 %、branch 97.8 %
+- **TDD**：`48fe6d8` 只有測試（R2、R3 證明修之前會紅）→ `77935ac`。`3c13623`、`c5a1c78` 係鎖住現有行為嘅測試（一開始就綠），可以接受；`c5a1c78` 用 `docs:` 但有測試，小事
+
+| 項目 | 結果 | 證據 |
+| --- | --- | --- |
+| W-076 方案 B ① | ✅ 已修 | `apps/api/package.json` 同 `package-lock.json` 都係 `0.1.1`；`/api/health` 會回 `0.1.1`。②（擁有人步驟）照上面「擁有人安全步驟」，冇變；方案 A 留喺 backlog |
+| S-285 隱藏字元行 | ✅ 已修 | `isBlankInBlock`、`labelInBlock`（只喺標籤段入面用；歌詞入面嘅隱藏字元行照留，有測試）。probe：「歌名\n​ ​\n曲：A」、「歌名\n\n​ 曲：A」都讀到 credit；冇標籤時「歌名\n​\n第一句」歌詞變「第一句」（行為變好） |
+| S-287 縮排標籤 | ✅ 已修 | 全形空格、半形空格、tab 縮排；`DUPLICATE_LABEL` 嘅原文係 trim 之後嘅。舊 M4 而家**被殺** |
+| S-284 回填例外 | ✅ 已修 | `formatSongText.ts` 檔頭寫明例外；測試鎖住「曲：作曲者甲」開頭嘅歌詞回填之後變 credit |
+
+**Mutants（覆核，`review-songtext-tools/mutants2.py`）**
+
+| ID | 變異 | 結果 |
+| --- | --- | --- |
+| R1 | `readLabels` 唔 `trim()`（上一輪 M4） | 死 |
+| R2 | 空行判斷唔去隱藏字元 | 死 |
+| R3 | 標籤唔用去走隱藏字元嘅文字再認 | 死 |
+| R4 | 標籤一律用去走隱藏字元嘅文字（值都去走） | 存活（S-289） |
+| R5 | 空行判斷去咗隱藏字元但唔 `trim()` | 存活（S-289） |
+| R6 | 去咗隱藏字元之後唔 `trim()` 先認標籤 | 存活（S-289） |
+| R7 | 唔跳空行（舊規則） | 死（13 個測試） |
+
+7 個殺 4 個。存活嘅 3 個實作都啱（probe 證實），只係冇測試鎖住。
+
+**新 Suggestions（唔阻）**
+
+- **S-289** S-285 嘅三個邊界冇測試：① 隱藏字元夾住空格嘅行（`​ ​`，R5）；② 隱藏字元之後有空格先到標籤（`​ 曲：A`，R6）；③ 註解講「平時嘅值唔變」（值入面有隱藏字元而成行本身已經係標籤，值照原文，R4）。`parseSongText.test.ts` 各加一個斷言就得
+- **S-290** 第一行係「​曲：A」（漏咗歌名，行頭有零寬字元）：`readTitle` 用原文查 `readLabel`，所以唔報 `TITLE_REQUIRED`，去走隱藏字元之後歌名變咗「曲：A」。標籤段而家會去走隱藏字元再認，兩邊唔一致。舊行為，唔係今次改出嚟；擁有人嘅檔一定有歌名，影響細。建議 `readTitle` 都用 `labelInBlock` 嘅判斷
+- Observation：`DUPLICATE_LABEL`／`CREDIT_TOO_LONG` 嘅 `text` 會帶住行頭嘅零寬字元（只係原文，API 唔回原文，B-040），冇影響
+
+**最後評分**
+
+| 維度 | 得分 | 滿分 | 備注 |
+| --- | --- | --- | --- |
+| 正確性 | 25 | 25 | W-076 ① 已修；② 係擁有人步驟 |
+| 安全性 | 20 | 20 | |
+| 可維護性 | 20 | 20 | |
+| 測試覆蓋 | 15 | 15 | 只剩 🟢 S-289 |
+| 性能 | 10 | 10 | |
+| 代碼風格 | 10 | 10 | |
+| **總分** | **100** | **100** | **結果：✅ pass** |
+
+**QA**：範圍同上面「QA 範圍建議」一樣（`catalog-song-text` 多咗 S-285 嘅 AC：標籤段入面淨係得隱藏字元嘅行當空行、行頭夾住隱藏字元嘅標籤照認）；`api-auth` 包埋 `apps/api/package.json` 嘅 version。push 之前擁有人要有「擁有人安全步驟」（第 3 步而家可以用 `/api/health` = `0.1.1` 核對）。
+
+```
+HANDOFF_RECEIPT
+from: code-reviewer
+task: re-review fix/song-text-credit-gap (745d854 W-076 version 0.1.1, 48fe6d8/77935ac S-285, 3c13623 S-287, c5a1c78 S-284)
+status: pass
+score: 100
+hard_gates: { lint: pass, typecheck: pass, tests: pass, coverage: pass, no_critical: pass, security_scan: n/a }
+findings: { critical: [], warning: [], suggestion: [S-289, S-290] }
+next_action: proceed to QA S1 (catalog-song-text incl. S-285 AC, catalog-core, api-tracks, api-auth incl. package.json version, api-sync, api-writeback) + S2 local (no --remote); then merge; push only with the owner safe-step list (no sync until /api/health shows 0.1.1)
+owner_decisions: [same as first round: accept that a lyric whose first line starts with 曲／詞／編／監 + colon becomes a credit; a label repeated across a gap now fails (TEXT_INVALID, last good content kept)]
+backlog: [W-076 option A (rules version in text_source_etag), S-286, S-288, S-289, S-290]
+report: .proj-docs/reviews/2026-11-27_12-35_review_song-text-credit-gap.md
+context: W-076 ① and S-284/S-285/S-287 verified; old M4 now killed; S-285 mutants R2/R3 killed, R4–R6 survive (correct behaviour, untested edges → S-289). No push, no --remote, no network.
+```
