@@ -3,7 +3,8 @@ import type { Scene } from '../app/stageReducer';
 
 /*
  * 安全區外面（狀態列、底部指示條後面、闊畫面兩邊）嘅底色（backlog B-014）。
- * `#root` 用 `var(--stage-backdrop, var(--color-stage))`（styles/global.css）；場景喺 <html> 設呢個變數，等兩邊一致。
+ * `#root` 同頁面用 `var(--stage-backdrop, var(--color-flag-bg))`（styles/global.css；未設之前係 Preload 嘅黑色，S-268）；
+ * 場景喺 <html> 設呢個變數，等兩邊一致。
  */
 const PROPERTY = '--stage-backdrop';
 

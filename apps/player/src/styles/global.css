@@ -22,12 +22,18 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 舞台只佔安全區；安全區以外（狀態列、底部指示條後面）由呢度嘅底色填滿 */
+/*
+ * 舞台只佔安全區；上下延伸（狀態列、底部指示條後面，T-117）由舞台自己畫。
+ * 舞台仍然冇蓋到嘅位（闊畫面兩邊、主頁未出之前）由呢度嘅底色填滿
+ */
 #root {
     position: relative;
     height: 100%;
-    /* 場景可以設 --stage-backdrop（例如 Preload 嘅黑底、歌書嘅暗層），等安全區外面同舞台一致 */
-    background: var(--stage-backdrop, var(--color-stage));
+    /*
+     * 場景可以設 --stage-backdrop（例如 Preload 嘅黑底、歌書嘅暗層），等安全區外面同舞台一致。
+     * 未設之前（JS 未行）用 Preload 嘅黑色，同 html、body 一樣：唔好開 app 先閃白（S-268）
+     */
+    background: var(--stage-backdrop, var(--color-flag-bg));
 }
 
 /* 只畀讀屏嘅字（例如 UpdateNotice）：唔佔位、睇唔見，但仍然喺無障礙樹入面 */

@@ -42,10 +42,7 @@ const Gradients = () => (
             <stop offset=".55" stopColor="#101010" />
             <stop offset="1" stopColor="#1c1c1c" />
         </radialGradient>
-        <radialGradient id={DEF.stage} cx="30%" cy="12%" r="110%">
-            <stop offset="0" stopColor="#ffffff" />
-            <stop offset="1" stopColor="#eeefec" />
-        </radialGradient>
+        {/* 舞台底色（DEF.stage）要知舞台高度：StageGradient（StageSvg 入面） */}
     </>
 );
 

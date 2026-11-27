@@ -23,3 +23,18 @@ describe('page background outside the stage', () => {
         );
     });
 });
+
+/** `#root { … }` 嗰段規則嘅內容 */
+const rootRule = (css: string): string => /#root\s*\{([^}]*)\}/.exec(css)?.[1] ?? '';
+
+/*
+ * S-268：JS 未行（useStageBackdrop 未設變數）之前，`#root` 蓋住成個畫面。
+ * 佢嘅後備色要同頁面一樣係 Preload 嘅黑色，唔係舞台嘅淺色，否則開 app 會閃一下白先變黑。
+ */
+describe('root background before the app sets a backdrop', () => {
+    it('should fall back to the Preload black like the page', () => {
+        expect(rootRule(readStyle('global.css'))).toContain(
+            'background: var(--stage-backdrop, var(--color-flag-bg));',
+        );
+    });
+});

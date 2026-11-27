@@ -1,9 +1,9 @@
-import { DESIGN_WIDTH } from '../../stage/fitStage';
+import { bleedSpan, DESIGN_WIDTH } from '../../stage/fitStage';
 import type { Point, StageLayout } from '../../stage/layouts';
 import { useStageFitContext } from '../../stage/StageContext';
 import { ChromeFade } from '../chrome-fade/ChromeFade';
-import { DEF, ref } from '../metal/defIds';
 import { Screws } from '../metal/Screws';
+import { StageGradient } from '../metal/StageGradient';
 import { useSvgId } from '../svgId';
 import { ratio } from '../svgNumber';
 
@@ -21,13 +21,15 @@ interface HeldScrimProps {
 /**
  * 碟上面嘅半透明層（設計稿第 18 版 listScrim()；Functional Spec FR-044 ④）：舞台底色，
  * 由左邊 `scrim.opacity`（到 `scrim.solid`）直線淡到 `scrim.end` 嘅 0，隻碟仍然透得出。
- * 喺碟上面、字母盤同旋鈕下面；淨係畫面，唔接受 pointer。喺貼底組：向上伸返多出嚟嘅高度蓋住成個舞台
+ * 喺碟上面、字母盤同旋鈕下面；淨係畫面，唔接受 pointer。喺貼底組：向上伸返多出嚟嘅高度蓋住成個舞台，
+ * 再伸埋上下延伸（T-117：螢幕頂到底，底部橫條後面唔好露出未蓋嘅碟）。顏色用排喺舞台個框上面嘅底色漸層
+ *（貼底組座標，所以由 −extraUnits 開始），同舞台底色一模一樣
  */
 export const HeldScrim = ({ layout, shown, screws }: HeldScrimProps) => {
-    const { heightUnits, extraUnits } = useStageFitContext();
+    const fit = useStageFitContext();
     const { scrim } = layout.heldTracks;
     const id = useSvgId('held-scrim');
-    const area = { x: 0, y: -extraUnits, width: DESIGN_WIDTH, height: heightUnits };
+    const area = { x: 0, ...bleedSpan(fit, fit.extraUnits), width: DESIGN_WIDTH };
     return (
         <ChromeFade part="held-scrim" hidden={!shown}>
             <g aria-hidden="true" pointerEvents="none">
@@ -47,10 +49,11 @@ export const HeldScrim = ({ layout, shown, screws }: HeldScrimProps) => {
                     />
                     <stop offset={1} stopColor={MASK_COLOUR} stopOpacity={0} />
                 </linearGradient>
+                <StageGradient id={`${id}-stage`} top={-fit.extraUnits} height={fit.heightUnits} />
                 <mask id={id} maskUnits="userSpaceOnUse" {...area}>
                     <rect {...area} width={scrim.end} fill={`url(#${id}-g)`} />
                 </mask>
-                <rect {...area} fill={ref(DEF.stage)} mask={`url(#${id})`} />
+                <rect {...area} fill={`url(#${id}-stage)`} mask={`url(#${id})`} />
                 <g data-part="scrim-screws">
                     <Screws points={screws} />
                 </g>

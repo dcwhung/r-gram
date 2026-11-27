@@ -1,4 +1,4 @@
-import { DESIGN_HEIGHT, DESIGN_WIDTH, fitStage } from './fitStage';
+import { bleedSpan, DESIGN_HEIGHT, DESIGN_WIDTH, fitStage } from './fitStage';
 
 describe('fitStage', () => {
     it('should use the design size as is at 1080 × 1920', () => {
@@ -8,6 +8,8 @@ describe('fitStage', () => {
             extraUnits: 0,
             offsetX: 0,
             offsetY: 0,
+            bleedTop: 0,
+            bleedBottom: 0,
         });
     });
 
@@ -47,6 +49,8 @@ describe('fitStage', () => {
             extraUnits: 0,
             offsetX: 0,
             offsetY: 0,
+            bleedTop: 0,
+            bleedBottom: 0,
         });
     });
 });
@@ -115,4 +119,63 @@ describe('fitStage on tall phones', () => {
             expect(stage.heightUnits).toBeCloseTo(DESIGN_HEIGHT + stage.extraUnits);
         },
     );
+});
+
+/*
+ * T-117（B-094）：畫面延伸去安全區外。舞台仍然只喺安全區入面擺嘢，但底色同貼底嘅唱片機畫到螢幕最頂最底：
+ * 舞台上下各有一段「延伸」（單位），即係頂部同底部安全區
+ */
+describe('fitStage bleed', () => {
+    const IPHONE_15 = { top: 59, bottom: 34 };
+
+    it('should bleed by the safe-area insets in design units on a tall phone', () => {
+        const stage = fitStage(393, 852, IPHONE_15);
+        expect(stage.bleedTop).toBeCloseTo(59 / stage.unit);
+        expect(stage.bleedBottom).toBeCloseTo(34 / stage.unit);
+    });
+
+    it('should reach the screen edges: the bleed and the stage fill the viewport height', () => {
+        const stage = fitStage(393, 852, IPHONE_15);
+        const { bleedTop, heightUnits, bleedBottom, unit } = stage;
+        expect(stage.offsetY - bleedTop * unit).toBeCloseTo(0);
+        expect((bleedTop + heightUnits + bleedBottom) * unit).toBeCloseTo(852);
+    });
+
+    it('should bleed vertically only on a wider viewport, scaled by the safe height', () => {
+        const stage = fitStage(1440, 1000, { top: 20, bottom: 20 });
+        expect(stage.bleedTop).toBeCloseTo(20 / 0.5);
+        expect(stage.bleedBottom).toBeCloseTo(20 / 0.5);
+        expect(stage.offsetX).toBeCloseTo((1440 - 540) / 2);
+    });
+
+    it.each([
+        ['no insets', {}],
+        ['unusable insets', { top: Number.NaN, bottom: -3 }],
+        ['insets that leave no room', { top: 500, bottom: 500 }],
+    ])('should not bleed with %s', (_name, insets) => {
+        const stage = fitStage(393, 852, { top: 0, bottom: 0, ...insets });
+        expect(stage.bleedTop).toBe(0);
+        expect(stage.bleedBottom).toBe(0);
+    });
+});
+
+/* T-117：要蓋住成個畫面（連延伸）嘅層用嘅範圍（設計單位，喺舞台座標或者向下移咗嘅貼底組座標） */
+describe('bleedSpan', () => {
+    const stage = fitStage(393, 852, { top: 59, bottom: 34 });
+
+    it('should run from the top of the screen to the bottom in stage coordinates', () => {
+        const span = bleedSpan(stage);
+        expect(span.y).toBeCloseTo(-stage.bleedTop);
+        expect(span.height).toBeCloseTo(stage.bleedTop + stage.heightUnits + stage.bleedBottom);
+    });
+
+    it('should move up by the group offset for the bottom-anchored group', () => {
+        const span = bleedSpan(stage, stage.extraUnits);
+        expect(span.y).toBeCloseTo(-stage.bleedTop - stage.extraUnits);
+        expect(span.height).toBeCloseTo(bleedSpan(stage).height);
+    });
+
+    it('should be the stage itself when there is no bleed', () => {
+        expect(bleedSpan(fitStage(1080, 1920))).toEqual({ y: 0, height: 1920 });
+    });
 });

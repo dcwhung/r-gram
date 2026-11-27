@@ -1,11 +1,32 @@
-/* 舞台：闊度同高度（設計單位）由 Stage.tsx 設定：闊 = 設計闊度；高度最少係設計高度，高啲嘅手機會填滿安全區 */
+/*
+ * 外框（T-117、B-094）：由螢幕頂去到螢幕底（#root 嘅高度），闊度同位置同舞台一樣。
+ * 舞台嘅底色同貼底嘅唱片機畫到呢度先剪：上下畫到狀態列、底部橫條後面；闊畫面兩邊照舊由 --stage-backdrop 填。
+ * overflow: clip（唔係捲動容器，focus 都唔會捲到佢）；唔識 clip 嘅舊瀏覽器用 hidden。
+ */
+.stage-frame {
+    /* 蓋成個舞台嘅 HTML 層（MV 模糊層、Preload 黑底）用呢個 inset 伸到外框上下邊 */
+    --stage-bleed-inset: calc(var(--u) * var(--stage-bleed-top) * -1) 0
+        calc(var(--u) * var(--stage-bleed-bottom) * -1);
+
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--stage-offset-x, 0);
+    width: calc(var(--u) * var(--stage-width-units));
+    overflow: hidden;
+    overflow: clip;
+}
+
+/*
+ * 舞台：闊度同高度（設計單位）由 Stage.tsx 設定：闊 = 設計闊度；高度最少係設計高度，高啲嘅手機會填滿安全區。
+ * 舞台自己唔剪（外框剪）：底色、暗層可以伸出去延伸部分
+ */
 .stage {
     position: absolute;
     top: var(--stage-offset-y, 0);
-    left: var(--stage-offset-x, 0);
+    left: 0;
     width: calc(var(--u) * var(--stage-width-units));
     height: calc(var(--u) * var(--stage-height-units));
-    overflow: hidden;
     background: var(--color-stage);
     color: var(--color-ink);
     /* 元件自己處理手勢（轉碟、歌單捲動）；唔好畀瀏覽器捲動或者縮放 */
@@ -14,9 +35,36 @@
     -webkit-user-select: none;
 }
 
-/* 舞台嘅 SVG 畫布（StageSvg）：填滿舞台 */
+/*
+ * 舞台嘅 SVG 畫布（StageSvg）：舞台連上下延伸。viewBox 同樣上下加咗延伸，所以舞台入面嘅座標同以前一樣。
+ * SVG 係 replaced element：要寫明闊同高（唔可以靠 inset 拉）
+ */
 .stage-svg {
     position: absolute;
-    inset: 0;
+    top: calc(var(--u) * var(--stage-bleed-top, 0) * -1);
+    left: 0;
     display: block;
+    width: 100%;
+    height: calc(100% + var(--u) * (var(--stage-bleed-top, 0) + var(--stage-bleed-bottom, 0)));
+}
+
+/*
+ * 延伸嗰兩段嘅擋板：透明、唔畫嘢，只係接住㩒落去嘅手指。延伸部分畫咗唱片機，但㩒落去同 T-117 之前
+ * （㩒到舞台外面）一樣乜都唔觸發，唔會同系統手勢（狀態列、底部橫條）爭。
+ * 喺舞台後面（DOM 次序）：蓋住舞台入面所有 z-index: auto 嘅層（連 MV 電視）
+ */
+.stage-guard {
+    position: absolute;
+    left: 0;
+    right: 0;
+}
+
+.stage-guard--top {
+    top: 0;
+    height: var(--stage-offset-y, 0);
+}
+
+.stage-guard--bottom {
+    top: calc(var(--stage-offset-y, 0px) + var(--u) * var(--stage-height-units));
+    bottom: 0;
 }
