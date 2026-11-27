@@ -15,7 +15,8 @@ export const frameEnds = (layout: StageLayout) => ({
 
 /**
  * 暗層（設計稿 dimLayer()）：成個舞台 80% 黑，中間留返唱片夾個窿；㩒暗位 = 收返（D25）。
- * 喺碟嘅座標（貼底組）入面：向上伸返多出嚟嘅高度，蓋住成個舞台
+ * 喺碟嘅座標（貼底組）入面：向上伸返多出嚟嘅高度，蓋住成個舞台連上下延伸（`top`、`height` 由 bleedSpan 計；T-117）。
+ * 延伸部分畫暗但㩒唔到（舞台嘅擋板接住），同以前一樣
  */
 export const ArcVeil = ({
     layout,

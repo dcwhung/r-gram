@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { ArcListView } from '../../app/listView';
 import { arcRowPitch, arcRowSpec } from '../../stage/arcRows';
+import { bleedSpan } from '../../stage/fitStage';
 import type { StageLayout } from '../../stage/layouts';
 import { useStageFitContext } from '../../stage/StageContext';
 import type { TextMeasure } from '../../utils/textMeasure';
@@ -39,7 +40,9 @@ interface ArcTrackListProps {
  */
 export const ArcTrackList = (props: ArcTrackListProps) => {
     const { layout, list } = props;
-    const { unit, extraUnits, heightUnits } = useStageFitContext();
+    const fit = useStageFitContext();
+    const { unit, extraUnits } = fit;
+    const veil = bleedSpan(fit, extraUnits); // 暗層蓋埋螢幕頂同底嘅延伸（T-117；貼底組座標）
     const onFocus = useStable(props.onFocusTrack);
     const onPlay = useStable(props.onPlay);
     const spec = useMemo(() => arcRowSpec(layout), [layout]);
@@ -61,8 +64,8 @@ export const ArcTrackList = (props: ArcTrackListProps) => {
             <g transform={`translate(0 ${px(extraUnits)})`}>
                 <ArcVeil
                     layout={layout}
-                    top={-extraUnits}
-                    height={heightUnits}
+                    top={veil.y}
+                    height={veil.height}
                     onClose={props.onClose}
                     entering={props.floating}
                 />

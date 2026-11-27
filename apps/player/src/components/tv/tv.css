@@ -12,11 +12,12 @@
 
 /*
  * 背後成部唱片機變模糊 + 淡白（D105：CSS blur()，半徑 20 單位）。用 backdrop-filter：唔使喺上面再畫一份唱片機；
- * 淡入淡出只郁 opacity，唔對 blur 做動畫
+ * 淡入淡出只郁 opacity，唔對 blur 做動畫。
+ * 上下伸到螢幕邊（T-117、S-262）：狀態列同底部橫條後面嘅唱片機都模糊 + 淡白；闊畫面兩邊唔伸
  */
 .tv-veil {
     position: absolute;
-    inset: 0;
+    inset: var(--stage-bleed-inset, 0);
     background: var(--color-tv-veil);
     -webkit-backdrop-filter: blur(calc(var(--u) * 20));
     backdrop-filter: blur(calc(var(--u) * 20));

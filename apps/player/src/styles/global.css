@@ -22,7 +22,10 @@ body {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* 舞台只佔安全區；安全區以外（狀態列、底部指示條後面）由呢度嘅底色填滿 */
+/*
+ * 舞台只佔安全區；上下延伸（狀態列、底部指示條後面，T-117）由舞台自己畫。
+ * 舞台仍然冇蓋到嘅位（闊畫面兩邊、主頁未出之前）由呢度嘅底色填滿
+ */
 #root {
     position: relative;
     height: 100%;

@@ -10,6 +10,17 @@
         transform var(--motion-scene-flag-fade) cubic-bezier(0.65, 0, 0.35, 1);
 }
 
+/*
+ * 黑底伸到螢幕頂同底（T-117）：淡出期間下面嘅主頁已經畫滿成個螢幕，延伸部分都要一齊由黑淡走。
+ * 喺旗同文字後面；跟住 .preload 淡出同放大
+ */
+.preload::before {
+    content: '';
+    position: absolute;
+    inset: var(--stage-bleed-inset, 0);
+    background: inherit;
+}
+
 .preload[data-exit='leaving'] {
     opacity: 0;
     transform: scale(1.05);
