@@ -25,5 +25,6 @@
 - 2026-11-26（T-038）：browser check = `/tmp/…/scratchpad/qa-t038-t116/``t038.cjs` 嘅 `holding`、`failing`（F3）+ `regress-qa.cjs`
 - 2026-11-26（T-070）：AC-12 拎住同 Favourites 碟（D58 ④；owner 決定 (e)）：♥ 播緊拎住真專輯 = 細唱片機用 ♥ 碟面同歌名；真專輯播緊拎住 ♥ = 歌單欄列收藏（收藏次序、灰色行）、㩒唱片夾放 ♥ 入機播第一首有音檔嘅收藏；`app/TopInfo.tsx`（由 `TopGroup` 拆出）加入 scope。Browser = `/tmp/…/scratchpad/qa-t114-t070/fav.cjs`（`holding`、`disc`）
 - 2026-11-27（T-117）：AC-13 `HeldScrim` 伸到螢幕頂底（`bleedSpan`），顏色用 `StageGradient`（貼底組座標，同舞台底色一樣）。Browser = `/tmp/…/scratchpad/qa-t117/tools/bleed.cjs`（`08-holding`、`09-list-held`）
+- 2026-11-27（T-072）：AC-14 `TopGroup` 加 `BookletLayer`（三粒細掣搬入貼頂組、喺歌書暗層上面、弧線歌單下面）；`TopInfo` 歌書開住時白字（黑字墊底淡入）；拎住另一隻碟 i 灰色、㩒唔開。Browser = `/tmp/…/scratchpad/qa-t072/tools/``booklet.cjs`（holding）、`journey.cjs` R5
 - PWA gate: no（冇改 build 設定、manifest、Service Worker）。Security / Data gate: no（冇新輸入面；歌名經 React 文字節點）。Performance gate: no（W-043 由單元測試鎖住：捲動 0 次量字）
 - Out of scope（已知、等決定）：真正出聲、自動下一首、載入失敗（T-038）；S-171（載入嘅碟唔喺 catalog）；S-172（歌號對比，等用戶）；S-173、S-174（spec 字眼，等 PM）；S-176（返去即時換碟，review 接受）；收藏（T-070）；`MINI.titleStep`（見 QA S-193）

@@ -26,5 +26,6 @@
 - 2026-11-26（T-110）：browser check = `/tmp/…/scratchpad/qa-t109-t110/loop.cjs` 嘅 knob／hold 部分（MutationObserver 記低每一步嘅 `aria-valuenow` 同 `knob-move--jump`；40 ms 後讀指針角度）；1-hop 加 `utils/ring.ts`（`player-foundation`）
 - 2026-11-26（T-038）：`/tmp/…/scratchpad/qa-t038-t116/``loop.cjs`、`cancel.cjs` 四個 run 做回歸 + `t038.cjs` D5
 - 2026-11-26（T-070）：AC-12 ♥ 位（FS US-013、§CR-002「Favourites」）：碟疊 ♥ 位用 Favourites 碟面（黑碟 + logo）；身處 ♥ 時旋鈕心形 `aria-pressed=true`、著燈色 = 設計稿 `ALBUMS.favourites.glow`（S-253）；`dialView` 唔重覆列 ♥。Browser = `/tmp/…/scratchpad/qa-t114-t070/fav.cjs`（`disc`、`holding`）
+- 2026-11-27（T-072）：`MachineChrome`、`DialControls` 拎走三粒細掣（搬去 `player-holding` 嘅 `TopGroup`）；旋鈕同 ♥ 喺歌書開住時 `covered`（㩒唔到、唔入 Tab）；字母盤開住細掣淡出、唔接 pointer。Browser = `/tmp/…/scratchpad/qa-t072/tools/``booklet.cjs` AC-3、`journey.cjs` R4–R6
 - PWA gate: no（冇改 build 設定、manifest、Service Worker）。Security / Data gate: no（冇新輸入面）。Performance gate: no（真機 fps 係 review S-153，backlog）
 - Out of scope（已知、已接受）：細唱片機、拎住嘅碟嘅歌單欄（T-048、T-049，見 `plans/player-holding.md`；`MachineChrome` 拎住時轉盤淡出、細掣唔入 Tab 喺嗰度驗）；S-155 已由 T-048 取代；S-151（spec 字眼）、S-153（真機性能）；Favourites 碟面同左上「我的收藏」（T-070）；跳多格時新碟直接出現（review 接受）
