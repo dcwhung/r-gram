@@ -4,13 +4,13 @@
  * 逐行 details 唔回出錯嗰行嘅原文：管理端手上有成段文字，按行號標示就得（backlog B-040）
  */
 import {
-    labelLinesAfterGap,
     parseSongText,
     SONG_TEXT_MAX_BYTES,
     songOf,
     toLyricsJson,
     type SongLyrics,
     type SongText,
+    type SongTextHintCode,
     type SongTextResult,
 } from '@r-gram/catalog';
 import { JSON_CONTENT_TYPE, LYRICS_HASH_HEX_CHARS, LYRICS_KEY_PREFIX } from '../config';
@@ -23,7 +23,7 @@ const TEXT_PATH = 'text';
 export interface Hint {
     path: string;
     line: number;
-    reason: 'LABEL_AFTER_BLANK_LINE' | 'SUBTITLE_IGNORED';
+    reason: SongTextHintCode;
     message: string;
 }
 
@@ -40,14 +40,11 @@ const hintOf = (line: number, reason: Hint['reason']): Hint => ({
 });
 
 /**
- * backlog B-038：歌名之後隔咗空行嘅標籤樣行會當歌詞儲存；CR-007（D72）：`副題：` 行唔儲存。
- * 兩樣都照存，但係話畀管理員知；按行號排
+ * parser 嘅提示（CR-007（D72）：`副題：` 行照存但唔用），話畀管理員知；parser 已按行號排。
+ * 歌名之後隔咗空行嘅曲詞編監而家照認做標籤（擁有人決定 2026-11-27），唔再提示
  */
-const hintsOf = (text: string, song: SongTextResult): Hint[] =>
-    [
-        ...labelLinesAfterGap(text).map((line) => hintOf(line, 'LABEL_AFTER_BLANK_LINE')),
-        ...song.hints.map(({ line, code }) => hintOf(line, code)),
-    ].sort((a, b) => a.line - b.line);
+const hintsOf = (song: SongTextResult): Hint[] =>
+    song.hints.map(({ line, code }) => hintOf(line, code));
 
 /** 解析；太大 → 'tooLarge'（parser 第 0 行嘅 TOO_LARGE 轉 413，backlog B-040）；有錯 → details */
 export const parseText = (text: string): ReadSong | TrackDetail[] | 'tooLarge' => {
@@ -57,7 +54,7 @@ export const parseText = (text: string): ReadSong | TrackDetail[] | 'tooLarge' =
     if (result.errors.some(({ code }) => code === 'TOO_LARGE')) return 'tooLarge';
     if (result.errors.length > 0)
         return result.errors.map(({ line, code }) => ({ path: TEXT_PATH, line, reason: code }));
-    return { song: songOf(result), hints: hintsOf(text, result) };
+    return { song: songOf(result), hints: hintsOf(result) };
 };
 
 /** 已寫入 R2 嘅歌詞：D1 `lyrics` 一行嘅內容 */

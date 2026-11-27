@@ -118,6 +118,31 @@ describe('POST /api/sync/folders/:folder: first scan', () => {
         expect(await lyricsRow('komorebi-05')).toMatchObject({ synced: 1, line_count: 2 });
     });
 
+    // 擁有人嘅檔案格式（2026-11-27）：歌名、空行、曲詞編監、空行、歌詞（佔位文字）
+    it('should read the credits of a song text with blank lines around the labels', async () => {
+        await putMedia(
+            '05 太平門.txt',
+            '太平門\n\n曲：作曲者甲\n詞：填詞者乙\n編：編曲者丙\n監：監製丁\n\n[00:01.00]第一句',
+        );
+        const { body } = await syncFolder();
+        expect(body.checks).toEqual([]);
+        const row = await env.DB.prepare(
+            'SELECT composer, lyricist, arranger, producer FROM tracks WHERE id = ?',
+        )
+            .bind('komorebi-05')
+            .first();
+        expect(row).toEqual({
+            composer: '作曲者甲',
+            lyricist: '填詞者乙',
+            arranger: '編曲者丙',
+            producer: '監製丁',
+        });
+        expect(await lyricsRow('komorebi-05')).toMatchObject({
+            source: '[00:01.00]第一句',
+            line_count: 1,
+        });
+    });
+
     it('should store the album from the folder name and info.txt', async () => {
         await syncFolder();
         expect(await albumRow(ALBUM_ID)).toMatchObject({

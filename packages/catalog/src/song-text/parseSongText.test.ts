@@ -208,10 +208,10 @@ describe('parseSongText', () => {
             ]);
         });
 
-        it('should end the label block at the first blank line', () => {
-            const result = parseSongText('歌名\n\n曲：阿正');
+        it('should still end the label block at the first line that is not a label', () => {
+            const result = parseSongText('歌名\n\n第一句\n曲：作曲者甲');
             expect(result.credits).toBeNull();
-            expect(result.lyrics).toMatchObject({ source: '曲：阿正', synced: false });
+            expect(result.lyrics).toMatchObject({ source: '第一句\n曲：作曲者甲', synced: false });
         });
 
         it('should not take a longer word that starts with a label as a label', () => {
@@ -222,6 +222,150 @@ describe('parseSongText', () => {
 
         it('should keep colons inside a value', () => {
             expect(parseSongText('歌名\n監：A: B：C').credits?.producer).toBe('A: B：C');
+        });
+    });
+
+    // 擁有人決定（2026-11-27）：曲詞編監認 prefix：歌名之後、標籤段入面嘅空行都跳過，唔再令標籤變歌詞
+    describe('labels after blank lines', () => {
+        /** 擁有人嘅檔案格式：歌名、空行、曲詞編監、空行、歌詞（佔位文字，唔係真資料） */
+        const OWNER_LAYOUT = [
+            '歌名甲',
+            '',
+            '曲：作曲者甲',
+            '詞：填詞者乙',
+            '編：編曲者丙',
+            '監：監製丁',
+            '',
+            '[00:01.00]第一句',
+            '[00:02.00]第二句',
+        ].join('\n');
+        const OWNER_CREDITS = {
+            composer: '作曲者甲',
+            lyricist: '填詞者乙',
+            arranger: '編曲者丙',
+            producer: '監製丁',
+        };
+
+        it('should read the labels after a blank line below the title', () => {
+            expect(parseSongText(OWNER_LAYOUT)).toEqual({
+                title: '歌名甲',
+                credits: OWNER_CREDITS,
+                lyrics: {
+                    source: '[00:01.00]第一句\n[00:02.00]第二句',
+                    synced: true,
+                    lines: [
+                        { t: 1_000, text: '第一句' },
+                        { t: 2_000, text: '第二句' },
+                    ],
+                },
+                errors: [],
+                hints: [],
+            });
+        });
+
+        it('should skip several blank lines, also lines of spaces, before and inside the block', () => {
+            const text = '歌名甲\n\n \u3000\n曲：作曲者甲\n\n\n詞: 填詞者乙\n\t\n第一句\n第二句';
+            const result = parseSongText(text);
+            expect(result.credits).toEqual({
+                ...NO_CREDITS,
+                composer: '作曲者甲',
+                lyricist: '填詞者乙',
+            });
+            expect(result.lyrics).toMatchObject({ source: '第一句\n第二句', synced: false });
+            expect(result.errors).toEqual([]);
+        });
+
+        it('should give the same result for CRLF and a byte order mark', () => {
+            const crlf = `\uFEFF${OWNER_LAYOUT.replaceAll('\n', '\r\n')}`;
+            expect(parseSongText(crlf)).toEqual(parseSongText(OWNER_LAYOUT));
+        });
+
+        it('should keep label-looking lines inside the lyrics as lyrics', () => {
+            const text = '歌名甲\n\n曲：作曲者甲\n\n第一句\n\n詞：在歌詞中間\n第二句';
+            const result = parseSongText(text);
+            expect(result.credits).toEqual({ ...NO_CREDITS, composer: '作曲者甲' });
+            expect(result.lyrics?.source).toBe('第一句\n\n詞：在歌詞中間\n第二句');
+        });
+
+        it('should report the lyric errors with their line in the whole text', () => {
+            const text = `${OWNER_LAYOUT}\n沒有時間`;
+            expect(codes(text)).toEqual([{ line: 10, code: 'MIXED_TIMESTAMPS' }]);
+        });
+
+        it('should report a label repeated after a blank line and keep the first value', () => {
+            const result = parseSongText('歌名甲\n曲：作曲者甲\n\n曲：作曲者乙\n\n第一句');
+            expect(result.errors).toEqual([
+                { line: 4, code: 'DUPLICATE_LABEL', text: '曲：作曲者乙' },
+            ]);
+            expect(result.credits?.composer).toBe('作曲者甲');
+        });
+
+        it('should skip a subtitle line after a blank line with its hint', () => {
+            const result = parseSongText('歌名甲\n\n副題：Live\n\n監：監製丁\n\n第一句');
+            expect(result.hints).toEqual([{ line: 3, code: 'SUBTITLE_IGNORED' }]);
+            expect(result.credits).toEqual({ ...NO_CREDITS, producer: '監製丁' });
+            expect(result.lyrics?.source).toBe('第一句');
+        });
+
+        it('should check the length of a label after a blank line', () => {
+            expect(codes(`歌名甲\n\n編：${'編'.repeat(CREDIT_MAX_CHARS + 1)}`)).toEqual([
+                { line: 3, code: 'CREDIT_TOO_LONG' },
+            ]);
+        });
+
+        // review S-285：由網頁複製嘅文字，「空行」可能夾住睇唔到嘅字元（同 S-158 歌名一樣嘅範圍）
+        it('should take a line of only hidden characters in the label block as blank', () => {
+            const text = '歌名甲\n​\n曲：作曲者甲\n⁠‍\n詞：填詞者乙\n﻿\n第一句';
+            const result = parseSongText(text);
+            expect(result.credits).toEqual({
+                ...NO_CREDITS,
+                composer: '作曲者甲',
+                lyricist: '填詞者乙',
+            });
+            expect(result.lyrics?.source).toBe('第一句');
+            expect(result.errors).toEqual([]);
+        });
+
+        it('should read a label line that starts with hidden characters', () => {
+            const result = parseSongText('歌名甲\n\n​‪曲：作曲者甲\n\n第一句');
+            expect(result.credits).toEqual({ ...NO_CREDITS, composer: '作曲者甲' });
+            expect(result.lyrics?.source).toBe('第一句');
+        });
+
+        // review S-287：擁有人嘅檔可能有縮排（全形空格、半形空格、tab）；錯誤嘅原文係 trim 之後嘅
+        it('should read indented label lines and report them trimmed', () => {
+            const text = '歌名甲\n\n　曲：作曲者甲\n  詞：填詞者乙\n\t曲：作曲者乙\n\n第一句';
+            const result = parseSongText(text);
+            expect(result.credits).toEqual({
+                ...NO_CREDITS,
+                composer: '作曲者甲',
+                lyricist: '填詞者乙',
+            });
+            expect(result.errors).toEqual([
+                { line: 5, code: 'DUPLICATE_LABEL', text: '曲：作曲者乙' },
+            ]);
+            expect(result.lyrics?.source).toBe('第一句');
+        });
+
+        it('should keep a line of hidden characters inside the lyrics as it is', () => {
+            const result = parseSongText('歌名甲\n曲：作曲者甲\n\n第一句\n​\n第二句');
+            expect(result.lyrics?.source).toBe('第一句\n​\n第二句');
+        });
+
+        it('should give no lyrics when only labels and blank lines follow the title', () => {
+            const result = parseSongText('歌名甲\n\n曲：作曲者甲\n\n詞：填詞者乙\n\n');
+            expect(result.lyrics).toBeNull();
+            expect(result.credits).toEqual({
+                ...NO_CREDITS,
+                composer: '作曲者甲',
+                lyricist: '填詞者乙',
+            });
+        });
+
+        it('should still require a title when the text starts with a label line', () => {
+            const result = parseSongText('曲：作曲者甲\n\n詞：填詞者乙\n\n第一句');
+            expect(result.errors.map(({ code }) => code)).toEqual(['TITLE_REQUIRED']);
+            expect(result.title).toBe('');
         });
     });
 

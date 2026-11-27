@@ -1,4 +1,4 @@
-/* 歌曲文字拆行：`parseSongText()` 同 `labelLinesAfterGap()` 用同一個規則，行號先會一致 */
+/* 歌曲文字拆行（`parseSongText()`）：錯誤同提示嘅行號按呢度拆出嚟嘅行計 */
 
 /** CRLF、LF、淨係 CR（舊 Mac 格式）都當換行（backlog B-042 ①） */
 const LINE_BREAK = /\r\n?|\n/;
