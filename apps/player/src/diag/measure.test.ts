@@ -78,3 +78,19 @@ describe('diag measure', () => {
         expect(readFitKey()).toBe(`${window.innerWidth} ${window.innerHeight} 59 34`);
     });
 });
+
+describe('diag stage height', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.replaceChildren();
+    });
+
+    it('should report the height source the stage uses', () => {
+        vi.stubGlobal('matchMedia', () => ({ matches: false }));
+        vi.spyOn(window, 'innerHeight', 'get').mockReturnValue(735);
+        expect(takeSnapshot(createProbes(), 0).stageHeight).toEqual({
+            source: 'inner',
+            height: 735,
+        });
+    });
+});

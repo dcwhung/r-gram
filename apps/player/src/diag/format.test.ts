@@ -37,6 +37,7 @@ const SNAPSHOT: Snapshot = {
         bleedBottom: '93.4',
     },
     fitKey: '393 852 59 34',
+    stageHeight: { source: 'lvh', height: 852 },
 };
 
 const BEFORE_REACT: Snapshot = {
@@ -72,6 +73,7 @@ describe('formatSnapshot', () => {
             'safe env t 59 | r 0 | b 34 | l 0',
             'fit u 0.3639px | heightUnits 2011.4 | offsetY 59px | bleedTop 162.1 | bleedBottom 93.4',
             'key 393 852 59 34',
+            'height lvh 852',
         ]);
     });
 
