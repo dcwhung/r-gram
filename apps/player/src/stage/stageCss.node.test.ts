@@ -69,6 +69,15 @@ describe('stage.css bleed', () => {
         );
         expectDeclaration(bottom, 'bottom: 0;');
     });
+
+    /*
+     * Review W-073（mutant T10）：擋板要接住㩒落去嘅手指，延伸部分先會「㩒唔到」：
+     * stage.css 唔可以有 pointer-events（擋板、外框、舞台都唔得：外框設咗會傳落擋板）
+     */
+    it('should let the guards take pointer events', () => {
+        const withoutComments = STAGE.replace(/\/\*[\s\S]*?\*\//g, '');
+        expect(withoutComments).not.toMatch(/pointer-events/);
+    });
 });
 
 /* 蓋成個舞台嘅 HTML 層：MV 電視嘅模糊淡白層（S-262）、Preload 嘅黑底 */
