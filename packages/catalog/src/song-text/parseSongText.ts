@@ -2,7 +2,8 @@
  * 歌曲文字 parser（Functional Spec D31、D32、D37；Technical Spec「parseSongText() 嘅規則」）。
  * 管理端即時逐行檢查同 API 儲存驗證用同一份。格式：
  *   第一個非空白行 = 歌名（必填）
- *   之後嘅標籤段：曲 / 詞 / 編 / 監 + `：` 或 `:`，次序隨意，各自最多一次。歌名之後同標籤之間嘅空行都跳過
+ *   之後嘅標籤段：曲 / 詞 / 編 / 監 + `：` 或 `:`，次序隨意，各自最多一次。歌名之後同標籤之間嘅空行
+ *   （連淨係得睇唔到字元嘅行，S-285）都跳過
  *   （擁有人決定 2026-11-27：標籤認 prefix，「歌名、空行、曲：…」照讀到 credit）；第一個非空白又唔係標籤嘅行就完。
  *   歌詞入面再出現似標籤嘅行照當歌詞（只有歌名之後嗰段先算）
  *   `副題` 行（CR-007，D72）：照認做標籤，值唔用，每行一個 SUBTITLE_IGNORED 提示（唔擋、唔查長度同重複）
@@ -88,13 +89,21 @@ const applyLabel = (
     if (isTooLong(label.value)) out.errors.push({ line, code: 'CREDIT_TOO_LONG', text });
 };
 
+/**
+ * 標籤段入面嘅一行（review S-285）：去走睇唔到嘅字元（S-158 範圍）之後冇嘢 = 空行；
+ * 照原文唔係標籤先用去走之後嘅文字再認（行頭夾住零寬字元，常見於由網頁複製），平時嘅值唔變
+ */
+const isBlankInBlock = (text: string): boolean => withoutHiddenCharacters(text).trim() === '';
+const labelInBlock = (text: string) =>
+    readLabel(text) ?? readLabel(withoutHiddenCharacters(text).trim());
+
 /** 由 `start` 起讀標籤段（空行跳過）；回傳歌詞開始嘅 index = 第一個非空白又唔係標籤嘅行（冇就係行數） */
 const readLabels = (lines: string[], start: number, out: LabelOutput): number => {
     let index = start;
     for (; index < lines.length; index += 1) {
         const text = (lines[index] ?? '').trim();
-        if (text === '') continue;
-        const label = readLabel(text);
+        if (isBlankInBlock(text)) continue;
+        const label = labelInBlock(text);
         if (!label) break;
         applyLabel(label, index + 1, text, out);
     }
