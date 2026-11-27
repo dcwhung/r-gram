@@ -1,0 +1,68 @@
+/*
+ * 臨時嘅畫面尺寸診斷面板（src/diag）：安全區入面、貼頂（唔蓋唱片夾）。
+ * 成塊唔接手指（下面嘅 app 照㩒得），只有掣同後備嘅複製框接
+ */
+.diag-panel {
+    --diag-gap: 4px;
+    --diag-max-height: 46dvh;
+
+    position: fixed;
+    z-index: 2147483647;
+    /* 字太多時剪走記錄尾，掣永遠喺度 */
+    display: flex;
+    flex-direction: column;
+    top: calc(env(safe-area-inset-top, 0px) + var(--diag-gap));
+    right: calc(env(safe-area-inset-right, 0px) + var(--diag-gap));
+    left: calc(env(safe-area-inset-left, 0px) + var(--diag-gap));
+    max-height: var(--diag-max-height);
+    overflow: hidden;
+    padding: var(--diag-gap) calc(var(--diag-gap) * 2);
+    border-radius: calc(var(--diag-gap) * 2);
+    background: color-mix(in srgb, var(--color-flag-bg) 78%, transparent);
+    color: var(--color-paper);
+    font:
+        9px/1.3 ui-monospace,
+        Menlo,
+        monospace;
+    pointer-events: none;
+}
+
+.diag-text {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    margin: 0;
+    font: inherit;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.diag-actions {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    gap: calc(var(--diag-gap) * 2);
+    align-items: center;
+    margin-top: var(--diag-gap);
+}
+
+.diag-actions button {
+    min-height: 32px;
+    padding: 0 calc(var(--diag-gap) * 3);
+    border: 1px solid var(--color-muted);
+    border-radius: var(--diag-gap);
+    background: transparent;
+    color: inherit;
+    font: 12px/1 var(--font-mixed);
+    pointer-events: auto;
+}
+
+.diag-manual {
+    display: block;
+    flex: none;
+    width: 100%;
+    height: 8em;
+    margin-top: var(--diag-gap);
+    font: inherit;
+    pointer-events: auto;
+}
