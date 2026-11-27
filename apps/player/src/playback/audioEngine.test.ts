@@ -346,7 +346,7 @@ describe('audioEngine errors and stalls', () => {
         expect(element.plays).toHaveLength(2);
     });
 
-    // W-062（spike §2.3：畫面隱藏時唔重載）：歌中途斷網 = 等返前景先喺同一個位置重試
+    // W-062（T-011 spike 報告 §2.3：畫面隱藏時唔重載）：歌中途斷網 = 等返前景先喺同一個位置重試
     it('should wait for the page to be shown before retrying a mid-track network error', () => {
         const { element, engine, events, hide } = setup();
         engine.playNow(ONE);

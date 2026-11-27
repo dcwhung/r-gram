@@ -39,12 +39,8 @@ export const APP_ICONS = {
 /**
  * Service Worker 嘅導航 fallback（index.html）唔可以食咗呢啲真檔：
  * 唔係就會好似 backlog B-021 咁，`/robots.txt` 變咗返 index.html。
- * T-010 spike 頁（`pwa/spikePage.ts`）：Workbox 對 pathname + search 比較，所以要容許 `?` 參數
  */
-export const NAVIGATE_FALLBACK_DENYLIST: readonly RegExp[] = [
-    /^\/robots\.txt$/,
-    /^\/spike(?:\.html)?(?:\?|$)/,
-];
+export const NAVIGATE_FALLBACK_DENYLIST: readonly RegExp[] = [/^\/robots\.txt$/];
 
 export interface ManifestText {
     name: string;

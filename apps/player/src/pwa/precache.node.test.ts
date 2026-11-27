@@ -1,8 +1,8 @@
 // @vitest-environment node
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { build, type InlineConfig, type PluginOption, type UserConfig } from 'vite';
+import { build, type InlineConfig, type UserConfig } from 'vite';
 import viteConfig from '../../vite.config';
 import { APP_ICONS } from './manifest';
 
@@ -10,17 +10,9 @@ import { APP_ICONS } from './manifest';
  * S-221（T-039、T-112）：每個 icon 喺 Service Worker 嘅預載清單入面只出現一次。
  * public/icons 嘅 png 由 globPatterns 收；plugin 再加 manifest icon（includeManifestIcons: true）就會重複兩份。
  * 用真嘅 vite.config.ts（production）build 一次去暫存資料夾，再數 sw.js 入面每個檔出現幾多次。
- * spike 頁（T-010）嘅 build 會寫入 `dist/`，同預載清單無關：呢度拎走。
  */
-const SKIPPED_PLUGIN = 'spike-build';
 /** 成個 build（連 Service Worker）要幾秒 */
 const BUILD_TIMEOUT_MS = 120_000;
-
-const isSkipped = (plugin: PluginOption) =>
-    typeof plugin === 'object' &&
-    plugin !== null &&
-    'name' in plugin &&
-    plugin.name === SKIPPED_PLUGIN;
 
 const appConfig = (outDir: string): InlineConfig => {
     const resolve = viteConfig as (env: { mode: string; command: 'build' }) => UserConfig;
@@ -31,7 +23,6 @@ const appConfig = (outDir: string): InlineConfig => {
         mode: 'production',
         logLevel: 'silent',
         root: join(import.meta.dirname, '../..'),
-        plugins: (config.plugins ?? []).filter((plugin) => !isSkipped(plugin)),
         build: { outDir, emptyOutDir: true },
     };
 };
@@ -63,5 +54,19 @@ describe('service worker precache', () => {
     // T-113：public/test-catalog 嘅臨時 catalog 由 loader 經網絡攞（離線用 loader 自己嘅本機副本），唔入預載清單
     it('should not precache the temporary test catalog', () => {
         expect(sw).not.toContain('test-catalog');
+    });
+
+    // T-115：T-010 嘅 spike 頁拆咗：config 冇 spike build，build 出嚟冇 spike 頁，預載清單亦冇
+    it('should not build or precache the retired spike page', () => {
+        const resolve = viteConfig as (env: { mode: string; command: 'build' }) => UserConfig;
+        const names = (resolve({ mode: 'production', command: 'build' }).plugins ?? [])
+            .flat()
+            .map((plugin) =>
+                plugin && typeof plugin === 'object' && 'name' in plugin ? plugin.name : '',
+            );
+        expect(names).not.toContain('spike-build');
+        expect(existsSync(join(outDir, 'spike.html'))).toBe(false);
+        expect(existsSync(join(outDir, 'spike-assets'))).toBe(false);
+        expect(sw).not.toContain('spike');
     });
 });

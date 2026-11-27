@@ -2,12 +2,11 @@ import { readFileSync } from 'node:fs';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath } from 'node:url';
-import { build, loadEnv, type Plugin } from 'vite';
+import { loadEnv, type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 import { zhHant } from './src/i18n/zh-Hant';
 import { catalogCaching } from './src/pwa/catalogCaching';
 import { appManifest, iconLinks, NAVIGATE_FALLBACK_DENYLIST } from './src/pwa/manifest';
-import { SPIKE_PRECACHE_IGNORES } from './src/pwa/spikePage';
 import { remoteFontCaching, remoteFontUrl, withRemoteFont } from './src/styles/fontSource';
 
 // package.json 係版本嘅唯一來源；build 時注入，唔使 runtime fetch
@@ -68,25 +67,6 @@ const remoteFont = (value: string | undefined): Plugin => ({
             : null,
 });
 
-/** T-010 spike 頁嘅 build 設定（另一次 build：app 嘅 chunk 同 precache 清單唔受影響；src/pwa/spikePage.ts） */
-const SPIKE_CONFIG = fileURLToPath(new URL('./vite.spike.config.ts', import.meta.url));
-
-/**
- * app build 完（連 Service Worker）先 build spike 頁入同一個 `dist/`：Vercel 跑邊個 build 指令都會有 `/spike.html`。
- * `post` + `sequential`：排喺 vite-plugin-pwa 生成 sw.js 之後
- */
-const spikeBuild = (): Plugin => ({
-    name: 'spike-build',
-    apply: 'build',
-    closeBundle: {
-        order: 'post',
-        sequential: true,
-        handler: async () => {
-            await build({ configFile: SPIKE_CONFIG });
-        },
-    },
-});
-
 export default defineConfig(({ mode }) => {
     // build 變數（.env.example）：喺 config 入面用嘅要自己讀（import.meta.env 只係 app code 先有）
     const fontUrl = loadEnv(mode, APP_DIR, 'VITE_').VITE_FONT_URL;
@@ -109,13 +89,10 @@ export default defineConfig(({ mode }) => {
                     clientsClaim: true,
                     // 真檔（robots.txt，backlog B-021）唔可以畀導航 fallback 換成 index.html
                     navigateFallbackDenylist: [...NAVIGATE_FALLBACK_DENYLIST],
-                    // T-010 spike 頁（用完即棄）唔入 precache：唔會隨 app 更新落到用戶部機
-                    globIgnores: [...SPIKE_PRECACHE_IGNORES],
                     // 隨 app 嘅 Rokkitt（woff2）由 globPatterns precache；遠端字體、catalog 圖片同歌詞由呢度留低
                     runtimeCaching: [...remoteFontCaching(fontUrl), ...catalogCaching()],
                 },
             }),
-            spikeBuild(),
         ],
         test: {
             name: '@r-gram/player',

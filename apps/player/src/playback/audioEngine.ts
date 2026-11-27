@@ -363,7 +363,7 @@ class Engine implements AudioEngine {
     }
 
     /**
-     * 畫面隱藏時唔重載（spike §2.3、903-player v1.20.8）：歌中途斷網 = 記住要重試，返前景或者 play() 先試；
+     * 畫面隱藏時唔重載（T-011 spike 報告 §2.3、903-player v1.20.8）：歌中途斷網 = 記住要重試，返前景或者 play() 先試；
      * 未出過聲（例如自動下一首）= 即刻報 network，畀 controller 照 D109 跳一次或者停
      */
     private onHiddenNetworkError(trackId: string): void {

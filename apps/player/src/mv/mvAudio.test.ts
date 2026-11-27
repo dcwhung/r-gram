@@ -45,7 +45,7 @@ describe('mvAudio (T-060)', () => {
         expect(FakeAudioContext.lastGain()?.value).toBe(DEFAULT_MV_VOLUME);
     });
 
-    // spike 4f：接咗 Web Audio 之後 video.muted、video.volume 冇效，所以一律唔掂
+    // iPhone 真機量度（T-011 spike 報告 §1.1 4f）：接咗 Web Audio 之後 video.muted、video.volume 冇效，所以一律唔掂
     it('should never touch video.muted or video.volume', () => {
         const { audio, video } = setup();
         audio.attach(asVideo(video));
