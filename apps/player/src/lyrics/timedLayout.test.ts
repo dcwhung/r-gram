@@ -95,6 +95,19 @@ describe('timedLayout with a long current line', () => {
         expect(others.find((pose) => pose.k === -2)?.opacity).toBeCloseTo(0.52, 5);
     });
 
+    // review S-276：斷行嘅字級由幾何表 booklet.lyrics.long.size 嚟
+    it('should take the size of the wrapped rows from the long layout', () => {
+        const { lyrics } = PHONE_LAYOUT.booklet;
+        const layout = {
+            ...PHONE_LAYOUT,
+            booklet: {
+                ...PHONE_LAYOUT.booklet,
+                lyrics: { ...lyrics, long: { ...lyrics.long, size: 30 } },
+            },
+        };
+        expect(timedLayout(lines, 2, layout, MEASURES).focus?.size).toBe(30);
+    });
+
     it('should leave the frame text width of the mockup (410)', () => {
         expect(frameTextWidth(PHONE_LAYOUT)).toBe(410);
     });

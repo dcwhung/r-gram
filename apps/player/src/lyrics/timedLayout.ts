@@ -112,6 +112,7 @@ const fitFocus = (text: string, layout: StageLayout, measure: MeasureAt) => {
         minSize: arc.nowMin,
         step: arc.nowStep,
         width: frameTextWidth(layout),
+        wrapSize: long.size,
         maxRows: long.maxRows,
     };
     return fitLyricLine(text, spec, measure);

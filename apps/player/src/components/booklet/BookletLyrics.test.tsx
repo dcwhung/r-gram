@@ -43,21 +43,22 @@ const serve = (body: unknown, status = 200) =>
         vi.fn(() => Promise.resolve(new Response(JSON.stringify(body), { status }))),
     );
 
+const tree = (view: BookletView, clock = () => 0, playing = false) => (
+    <StageContext.Provider value={fitStage(0, 0)}>
+        <PlaybackClock.Provider value={clock}>
+            <svg>
+                <BookletLyrics
+                    layout={PHONE_LAYOUT}
+                    booklet={view}
+                    measure={estimateTextWidth}
+                    playing={playing}
+                />
+            </svg>
+        </PlaybackClock.Provider>
+    </StageContext.Provider>
+);
 const renderLyrics = (view: BookletView, clock = () => 0, playing = false) =>
-    render(
-        <StageContext.Provider value={fitStage(0, 0)}>
-            <PlaybackClock.Provider value={clock}>
-                <svg>
-                    <BookletLyrics
-                        layout={PHONE_LAYOUT}
-                        booklet={view}
-                        measure={estimateTextWidth}
-                        playing={playing}
-                    />
-                </svg>
-            </PlaybackClock.Provider>
-        </StageContext.Provider>,
-    );
+    render(tree(view, clock, playing));
 
 /** 等 fetch 同 JSON 讀完 */
 const settle = () => act(async () => {});
@@ -165,5 +166,61 @@ describe('BookletLyrics', () => {
         renderLyrics(booklet(url));
         expect(screen.getByRole('document', { name: '歌詞' })).toBeInTheDocument();
         expect(fetch).toHaveBeenCalledTimes(1);
+    });
+
+    // review S-274（M12）：攞唔到唔記低：下次打開歌書再攞
+    it('should try again on the next open after a failed load', async () => {
+        const url = nextUrl();
+        serve({}, 500);
+        const first = renderLyrics(booklet(url));
+        await settle();
+        expect(screen.getByText('未能載入歌詞')).toBeInTheDocument();
+        first.unmount();
+        serve(PLAIN);
+        renderLyrics(booklet(url));
+        await settle();
+        expect(screen.getByRole('document', { name: '歌詞' })).toBeInTheDocument();
+    });
+
+    // review S-274（M13）：換咗歌，舊嗰首遲到嘅結果唔可以蓋過新嗰首
+    it('should ignore a late answer for the track that was left', async () => {
+        const oldUrl = nextUrl();
+        let answerOld: (response: Response) => void = () => {};
+        vi.stubGlobal(
+            'fetch',
+            vi.fn((url: string) =>
+                url === oldUrl
+                    ? new Promise<Response>((resolve) => {
+                          answerOld = resolve;
+                      })
+                    : Promise.resolve(new Response('{}', { status: 500 })),
+            ),
+        );
+        const { rerender } = renderLyrics(booklet(oldUrl, 'komorebi-01'));
+        rerender(tree(booklet(nextUrl(), 'komorebi-02')));
+        await settle();
+        expect(screen.getByText('未能載入歌詞')).toBeInTheDocument();
+        answerOld(new Response(JSON.stringify(TIMED)));
+        await settle();
+        expect(screen.getByText('未能載入歌詞')).toBeInTheDocument();
+    });
+
+    // review S-275（M36）：開住時換歌，歌詞由頭排（決定 11：新嘅一組行、新嘅框線，純文字欄返去頂）
+    it('should start the lyrics afresh when the track changes while open', async () => {
+        serve(TIMED);
+        const url = nextUrl();
+        const { container, rerender } = renderLyrics(booklet(url, 'komorebi-01'), () => 4.5);
+        await settle();
+        const before = container.querySelector('[data-part="lyrics-timed"]');
+        rerender(tree(booklet(url, 'komorebi-02'), () => 4.5));
+        expect(container.querySelector('[data-part="lyrics-timed"]')).not.toBe(before);
+        serve(PLAIN);
+        const plainUrl = nextUrl();
+        rerender(tree(booklet(plainUrl, 'komorebi-03')));
+        await settle();
+        fireEvent.keyDown(screen.getByRole('document', { name: '歌詞' }), { key: 'End' });
+        rerender(tree(booklet(plainUrl, 'komorebi-04')));
+        const rows = screen.getByRole('document').querySelector('[transform^="translate(0 "]');
+        expect(rows).toHaveAttribute('transform', 'translate(0 0)');
     });
 });
