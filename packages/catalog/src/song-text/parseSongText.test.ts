@@ -332,6 +332,21 @@ describe('parseSongText', () => {
             expect(result.lyrics?.source).toBe('第一句');
         });
 
+        // review S-287：擁有人嘅檔可能有縮排（全形空格、半形空格、tab）；錯誤嘅原文係 trim 之後嘅
+        it('should read indented label lines and report them trimmed', () => {
+            const text = '歌名甲\n\n　曲：作曲者甲\n  詞：填詞者乙\n\t曲：作曲者乙\n\n第一句';
+            const result = parseSongText(text);
+            expect(result.credits).toEqual({
+                ...NO_CREDITS,
+                composer: '作曲者甲',
+                lyricist: '填詞者乙',
+            });
+            expect(result.errors).toEqual([
+                { line: 5, code: 'DUPLICATE_LABEL', text: '曲：作曲者乙' },
+            ]);
+            expect(result.lyrics?.source).toBe('第一句');
+        });
+
         it('should keep a line of hidden characters inside the lyrics as it is', () => {
             const result = parseSongText('歌名甲\n曲：作曲者甲\n\n第一句\n​\n第二句');
             expect(result.lyrics?.source).toBe('第一句\n​\n第二句');
