@@ -1,0 +1,22 @@
+# Test Plan — player-booklet
+
+- Chain: 播放端歌書（`apps/player`）：㩒 i 開／收（暗層、曲詞編監、白色框線、開 0.4／收 0.24 秒過場、focus、Esc、㩒暗位）同歌書歌詞（有時間標記 = 弧線 + 框入面長行斷行；冇時間標記 = 直身純文字欄可以捲；載入、冇歌詞、攞唔到）。任務 T-072、T-082；review W-074、W-075、S-274–S-277（`reviews/2026-11-27_03-01_review_T-072_T-082.md`）
+- AC（L1 來源：FS = Functional Spec v1.13 §CR-002「歌書」「過場動畫」、§CR-003 決定 5、「歌書開住時暫停」、「歌書歌詞版面」、D22、D32、D38、D95、D99 ②、D111；TS = Technical Spec v1.11「歌書過場」「歌書歌詞版面」、實現注意事項 8；Plan T-072、T-082；設計稿 `_mockups_/home-turntable/src/template.html` 第 18 版 `booklet()`、`longLyrics()`、`plainLyrics()`、`CREDITS`、`ARC`、`LONG`、`PLAIN_LAYOUT`、`PLAIN`，格「歌書（㩒 i）」「歌書（歌詞冇時間標記）」）:
+    - AC-1 開關：i 掣有歌先㩒得（冇歌、拎住另一隻碟 = 灰）；再㩒 i、㩒暗位、Esc 收返；收緊時再㩒唔做嘢；開 MV = 電視即刻取代歌書；歌書開住時開唔到歌單（碟面唔出）
+    - AC-2 歌繼續播：開歌書唔暫停；開住時唱片夾播／停照㩒得，暫停 = 歌書留住、歌詞停喺而家嗰行，繼續 = 跟返（決定 5）；開住時播完自動下一首 = 歌書跟新嗰首、歌詞由頭排
+    - AC-3 畫面：暗層 0.8 黑、中間留唱片夾窿；三粒細掣喺暗層上面（i 著燈）；旋鈕、♥、碟疊、版本掣喺暗層下面（㩒唔到、唔入 Tab，D95）；左上資訊白字；曲詞編監四行、冇資料唔出、離轉盤 ≥ 40（太長 26 → 20 縮字再「…」）；暗層蓋埋安全區外嘅延伸（D111）
+    - AC-4 過場：開 0.4 秒（暗層淡入、框線由唱片夾伸出、歌詞沿弧線展開、曲詞編監逐行滑入）；收 0.24 秒倒轉；減少動態效果即時
+    - AC-5 有時間標記：而家嗰行（`aria-current`）跟播放位置（0.1 秒 tick；拉進度、暫停時拉都跟）；44 → 32 縮字，放唔落框入面斷行（最多 12 列）、框線變高；其他行一列、右邊淡出；換行 0.3 秒沿弧線；間奏 = 框留空；第一行之前 = 冇 `aria-current`
+    - AC-6 純文字：直身一欄（x 230–808、y 690 起到旋鈕上面）、冇框線；自動斷行（空格位、續行縮入一個字）；拖動、滾輪、方向鍵捲；頂底淡出；播放／暫停唔影響位置；㩒欄入面唔收
+    - AC-7 載入：攞緊 = 留空；冇歌詞檔 =「尚未有歌詞」；攞唔到（404、超時 8 秒）=「未能載入歌詞」、下次開再試；攞到嘅喺 session 入面唔再攞
+    - AC-8 無障礙：非 modal `role="dialog"`「歌書：{歌名}」；開 = focus 入歌書，收 = focus 返 i（開 MV 除外）；Tab 只喺細掣、♥（心形）、唱片夾、純文字欄、暗層之間兜圈（`focusTrap`，同弧線歌單共用）
+    - AC-9 D99 ②：播完最後一首而歌書開住 = 等收埋先開始計 3 秒；Favourites 碟一樣開到同一首嘅歌書
+- Scope files:
+    - `apps/player/src/components/booklet/**`（連 test、css）、`apps/player/src/lyrics/**`
+    - `apps/player/src/app/`：`BookletLayer.tsx`、`bookletView.ts`、`useBookletClosing.ts`、`useBookletClosing.test.ts`、`HomeSceneBooklet.test.tsx`、`AppLyrics.test.tsx`
+    - `apps/player/src/stage/layouts/bookletTypes.ts`、`bookletClearance.test.ts`；`apps/player/src/components/focusTrap.ts`（同 `player-list` 共用）
+    - 1-hop（屬其他鏈）：`App`、`stageReducer`（`player-core`）；`HomeScene`、`Turntable`、`homeView`、`useHome`、`InfoBlock`、`useStageBackdrop`（`player-home`）；`TopGroup`、`TopInfo`（`player-holding`）；`MachineChrome`、`DialControls`（`player-dial`）；`useListFocus`（`player-list`）；`playbackController`（`player-playback`）；`phone.ts`、`motion.ts`、`tokens.css`、`zh-Hant.ts`（`player-foundation`）；`limits.ts`（`player-catalog`）；`held-tracks/{ColumnEdges,useColumnScroll}`（`player-holding`）
+- Commands: `npm run lint`、`npm run typecheck`、`npm run coverage`（全部 workspace 一次；門檻 80%）、`npm run build -w apps/player`
+- Browser check（未有 e2e spec）：production build（`git archive`，`VITE_CATALOG_URL` = `https://127.0.0.1:8699/catalog/v1/catalog.json`），本機 https 假 Worker（**只用佔位歌詞**「歌詞佔位文字」；有時間標記、純文字、冇歌詞、404、慢 6 秒、超時 9 秒、短歌）+ `127.0.0.1` 靜態 server；Chromium `/opt/pw-browsers/chromium`（route 擋晒非本機並記數）；393 × 852（59／34 inset，改 `.safe-area-probe`）、390 × 844、1280 × 800，各 normal／`reduce`：AC-1 – AC-9 逐項 + 回歸（歌單暗層喺細掣上面、字母盤、拎住、MV、♥、播放）。工具：`/tmp/…/scratchpad/qa-t072/tools/`
+- PWA gate: no（冇改 `sw`、manifest、build config）。Security / Data gate: no（歌詞經 React 文字節點；`cors`、冇 credentials；只讀）。Performance gate: no（冇 backend）
+- Out of scope（已知、已接受）：S-278（歌書冇分 chunk）；試排版（設計輔助）；真歌詞、真 Worker 歌詞端點（API-072 屬 `api-catalog`）；iPhone 真機手感
