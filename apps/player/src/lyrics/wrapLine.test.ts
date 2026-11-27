@@ -45,6 +45,16 @@ describe('wrapLine', () => {
         expect(texts('一二三四五六　　　七八')).toEqual(['一二三四五六', '七八']);
     });
 
+    // review W-075：中間嘅詞後面帶住空格，量嗰陣唔計個空格：「四五」照擺得落第一列（6 個字位）
+    it('should not count the space after a word in the middle when it decides to break', () => {
+        expect(texts('一二三\u3000四五\u3000六')).toEqual(['一二三\u3000四五', '六']);
+    });
+
+    // review W-075（M5）：新一列唔會以空格開頭（行頭有空格嘅行都一樣）
+    it('should never start a row with a space', () => {
+        expect(texts('\u3000\u3000一二')).toEqual(['一二']);
+    });
+
     it('should give a blank row for a blank line (a paragraph break)', () => {
         expect(wrapLine('', SPEC, measure)).toEqual([{ text: '', indent: 0 }]);
     });
