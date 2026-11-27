@@ -23,6 +23,18 @@ body {
 }
 
 /*
+ * 主畫面 app（standalone）：iOS 26+ 嘅 100dvh（同 innerHeight）會喺「螢幕 − 頂部安全區」同成個螢幕之間不停跳，
+ * 100vh / 100lvh 一直係成個螢幕：頁面（連 #root、舞台外框）用佢，同 stage/viewportHeight.ts 一致。分頁照舊 100dvh
+ */
+@media (display-mode: standalone) {
+    html,
+    body {
+        height: 100vh;
+        height: 100lvh;
+    }
+}
+
+/*
  * 舞台只佔安全區；上下延伸（狀態列、底部指示條後面，T-117）由舞台自己畫。
  * 舞台仍然冇蓋到嘅位（闊畫面兩邊、主頁未出之前）由呢度嘅底色填滿
  */

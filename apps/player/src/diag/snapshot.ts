@@ -1,3 +1,5 @@
+import type { StageHeight } from '../stage/viewportHeight';
+
 /*
  * 臨時嘅 viewport 診斷（iPhone 主畫面 app 第一次開唔係全螢幕、底部安全區閃）：一次量度嘅資料形狀。
  * 成個 diag 資料夾係量度工具，查完就連 main.tsx 嗰一行一齊刪走。
@@ -74,6 +76,8 @@ export interface Snapshot {
     fit: Readonly<Record<FitName, string>> | null;
     /** 同 useStageFit 一樣砌法嘅 key：`innerWidth innerHeight insetTop insetBottom` */
     fitKey: string;
+    /** 舞台用嘅高度同來源（分頁 innerHeight；主畫面 app 用 100lvh / 100vh，stage/viewportHeight.ts） */
+    stageHeight: StageHeight;
 }
 
 /** 開 app 之後三個時間點嘅量度 */
