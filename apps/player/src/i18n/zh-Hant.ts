@@ -133,4 +133,13 @@ export const zhHant = {
         available: '已有新版本',
         applyLabel: '已有新版本，立即更新並重新載入',
     },
+    /** 臨時嘅畫面尺寸診斷（src/diag；右上版本號 3 秒內按 5 下開關）：查完連資料夾一齊刪走 */
+    diag: {
+        panel: '畫面尺寸診斷',
+        copy: '複製',
+        clear: '清除記錄',
+        close: '關閉',
+        copied: '已複製',
+        manual: '未能自動複製，請手動複製下方文字',
+    },
 } as const;

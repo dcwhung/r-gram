@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
 import { createBrowserStartup } from './app/startup/startupDeps';
+import { installDiag } from './diag/install';
 import { createMvController } from './mv/mvController';
 import { createVideoEngine } from './mv/videoEngine';
 import { createAudioEngine } from './playback/audioEngine';
@@ -46,3 +47,6 @@ createRoot(root).render(
         <App startup={startup} playback={playback} updates={updates} mv={mv} />
     </StrictMode>,
 );
+
+// 臨時嘅畫面尺寸診斷（右上版本號 3 秒內㩒 5 下開關；查完連 src/diag 一齊刪走）。閂住時唔加 DOM
+installDiag();
