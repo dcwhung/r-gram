@@ -189,14 +189,25 @@ describe('PUT /api/tracks/:id/text: saving', () => {
         expect(await mediaText(TEXT_05_KEY)).toBe(TEXT_05);
     });
 
-    it('should save old subtitle lines and label lines after a blank line with hints', async () => {
-        const { status, body } = await save05('太平門\n副題：Live\n曲：甲\n\n詞：乙');
+    it('should save old subtitle lines with a hint', async () => {
+        const { status, body } = await save05('太平門\n副題：Live\n曲：甲\n\n[00:01.00]第一句');
         expect(status).toBe(200);
         expect(body.hints.map(({ line, reason }: Loose) => [line, reason])).toEqual([
             [2, 'SUBTITLE_IGNORED'],
-            [5, 'LABEL_AFTER_BLANK_LINE'],
         ]);
         expect(body.hints[0].message).toBe(zhHant.tracks.hints.SUBTITLE_IGNORED);
+    });
+
+    // 擁有人決定（2026-11-27）：歌名之後隔咗空行嘅曲詞編監照認做標籤，唔再提示
+    it('should save labels after a blank line as credits without a hint', async () => {
+        const text = '太平門\n\n曲：作曲者甲\n\n詞：填詞者乙\n\n[00:01.00]第一句';
+        const { status, body } = await save05(text);
+        expect(status).toBe(200);
+        expect(body.hints).toEqual([]);
+        expect(body.track).toMatchObject({
+            credits: { composer: '作曲者甲', lyricist: '填詞者乙' },
+            lyrics: { synced: true, lineCount: 1 },
+        });
     });
 });
 
