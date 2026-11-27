@@ -26,8 +26,11 @@ body {
 #root {
     position: relative;
     height: 100%;
-    /* 場景可以設 --stage-backdrop（例如 Preload 嘅黑底、歌書嘅暗層），等安全區外面同舞台一致 */
-    background: var(--stage-backdrop, var(--color-stage));
+    /*
+     * 場景可以設 --stage-backdrop（例如 Preload 嘅黑底、歌書嘅暗層），等安全區外面同舞台一致。
+     * 未設之前（JS 未行）用 Preload 嘅黑色，同 html、body 一樣：唔好開 app 先閃白（S-268）
+     */
+    background: var(--stage-backdrop, var(--color-flag-bg));
 }
 
 /* 只畀讀屏嘅字（例如 UpdateNotice）：唔佔位、睇唔見，但仍然喺無障礙樹入面 */
