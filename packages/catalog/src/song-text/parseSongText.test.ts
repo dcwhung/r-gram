@@ -313,6 +313,30 @@ describe('parseSongText', () => {
             ]);
         });
 
+        // review S-285：由網頁複製嘅文字，「空行」可能夾住睇唔到嘅字元（同 S-158 歌名一樣嘅範圍）
+        it('should take a line of only hidden characters in the label block as blank', () => {
+            const text = '歌名甲\n​\n曲：作曲者甲\n⁠‍\n詞：填詞者乙\n﻿\n第一句';
+            const result = parseSongText(text);
+            expect(result.credits).toEqual({
+                ...NO_CREDITS,
+                composer: '作曲者甲',
+                lyricist: '填詞者乙',
+            });
+            expect(result.lyrics?.source).toBe('第一句');
+            expect(result.errors).toEqual([]);
+        });
+
+        it('should read a label line that starts with hidden characters', () => {
+            const result = parseSongText('歌名甲\n\n​‪曲：作曲者甲\n\n第一句');
+            expect(result.credits).toEqual({ ...NO_CREDITS, composer: '作曲者甲' });
+            expect(result.lyrics?.source).toBe('第一句');
+        });
+
+        it('should keep a line of hidden characters inside the lyrics as it is', () => {
+            const result = parseSongText('歌名甲\n曲：作曲者甲\n\n第一句\n​\n第二句');
+            expect(result.lyrics?.source).toBe('第一句\n​\n第二句');
+        });
+
         it('should give no lyrics when only labels and blank lines follow the title', () => {
             const result = parseSongText('歌名甲\n\n曲：作曲者甲\n\n詞：填詞者乙\n\n');
             expect(result.lyrics).toBeNull();
