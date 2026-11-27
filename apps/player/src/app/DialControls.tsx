@@ -27,6 +27,7 @@ interface DialControlsProps {
 /**
  * 轉碟嘅控件（設計稿第 18 版 scene()：字母盤 → 旋鈕（連刻度）→ ♥）。字母盤喺旋鈕下面，♥ 喺最頂。
  * Functional Spec US-003、US-013、FR-035；Technical Spec「轉碟旋鈕 + 字母盤」。
+ * 弧線歌單、歌書（T-072）嘅暗層蓋住旋鈕同 ♥：㩒唔到、Tab 唔到。
  */
 export const DialControls = ({ layout, view, handlers }: DialControlsProps) => {
     const { entries, current, open } = view.dial;
@@ -51,14 +52,14 @@ export const DialControls = ({ layout, view, handlers }: DialControlsProps) => {
                 onTurn={handlers.onTurn}
                 onEnd={handlers.onTurnEnd}
                 onCancel={handlers.onTurnCancel}
-                covered={view.listOpen}
+                covered={view.listOpen || view.bookletOpen}
             />
             <FavHeart
                 layout={layout}
                 open={open}
                 lit={entries[current]?.albumId === FAVOURITES_ALBUM_ID}
                 onPress={handlers.onFavourites}
-                covered={view.listOpen}
+                covered={view.listOpen || view.bookletOpen}
             />
         </>
     );

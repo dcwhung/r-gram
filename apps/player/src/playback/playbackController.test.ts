@@ -143,6 +143,16 @@ describe('playbackController pause and resume (FR-040)', () => {
         expect(state()).toMatchObject({ positionSec: 3, durationSec: 120 });
     });
 
+    // T-082：歌書跟歌行要比一秒細嘅位置（snapshot 只係每秒換一次）
+    it('should give the precise position between the whole seconds', () => {
+        const { element, controller, state } = playing();
+        element.loadMetadata(120);
+        element.advance(3.25);
+        element.advance(0.5);
+        expect(state().positionSec).toBe(3.25);
+        expect(controller.positionSec).toBe(3.75);
+    });
+
     it('should seek the engine', () => {
         const { element, controller } = playing();
         element.loadMetadata(120);

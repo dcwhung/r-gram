@@ -27,6 +27,8 @@ export interface InfoBlockProps {
     /** 歌單開住（T-037）：轉白字，歌名嗰部分顯示框入面嗰首（`listTrack`；冇歌 = null） */
     listOpen?: boolean;
     listTrack?: CatalogTrack | null;
+    /** 歌書開住（T-072）：暗層上面轉白字，歌名嗰部分照舊係播緊嗰首 */
+    dark?: boolean;
     /** 左上嗰首歌係咪收藏咗（心形掣，US-010） */
     favourite?: boolean;
     onFavourite?: () => void;
@@ -38,16 +40,16 @@ const yearText = (album: CatalogAlbum) => (album.year === null ? '' : String(alb
 
 /**
  * 左上資訊（設計稿 info()；Functional Spec US-002）：碟名 → 年份 + 專輯色橫線 → 歌名 + 心形掣 → 「第 nn 首 · m:ss」。
- * 屬於貼頂組（FR-039）。歌單開住（T-037）轉白字、歌名嗰部分係框入面嗰首；歌書嘅白字版本係 T-072。
+ * 屬於貼頂組（FR-039）。歌單開住（T-037）轉白字、歌名嗰部分係框入面嗰首；歌書開住（T-072）都轉白字，歌名照舊。
  * 揀碟時（`songHidden`）歌名嗰部分淡出，只留碟名同年份（Functional Spec D52、第 18 版確認）。
  * Favourites 碟（T-070）：年份位置係「N 首」，歌名下面加原本嗰隻碟。
  */
 export const InfoBlock = (props: InfoBlockProps) => {
-    const { album, held = false, sub, ...song } = props;
+    const { album, held = false, sub, dark = false, ...song } = props;
     const { info, accent, measure, songHidden = false } = song;
     if (!album) return null;
     return (
-        <g data-part="info" className={props.listOpen ? 'info info--dark' : 'info'}>
+        <g data-part="info" className={props.listOpen || dark ? 'info info--dark' : 'info'}>
             <AlbumTitle info={info} album={album} measure={measure} held={held} />
             <YearRule info={info} text={sub ?? yearText(album)} accent={accent} measure={measure} />
             <ChromeFade part="song-fade" hidden={songHidden}>

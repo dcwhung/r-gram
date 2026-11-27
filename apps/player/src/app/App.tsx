@@ -26,7 +26,7 @@ interface AppProps {
 
 /**
  * 舞台 + 場景：Preload（旗幟、真實載入進度，T-034）→ 主頁。Preload 淡出期間主頁已經喺下面。
- * 歌書喺之後嘅任務加畫面；MV 電視（T-060）喺主頁上面。
+ * 歌書（T-072）喺主頁入面；MV 電視（T-060）喺主頁上面。
  * PWA（T-039、S-197、T-109）：Preload 期間搵到新版就自動換；主頁出咗之後有新版，右上版本號變成更新掣
  *（另外有讀屏通知）；手機打橫用「請打直」蓋住舞台。
  */
@@ -35,7 +35,11 @@ export const App = ({ startup, playback, updates = NO_UPDATES, mv }: AppProps) =
     // 字體載入完會換新嘅量字函數，左上資訊用真字體重新 fit（W-017）
     const measure = useTextMeasure();
     // 旗未完全淡走之前，安全區外面都保持旗嘅黑底
-    useStageBackdrop(backdropFor(preload.exit === 'gone' ? home.stage.scene : 'preload'));
+    useStageBackdrop(
+        preload.exit === 'gone'
+            ? backdropFor(home.stage.scene, home.stage.overlay)
+            : backdropFor('preload'),
+    );
     const landscape = usePhoneLandscape();
     const { view, handlers } = home;
     useLaunchEnd(updates, home.stage.scene !== 'preload');
@@ -52,6 +56,7 @@ export const App = ({ startup, playback, updates = NO_UPDATES, mv }: AppProps) =
                         update={waiting ? { onApply: updates.applyNow } : null}
                         tv={home.tv}
                         tvHandlers={home.tvHandlers}
+                        clock={home.clock}
                     />
                 ) : null}
                 {preload.exit === 'gone' ? null : <PreloadScreen status={preload} />}

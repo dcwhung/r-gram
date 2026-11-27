@@ -96,6 +96,64 @@ const ARC_LIST = {
 } as const;
 
 /*
+ * 歌書（T-072）照設計稿第 18 版 CREDITS、ARC.frame、dimLayer()、focusFrame()：曲詞編監 x 74、第一行基線 446、
+ * 行距 48、字 24（曲詞編監）同 26（名，喺字右邊 44）；暗層 0.8；框高 92、圓頭前面 6、線粗 3。
+ * 名太長設計稿冇畫：縮字最細 20（每次 2），再放唔落先「…」；轉盤上面嘅高度右邊停喺同碟名一樣嘅位
+ */
+/*
+ * 歌書歌詞（T-082）照設計稿第 17、18 版：ARC = { now: 44, other: 32 }、其他行 opacity 0.7 − (|k| − 1) × 0.2（最淡 0.18）、
+ * 上下各 3 行（LYRICS 七行）；D22：而家嗰行縮到 32（每次 2，同左上歌名一樣）。LONG = { size: 32, pitch: 44, pad: 34,
+ * inset: 24, rim: 10, gap: 14, other: 28, otherPitch: 50, around: 3, fade: 110, edge: W − 40 }、
+ * opacity 0.74 − (|k| − 1) × 0.22；CLAMP_BAND、PLAIN_RIGHT = 唱片夾窿 + 20。PLAIN_LAYOUT = { x: 230, top: 690,
+ * bottom: 1650, size: 30 }、PLAIN = { pitch: 1.45, fade: 110, indent: 1 }。
+ * 設計稿冇畫：框入面最多 12 列（框高 562，仍然喺曲詞編監同旋鈕之間）
+ */
+const BOOKLET_LYRICS = {
+    hubGap: 20,
+    edgeGap: 40,
+    cutFade: 110,
+    inset: 24,
+    rim: 10,
+    arc: {
+        now: 44,
+        nowMin: 32,
+        nowStep: 2,
+        other: 32,
+        around: 3,
+        fade: { near: 0.7, step: 0.2, min: 0.18 },
+    },
+    long: {
+        size: 32,
+        pitch: 44,
+        pad: 34,
+        maxRows: 12,
+        gap: 14,
+        other: 28,
+        otherPitch: 50,
+        around: 3,
+        fade: { near: 0.74, step: 0.22, min: 0.18 },
+    },
+    plain: { x: 230, top: 690, bottom: 1650, size: 30, pitch: 1.45, indentEm: 1, fade: 110 },
+} as const;
+
+const BOOKLET = {
+    veil: 0.8,
+    credits: {
+        x: 74,
+        y: 446,
+        pitch: 48,
+        label: 24,
+        value: 26,
+        valueDx: 44,
+        minSize: 20,
+        step: 2,
+        maxRight: DESIGN_WIDTH - INFO_X,
+    },
+    frame: { height: 92, gap: 6, stroke: 3 },
+    lyrics: BOOKLET_LYRICS,
+} as const;
+
+/*
  * Preload（T-034）。布料照 _mockups_/r-gram/src/anim.js（v16）嘅 FLAG；logo、進度線同文字照第 18 版 preloadCard()。
  * v16 logo 平放時中心 x = 838 − 240 = 598、闊 640；第 18 版靜止畫面係 540、闊 560：
  * 用第 18 版嘅位同闊度，保留 v16 嘅 58 單位偏移（摺皺會將 logo 拉向旗杆，飄起嚟先喺中間）。
@@ -251,6 +309,7 @@ export const PHONE_LAYOUT: StageLayout = {
     preload: PRELOAD,
     arc: { r: 556, stepDeg: 9.2 },
     list: ARC_LIST,
+    booklet: BOOKLET,
     tv: PHONE_TV,
     clearance: { cd: 16, platter: 40, controlGap: 40, screwZone: 120, hitPt: 44, viewportPt: 390 },
 };

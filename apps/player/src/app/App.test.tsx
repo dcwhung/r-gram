@@ -225,18 +225,54 @@ describe('App home scene', () => {
         expect(ring()).toBeNull();
     });
 
-    // 歌書係其他任務（T-072）：呢度只係改場景狀態，掣亮燈；暫停時歌書留住（CR-003 決定 5）
-    it('should toggle the booklet state once a song is loaded and keep it open on pause', async () => {
+    // T-072：歌書開住歌繼續播（CR-002「歌書」）；暫停時歌書留住（CR-003 決定 5）；減少動態效果 = 即刻收
+    it('should keep playing under the booklet, keep it open on pause and close it at once', async () => {
         const { button } = await renderHome();
         await userEvent.click(button('開啟歌單'));
         await userEvent.click(button('播放'));
         const booklet = button('歌書：歌詞及創作人員');
         await userEvent.click(booklet);
         expect(booklet).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByRole('dialog', { name: '歌書：apollo-18 1' })).toBeInTheDocument();
+        expect(button('暫停')).toBeInTheDocument();
         await userEvent.click(button('暫停'));
         expect(booklet).toHaveAttribute('aria-pressed', 'true');
         await userEvent.click(booklet);
         expect(booklet).toHaveAttribute('aria-pressed', 'false');
+        expect(screen.queryByRole('dialog')).toBeNull();
+        expect(booklet).toHaveFocus();
+    });
+
+    // T-082：歌書攞嗰首歌嘅歌詞檔（API-072），冇時間標記 = 直身一欄；曲詞編監照 catalog（佔位文字）
+    it('should show the credits and fetch the lyrics of the playing track', async () => {
+        const catalog = sampleDocument();
+        const first = catalog.albums[0]?.tracks[0];
+        if (first) {
+            first.credits = {
+                composer: '作曲佔位',
+                lyricist: null,
+                arranger: null,
+                producer: null,
+            };
+            first.lyrics = '0123456789abcdef.json';
+        }
+        const lyrics = { synced: false, lines: [{ text: '歌詞佔位文字' }] };
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(() => Promise.resolve(new Response(JSON.stringify(lyrics)))),
+        );
+        const { button } = await renderHome(catalog);
+        await userEvent.click(button('開啟歌單'));
+        await userEvent.click(button('播放'));
+        await userEvent.click(button('歌書：歌詞及創作人員'));
+        expect(screen.getByRole('listitem', { name: '曲：作曲佔位' })).toBeInTheDocument();
+        expect(await screen.findByRole('document', { name: '歌詞' })).toHaveTextContent(
+            '歌詞佔位文字',
+        );
+        expect(fetch).toHaveBeenCalledWith(
+            'https://api.example/catalog/v1/lyrics/0123456789abcdef.json',
+            expect.objectContaining({ mode: 'cors' }),
+        );
     });
 
     // MV 電視（T-060）：開 MV 時停播、唱臂返泊位；㩒 ■ 收返之後要㩒先續播，再播重新落針（C8）
@@ -294,6 +330,22 @@ describe('App home scene with motion', () => {
         vi.useFakeTimers();
     });
     afterEach(() => vi.useRealTimers());
+
+    // T-072：收返歌書先行 0.24 秒過場，完咗先收（期間 i 掣照著燈）
+    it('should close the booklet after its transition', async () => {
+        const { button } = await renderHome();
+        fireEvent.click(button('開啟歌單'));
+        fireEvent.click(button('播放'));
+        const booklet = button('歌書：歌詞及創作人員');
+        act(() => fireEvent.click(booklet));
+        expect(screen.getByRole('dialog')).toHaveClass('booklet--in');
+        act(() => fireEvent.click(booklet));
+        expect(screen.getByRole('dialog')).toHaveClass('booklet--out');
+        expect(booklet).toHaveAttribute('aria-pressed', 'true');
+        await act(() => vi.advanceTimersByTimeAsync(MOTION.scene.bookletCloseMs));
+        expect(booklet).toHaveAttribute('aria-pressed', 'false');
+        expect(screen.queryByRole('dialog')).toBeNull();
+    });
 
     // 由泊位開始播：轉入（升高住）→ 放低；碟等放低之後先轉
     it('should start turning the disc only after the needle is down', async () => {
