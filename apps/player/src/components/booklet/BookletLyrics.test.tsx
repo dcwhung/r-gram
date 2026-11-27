@@ -204,4 +204,23 @@ describe('BookletLyrics', () => {
         await settle();
         expect(screen.getByText('未能載入歌詞')).toBeInTheDocument();
     });
+
+    // review S-275（M36）：開住時換歌，歌詞由頭排（決定 11：新嘅一組行、新嘅框線，純文字欄返去頂）
+    it('should start the lyrics afresh when the track changes while open', async () => {
+        serve(TIMED);
+        const url = nextUrl();
+        const { container, rerender } = renderLyrics(booklet(url, 'komorebi-01'), () => 4.5);
+        await settle();
+        const before = container.querySelector('[data-part="lyrics-timed"]');
+        rerender(tree(booklet(url, 'komorebi-02'), () => 4.5));
+        expect(container.querySelector('[data-part="lyrics-timed"]')).not.toBe(before);
+        serve(PLAIN);
+        const plainUrl = nextUrl();
+        rerender(tree(booklet(plainUrl, 'komorebi-03')));
+        await settle();
+        fireEvent.keyDown(screen.getByRole('document', { name: '歌詞' }), { key: 'End' });
+        rerender(tree(booklet(plainUrl, 'komorebi-04')));
+        const rows = screen.getByRole('document').querySelector('[transform^="translate(0 "]');
+        expect(rows).toHaveAttribute('transform', 'translate(0 0)');
+    });
 });
