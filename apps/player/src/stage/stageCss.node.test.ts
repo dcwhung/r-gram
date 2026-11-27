@@ -38,6 +38,13 @@ describe('stage.css bleed', () => {
         expectDeclaration(frame, 'overflow: clip;');
     });
 
+    // S-272：唔識 clip 嘅舊瀏覽器（Safari < 16）用 hidden：要寫喺 clip 前面，識 clip 嘅就用後面嗰句
+    it('should fall back to overflow: hidden before overflow: clip', () => {
+        const frame = ruleOf(STAGE, '.stage-frame');
+        expect(frame.indexOf('overflow:hidden;')).toBeGreaterThanOrEqual(0);
+        expect(frame.indexOf('overflow:hidden;')).toBeLessThan(frame.indexOf('overflow:clip;'));
+    });
+
     it('should let the stage draw outside its own box (the frame clips)', () => {
         const stage = ruleOf(STAGE, '.stage');
         expect(stage).not.toMatch(/overflow\s*:/);
