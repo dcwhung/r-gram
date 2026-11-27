@@ -121,6 +121,36 @@ describe('motion tokens', () => {
         expect(tvCloseMs).toBeGreaterThanOrEqual(tvDropDelayMs + tvDropMs);
     });
 
+    // T-072：設計稿第 18 版 book-in／book-out（暗層、框線、曲詞編監）
+    it('should use the booklet part timings of mockup version 18', () => {
+        expect(MOTION.scene).toMatchObject({
+            bookletVeilInMs: 300,
+            bookletFrameOutMs: 300,
+            bookletCreditInMs: 240,
+            bookletCreditDelayMs: 40,
+            bookletCreditStepMs: 40,
+            bookletVeilOutMs: 240,
+            bookletFrameInMs: 220,
+            bookletCreditOutMs: 160,
+        });
+    });
+
+    // 收返完先轉場景狀態：每部分都喺 bookletCloseMs 之內完；打開最遲嗰行曲詞編監（第 4 行）喺 bookletOpenMs 完
+    it('should fit every booklet part inside the open and close durations', () => {
+        const { scene } = MOTION;
+        const LAST_CREDIT = 3;
+        const lastCreditEnd =
+            scene.bookletCreditDelayMs +
+            LAST_CREDIT * scene.bookletCreditStepMs +
+            scene.bookletCreditInMs;
+        expect(lastCreditEnd).toBe(scene.bookletOpenMs);
+        expect(Math.max(scene.bookletVeilInMs, scene.bookletFrameOutMs)).toBeLessThanOrEqual(
+            scene.bookletOpenMs,
+        );
+        const closing = [scene.bookletVeilOutMs, scene.bookletFrameInMs, scene.bookletCreditOutMs];
+        expect(Math.max(...closing)).toBe(scene.bookletCloseMs);
+    });
+
     // T-109：設計稿第 20 版 versionGlow（成粒版本掣一明一暗，1.4 秒一個來回）
     it('should blink the update button with the period of mockup version 20', () => {
         expect(MOTION.loop.updateBlinkMs).toBe(1400);

@@ -209,4 +209,14 @@ describe('PHONE_LAYOUT', () => {
     it('should carry the Favourites disc logo of the mockup', () => {
         expect(PHONE_LAYOUT.favouritesLogo).toEqual({ width: 0.36, centreY: 0.46, aspect: 0.8203 });
     });
+
+    // T-072：設計稿第 18 版 CREDITS = { x: 74, y: 446, pitch: 48, label: 24, value: 26 }（名喺 x + 44）、
+    // dimLayer() 0.8、ARC.frame 92、focusFrame() 圓頭前面 6、線粗 3
+    it('should carry the booklet of the mockup', () => {
+        expect(PHONE_LAYOUT.booklet).toMatchObject({
+            veil: 0.8,
+            credits: { x: 74, y: 446, pitch: 48, label: 24, value: 26, valueDx: 44 },
+            frame: { height: 92, gap: 6, stroke: 3 },
+        });
+    });
 });

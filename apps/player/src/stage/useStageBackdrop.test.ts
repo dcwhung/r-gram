@@ -27,4 +27,10 @@ describe('backdropFor', () => {
     it('should use the dimmed stage colour behind the track list', () => {
         expect(backdropFor('list')).toBe('var(--color-stage-dimmed)');
     });
+
+    // T-072：歌書嘅暗層同歌單一樣（黑色 80%）
+    it('should use the dimmed stage colour behind the booklet', () => {
+        expect(backdropFor('home', 'booklet')).toBe('var(--color-stage-dimmed)');
+        expect(backdropFor('home', null)).toBe('var(--color-stage)');
+    });
 });

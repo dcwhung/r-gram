@@ -168,8 +168,11 @@ describe('HomeScene choosing a disc', () => {
         const { container } = render(scene(viewOf('room', null, { scene: 'list' })));
         const list = part(container, 'arc-list');
         expect(list?.closest('[data-anchor="top"]')).not.toBeNull();
-        expect(list?.previousElementSibling).toHaveAttribute('data-part', 'screws');
-        expect(list?.nextElementSibling).toHaveAttribute('data-part', 'info');
+        // T-072：三粒細掣搬咗入貼頂組（要喺歌書上面），仍然喺歌單嘅暗層下面（S-074）
+        const buttons = list?.previousElementSibling;
+        expect(buttons?.querySelector('[data-part="chrome-buttons"]')).not.toBeNull();
+        expect(buttons?.previousElementSibling).toHaveAttribute('data-part', 'screws');
+        expect(list?.nextElementSibling?.firstElementChild).toHaveAttribute('data-part', 'info');
         expect(screen.getByRole('button', { name: '播放' })).toHaveAttribute('tabindex', '0');
     });
 

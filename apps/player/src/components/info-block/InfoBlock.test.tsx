@@ -317,3 +317,14 @@ describe('InfoBlock while the list is open', () => {
         expect(container.querySelector('[data-part="version"]')).toHaveClass('info-version--dark');
     });
 });
+
+/* T-072：歌書開住時左上資訊轉白字（設計稿第 18 版 infoParts()：st.booklet → PAPER），歌名嗰部分照舊係播緊嗰首 */
+describe('InfoBlock while the booklet is open', () => {
+    it('should turn white and keep the playing track with its time and heart', () => {
+        const part = renderInfo({ dark: true, track: track() });
+        expect(part('info')).toHaveClass('info--dark');
+        expect(part('song-title')).toHaveTextContent('我永遠記得');
+        expect(part('track-line')).toBeInTheDocument();
+        expect(part('list-number')).toBeNull();
+    });
+});

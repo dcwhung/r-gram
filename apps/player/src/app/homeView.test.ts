@@ -384,6 +384,8 @@ describe('homeView arc list', () => {
         ['the dial is open', home({ scene: 'discChange' }), IDLE_PLAYBACK, false],
         ['the list is already open', home({ scene: 'list' }), IDLE_PLAYBACK, false],
         ['the MV is open', home({ overlay: 'mv' }), playback(), false],
+        // T-072：碟面喺歌書嘅暗層下面（㩒暗位 = 收返歌書），鍵盤都唔應該由歌書跳去開歌單
+        ['the booklet is open', home({ overlay: 'booklet' }), playback(), false],
     ])('should tell whether the disc face opens the list when %s', (_c, stage, state, can) => {
         expect(homeView(document, stage, state).canOpenList).toBe(can);
     });
@@ -395,5 +397,41 @@ describe('homeView arc list', () => {
         const open = homeView(document, stage, IDLE_PLAYBACK);
         expect(open.list?.focusIndex).toBe(2);
         expect(open.listTrack?.id).toBe('apollo-18-03');
+    });
+});
+
+/* T-072：歌書（Functional Spec CR-002「歌書」、D24、CR-003 決定 5） */
+describe('homeView booklet', () => {
+    const document = sampleDocument();
+    const credits = { composer: '甲', lyricist: null, arranger: '乙', producer: null };
+    document.albums[0]!.tracks[0]!.credits = credits;
+
+    it('should show the loaded track and its credits while the booklet is open', () => {
+        const view = homeView(document, home({ overlay: 'booklet' }), playback());
+        expect(view.booklet).toEqual({ trackId: 'apollo-18-01', title: 'apollo-18 1', credits });
+    });
+
+    // 歌書開住時暫停：歌書留住（決定 5）；播完未放低（D99 ②：等歌書收埋先計 3 秒）都照顯示
+    it.each([
+        ['paused', userPaused],
+        ['ended', playback({ status: 'ended' })],
+    ])('should keep the booklet when the track is %s', (_c, state) => {
+        expect(homeView(document, home({ overlay: 'booklet' }), state).booklet?.trackId).toBe(
+            'apollo-18-01',
+        );
+    });
+
+    it('should follow the next track when it changes while open', () => {
+        const next = playback({ trackId: 'apollo-18-03' });
+        expect(homeView(document, home({ overlay: 'booklet' }), next).booklet?.trackId).toBe(
+            'apollo-18-03',
+        );
+    });
+
+    it.each([
+        ['the booklet is closed', home(), playback()],
+        ['nothing is loaded', home({ overlay: 'booklet' }), IDLE_PLAYBACK],
+    ])('should have no booklet when %s', (_c, stage, state) => {
+        expect(homeView(document, stage, state).booklet).toBeNull();
     });
 });
