@@ -23,5 +23,6 @@
 - Browser check：兩個 production build（A = 0.1.0、B = 0.1.1，HEAD 嘅 `git archive` 副本，B 只改 `package.json` version）由 `127.0.0.1` 靜態 server 切換；本機 https 假 Worker；Chromium（`--ignore-certificate-errors` 只為本機自簽證書，SW 嘅 fetch 唔跟 context 設定）；`serviceWorkers: 'allow'`，route 擋晒非本機並記數；AC-1 – AC-7；normal 全套，`reduce` 跑用緊時更新、「請打直」、版面
 - 2026-11-26（T-109、T-112、T-010）：browser check = `/tmp/…/scratchpad/qa-t109-t110/update.cjs`（A／B 兩個 build；主流程、四種㩒法、打橫通知；393 × 852、1280 × 800 × normal／`reduce`）+ T-112 靜態檢查（build 嘅 `index.html`、manifest、icon、`sw.js`）+ `spike.cjs`（spike 頁喺 app SW 下面）
 - 2026-11-26（T-038、T-113）：`/tmp/…/scratchpad/qa-t038-t116/``update.cjs`（A／B build，四個 run）、`t038.cjs` R1（打橫）、`t113.cjs`（precache／runtime cache）
+- 2026-11-27（T-060）：`main.tsx` 建 `createSessionTargets(createMediaSession())`、唱片 controller 用 `sessions.record`、MV controller 一個；冇改 SW、manifest、build 設定（PWA gate 唔使做）。Browser = `mv.cjs`（production build 載入、Media Session 兩邊）
 - PWA gate: yes（manifest、icon、更新邏輯、build 設定）。Security / Data gate: no（冇新輸入面；SW 只向自己 origin）。Performance gate: no（precache 12 項 1125 KiB，見 QA 報告 S-207）
 - Out of scope（已知、已接受）：提示同「請打直」冇設計稿（用戶睇截圖）；S-205（版本號規則，T-041）；D14 / US-011 字眼（PM）；Chromium `in-incognito` 嘅 installability（測試環境）；真機 iOS / Android 安裝

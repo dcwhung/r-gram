@@ -24,5 +24,6 @@
     - 393 × 852：AC-3 每種失敗量「去到主頁 / 錯誤」嘅時間；重試連續兩次（滑鼠 + Enter）；AC-6、AC-7
 - 2026-11-26（T-038）：Preload 由 `/tmp/…/scratchpad/qa-t038-t116/``regress-qa.cjs`、`t038.cjs`（每個 context 等 Preload 走）覆蓋
 - 2026-11-26（T-114）：AC-9 WebGL 旗幟（FS §CR-010「Preload 旗幟」、D106、US-001）：預設 WebGL 逐格飄；`getContext('webgl')` 攞唔到、renderer 開唔到、`webglcontextlost`、減少動態效果 = 換新 canvas 畫 2D 靜止一格（冇 rAF loop）；Preload 時間線不變；Preload 走咗之後冇 rAF；spike 5a 用真 `PreloadScreen`。新檔 `flag/{flagBuffers,flagCloth,flagGl,flagGlSetup,flagMode,flagPlayback,flagShader}.ts`、`FlagCanvas.test.tsx` 同 test 已喺 `flag/**`。Browser = `/tmp/…/scratchpad/qa-t114-t070/flag.cjs`（393 × 852、1280 × 800；Chromium `--use-angle=swiftshader`；catalog 延遲 4 秒令旗幟有時間飄）；fps 目標要真機（U-24）
+- 2026-11-27（T-060）：`useBoot` 將 `mv` 傳去 `useHome`；Preload 流程不變（`mv.cjs` 每個 context 等 Preload 走；`backdrop` 量 Preload 黑底）
 - PWA gate: yes（同 `player-catalog` 一齊做：第一次上網開、離線重新載入、Cache Storage）。Security / Data gate: no（外來輸入由 `player-catalog` 驗）。Performance gate: no（冇 backend 改動；旗幟 fps 要真機，見 backlog B-075 ②）
 - Out of scope：重開 app 回復上次嘅碟同歌（D12）；由背景返嚟唔再出 Preload（US-001，冇背景載入）；旗幟真機 fps；backlog B-075（S-141 – S-147）

@@ -32,5 +32,6 @@
     - console 冇 error／warning；頁面冇重覆 id、冇指去唔存在 id 嘅 `url(#…)`
 - 2026-11-26（T-038）：只係 prop 接駁；browser 由 `/tmp/…/scratchpad/qa-t038-t116/``t038.cjs` 覆蓋（一個 element、開 app 冇 `play()`）
 - 2026-11-26（T-070）：AC-14 Favourites 碟面（FS §CR-002「Favourites」碟面；設計稿 LOGO、`gVinyl`）：`DiscCover` 冇封面嘅 ♥ 碟畫黑碟 + logo（闊 0.36 R、中心 0.46 R），轉盤、碟疊、細唱片機共用；`SvgDefs`／`defIds` 加 vinyl 漸變。Browser = `/tmp/…/scratchpad/qa-t114-t070/fav.cjs` 截圖同設計稿卡並排（`shots/sbs-*.png`）
+- 2026-11-27（T-060、T-061）：AC-15 `App.tsx` 將 `mv` controller 經 `useBoot` 傳入、`HomeScene` 收 `tv`／`tvHandlers`；`MetalButton` 加一個 prop（電視掣共用金屬圓）。Scope 唔包 `player-mv` 嘅 `components/tv/**`、`app/{useTv,tvView*,mvTrack,useTvFocusReturn,homeScene.css,AppMv.test.tsx,useHomeMv.test.ts}`（見 `plans/player-mv.md`）。Browser = `/tmp/…/scratchpad/qa-t060/mv.cjs`（`core`、`regress`）
 - PWA gate: no（`vite.config.ts`、`index.html`、manifest、`package.json` 冇改；T-034 嘅 PWA 驗收喺 `player-catalog`）。Security / Data gate: no（冇外來輸入）。Performance gate: no
 - Out of scope（已知、已接受）：所有零件係同一個 SVG 畫布入面嘅 React 元件（Technical Spec 由 CR-003 同步）；`TurntableShell` 係暫時外殼（封面未接、左上係 App 名、冇旋鈕；T-035 取代）；設計稿第 16 版嘅暫停（唱針升起、唱臂留喺碟上）、歌書暫停時唔收、固定刻度弧（T-035／T-038）；backlog S-035、S-039 – S-042；高身手機多出嘅高度點對位（B-009）

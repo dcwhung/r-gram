@@ -1,0 +1,24 @@
+# Test Plan — player-mv
+
+- Chain: 播放端 MV 電視（`apps/player`）：成個 app 一個 `<video>` 嘅 `videoEngine`（手勢入面 `cue`、開機 `reveal`、`stop` 清 src、錯誤分類、被拒）、`mvAudio`（一個 `AudioContext` + `MediaElementSource` + `GainNode`；音量、靜音只用 gain；`audioSession`）、`mvController`（外部 store；升起 → 開機先出聲、熄機 + 收埋 `tvCloseMs`、失敗留低、Media Session 目標 `mv`）、電視元件（機身、螢幕、▶ ❚❚ ■、兩粒旋鈕、模糊層）、`tvView`、`useTv`、`mvTrack`、focus 交返 MV 掣、電視幾何表。任務 T-060、T-061（連 review 修正 W-068、S-259–S-261、S-263）
+- AC（L1：FS = Functional Spec v1.12 US-007、FR-012、FR-026、FR-038「過場動畫」MV 四行、§CR-002「MV 電視」「熄電視之後」、C5、C8、C9、§CR-010 決定 4／5、D104、D105；TS「CR-010 → MV 音訊」「Media Session → MV 開住」；Plan v1.9 T-060、T-061；設計稿 `_mockups_/home-turntable/index.html` 卡「MV 電視」「MV 收返之後」；owner 2026-11-27 決定 (a)–(l)，見 QA 報告）:
+    - AC-1 開（US-007、FR-038）：㩒 MV 掣 = 唱片即刻停、唱臂返泊位、背後成層 `inert` + 模糊（`backdrop-filter`，W-069）；電視升起 → 開機（720 + 220 ms）先出聲（gain 0 → 音量）；減少動態效果即刻；focus 入電視
+    - AC-2 掣（FS §CR-002）：▶ ❚❚ ■ 喺機身下面、著燈 = `aria-pressed`、每粒感應 ≥ 44pt 唔重疊；■／Esc = 即刻靜、熄機期間鎖掣、`tvCloseMs` 之後收埋；播完一樣
+    - AC-3 收埋之後（C8）：唱片唔續播、唱臂泊位、唱片夾 play；focus 返 MV 掣；鎖屏轉返唱片（上一首／下一首返嚟）；再㩒唱片夾照播
+    - AC-4 音量旋鈕（D104、T-061）：270° 掃角、開始 100 %；拖動、㩒一下／Enter／空白鍵 = 靜音（記住音量）、方向鍵 5 %、Home／End；扭 = 取消靜音；`video.muted` 永遠 false、`video.volume` 永遠 1；同一次開 app 記住、唔儲存；冇 `AudioContext` = `aria-disabled`、MV 照播
+    - AC-5 快轉／倒轉旋鈕：每 30° 或每下方向鍵 10 秒；Home = 0、End = 尾之前一格（S-263）；未知長度 = `aria-disabled`
+    - AC-6 錯誤（US-004 同類）：載入失敗 = 電視留低、螢幕「未能播放 MV」、live region 講歌名、冇掣著燈、▶ = 重試；自動播被拒 = ❚❚ 著燈等、▶ 開始（W-068）
+    - AC-7 Media Session：電視開住 = 「{title}（MV）」、原本碟名同封面（♥ 碟一樣）、冇上一首／下一首；play／pause／seekto 去電視
+    - AC-8 MV 掣停用（C5）：未揀歌、首歌冇 MV；D99 等緊時㩒 = 即刻放低、唔開（`player-playback` AC-4）；電視開住時 D99 timer、自動下一首唔觸發
+    - AC-9 版面：貼底（高身手機跟畫面底）、外觀同設計稿一致；`stage/layouts/phoneTv` = 設計稿 `tvSet()` 常數
+- Scope files:
+    - `apps/player/src/mv/**`（`mvAudio`、`mvConfig`、`mvController`、`videoEngine` 同 `*.test.ts`、`testing/{fakeAudioContext,fakeVideo,testMv}.ts`）
+    - `apps/player/src/components/tv/**`（連 `tv.css`、`tvCss.node.test.ts`、`knobAngle*`、`knobKeys.ts`、`useKnobDrag.ts`、`tvDefIds.ts`、`tvShapes.ts`）
+    - `apps/player/src/stage/layouts/{phoneTv,tvTypes,tvLayout.test}.ts`
+    - `apps/player/src/app/{useTv,tvView,tvView.test,mvTrack,useTvFocusReturn}.ts`、`app/homeScene.css`、`app/AppMv.test.tsx`、`app/useHomeMv.test.ts`
+    - 1-hop（屬其他鏈）：`app/{HomeScene,useHome,App}.tsx`（`player-home`／`player-core`）、`playback/{sessionTargets,mediaSession}.ts`（`player-playback`）、`main.tsx`（`player-pwa`）、`config/motion.ts`、`i18n/zh-Hant.ts`、`stage/layouts/{phone,types,index}.ts`、`styles/tokens.css`（`player-foundation`）
+- Commands:
+    - `npx vitest run --project @r-gram/player src/mv src/components/tv src/stage/layouts/tvLayout.test.ts src/app/tvView.test.ts src/app/AppMv.test.tsx src/app/useHomeMv.test.ts`（lint／typecheck／coverage 引用同一個 SHA 嘅 gate）
+    - Browser（未有 e2e）：`/tmp/…/scratchpad/qa-t060/mv.cjs` + `server.mjs`（HEAD production build，`VITE_CATALOG_URL` = 本機假 Worker；假媒體 bucket 有 Range + CORS：60 秒 VP9 MV、5 秒 MV、404 MV、冇 MV 嘅歌）；393 × 852、390 × 844、1280 × 800 × normal／`reduce`；斷言喺真 `<video>`／`<audio>`、真 `GainNode.gain.value`、`createMediaElementSource` 次數；Media Session handler 由測試直接叫；非本機請求一律 abort
+- PWA gate: no（`main.tsx` 只係多建一個 controller；冇改 SW、manifest、build 設定）。Security / Data gate: no（MV 網址經 `mediaUrl()`；冇儲存）。Performance gate: no（冇 backend）
+- Out of scope（真機，U-24 ④ 等）：側邊靜音撥掣（`audioSession`）、鎖機時 MV 暫停一次再由鎖屏繼續（iOS 行為，owner 接受）、真機模糊流暢度（W-069 owner 已試）、iPhone 系統音量上限、真 H.264 MV 檔；歌書（T-072）；續播（T-062）
