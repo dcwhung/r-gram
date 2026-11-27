@@ -1,4 +1,5 @@
 import { Tv, type TvHandlers } from '../components/tv/Tv';
+import { PlaybackClock } from '../lyrics/PlaybackClock';
 import { PHONE_LAYOUT, type StageLayout } from '../stage/layouts';
 import { StageSvg } from '../stage/StageSvg';
 import type { TextMeasure } from '../utils/textMeasure';
@@ -25,7 +26,12 @@ interface HomeSceneProps {
     /** MV 電視（T-060）；收埋咗 = null */
     tv?: TvView | null;
     tvHandlers?: TvHandlers | null;
+    /** 而家播到邊（秒，比 view 嘅時間準）：歌書跟歌行用（T-082）；冇畀 = 0 */
+    clock?: () => number;
 }
+
+/** 冇 controller（測試）：位置當 0 */
+const NO_CLOCK = () => 0;
 
 type MachineProps = Pick<HomeSceneProps, 'view' | 'handlers' | 'measure' | 'update'> & {
     layout: StageLayout;
@@ -84,17 +90,18 @@ export const HomeScene = ({
     layout = PHONE_LAYOUT,
     tv = null,
     tvHandlers = null,
+    clock = NO_CLOCK,
     ...machine
 }: HomeSceneProps) => {
     const layer = useTvFocusReturn(tv !== null);
     return (
-        <>
+        <PlaybackClock.Provider value={clock}>
             <div ref={layer} className="home-layer" data-part="home-layer" inert={tv !== null}>
                 <Machine layout={layout} {...machine} />
             </div>
             {tv && tvHandlers && (
                 <Tv layout={layout} tv={tv} handlers={tvHandlers} measure={machine.measure} />
             )}
-        </>
+        </PlaybackClock.Provider>
     );
 };

@@ -218,6 +218,8 @@ export interface Home extends TvParts {
      * 未有 catalog 就乜都唔做
      */
     finishPreload: () => void;
+    /** 而家播到邊（秒，引擎嘅真位置；歌書跟歌行用，T-082） */
+    clock: () => number;
 }
 
 /**
@@ -259,8 +261,9 @@ export const useHome = (
         const first = catalog ? dialAlbums(catalog)[0] : undefined;
         if (first) dispatch({ type: 'preloadDone', albumId: first.id });
     }, [catalog]);
+    const clock = useCallback(() => player.positionSec, [player]);
     const { document } = favourites;
-    const base = { stage, playback, covers, finishPreload };
+    const base = { stage, playback, covers, finishPreload, clock };
     if (!document) return { ...base, view: null, handlers: null, tv: null, tvHandlers: null };
     const view = homeView(document, stage, playback, covers, mode, audible, favourites.ids);
     const context = { catalog: document, stage, playback, view, covers, dispatch, player, mv };

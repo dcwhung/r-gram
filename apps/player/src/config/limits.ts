@@ -23,6 +23,18 @@ export const IDLE_FALLBACK_MS = 1500;
  */
 export const CATALOG_IMAGE_CACHE_MAX_ENTRIES = 200;
 
+/**
+ * 歌書攞歌詞檔（API-072）最多等幾耐，之後顯示「未能載入歌詞」（下次打開歌書再試）。
+ * Spec 冇定數值：同 catalog 一樣 8 秒；一份歌詞檔通常幾 KB，慢網絡都夠
+ */
+export const LYRICS_FETCH_TIMEOUT_MS = 8000;
+
+/**
+ * 歌書開住而歌播緊：幾耐睇一次播放位置，換而家嗰行（唔係動畫，所以唔入 motion.ts）。
+ * Spec 冇定數值：0.1 秒內跟到，同時唔使每格畫面都 render
+ */
+export const LYRIC_TICK_MS = 100;
+
 /** Service Worker 留低幾多份歌詞（B-071 ③）：291 首歌，每首最多一份，留位畀改歌詞同加歌 */
 export const LYRICS_CACHE_MAX_ENTRIES = 400;
 

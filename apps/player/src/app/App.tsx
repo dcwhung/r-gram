@@ -56,6 +56,7 @@ export const App = ({ startup, playback, updates = NO_UPDATES, mv }: AppProps) =
                         update={waiting ? { onApply: updates.applyNow } : null}
                         tv={home.tv}
                         tvHandlers={home.tvHandlers}
+                        clock={home.clock}
                     />
                 ) : null}
                 {preload.exit === 'gone' ? null : <PreloadScreen status={preload} />}

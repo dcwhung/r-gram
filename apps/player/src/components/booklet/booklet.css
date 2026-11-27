@@ -32,6 +32,47 @@
     font-family: var(--font-cjk);
 }
 
+/* 歌詞（T-082；設計稿 booklet()、longLyrics()、plainLyrics()）：混排字體；而家嗰行粗體 */
+.lyric-text,
+.booklet-plain-text {
+    fill: var(--color-paper);
+    font-family: var(--font-mixed);
+    font-weight: 500;
+}
+
+.lyric-text--focus {
+    font-weight: 700;
+}
+
+/* 設計稿 plainLyrics()：全部列白色 0.9 */
+.booklet-plain-text {
+    opacity: 0.9;
+}
+
+/* 冇歌詞、攞唔到：框入面一行（同冇歌嘅歌單 .arc-empty 一樣） */
+.booklet-lyrics-notice {
+    fill: var(--color-paper);
+    font-family: var(--font-cjk);
+    font-weight: 700;
+}
+
+/* 純文字欄自己處理拖動：瀏覽器唔好當係捲頁或者縮放（Technical Spec 實現注意事項 13） */
+.booklet-plain {
+    outline: none;
+    touch-action: none;
+}
+
+.booklet-plain-hit {
+    fill: transparent;
+}
+
+/* 鍵盤 focus 喺純文字欄（可以用方向鍵捲）：喺欄外圍畫虛線框 */
+.booklet-plain:focus-visible .booklet-plain-hit {
+    stroke: var(--color-paper);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}
+
 /*
  * 過場（設計稿 book-in／book-out；Technical Spec「歌書過場」）：打開時暗層同左上白字淡入、框線以唱片夾嗰邊做原點
  * 由 scaleX(0) 伸出、曲詞編監逐行由左滑入；收返倒轉。元件一 mount 就係 booklet--in（動畫只喺 mount 行一次），
@@ -71,6 +112,38 @@
     .booklet--out .booklet-credit {
         animation: booklet-fade-out var(--motion-scene-booklet-credit-out) ease both;
     }
+
+    /* 歌詞（T-082）：弧線歌詞由而家嗰行嘅位置沿弧線轉出嚟（以碟心做原點）；純文字欄淡入；收返倒轉 */
+    .booklet--in .booklet-line {
+        transform-origin: 0 0;
+        animation: booklet-line-fan var(--motion-scene-booklet-line-fan)
+            cubic-bezier(0.2, 0.8, 0.3, 1) var(--motion-scene-booklet-line-fan-delay) backwards;
+    }
+
+    .booklet--out .booklet-line {
+        transform-origin: 0 0;
+        animation: booklet-line-fold var(--motion-scene-booklet-line-fold) ease-in both;
+    }
+
+    .booklet--in .booklet-plain-fade {
+        animation: booklet-fade-in var(--motion-scene-booklet-plain-in) ease
+            var(--motion-scene-booklet-plain-in-delay) backwards;
+    }
+
+    .booklet--out .booklet-plain-fade {
+        animation: booklet-fade-out var(--motion-scene-booklet-plain-out) ease both;
+    }
+
+    /* 唱到下一行：成組移去新位置（位置、透明度、字級；設計稿冇定時長，T-082） */
+    .lyric-line {
+        transition:
+            transform var(--motion-scene-lyric-advance) cubic-bezier(0.2, 0.8, 0.3, 1),
+            opacity var(--motion-scene-lyric-advance) ease;
+    }
+
+    .lyric-text {
+        transition: font-size var(--motion-scene-lyric-advance) cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
 }
 
 @keyframes booklet-fade-in {
@@ -94,6 +167,20 @@
 @keyframes booklet-frame-in {
     to {
         transform: scaleX(0);
+    }
+}
+
+@keyframes booklet-line-fan {
+    from {
+        transform: rotate(var(--spread));
+        opacity: 0;
+    }
+}
+
+@keyframes booklet-line-fold {
+    to {
+        transform: rotate(var(--spread));
+        opacity: 0;
     }
 }
 

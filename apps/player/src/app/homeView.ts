@@ -241,7 +241,7 @@ export const homeView = (
         ...timing(playback, track !== null && playback.status === 'error'),
         ...songFlags(track, mode),
         ...openFlags(stage),
-        booklet: bookletView(stage, track),
+        booklet: bookletView(document, stage, track),
         dial,
         ...choosing,
         ...heldParts(document, stage, playback, dial, choosing.holding),

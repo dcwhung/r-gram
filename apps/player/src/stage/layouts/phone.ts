@@ -100,6 +100,42 @@ const ARC_LIST = {
  * 行距 48、字 24（曲詞編監）同 26（名，喺字右邊 44）；暗層 0.8；框高 92、圓頭前面 6、線粗 3。
  * 名太長設計稿冇畫：縮字最細 20（每次 2），再放唔落先「…」；轉盤上面嘅高度右邊停喺同碟名一樣嘅位
  */
+/*
+ * 歌書歌詞（T-082）照設計稿第 17、18 版：ARC = { now: 44, other: 32 }、其他行 opacity 0.7 − (|k| − 1) × 0.2（最淡 0.18）、
+ * 上下各 3 行（LYRICS 七行）；D22：而家嗰行縮到 32（每次 2，同左上歌名一樣）。LONG = { size: 32, pitch: 44, pad: 34,
+ * inset: 24, rim: 10, gap: 14, other: 28, otherPitch: 50, around: 3, fade: 110, edge: W − 40 }、
+ * opacity 0.74 − (|k| − 1) × 0.22；CLAMP_BAND、PLAIN_RIGHT = 唱片夾窿 + 20。PLAIN_LAYOUT = { x: 230, top: 690,
+ * bottom: 1650, size: 30 }、PLAIN = { pitch: 1.45, fade: 110, indent: 1 }。
+ * 設計稿冇畫：框入面最多 12 列（框高 562，仍然喺曲詞編監同旋鈕之間）
+ */
+const BOOKLET_LYRICS = {
+    hubGap: 20,
+    edgeGap: 40,
+    cutFade: 110,
+    inset: 24,
+    rim: 10,
+    arc: {
+        now: 44,
+        nowMin: 32,
+        nowStep: 2,
+        other: 32,
+        around: 3,
+        fade: { near: 0.7, step: 0.2, min: 0.18 },
+    },
+    long: {
+        size: 32,
+        pitch: 44,
+        pad: 34,
+        maxRows: 12,
+        gap: 14,
+        other: 28,
+        otherPitch: 50,
+        around: 3,
+        fade: { near: 0.74, step: 0.22, min: 0.18 },
+    },
+    plain: { x: 230, top: 690, bottom: 1650, size: 30, pitch: 1.45, indentEm: 1, fade: 110 },
+} as const;
+
 const BOOKLET = {
     veil: 0.8,
     credits: {
@@ -114,6 +150,7 @@ const BOOKLET = {
         maxRight: DESIGN_WIDTH - INFO_X,
     },
     frame: { height: 92, gap: 6, stroke: 3 },
+    lyrics: BOOKLET_LYRICS,
 } as const;
 
 /*

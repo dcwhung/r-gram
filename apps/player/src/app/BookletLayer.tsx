@@ -62,6 +62,7 @@ export const BookletLayer = ({ layout, view, measure, handlers, booklet }: Bookl
                     measure={measure}
                     closing={booklet.closing}
                     onClose={booklet.close}
+                    playing={view.playing}
                 />
             )}
             <g ref={buttons} transform={`translate(0 ${px(extraUnits)})`}>

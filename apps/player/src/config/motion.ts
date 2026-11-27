@@ -73,6 +73,18 @@ export const MOTION = {
         bookletFrameInMs: 220,
         bookletCreditOutMs: 160,
         /*
+         * 歌書歌詞（T-082；設計稿 book-in／book-out）：打開時弧線歌詞由而家嗰行沿弧線展開 340（遲 60）、
+         * 純文字欄淡入 300（遲 80）；收返時歌詞收返 220、純文字欄淡出 200。
+         * 唱到下一行：成組沿弧線移去新位置（設計稿冇定時長，T-082 定 300：一行通常唱幾秒，0.3 秒移完唔會追唔切）
+         */
+        bookletLineFanMs: 340,
+        bookletLineFanDelayMs: 60,
+        bookletLineFoldMs: 220,
+        bookletPlainInMs: 300,
+        bookletPlainInDelayMs: 80,
+        bookletPlainOutMs: 200,
+        lyricAdvanceMs: 300,
+        /*
          * MV 電視（設計稿「MV 電視」嘅 CSS：tvRise、antennaOut／In、crtOn、crt-white、crtOff、tvDrop、tv-veil；T-060）。
          * 開：升起 800（回彈）；天線 500 之後彈出 350；螢幕 700 開始由一條白線打開 220，白光 720 之後淡走 200；
          * 背後模糊層淡入 500。收（㩒 ■ 或者播完）：熄機 150（白光 100 淡入）→ 170 之後向下收埋 450、

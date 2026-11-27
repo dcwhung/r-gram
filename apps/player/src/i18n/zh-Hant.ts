@@ -82,6 +82,12 @@ export const zhHant = {
         credit: '{label}：{name}',
         /** 曲詞編監成欄（role="list"）嘅名 */
         credits: '創作人員',
+        /** 歌詞（有時間標記：role="group"；冇時間標記：可以捲嘅一欄）嘅名 */
+        lyrics: '歌詞',
+        /** 呢首歌冇歌詞（框入面一行；同 list.empty 一樣嘅做法） */
+        noLyrics: '尚未有歌詞',
+        /** 歌詞檔攞唔到（網絡、超時；下次打開歌書再試） */
+        lyricsFailed: '未能載入歌詞',
         composer: '曲',
         lyricist: '詞',
         arranger: '編',

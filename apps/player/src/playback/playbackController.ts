@@ -95,6 +95,11 @@ export interface PlaybackController {
     /** 鎖屏上一首：播咗超過 3 秒 = 由頭（D110）；否則即刻換上一首 */
     previous(): void;
     seek(positionSec: number): void;
+    /**
+     * 而家播到邊（秒，引擎嘅真位置）：歌書跟歌行用（T-082）。snapshot 嘅 positionSec 每秒先換一次（唔使每 0.25 秒
+     * render 成個主頁），呢個唔通知，要用嘅元件自己定時讀。未出聲（開場、載入中）= 0
+     */
+    readonly positionSec: number;
     /** 載入嘅碟（播完 3 秒內 `playFirst` 用） */
     readonly source: PlaybackSource | null;
 }
@@ -262,6 +267,10 @@ class Controller implements PlaybackController {
             return;
         }
         this.skipTo(previousId);
+    }
+
+    get positionSec(): number {
+        return this.engine.positionSec;
     }
 
     /** 鎖屏拖進度：即刻報返新位置（時間顯示跟 element 嘅 timeupdate） */

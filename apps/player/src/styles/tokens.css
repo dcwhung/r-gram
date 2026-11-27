@@ -91,6 +91,14 @@
     --motion-scene-booklet-veil-out: 240ms;
     --motion-scene-booklet-frame-in: 220ms;
     --motion-scene-booklet-credit-out: 160ms;
+    /* 歌書歌詞（T-082） */
+    --motion-scene-booklet-line-fan: 340ms;
+    --motion-scene-booklet-line-fan-delay: 60ms;
+    --motion-scene-booklet-line-fold: 220ms;
+    --motion-scene-booklet-plain-in: 300ms;
+    --motion-scene-booklet-plain-in-delay: 80ms;
+    --motion-scene-booklet-plain-out: 200ms;
+    --motion-scene-lyric-advance: 300ms;
     --motion-scene-tv-rise: 800ms;
     --motion-scene-crt-on: 220ms;
     --motion-scene-crt-off: 150ms;

@@ -1,7 +1,16 @@
 import { PHONE_LAYOUT } from './phone';
 import type { StageLayout } from './types';
 export type { TvBox, TvCurve, TvLayout } from './tvTypes';
-export type { BookletCreditsLayout, BookletFrameLayout, BookletLayout } from './bookletTypes';
+export type {
+    ArcLyricsLayout,
+    BookletCreditsLayout,
+    BookletFrameLayout,
+    BookletLayout,
+    BookletLyricsLayout,
+    LongLyricsLayout,
+    LyricFade,
+    PlainLyricsLayout,
+} from './bookletTypes';
 
 export type {
     ArcListLayout,
