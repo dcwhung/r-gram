@@ -1,4 +1,10 @@
-import { formatFlicker, formatNumber, formatReport, formatSnapshot } from './format';
+import {
+    formatFlicker,
+    formatLoadLine,
+    formatNumber,
+    formatReport,
+    formatSnapshot,
+} from './format';
 import type { Snapshot } from './snapshot';
 
 const box = (height: number, top: number) => ({ height, top, bottom: top + height });
@@ -81,6 +87,20 @@ describe('formatFlicker', () => {
     it('should show the changes in the last second and the most seen', () => {
         expect(formatFlicker({ keyNow: 0, keyMax: 3, fitNow: 1, fitMax: 2 })).toBe(
             'fit key changes/s 0 (max 3) | fit applied/s 1 (max 2)',
+        );
+    });
+});
+
+describe('formatLoadLine', () => {
+    it('should show the moment, the viewport, the fit key and the stage box in one line', () => {
+        expect(formatLoadLine({ label: 'DOMContentLoaded', snapshot: SNAPSHOT })).toBe(
+            'DOMContentLoaded @+120ms inner 393x852 dvh 852 key 393 852 59 34 .stage [59, 791.46]',
+        );
+    });
+
+    it('should show a dash before the stage is there', () => {
+        expect(formatLoadLine({ label: '+500ms', snapshot: BEFORE_REACT })).toBe(
+            '+500ms @+120ms inner 393x852 dvh 852 key 393 852 59 34 .stage -',
         );
     });
 });
