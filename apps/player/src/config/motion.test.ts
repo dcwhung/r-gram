@@ -151,6 +151,27 @@ describe('motion tokens', () => {
         expect(Math.max(...closing)).toBe(scene.bookletCloseMs);
     });
 
+    // T-082：設計稿 book-in／book-out 嘅歌詞部分；換行過場 0.3 秒（設計稿冇定）
+    it('should use the booklet lyric timings and fit them inside the open and close durations', () => {
+        const { scene } = MOTION;
+        expect(scene).toMatchObject({
+            bookletLineFanMs: 340,
+            bookletLineFanDelayMs: 60,
+            bookletLineFoldMs: 220,
+            bookletPlainInMs: 300,
+            bookletPlainInDelayMs: 80,
+            bookletPlainOutMs: 200,
+            lyricAdvanceMs: 300,
+        });
+        expect(scene.bookletLineFanDelayMs + scene.bookletLineFanMs).toBe(scene.bookletOpenMs);
+        expect(scene.bookletPlainInDelayMs + scene.bookletPlainInMs).toBeLessThanOrEqual(
+            scene.bookletOpenMs,
+        );
+        expect(Math.max(scene.bookletLineFoldMs, scene.bookletPlainOutMs)).toBeLessThanOrEqual(
+            scene.bookletCloseMs,
+        );
+    });
+
     // T-109：設計稿第 20 版 versionGlow（成粒版本掣一明一暗，1.4 秒一個來回）
     it('should blink the update button with the period of mockup version 20', () => {
         expect(MOTION.loop.updateBlinkMs).toBe(1400);

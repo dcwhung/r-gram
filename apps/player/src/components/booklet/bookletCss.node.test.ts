@@ -27,6 +27,13 @@ describe('booklet.css', () => {
         expect(motionBlock()).toContain('var(--motion-scene-booklet-veil-out)');
     });
 
+    // T-082：唱到下一行嘅過場同歌詞嘅開收都喺 media query 入面（減少動態效果 = 直接切換）
+    it('should move the lyric lines and fan them out only with motion', () => {
+        expect(motionBlock()).toContain('var(--motion-scene-lyric-advance)');
+        expect(motionBlock()).toContain('var(--motion-scene-booklet-line-fan)');
+        expect(CSS.replace(motionBlock(), '')).not.toMatch(/transition:/);
+    });
+
     // 暗層攞到鍵盤 focus（=「關閉歌書」）：畫虛線（SVG outline 喺 Safari 唔可靠）
     it('should draw a dashed line around the focused veil', () => {
         expect(CSS).toMatch(/\.booklet-veil:focus-visible\s*\{[^}]*stroke-dasharray/);

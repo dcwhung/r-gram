@@ -243,6 +243,38 @@ describe('App home scene', () => {
         expect(booklet).toHaveFocus();
     });
 
+    // T-082：歌書攞嗰首歌嘅歌詞檔（API-072），冇時間標記 = 直身一欄；曲詞編監照 catalog（佔位文字）
+    it('should show the credits and fetch the lyrics of the playing track', async () => {
+        const catalog = sampleDocument();
+        const first = catalog.albums[0]?.tracks[0];
+        if (first) {
+            first.credits = {
+                composer: '作曲佔位',
+                lyricist: null,
+                arranger: null,
+                producer: null,
+            };
+            first.lyrics = '0123456789abcdef.json';
+        }
+        const lyrics = { synced: false, lines: [{ text: '歌詞佔位文字' }] };
+        vi.stubGlobal(
+            'fetch',
+            vi.fn(() => Promise.resolve(new Response(JSON.stringify(lyrics)))),
+        );
+        const { button } = await renderHome(catalog);
+        await userEvent.click(button('開啟歌單'));
+        await userEvent.click(button('播放'));
+        await userEvent.click(button('歌書：歌詞及創作人員'));
+        expect(screen.getByRole('listitem', { name: '曲：作曲佔位' })).toBeInTheDocument();
+        expect(await screen.findByRole('document', { name: '歌詞' })).toHaveTextContent(
+            '歌詞佔位文字',
+        );
+        expect(fetch).toHaveBeenCalledWith(
+            'https://api.example/catalog/v1/lyrics/0123456789abcdef.json',
+            expect.objectContaining({ mode: 'cors' }),
+        );
+    });
+
     // MV 電視（T-060）：開 MV 時停播、唱臂返泊位；㩒 ■ 收返之後要㩒先續播，再播重新落針（C8）
     it('should park the arm for the MV and keep it parked after the MV until play is pressed', async () => {
         const tv = createTestMv({ reduceMotion: true });

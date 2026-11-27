@@ -219,4 +219,41 @@ describe('PHONE_LAYOUT', () => {
             frame: { height: 92, gap: 6, stroke: 3 },
         });
     });
+
+    // T-082：設計稿第 18 版 ARC（44 / 32、0.7 − 0.2 × …）、第 17 版 LONG、PLAIN_LAYOUT、PLAIN、CLAMP_BAND（+ 20）
+    it('should carry the booklet lyrics of the mockup', () => {
+        expect(PHONE_LAYOUT.booklet.lyrics).toMatchObject({
+            hubGap: 20,
+            edgeGap: 40,
+            cutFade: 110,
+            inset: 24,
+            rim: 10,
+            arc: {
+                now: 44,
+                nowMin: 32,
+                other: 32,
+                around: 3,
+                fade: { near: 0.7, step: 0.2, min: 0.18 },
+            },
+            long: {
+                size: 32,
+                pitch: 44,
+                pad: 34,
+                gap: 14,
+                other: 28,
+                otherPitch: 50,
+                around: 3,
+                fade: { near: 0.74, step: 0.22 },
+            },
+            plain: {
+                x: 230,
+                top: 690,
+                bottom: 1650,
+                size: 30,
+                pitch: 1.45,
+                indentEm: 1,
+                fade: 110,
+            },
+        });
+    });
 });

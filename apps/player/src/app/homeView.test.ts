@@ -408,7 +408,21 @@ describe('homeView booklet', () => {
 
     it('should show the loaded track and its credits while the booklet is open', () => {
         const view = homeView(document, home({ overlay: 'booklet' }), playback());
-        expect(view.booklet).toEqual({ trackId: 'apollo-18-01', title: 'apollo-18 1', credits });
+        expect(view.booklet).toEqual({
+            trackId: 'apollo-18-01',
+            title: 'apollo-18 1',
+            credits,
+            lyricsUrl: null,
+        });
+    });
+
+    // T-082：歌詞檔網址 = lyricsBase + 檔名（API-072）
+    it('should point at the lyrics file of the track', () => {
+        const withLyrics = sampleDocument();
+        withLyrics.albums[0]!.tracks[0]!.lyrics = '0123456789abcdef.json';
+        expect(
+            homeView(withLyrics, home({ overlay: 'booklet' }), playback()).booklet?.lyricsUrl,
+        ).toBe('https://api.example/catalog/v1/lyrics/0123456789abcdef.json');
     });
 
     // 歌書開住時暫停：歌書留住（決定 5）；播完未放低（D99 ②：等歌書收埋先計 3 秒）都照顯示

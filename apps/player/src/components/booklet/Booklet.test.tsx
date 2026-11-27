@@ -17,6 +17,7 @@ const booklet = (overrides: Partial<BookletView> = {}): BookletView => ({
         arranger: 'RubberBand / 雷柏熹',
         producer: 'RubberBand / 雷柏熹',
     },
+    lyricsUrl: null,
     ...overrides,
 });
 
@@ -38,6 +39,7 @@ const renderBooklet = (
                     measure={estimateTextWidth}
                     closing={props.closing ?? false}
                     onClose={onClose}
+                    playing={false}
                 />
             </svg>
         </StageContext.Provider>,
