@@ -1,0 +1,12 @@
+/* 量全螢幕高度嘅 element（stage/viewportHeight.ts，只喺主畫面 app 整）：唔佔位、睇唔見、㩒唔到 */
+.full-height-probe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0;
+    /* 唔識 lvh 嘅舊瀏覽器用 100vh */
+    height: 100vh;
+    height: 100lvh;
+    visibility: hidden;
+    pointer-events: none;
+}

@@ -63,6 +63,7 @@ export const formatSnapshot = (s: Snapshot): string[] => [
     `safe env t ${formatNumber(s.safe.top)}${SEPARATOR}r ${formatNumber(s.safe.right)}${SEPARATOR}b ${formatNumber(s.safe.bottom)}${SEPARATOR}l ${formatNumber(s.safe.left)}`,
     fitText(s),
     `key ${s.fitKey}`,
+    `height ${s.stageHeight.source} ${formatNumber(s.stageHeight.height)}`,
 ];
 
 export const formatFlicker = ({ keyNow, keyMax, fitNow, fitMax }: FlickerStats): string =>

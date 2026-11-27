@@ -1,4 +1,4 @@
-import { readSafeAreaInsets } from '../stage/safeArea';
+import { readStageHeight, viewportKey } from '../stage/viewportHeight';
 import {
     BOX_SELECTORS,
     type Box,
@@ -104,11 +104,8 @@ export const readFit = (): Record<FitName, string> | null => {
     ) as Record<FitName, string>;
 };
 
-/** 同 stage/useStageFit.ts 嘅 viewportKey 一模一樣（同一個安全區 probe） */
-export const readFitKey = (): string => {
-    const { top, bottom } = readSafeAreaInsets();
-    return [window.innerWidth, window.innerHeight, top, bottom].join(' ');
-};
+/** useStageFit 嘅快照（stage/viewportHeight.ts viewportKey，同一個函數） */
+export const readFitKey = (): string => viewportKey();
 
 const readDisplayMode = () =>
     typeof window.matchMedia === 'function'
@@ -150,4 +147,5 @@ export const takeSnapshot = (probes: Probes, t: number): Snapshot => ({
     safe: readSafe(probes),
     fit: readFit(),
     fitKey: readFitKey(),
+    stageHeight: readStageHeight(),
 });
