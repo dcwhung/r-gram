@@ -6,9 +6,11 @@ import { MiniTurntable } from '../components/mini-turntable/MiniTurntable';
 import { UpdateButton } from '../components/update-button/UpdateButton';
 import type { StageLayout } from '../stage/layouts';
 import type { TextMeasure } from '../utils/textMeasure';
+import { BookletLayer } from './BookletLayer';
 import type { HomeView } from './homeView';
 import { TopInfo as Info } from './TopInfo';
 import { type HomeHandlers, isLowerHalf } from './Turntable';
+import type { BookletClosing } from './useBookletClosing';
 import { useColumnEntrance } from './useColumnEntrance';
 import { useListFloating } from './useListFloating';
 import { useSettledColumn } from './useSettledColumn';
@@ -28,6 +30,10 @@ interface TopGroupProps {
     onFavourite: () => void;
     /** 有新版本等緊（T-109）：版本號變成掣，㩒 = 即刻更新；冇 = 照舊顯示版本號 */
     update?: UpdateAction | null;
+    /** 三粒細掣嘅 MV、播放模式（i 掣經 `booklet.press`） */
+    chrome: Pick<HomeHandlers, 'onMv' | 'onMode'>;
+    /** 歌書開收（T-072：收返有過場） */
+    booklet: BookletClosing;
 }
 
 export interface UpdateAction {
@@ -43,7 +49,7 @@ const ArcList = ({
     measure,
     listHandlers,
     floating,
-}: Omit<TopGroupProps, 'onReturnToLoaded'> & { floating: boolean }) =>
+}: Pick<TopGroupProps, 'layout' | 'view' | 'measure' | 'listHandlers'> & { floating: boolean }) =>
     view.list && (
         <ArcTrackList
             key={view.list.albumId}
@@ -79,17 +85,25 @@ const TrackColumn = ({ layout, view, measure }: PartProps) => {
     );
 };
 
+/** 左上資訊嘅過場 class：由歌單欄開弧線歌單（飄落）淡入；歌書開住淡入、收返緊淡出（白字；黑字墊喺暗層下面） */
+const infoMotion = (view: HomeView, floating: boolean, closing: boolean) => {
+    if (floating) return 'list-info-in';
+    if (!view.booklet) return undefined;
+    return closing ? 'booklet-info booklet-info--out' : 'booklet-info booklet-info--in';
+};
+
 /**
- * 主頁貼頂組（FR-039；設計稿第 19、20 版 scene() 次序）：頂部螺絲 →（有新版本：版本掣，T-109）→
- * 右上角細唱片機（T-048）→
- *（飄落期間：暗層下面一份黑字左上資訊）→ 弧線歌單（T-037：暗層蓋住唱片機、細唱片機同螺絲）→
- * 碟名下面嘅歌單欄（B-086；喺泊位嘅唱臂上面）→
- * 左上資訊（飄落期間淡入）→ 右上版本號（有新版本時唔畫：變咗版本掣，喺暗層下面）
+ * 主頁貼頂組（FR-039；設計稿第 18–20 版 scene() 次序）：頂部螺絲 →（有新版本：版本掣，T-109）→
+ * 右上角細唱片機（T-048）→（飄落期間：暗層下面一份黑字左上資訊）→
+ * 歌書（T-072：暗層蓋住唱片機、螺絲同版本掣）→ 三粒細掣（喺歌書上面）→
+ * 弧線歌單（T-037：暗層蓋住唱片機、細唱片機、螺絲同細掣）→ 碟名下面嘅歌單欄（B-086；喺泊位嘅唱臂上面）→
+ * 左上資訊同右上版本號（歌單、歌書開住係白字；有新版本時版本號變咗版本掣，喺暗層下面）
  */
 export const TopGroup = (props: TopGroupProps) => {
-    const { layout, view, measure, onReturnToLoaded, update } = props;
+    const { layout, view, measure, onReturnToLoaded, update, booklet } = props;
     const floating = useListFloating(view.list, layout);
     const parts = { layout, view, measure, onFavourite: props.onFavourite };
+    const dark = view.listOpen || view.booklet !== null;
     return (
         <>
             <g data-part="screws">
@@ -117,16 +131,19 @@ export const TopGroup = (props: TopGroupProps) => {
                     <Info {...parts} listOpen={false} onFavourite={undefined} />
                 </g>
             )}
+            <BookletLayer
+                layout={layout}
+                view={view}
+                measure={measure}
+                handlers={props.chrome}
+                booklet={booklet}
+            />
             <ArcList {...parts} listHandlers={props.listHandlers} floating={floating} />
             <TrackColumn {...parts} />
-            {floating ? (
-                <g className="list-info-in">
-                    <Info {...parts} listOpen={view.listOpen} />
-                </g>
-            ) : (
-                <Info {...parts} listOpen={view.listOpen} />
-            )}
-            {update ? null : <VersionText version={layout.info.version} dark={view.listOpen} />}
+            <g className={infoMotion(view, floating, booklet.closing)}>
+                <Info {...parts} listOpen={view.listOpen} dark={view.booklet !== null} />
+                {update ? null : <VersionText version={layout.info.version} dark={dark} />}
+            </g>
         </>
     );
 };

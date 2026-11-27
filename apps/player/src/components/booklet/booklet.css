@@ -1,0 +1,105 @@
+/*
+ * 歌書（設計稿第 18 版 booklet()、dimLayer()、focusFrame()；T-072）：暗層上面白色框線、曲詞編監。
+ * 位置、字級、透明度喺幾何表 booklet；「曲／詞／編／監」嘅專輯著燈色由元件畀（fill）。
+ */
+.booklet,
+.booklet-veil {
+    outline: none;
+}
+
+.booklet-veil {
+    fill: var(--color-booklet-veil);
+}
+
+/* 鍵盤 focus 喺暗層（=「關閉歌書」）：喺唱片夾個窿同舞台邊畫虛線（同弧線歌單嘅暗層一樣） */
+.booklet-veil:focus-visible {
+    stroke: var(--color-paper);
+    stroke-width: 3;
+    stroke-dasharray: 8 6;
+}
+
+.booklet-frame {
+    stroke: var(--color-paper);
+}
+
+.booklet-credit-label {
+    font-family: var(--font-cjk);
+    font-weight: 700;
+}
+
+.booklet-credit-value {
+    fill: var(--color-booklet-credit);
+    font-family: var(--font-cjk);
+}
+
+/*
+ * 過場（設計稿 book-in／book-out；Technical Spec「歌書過場」）：打開時暗層同左上白字淡入、框線以唱片夾嗰邊做原點
+ * 由 scaleX(0) 伸出、曲詞編監逐行由左滑入；收返倒轉。元件一 mount 就係 booklet--in（動畫只喺 mount 行一次），
+ * 收返嗰陣換做 booklet--out。淡入只寫 from、用 backwards：完咗行返自己嘅透明度（暗層 0.8）。減少動態效果：冇
+ */
+@media (prefers-reduced-motion: no-preference) {
+    .booklet--in .booklet-veil,
+    .booklet-info--in {
+        animation: booklet-fade-in var(--motion-scene-booklet-veil-in) ease backwards;
+    }
+
+    .booklet--in .booklet-frame-motion {
+        transform-origin: 0 0;
+        animation: booklet-frame-out var(--motion-scene-booklet-frame-out)
+            cubic-bezier(0.2, 0.8, 0.3, 1) backwards;
+    }
+
+    .booklet--in .booklet-credit {
+        animation: booklet-credit-in var(--motion-scene-booklet-credit-in) ease-out
+            calc(
+                var(--i) * var(--motion-scene-booklet-credit-step) +
+                    var(--motion-scene-booklet-credit-delay)
+            )
+            backwards;
+    }
+
+    .booklet--out .booklet-veil,
+    .booklet-info--out {
+        animation: booklet-fade-out var(--motion-scene-booklet-veil-out) ease both;
+    }
+
+    .booklet--out .booklet-frame-motion {
+        transform-origin: 0 0;
+        animation: booklet-frame-in var(--motion-scene-booklet-frame-in) ease-in both;
+    }
+
+    .booklet--out .booklet-credit {
+        animation: booklet-fade-out var(--motion-scene-booklet-credit-out) ease both;
+    }
+}
+
+@keyframes booklet-fade-in {
+    from {
+        opacity: 0;
+    }
+}
+
+@keyframes booklet-fade-out {
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes booklet-frame-out {
+    from {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes booklet-frame-in {
+    to {
+        transform: scaleX(0);
+    }
+}
+
+@keyframes booklet-credit-in {
+    from {
+        transform: translateX(-16px);
+        opacity: 0;
+    }
+}

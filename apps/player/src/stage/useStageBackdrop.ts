@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import type { Scene } from '../app/stageReducer';
+import type { Overlay, Scene } from '../app/stageReducer';
 
 /*
  * 安全區外面（狀態列、底部指示條後面、闊畫面兩邊）嘅底色（backlog B-014）。
@@ -17,7 +17,9 @@ const SCENE_BACKDROP: Readonly<Record<Scene, string>> = {
     list: 'var(--color-stage-dimmed)',
 };
 
-export const backdropFor = (scene: Scene): string => SCENE_BACKDROP[scene];
+/** 歌書（T-072）嘅暗層同歌單一樣係黑色 80%；電視嘅淡白層照用場景嘅底色 */
+export const backdropFor = (scene: Scene, overlay: Overlay = null): string =>
+    overlay === 'booklet' ? SCENE_BACKDROP.list : SCENE_BACKDROP[scene];
 
 /** 掛住嘅時候設 `--stage-backdrop`，拆走時清返 */
 export const useStageBackdrop = (value: string): void => {

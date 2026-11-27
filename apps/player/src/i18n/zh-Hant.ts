@@ -76,6 +76,12 @@ export const zhHant = {
     booklet: {
         open: '歌書：歌詞及創作人員',
         close: '關閉歌書',
+        /** 歌書成個（role="dialog"）嘅名 */
+        label: '歌書：{title}',
+        /** 曲詞編監一行畀讀屏（完整嘅名，就算畫面上截短咗） */
+        credit: '{label}：{name}',
+        /** 曲詞編監成欄（role="list"）嘅名 */
+        credits: '創作人員',
         composer: '曲',
         lyricist: '詞',
         arranger: '編',

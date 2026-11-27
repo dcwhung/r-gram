@@ -56,8 +56,22 @@ export const MOTION = {
         tonearmMs: 650,
         /** 唱針放低 / 升起（開場第二段、暫停、繼續）；設計稿第 17 版 ARM_IN.dropMs */
         needleDropMs: 160,
+        /** 歌書成個打開／收返（最長嗰部分完咗；收返完先轉場景狀態，期間鎖住 i 掣） */
         bookletOpenMs: 400,
         bookletCloseMs: 240,
+        /*
+         * 歌書嘅各部分（設計稿第 18 版 book-in／book-out；Technical Spec「歌書過場」；T-072）。
+         * 打開：暗層同左上白字淡入 300；框線由唱片夾向左伸出 300；曲詞編監逐行由左滑入 240（第 i 行遲 40 + i × 40）。
+         * 收返：暗層同白字淡出 240；框線縮返入唱片夾 220；曲詞編監淡出 160
+         */
+        bookletVeilInMs: 300,
+        bookletFrameOutMs: 300,
+        bookletCreditInMs: 240,
+        bookletCreditDelayMs: 40,
+        bookletCreditStepMs: 40,
+        bookletVeilOutMs: 240,
+        bookletFrameInMs: 220,
+        bookletCreditOutMs: 160,
         /*
          * MV 電視（設計稿「MV 電視」嘅 CSS：tvRise、antennaOut／In、crtOn、crt-white、crtOff、tvDrop、tv-veil；T-060）。
          * 開：升起 800（回彈）；天線 500 之後彈出 350；螢幕 700 開始由一條白線打開 220，白光 720 之後淡走 200；

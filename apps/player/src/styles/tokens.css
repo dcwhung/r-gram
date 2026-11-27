@@ -35,6 +35,10 @@
      * MV 電視（T-060；設計稿「MV 電視」）：背後淡白層（白 20%）、螢幕黑底、螢幕上嘅字、開機白光；
      * 玻璃反光（gGlare：白 24% → 4%）、暗角（gVignette：黑 62%）、掃描線（pattern scan：黑 16%）
      */
+    /* 歌書（T-072；設計稿 booklet()）：曲詞編監嘅名 */
+    --color-booklet-credit: #d9d6ce;
+    /* 歌書暗層（設計稿 dimLayer()：黑色，透明度喺幾何表 booklet.veil） */
+    --color-booklet-veil: #000000;
     --color-tv-veil: rgb(255 255 255 / 20%);
     --color-tv-screen: #000000;
     --color-tv-screen-text: #ffffff;
@@ -78,6 +82,15 @@
     --motion-scene-needle-drop: 160ms;
     --motion-scene-booklet-open: 400ms;
     --motion-scene-booklet-close: 240ms;
+    /* 歌書各部分（T-072；設計稿第 18 版 book-in／book-out） */
+    --motion-scene-booklet-veil-in: 300ms;
+    --motion-scene-booklet-frame-out: 300ms;
+    --motion-scene-booklet-credit-in: 240ms;
+    --motion-scene-booklet-credit-delay: 40ms;
+    --motion-scene-booklet-credit-step: 40ms;
+    --motion-scene-booklet-veil-out: 240ms;
+    --motion-scene-booklet-frame-in: 220ms;
+    --motion-scene-booklet-credit-out: 160ms;
     --motion-scene-tv-rise: 800ms;
     --motion-scene-crt-on: 220ms;
     --motion-scene-crt-off: 150ms;

@@ -70,7 +70,8 @@ const Hub = ({ layout, view, handlers, spindleRef, faceRef }: TurntableProps) =>
 
 /**
  * 唱片機（貼底組，FR-039；設計稿第 18 版 scene()）：左下螺絲 → 轉盤 → 碟（唱片夾緊接喺而家隻碟後面）→
- * 半透明層（有歌單欄時，B-086）→ 唱臂 → 三粒細掣 → 字母盤、旋鈕、♥。揀碟時唱臂同細掣淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 半透明層（有歌單欄時，B-086）→ 唱臂 → 字母盤、旋鈕、♥。揀碟時唱臂淡出，淡出期間姿勢變就即時到位（T-036）。
+ * 三粒細掣喺貼頂組（BookletLayer）：要喺歌書嘅暗層上面（T-072）。
  * 拎住另一隻碟時（T-048）轉盤都淡出；返去載入嘅碟（顯示嘅碟換咗）唱臂即時到位，唔行開場。
  * 主頁碟面（T-037）喺唱片夾後面：㩒碟面開弧線歌單；歌單本身（暗層、框、歌名）喺貼頂組（TopGroup）。
  */
@@ -103,13 +104,7 @@ export const Turntable = ({ layout, view, handlers, spindleRef, faceRef }: Turnt
                 />
             </DiscStack>
             <HeldScrim layout={layout} shown={view.trackColumn !== null} screws={lowerScrews} />
-            <MachineChrome
-                layout={layout}
-                view={view}
-                handlers={handlers}
-                leadIn={leadIn}
-                instant={instant}
-            />
+            <MachineChrome layout={layout} view={view} leadIn={leadIn} instant={instant} />
             <DialControls layout={layout} view={view} handlers={handlers} />
         </>
     );

@@ -12,10 +12,12 @@ interface TopInfoProps {
     listOpen: boolean;
     /** 心形掣（T-070）；冇畀 = 心形只係圖案（例如飄落期間墊喺下面嗰份） */
     onFavourite?: () => void;
+    /** 歌書開住（T-072）：白字（暗層下面墊嗰份黑字係 false） */
+    dark?: boolean;
 }
 
 /** 左上資訊（主頁貼頂組）：由主頁衍生值砌 InfoBlock 嘅 props */
-export const TopInfo = ({ layout, view, measure, listOpen, onFavourite }: TopInfoProps) => (
+export const TopInfo = ({ layout, view, measure, listOpen, onFavourite, dark }: TopInfoProps) => (
     <InfoBlock
         info={layout.info}
         album={view.album}
@@ -29,6 +31,7 @@ export const TopInfo = ({ layout, view, measure, listOpen, onFavourite }: TopInf
         songHidden={view.songHidden}
         held={view.holding}
         listOpen={listOpen}
+        dark={dark}
         listTrack={listOpen ? view.listTrack : null}
         favourite={view.favourite}
         onFavourite={onFavourite}

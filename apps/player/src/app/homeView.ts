@@ -17,6 +17,7 @@ import { t } from '../i18n/t';
 import { DEFAULT_PLAY_MODE, type PlayMode } from '../playback/playModes';
 import { formatTime } from '../utils/formatTime';
 import { discGlow } from '../favourites/favouritesAlbum';
+import { type BookletView, bookletView } from './bookletView';
 import { dialView, type DialView } from './dialView';
 import { type FavouriteParts, favouriteParts } from './favouritesView';
 import { type TrackColumnView, trackColumnView } from './heldTracksView';
@@ -78,6 +79,8 @@ export interface HomeView extends FavouriteParts {
     listOpen: boolean;
     bookletOpen: boolean;
     mvOpen: boolean;
+    /** 歌書（T-072）：開住而且有歌先有；冇 = null */
+    booklet: BookletView | null;
     /** 旋鈕、刻度、字母盤、轉盤上面嘅碟（T-036） */
     dial: DialView;
     /** 唱片機入面嗰隻碟（播放狀態，有歌播緊或者暫停緊）；冇 = null */
@@ -179,14 +182,15 @@ const openFlags = (stage: StageState) => ({
     mvOpen: stage.overlay === 'mv',
 });
 
-/** 弧線歌單：設計稿第 19 版 ACTIONS.list = 主頁（冇開歌單、電視、字母盤），拎住另一隻碟都得 */
+/** 弧線歌單：設計稿第 19 版 ACTIONS.list = 主頁（冇開歌單、電視、歌書、字母盤），拎住另一隻碟都得 */
 const listParts = (
     document: CatalogDocument,
     album: CatalogAlbum | null,
     stage: StageState,
     playback: PlaybackState,
 ) => ({
-    canOpenList: album !== null && stage.scene === 'home' && stage.overlay !== 'mv',
+    // 歌書、電視開住都唔得：碟面喺佢哋下面（T-072：㩒暗位 = 收返歌書）
+    canOpenList: album !== null && stage.scene === 'home' && stage.overlay === null,
     list: listView(document, stage, playback),
     listTrack:
         stage.scene === 'list'
@@ -237,6 +241,7 @@ export const homeView = (
         ...timing(playback, track !== null && playback.status === 'error'),
         ...songFlags(track, mode),
         ...openFlags(stage),
+        booklet: bookletView(stage, track),
         dial,
         ...choosing,
         ...heldParts(document, stage, playback, dial, choosing.holding),
