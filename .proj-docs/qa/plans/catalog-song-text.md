@@ -3,20 +3,22 @@
 - Chain: `@r-gram/catalog` 歌曲文字（一首歌一個文字框）：`parseSongText()`（歌名、標籤行、歌詞，逐行報錯）、`formatSongText()`（回填）、長度上限。任務 T-029
 - AC（L1 來源：FS = Functional Spec v1.4、TS = Technical Spec v1.2）:
     - AC-1 歌名（FS D31；TS「`parseSongText()` 嘅規則」）：第一個非空白行（trim）；冇，或者時間標記開頭 → `TITLE_REQUIRED`（行號）
-    - AC-2 標籤行（FS D31、D37）：`副題`／`曲`／`詞`／`編`／`監` + 全形或半形冒號；次序隨意；每項最多一次，重覆 → 嗰行 `DUPLICATE_LABEL`；值 trim 後空 = 冇；四個 credit 都冇 → `credits = null`；段落遇到第一個空行或者第一行唔係標籤行就完
+    - AC-2 標籤行（FS D31、D37）：`副題`／`曲`／`詞`／`編`／`監` + 全形或半形冒號；次序隨意；每項最多一次，重覆 → 嗰行 `DUPLICATE_LABEL`；值 trim 後空 = 冇；四個 credit 都冇 → `credits = null`；~~段落遇到第一個空行或者第一行唔係標籤行就完~~（2026-11-27 改，見 AC-9）
     - AC-3 歌詞（FS D32、TS 同上）：可以冇（`null`）；全部行有時間標記 → 同步（沿用 `parseLrc()` 規則，包括 `[offset:]`、metadata）；全部冇 → 純文字（前後空行刪、中間連續空行當一個分段）；混合 → 逐行報錯。`[1]`、`[1999]`、`[Chorus]`、`[ti:…]`、`[offset:…]` 唔算時間標記；`[00:60.00]`、`[1:2]` 算（W-012）
     - AC-4 行號同輸入正規化（FS D31「錯誤：逐行指出（行號 + 原因）」）：行號 = 成段文字入面嘅行號（由 1 開始）；CRLF = LF；BOM 唔計；行尾空白唔計；錯誤按行號排
     - AC-5 長度上限（TS「安全設計」；backlog B-006；`limits.ts`）：成段 64 KiB（UTF-8）、1000 行、歌名／副題 200 字、credit 200 字、歌詞每行 500 字（code point）
-    - AC-6 回填同 round trip（FS D31「回填」；TS「`formatSongText()`」）：次序歌名、副題、曲、詞、編、監（全形冒號，冇值唔出）、空行、`lyrics.source` 原樣；`parseSongText(formatSongText(x))` = `x`；seed 歌全部成立（CR-004 之後 291 首）
+    - AC-6 回填同 round trip（FS D31「回填」；TS「`formatSongText()`」）：次序歌名、副題、曲、詞、編、監（全形冒號，冇值唔出）、空行、`lyrics.source` 原樣；`parseSongText(formatSongText(x))` = `x`（`x` 由 `parseSongText()` 讀出；例外：第一行以曲／詞／編／監 + 冒號開頭嘅舊歌詞回填後讀成 credit，S-284，擁有人接受）；seed 歌全部成立（CR-004 之後 291 首）
     - AC-7 歌詞 JSON（TS API-072、CR-003）：`toLyricsJson()` 帶 `synced`；純文字行冇 `t`（`toLyricsJson` 檔屬 `catalog-core`，喺呢度用佢做輸出驗收）
     - AC-8 冇副題（CR-007，T-103；FS D71、D72；TS「`packages/catalog` → song-text」）：`副題` 標籤照認，唔入結果，出 hint `SUBTITLE_IGNORED`（行號，唔擋）；重覆照 `DUPLICATE_LABEL`；`formatSongText()` 唔出 `副題：` 行；`SongText` 冇 `subtitle`；隱藏字元檢查用 `src/text/hiddenCharacters.ts`（屬 `api-sync`，1-hop）
+    - AC-9 標籤段認 prefix（擁有人決定 2026-11-27，取代 backlog B-038 嘅提示方案；FS D31 / TS「`parseSongText()` 嘅規則」待 CR 回寫）：歌名之後、標籤之前同標籤之間嘅空行跳過；第一個非空白又唔係標籤嘅行 = 歌詞開始；歌詞入面似標籤嘅行照當歌詞；歌名、空行、曲詞編監、空行、歌詞 = 擁有人格式。接受嘅副作用：冇標籤而歌詞第一行係「曲：…」= credit；同一標籤隔空行出現兩次 = `DUPLICATE_LABEL`。S-285：標籤段入面淨係得隱藏字元（`hiddenCharacters.ts`）嘅行當空行，行頭夾住隱藏字元嘅標籤照認（值照原文）；S-287：行頭縮排（半形、全形空格、tab）嘅標籤照認。`labelHints.ts`（`LABEL_AFTER_BLANK_LINE`）拎走
 - Scope files:
-    - `packages/catalog/src/song-text/**`（`parseSongText.ts`、`formatSongText.ts`、`labels.ts`、`lyrics.ts`、`limits.ts`、`types.ts` 同 `*.test.ts`）
+    - `packages/catalog/src/song-text/**`（`parseSongText.ts`、`formatSongText.ts`、`labels.ts`、`lines.ts`、`lyrics.ts`、`limits.ts`、`types.ts` 同 `*.test.ts`；`labelHints*` 2026-11-27 刪走）
     - 1-hop 依賴（唔喺呢條鏈 freeze）：`src/text/hiddenCharacters.ts`（屬 `api-sync`）；屬 `catalog-core`：`src/lrc/parseLrc.ts`（`parseLrc`、`startsWithTimestamp`）、`src/schema/types.ts`、`src/index.ts`
 - Commands:
     - `npm run lint`
     - `npm run typecheck`
     - `npm run coverage`（全部 workspace 一次；門檻 80%）
 - Probe（scratchpad，唔入 repo）：esbuild bundle `packages/catalog/src/index.ts`，Node 22 逐條輸入對 AC-1 – AC-7（預期由 spec 寫，唔抄 developer 嘅 test）；seed 262 首 × 4 種歌詞（冇、同步、純文字、似標籤嘅純文字）round trip 兩轉
+- 2026-11-27（song-text-credit-gap）：AC-9 probe 17 條（擁有人格式、多個空行、歌詞入面標籤、副作用、隱藏字元、縮排、CRLF／BOM 行號、round trip）；新舊 parser 對 seed 291 首 × 5 種歌詞（1455 個）只喺「歌詞第一行似標籤」嗰種唔同
 - PWA gate: no。Performance gate: no（冇 API）。Security / Data gate: yes（外來文字輸入：AC-4、AC-5）
 - Out of scope: `parseLrc()` 本身（`catalog-core` AC-4）；API-041 儲存流程同 400 回應（T-022 起）；管理端即時檢查 UI 同錯誤文字（T-023）；S-049 – S-052（backlog）
