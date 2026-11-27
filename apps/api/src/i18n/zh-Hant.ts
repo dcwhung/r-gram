@@ -121,8 +121,6 @@ export const zhHant = {
         },
         /** 唔擋儲存嘅提示（200 / 201 回應嘅 hints[]）：key = hints[].reason */
         hints: {
-            LABEL_AFTER_BLANK_LINE:
-                '此行看似標籤，但前面有空行，因此已當作歌詞儲存。如屬標籤，請刪除前面的空行。',
             /** CR-007（Functional Spec D72）：舊檔嘅「副題：」行照收但唔用 */
             SUBTITLE_IGNORED: '副題已不再使用，此行已略過。',
         },
