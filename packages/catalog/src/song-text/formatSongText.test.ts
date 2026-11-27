@@ -71,6 +71,22 @@ describe('formatSongText', () => {
         );
     });
 
+    // review S-284：接受咗嘅例外：歌詞第一行似標籤（parser 唔會讀出咁嘅歌詞，只會喺舊資料出現）→ 再讀入變 credit
+    it('should turn a first lyric line that looks like a label into a credit when read again', () => {
+        const song = {
+            title: '歌名甲',
+            credits: null,
+            lyrics: { source: '曲：作曲者甲\n\n第一句' },
+        };
+        const text = formatSongText(song);
+        expect(text).toBe('歌名甲\n\n曲：作曲者甲\n\n第一句');
+        expect(songOf(parseSongText(text))).toEqual({
+            title: '歌名甲',
+            credits: { composer: '作曲者甲', lyricist: null, arranger: null, producer: null },
+            lyrics: { source: '第一句', synced: false, lines: [{ text: '第一句' }] },
+        });
+    });
+
     describe('round trip', () => {
         const samples: Record<string, string> = {
             'timed lyrics': '一早地下鐵\n曲：阿正\n詞：Tim Lui / 6號\n\n[00:12.30]a\n\n[00:16.80]',
